@@ -110,7 +110,7 @@ input,select,textarea{font-family:inherit;outline:none;border:none;}
 .badge-danger{background:rgba(251,113,133,.15);color:#FB7185;}
 .badge-staying{background:rgba(0,200,150,.15);color:var(--accent);}
 .badge-checkin{background:rgba(96,165,250,.15);color:#60A5FA;}
-.badge-vacant{background:rgba(0,200,150,.15);color:var(--accent);}
+.badge-vacant{background:rgba(148,163,184,.15);color:#94A3B8;}
 .badge-cleaning{background:rgba(14,165,233,.15);color:var(--accent2);}
 .badge-checkout{background:rgba(245,158,11,.15);color:var(--warning);}
 
@@ -1149,7 +1149,9 @@ function classifyBookings(bookings){
 
 function renderRoomCard(r){
   const info=getRoomInfo(r);
-  return `<div class="room-card">
+  const borderColors={occupied:'#00C896',vacant:'#94A3B8',checkout:'#FB7185',checkin:'#60A5FA'};
+  const leftBorder=borderColors[info.status]||'var(--border)';
+  return `<div class="room-card" style="border-left:3px solid ${leftBorder}">
     <div class="flex-between"><div class="room-number">${r.number}호</div><span class="badge ${info.badgeClass}">${info.badge}</span></div>
     <div class="room-type">${r.type}</div>
     ${info.detail?`<div style="font-size:.63rem;color:var(--text3);margin-top:.2rem;line-height:1.3">${info.detail}</div>`:''}
@@ -1478,7 +1480,9 @@ function renderRooms(){
       const host=DB.users.find(u=>u.id===r.hostId);
       const hasIcal=!!r.icalUrl;
       const info=getRoomInfo(r);
-      return `<div class="room-card">
+      const borderColors={occupied:'#00C896',vacant:'#94A3B8',checkout:'#FB7185',checkin:'#60A5FA'};
+      const leftBorder=borderColors[info.status]||'var(--border)';
+      return `<div class="room-card" style="border-left:3px solid ${leftBorder}">
         <div class="flex-between"><div class="room-number">${r.number}호</div><span class="badge ${info.badgeClass}">${info.badge}</span></div>
         <div class="room-type">${r.type||'미지정'} ${hasIcal?'<span style="font-size:.65rem;color:var(--accent2)">🔗 연동</span>':''}</div>
         ${info.detail?`<div style="font-size:.63rem;color:var(--text3);margin-top:.15rem;line-height:1.3">${info.detail}</div>`:`<div style="font-size:.7rem;color:var(--text2);margin-top:.2rem">IN ${r.defaultCheckIn||'15:00'} · OUT ${r.defaultCheckOut||'11:00'}</div>`}
