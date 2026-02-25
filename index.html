@@ -1235,9 +1235,13 @@ function renderDashboard(){
       <div class="section-title">오늘의 작업</div>
       ${todayJobs.map(c=>{
         const room=DB.rooms.find(r=>r.id===c.roomId);
+        const coTime=c.checkOutTime||room?.defaultCheckOut||'';
+        const ciTime=c.checkInTime||room?.defaultCheckIn||'';
+        const timeChangeHtml=c.timeChanged&&c.timeChangeLog?`<div style="font-size:.7rem;color:var(--warning);margin-top:.2rem">⚠️ ${c.timeChangeLog}</div>`:'';
         return `<div class="card" onclick="openCleanWork('${c.id}')">
-          <div class="card-header"><div><div class="card-title">${room?.number||'?'}호 - ${c.type}</div><div class="card-sub">${c.time}${c.checkOutTime?' · 체크아웃 '+c.checkOutTime:''}</div></div>${reqStatusBadge(c.status)}</div>
-          ${c.notes?`<div class="text-sm text-muted mt-sm">${c.notes}</div>`:''}
+          <div class="card-header"><div><div class="card-title">${room?.number||'?'}호 - ${c.type}</div><div class="card-sub">🧹 청소 ${c.time}${coTime?' · ⏰ 체크아웃 '+coTime:''}${ciTime?' · 🔵 체크인 '+ciTime:''}</div></div>${reqStatusBadge(c.status)}</div>
+          ${timeChangeHtml}
+          ${c.notes?`<div class="text-sm text-muted mt-sm">📝 ${c.notes}</div>`:''}
         </div>`;
       }).join('')||emptyState('😊','오늘 작업 없음','오늘 배정된 청소 작업이 없습니다')}`;
   }
@@ -1399,8 +1403,10 @@ function renderCleanList(list,viewer='admin'){
       else if(c.status==='confirmed') actions=`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openChecklistView('${c.id}')">결과 보기</button> <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openReviewModal('${c.id}')">별점</button> <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteCleaningReq('${c.id}')">삭제</button>`;
     }
     const timeChangeInfo=c.timeChanged&&c.timeChangeLog?`<div style="font-size:.7rem;color:var(--warning);margin-top:.2rem">⚠️ ${c.timeChangeLog}</div>`:'';
+    const coTimeDisplay=c.checkOutTime||room?.defaultCheckOut||'';
+    const ciTimeDisplay=c.checkInTime||'';
     return `<div class="card">
-      <div class="card-header"><div><div class="card-title">${room?.number||'?'}호 - ${c.type}</div><div class="card-sub">${c.date} ${c.time}${c.checkOutTime?' · 체크아웃 '+c.checkOutTime:''}${c.checkInTime?' · 체크인 '+c.checkInTime:''}${cleaner&&viewer!=='cleaner'?' · '+cleaner.name:''}</div></div>${reqStatusBadge(c.status)}</div>
+      <div class="card-header"><div><div class="card-title">${room?.number||'?'}호 - ${c.type}</div><div class="card-sub">${c.date} 🧹${c.time}${coTimeDisplay?' · ⏰체크아웃 '+coTimeDisplay:''}${ciTimeDisplay?' · 🔵체크인 '+ciTimeDisplay:''}${cleaner&&viewer!=='cleaner'?' · '+cleaner.name:''}</div></div>${reqStatusBadge(c.status)}</div>
       ${timeChangeInfo}
       ${c.status!=='pending'?`<div class="text-sm text-muted mt-sm">📋 체크리스트 ${done}/${total} 완료 · 📷 사진 ${c.photos.length}장</div>`:''}
       ${c.notes?`<div class="text-sm text-muted mt-sm">📝 ${c.notes}</div>`:''}
@@ -2362,9 +2368,11 @@ function addCleaningRequest(){
   const hostId = currentUser.role==='admin' ? (reqRoom?.hostId||currentUser.id) : currentUser.id;
   // 연관 예약의 체크아웃 시간 자동 연결
   const relatedBooking=DB.bookings.find(bk=>bk.roomId===roomId&&bk.checkOut===date);
-  const checkOutTime=relatedBooking?.checkOutTime||'';
-  DB.cleaningRequests.push({id:'c'+Date.now(),roomId,hostId,cleanerId,type,date,time,checkOutTime,notes,status:'pending',photos:[],checklistResult:{},rating:0,reviewNote:'',submittedAt:null,confirmedAt:null});
-  addNotif(cleanerId,`${DB.rooms.find(r=>r.id===roomId)?.number}호 청소 작업이 배정되었습니다 (${date} ${time}${checkOutTime?' · 체크아웃 '+checkOutTime:''})`);
+  const checkOutTime=relatedBooking?(relatedBooking.checkOutTime||reqRoom?.defaultCheckOut||'11:00'):'';
+  const relatedCiBooking=DB.bookings.find(bk=>bk.roomId===roomId&&bk.checkIn===date);
+  const checkInTime=relatedCiBooking?(relatedCiBooking.checkInTime||reqRoom?.defaultCheckIn||'15:00'):'';
+  DB.cleaningRequests.push({id:'c'+Date.now(),roomId,hostId,cleanerId,type,date,time,checkOutTime,checkInTime,notes,status:'pending',photos:[],checklistResult:{},rating:0,reviewNote:'',submittedAt:null,confirmedAt:null,timeChanged:false,timeChangeLog:''});
+  addNotif(cleanerId,`${DB.rooms.find(r=>r.id===roomId)?.number}호 청소 작업이 배정되었습니다\n🧹 ${date} ${time}${checkOutTime?' · ⏰체크아웃 '+checkOutTime:''}${checkInTime?' · 🔵체크인 '+checkInTime:''}`);
   saveData();closeModal('modalCleaningReq');playNotifSound();showToast('청소 요청이 등록되었습니다');renderPage(currentPage);
 }
 
