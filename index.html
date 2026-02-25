@@ -108,6 +108,8 @@ input,select,textarea{font-family:inherit;outline:none;border:none;}
 .badge-rejected{background:rgba(244,63,94,.15);color:var(--danger);}
 .badge-occupied{background:rgba(244,63,94,.15);color:var(--danger);}
 .badge-danger{background:rgba(251,113,133,.15);color:#FB7185;}
+.badge-staying{background:rgba(0,200,150,.15);color:var(--accent);}
+.badge-checkin{background:rgba(96,165,250,.15);color:#60A5FA;}
 .badge-vacant{background:rgba(0,200,150,.15);color:var(--accent);}
 .badge-cleaning{background:rgba(14,165,233,.15);color:var(--accent2);}
 .badge-checkout{background:rgba(245,158,11,.15);color:var(--warning);}
@@ -1039,31 +1041,73 @@ function switchPage(pageId){
 function refreshAllStatuses(){
   const now=new Date();
   const today=now.toISOString().slice(0,10);
-  const nowHHMM=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
   let changed=false;
   DB.bookings.forEach(b=>{
     const newStatus=b.checkOut<today?'past':(b.checkIn<=today&&b.checkOut>=today?'active':'upcoming');
     if(b.status!==newStatus){b.status=newStatus;changed=true;}
   });
-  // 객실 상태: 체크아웃 시간 기준
-  DB.rooms.forEach(room=>{
-    const oldStatus=room.status;
-    // 오늘 체크아웃인 예약 찾기
-    const coToday=DB.bookings.find(b=>b.roomId===room.id&&b.checkOut===today);
-    // 연박 투숙 (체크아웃이 내일 이후)
-    const staying=DB.bookings.find(b=>b.roomId===room.id&&b.checkIn<=today&&b.checkOut>today);
-    if(coToday){
-      const coTime=coToday.checkOutTime||room.defaultCheckOut||'11:00';
-      if(nowHHMM>=coTime) room.status='checkout'; // 시간 지남 → 체크아웃
-      else room.status='occupied'; // 아직 시간 안됨 → 투숙중
-    } else if(staying){
-      room.status='occupied';
-    } else {
-      if(room.status==='occupied'||room.status==='checkout') room.status='vacant';
-    }
-    if(room.status!==oldStatus) changed=true;
-  });
   if(changed) saveData();
+}
+
+// 객실 상세 상태 계산 (실시간)
+function getRoomInfo(room){
+  const now=new Date();
+  const today=now.toISOString().slice(0,10);
+  const nowHHMM=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+
+  // 이 객실의 현재/오늘 예약
+  const activeBookings=DB.bookings.filter(b=>b.roomId===room.id&&b.checkIn<=today&&b.checkOut>=today);
+  // 오늘 체크아웃 예약 (checkOut === today)
+  const coTodayBooking=activeBookings.find(b=>b.checkOut===today);
+  // 연박 예약 (checkOut > today, 즉 오늘 이후에 체크아웃)
+  const stayingBooking=activeBookings.find(b=>b.checkOut>today);
+  // 다음 예약 (오늘 이후 체크인)
+  const nextBooking=DB.bookings.find(b=>b.roomId===room.id&&b.checkIn>today);
+  // 오늘 체크인 예약
+  const ciTodayBooking=DB.bookings.find(b=>b.roomId===room.id&&b.checkIn===today);
+
+  const coTime=coTodayBooking?(coTodayBooking.checkOutTime||room.defaultCheckOut||'11:00'):'';
+  const timePassed=coTime?nowHHMM>=coTime:false;
+
+  // 연박일수 계산
+  let stayDays=0, coDate='';
+  if(stayingBooking){
+    const ci=new Date(stayingBooking.checkIn);
+    const co=new Date(stayingBooking.checkOut);
+    stayDays=Math.round((co-ci)/(1000*60*60*24));
+    coDate=stayingBooking.checkOut.slice(5).replace('-','/');
+  }
+
+  // 상태 판단
+  if(coTodayBooking && timePassed){
+    // 체크아웃 시간 지남
+    if(nextBooking && nextBooking.checkIn===today){
+      return {status:'checkout', badge:'체크아웃', badgeClass:'badge-danger',
+        detail:`체크아웃/입실예정 · ${nextBooking.checkIn.slice(5).replace('-','/')} ${nextBooking.checkInTime||room.defaultCheckIn||'15:00'}`};
+    } else if(nextBooking){
+      return {status:'checkout', badge:'체크아웃', badgeClass:'badge-danger',
+        detail:`체크아웃/빈방 · 다음 ${nextBooking.checkIn.slice(5).replace('-','/')}`};
+    } else {
+      return {status:'checkout', badge:'체크아웃', badgeClass:'badge-danger',
+        detail:'체크아웃/빈방'};
+    }
+  } else if(coTodayBooking && !timePassed){
+    // 오늘 체크아웃인데 시간 안지남
+    return {status:'occupied', badge:'투숙중', badgeClass:'badge-occupied',
+      detail:`투숙중 · OUT ${coTime}`};
+  } else if(stayingBooking){
+    // 연박
+    const stayCoTime=stayingBooking.checkOutTime||room.defaultCheckOut||'11:00';
+    return {status:'occupied', badge:'연박', badgeClass:'badge-staying',
+      detail:`투숙중/연박 ${stayDays}박 · 체크아웃 ${coDate} ${stayCoTime}`};
+  } else if(ciTodayBooking){
+    // 오늘 체크인
+    const ciTime=ciTodayBooking.checkInTime||room.defaultCheckIn||'15:00';
+    return {status:'checkin', badge:'입실예정', badgeClass:'badge-checkin',
+      detail:`입실예정 · IN ${ciTime}`};
+  } else {
+    return {status:'vacant', badge:'빈방', badgeClass:'badge-vacant', detail:''};
+  }
 }
 
 function renderPage(id){
@@ -1092,6 +1136,15 @@ function classifyBookings(bookings){
     past:          bookings.filter(b=>b.checkOut<today),    // 지난 예약
     today
   };
+}
+
+function renderRoomCard(r){
+  const info=getRoomInfo(r);
+  return `<div class="room-card">
+    <div class="flex-between"><div class="room-number">${r.number}호</div><span class="badge ${info.badgeClass}">${info.badge}</span></div>
+    <div class="room-type">${r.type}</div>
+    ${info.detail?`<div style="font-size:.63rem;color:var(--text3);margin-top:.2rem;line-height:1.3">${info.detail}</div>`:''}
+  </div>`;
 }
 
 function renderDashboard(){
@@ -1128,12 +1181,7 @@ function renderDashboard(){
       ${cls.upcoming.map(b=>dashBookingCard(b,'upcoming')).join('')}
       </div>`:''}
       <div class="section-title">객실 상태</div>
-      <div class="room-grid">${DB.rooms.map(r=>{
-        const rb=DB.bookings.find(b=>b.roomId===r.id&&(b.checkOut===cls.today||b.checkIn<=cls.today&&b.checkOut>cls.today));
-        const coTime=rb?(rb.checkOutTime||r.defaultCheckOut||'11:00'):'';
-        const timeInfo=r.status==='occupied'?'투숙중 · OUT '+coTime:r.status==='checkout'?'체크아웃 · '+coTime:'';
-        return `<div class="room-card"><div class="flex-between"><div class="room-number">${r.number}호</div>${statusBadge(r.status)}</div><div class="room-type">${r.type}</div>${timeInfo?`<div style="font-size:.65rem;color:var(--text3);margin-top:.15rem">${timeInfo}</div>`:''}</div>`;
-      }).join('')}</div>`;
+      <div class="room-grid">${DB.rooms.map(r=>renderRoomCard(r)).join('')}</div>`;
 
   } else if(role==='host'){
     title.textContent=`${currentUser.name}${currentUser.place?' · '+currentUser.place:''}`;
@@ -1163,7 +1211,7 @@ function renderDashboard(){
       ${cls.upcoming.map(b=>dashBookingCard(b,'upcoming')).join('')}
       </div>`:''}
       <div class="section-title">내 객실 현황</div>
-      <div class="room-grid">${myRooms.map(r=>`<div class="room-card"><div class="flex-between"><div class="room-number">${r.number}호</div>${statusBadge(r.status)}</div><div class="room-type">${r.type}</div></div>`).join('')}</div>
+      <div class="room-grid">${myRooms.map(r=>renderRoomCard(r)).join('')}</div>
       <div class="section-title">최근 청소 현황</div>
       ${myCleaning.slice(0,3).map(c=>{
         const room=DB.rooms.find(r=>r.id===c.roomId);
@@ -1368,10 +1416,11 @@ function renderRooms(){
     <div class="room-grid">${DB.rooms.map(r=>{
       const host=DB.users.find(u=>u.id===r.hostId);
       const hasIcal=!!r.icalUrl;
+      const info=getRoomInfo(r);
       return `<div class="room-card">
-        <div class="flex-between"><div class="room-number">${r.number}호</div>${statusBadge(r.status)}</div>
+        <div class="flex-between"><div class="room-number">${r.number}호</div><span class="badge ${info.badgeClass}">${info.badge}</span></div>
         <div class="room-type">${r.type||'미지정'} ${hasIcal?'<span style="font-size:.65rem;color:var(--accent2)">🔗 연동</span>':''}</div>
-        <div style="font-size:.7rem;color:var(--text2);margin-top:.2rem">IN ${r.defaultCheckIn||'15:00'} · OUT ${r.defaultCheckOut||'11:00'}</div>
+        ${info.detail?`<div style="font-size:.63rem;color:var(--text3);margin-top:.15rem;line-height:1.3">${info.detail}</div>`:`<div style="font-size:.7rem;color:var(--text2);margin-top:.2rem">IN ${r.defaultCheckIn||'15:00'} · OUT ${r.defaultCheckOut||'11:00'}</div>`}
         ${host?`<div class="text-xs text-muted mt-sm">${host.name}</div>`:''}
         <div style="margin-top:.5rem;display:flex;gap:.3rem">
           <button class="btn btn-ghost btn-sm" style="flex:1;font-size:.7rem" onclick="event.stopPropagation();openEditRoomIcal('${r.id}')">⚙️설정</button>
@@ -1574,10 +1623,9 @@ function renderSettings(){
 
   const isHost = currentUser.role==='host';
   const isCleaner = currentUser.role==='cleaner';
-  const curVol = parseFloat(localStorage.getItem('rpNotifVolume')||'0.5');
+  const curLevel = localStorage.getItem('rpNotifLevel')||'2';
   const curTheme = document.documentElement.dataset.theme||'dark';
-  const volPct = Math.round(curVol*100);
-  const volLabel = curVol<=0?'🔇 음소거':volPct<=30?'🔈 '+volPct+'%':volPct<=70?'🔉 '+volPct+'%':'🔊 '+volPct+'%';
+  const levelLabels={'0':'🔇 음소거','1':'🔈 조용','2':'🔉 보통','3':'🔊 크게'};
   el.innerHTML=`
     <!-- 내 정보 -->
     <div class="section-title">내 정보</div>
@@ -1592,14 +1640,11 @@ function renderSettings(){
     <!-- 알림 & 화면 설정 (모든 사용자) -->
     <div class="section-title">🔔 알림 & 화면</div>
     <div class="settings-section">
-      <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:.4rem">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div class="settings-row-label">알림 소리</div>
-          <span id="volLabel" style="font-size:.78rem;color:var(--text2)">${volLabel}</span>
+      <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:.5rem">
+        <div class="settings-row-label">알림 소리</div>
+        <div style="display:flex;gap:.4rem">
+          ${['0','1','2','3'].map(lv=>`<button class="btn ${curLevel===lv?'btn-accent':'btn-ghost'} btn-sm" style="flex:1;font-size:.72rem;padding:.45rem .2rem" onclick="setNotifLevel('${lv}')">${levelLabels[lv]}</button>`).join('')}
         </div>
-        <input type="range" min="0" max="1" step="0.1" value="${curVol}" 
-          style="width:100%;accent-color:var(--accent);height:6px" 
-          oninput="setNotifVolume(parseFloat(this.value))">
       </div>
       <div class="settings-row">
         <div>
@@ -2924,19 +2969,48 @@ function statusBadge(s){const map={vacant:'badge-vacant',occupied:'badge-occupie
 function reqStatusBadge(s){const map={pending:'badge-pending',inprogress:'badge-inprogress',submitted:'badge-inprogress',confirmed:'badge-confirmed',rejected:'badge-rejected'};const label={pending:'대기중',inprogress:'진행중',submitted:'검토필요',confirmed:'완료',rejected:'반려'};return `<span class="badge ${map[s]||'badge-pending'}">${label[s]||s}</span>`;}
 function emptyState(icon,title,sub=''){return `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-title">${title}</div>${sub?`<div class="empty-sub">${sub}</div>`:''}</div>`;}
 
-function addNotif(userId,msg){
+function addNotif(userId,msg,fromId){
   if(!userId) return;
-  DB.notifications.push({id:'n'+Date.now()+Math.random(),userId,msg,read:false,time:'방금'});
-  // 현재 로그인 유저에게 온 알림이면 소리 재생
+  DB.notifications.push({id:'n'+Date.now()+Math.random(),userId,msg,read:false,time:new Date().toLocaleString('ko',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}),fromId:fromId||currentUser?.id||''});
   if(currentUser&&currentUser.id===userId) { updateNotifDot(); playNotifSound(); }
 }
-function updateNotifDot(){const unread=DB.notifications.filter(n=>n.userId===currentUser?.id&&!n.read).length;const dot=document.getElementById('notifDot');if(dot) dot.style.display=unread>0?'block':'none';}
+function updateNotifDot(){const unread=DB.notifications.filter(n=>n.userId===currentUser?.id&&!n.read).length;const dot=document.getElementById('notifDot');if(dot){dot.style.display=unread>0?'block':'none';if(dot.dataset) dot.dataset.count=unread;}}
 
 function openNotif(){
   const mine=DB.notifications.filter(n=>n.userId===currentUser.id);
   const el=document.getElementById('notifList');
-  el.innerHTML=mine.length?mine.slice().reverse().map(n=>`<div class="notif-item ${n.read?'':'notif-unread'}"><div class="notif-icon" style="background:var(--surface2)">🔔</div><div class="notif-body"><div class="notif-msg">${n.msg}</div><div class="notif-time">${n.time}</div></div></div>`).join(''):emptyState('🔔','알림 없음');
-  mine.forEach(n=>n.read=true);saveData();updateNotifDot();openModal('modalNotif');
+  // 읽지 않은 알림 수집
+  const unreadList=mine.filter(n=>!n.read);
+  
+  el.innerHTML=mine.length?mine.slice().reverse().map(n=>{
+    const fromUser=n.fromId?DB.users.find(u=>u.id===n.fromId):null;
+    const fromLabel=fromUser?`<span style="font-size:.68rem;color:var(--text3)">from ${fromUser.name}</span>`:'';
+    return `<div class="notif-item ${n.read?'':'notif-unread'}">
+      <div class="notif-icon" style="background:var(--surface2)">🔔</div>
+      <div class="notif-body"><div class="notif-msg">${n.msg}</div><div class="notif-time">${n.time} ${fromLabel}</div></div>
+    </div>`;
+  }).join(''):emptyState('🔔','알림 없음');
+  
+  // 읽음 처리 + 확인 알림 발송
+  if(unreadList.length>0){
+    // 발신자들에게 확인 알림 전송 (중복 제거)
+    const senderIds=[...new Set(unreadList.map(n=>n.fromId).filter(id=>id&&id!==currentUser.id))];
+    const myName=currentUser.name||currentUser.id;
+    const roleName=currentUser.role==='admin'?'관리자':currentUser.role==='host'?'호스트':'청소팀원';
+    senderIds.forEach(sid=>{
+      addNotif(sid,`✅ ${roleName} ${myName}님이 알림 ${unreadList.filter(n=>n.fromId===sid).length}건을 확인했습니다.`,'system');
+    });
+    // admin에게도 알림 (본인이 admin이 아닌 경우)
+    if(currentUser.role!=='admin'){
+      const admins=DB.users.filter(u=>u.role==='admin'&&u.id!==currentUser.id&&!senderIds.includes(u.id));
+      admins.forEach(a=>{
+        addNotif(a.id,`✅ ${roleName} ${myName}님이 알림 ${unreadList.length}건을 확인했습니다.`,'system');
+      });
+    }
+    mine.forEach(n=>n.read=true);
+    saveData();
+  }
+  updateNotifDot();openModal('modalNotif');
 }
 
 function openModal(id){
@@ -3162,41 +3236,52 @@ function deleteSupply(sId){
   saveData();showToast('삭제되었습니다');renderSupplies();
 }
 
-function playNotifSound(){
+function playNotifSound(levelOverride){
   try {
-    const vol = parseFloat(localStorage.getItem('rpNotifVolume')||'0.5');
-    if(vol<=0) return; // 음소거
+    const level = levelOverride || localStorage.getItem('rpNotifLevel')||'2';
+    if(level==='0') return;
     if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    // 첫 번째 톤
-    const o1 = audioCtx.createOscillator();
-    const g1 = audioCtx.createGain();
-    o1.type = 'sine';
-    o1.frequency.setValueAtTime(880, audioCtx.currentTime);
-    o1.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.1);
-    g1.gain.setValueAtTime(0.3*vol, audioCtx.currentTime);
-    g1.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-    o1.connect(g1); g1.connect(audioCtx.destination);
-    o1.start(audioCtx.currentTime);
-    o1.stop(audioCtx.currentTime + 0.3);
-    // 두 번째 톤 (약간 뒤에)
-    const o2 = audioCtx.createOscillator();
-    const g2 = audioCtx.createGain();
-    o2.type = 'sine';
-    o2.frequency.setValueAtTime(1320, audioCtx.currentTime + 0.15);
-    g2.gain.setValueAtTime(0, audioCtx.currentTime);
-    g2.gain.setValueAtTime(0.25*vol, audioCtx.currentTime + 0.15);
-    g2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.45);
-    o2.connect(g2); g2.connect(audioCtx.destination);
-    o2.start(audioCtx.currentTime + 0.15);
-    o2.stop(audioCtx.currentTime + 0.45);
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    const t=audioCtx.currentTime;
+    
+    if(level==='1'){
+      // 레벨1: 부드러운 단일 톤
+      const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+      o.type='sine'; o.frequency.setValueAtTime(880,t);
+      g.gain.setValueAtTime(0.15,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.3);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t); o.stop(t+0.3);
+    } else if(level==='2'){
+      // 레벨2: 2음 차임 (기본)
+      [0, 0.15].forEach((delay,i)=>{
+        const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+        o.type='sine'; o.frequency.setValueAtTime(i===0?880:1320,t+delay);
+        g.gain.setValueAtTime(0,t); g.gain.setValueAtTime(0.3,t+delay);
+        g.gain.exponentialRampToValueAtTime(0.01,t+delay+0.3);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(t+delay); o.stop(t+delay+0.3);
+      });
+    } else {
+      // 레벨3: 강한 3음 알림 + 반복
+      const notes=[880,1100,1320,1100,1320];
+      const delays=[0,0.12,0.24,0.5,0.62];
+      notes.forEach((freq,i)=>{
+        const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+        o.type=i<3?'sine':'triangle';
+        o.frequency.setValueAtTime(freq,t+delays[i]);
+        g.gain.setValueAtTime(0,t); g.gain.setValueAtTime(0.45,t+delays[i]);
+        g.gain.exponentialRampToValueAtTime(0.01,t+delays[i]+0.25);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(t+delays[i]); o.stop(t+delays[i]+0.25);
+      });
+    }
   } catch(e) { console.log('알림 소리 재생 실패:', e); }
 }
 
-function setNotifVolume(val){
-  localStorage.setItem('rpNotifVolume',val);
-  const pct=Math.round(val*100);
-  document.getElementById('volLabel').textContent=val<=0?'🔇 음소거':pct<=30?'🔈 '+pct+'%':pct<=70?'🔉 '+pct+'%':'🔊 '+pct+'%';
-  playNotifSound();
+function setNotifLevel(level){
+  localStorage.setItem('rpNotifLevel',level);
+  renderSettings();
+  if(level!=='0') playNotifSound(level);
 }
 
 function toggleTheme(){
