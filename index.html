@@ -1037,19 +1037,30 @@ function switchPage(pageId){
 // ══════════════════════════ RENDER ════════════════════════════
 
 function refreshAllStatuses(){
-  const today=new Date().toISOString().slice(0,10);
+  const now=new Date();
+  const today=now.toISOString().slice(0,10);
+  const nowHHMM=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
   let changed=false;
-  // 모든 예약 상태 갱신
   DB.bookings.forEach(b=>{
-    const newStatus=b.checkOut<=today?'past':(b.checkIn<=today?'active':'upcoming');
+    const newStatus=b.checkOut<today?'past':(b.checkIn<=today&&b.checkOut>=today?'active':'upcoming');
     if(b.status!==newStatus){b.status=newStatus;changed=true;}
   });
-  // 모든 객실 상태 갱신
+  // 객실 상태: 체크아웃 시간 기준
   DB.rooms.forEach(room=>{
-    const hasActive=DB.bookings.some(b=>b.roomId===room.id&&b.status==='active');
     const oldStatus=room.status;
-    if(hasActive) room.status='occupied';
-    else if(room.status==='occupied') room.status='vacant';
+    // 오늘 체크아웃인 예약 찾기
+    const coToday=DB.bookings.find(b=>b.roomId===room.id&&b.checkOut===today);
+    // 연박 투숙 (체크아웃이 내일 이후)
+    const staying=DB.bookings.find(b=>b.roomId===room.id&&b.checkIn<=today&&b.checkOut>today);
+    if(coToday){
+      const coTime=coToday.checkOutTime||room.defaultCheckOut||'11:00';
+      if(nowHHMM>=coTime) room.status='checkout'; // 시간 지남 → 체크아웃
+      else room.status='occupied'; // 아직 시간 안됨 → 투숙중
+    } else if(staying){
+      room.status='occupied';
+    } else {
+      if(room.status==='occupied'||room.status==='checkout') room.status='vacant';
+    }
     if(room.status!==oldStatus) changed=true;
   });
   if(changed) saveData();
@@ -1112,23 +1123,45 @@ function renderDashboard(){
       ${cls.checkInToday.map(b=>dashBookingCard(b,'checkin')).join('')}`:''}
       ${cls.staying.length?`<div class="section-title" style="color:var(--accent)">🟢 연박 투숙 (${cls.staying.length})</div>
       ${cls.staying.map(b=>dashBookingCard(b,'staying')).join('')}`:''}
-      ${cls.upcoming.length?`<div class="section-title">예정 예약 (${cls.upcoming.length})</div>
-      ${cls.upcoming.slice(0,5).map(b=>dashBookingCard(b,'upcoming')).join('')}
-      ${cls.upcoming.length>5?'<div class="text-sm text-muted" style="text-align:center;padding:.5rem">... 외 '+(cls.upcoming.length-5)+'건</div>':''}`:''}
+      ${cls.upcoming.length?`<div class="section-title">📅 예정 예약 (${cls.upcoming.length})</div>
+      <div style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:.4rem">
+      ${cls.upcoming.map(b=>dashBookingCard(b,'upcoming')).join('')}
+      </div>`:''}
       <div class="section-title">객실 상태</div>
-      <div class="room-grid">${DB.rooms.map(r=>`<div class="room-card"><div class="flex-between"><div class="room-number">${r.number}호</div>${statusBadge(r.status)}</div><div class="room-type">${r.type}</div></div>`).join('')}</div>`;
+      <div class="room-grid">${DB.rooms.map(r=>{
+        const rb=DB.bookings.find(b=>b.roomId===r.id&&(b.checkOut===cls.today||b.checkIn<=cls.today&&b.checkOut>cls.today));
+        const coTime=rb?(rb.checkOutTime||r.defaultCheckOut||'11:00'):'';
+        const timeInfo=r.status==='occupied'?'투숙중 · OUT '+coTime:r.status==='checkout'?'체크아웃 · '+coTime:'';
+        return `<div class="room-card"><div class="flex-between"><div class="room-number">${r.number}호</div>${statusBadge(r.status)}</div><div class="room-type">${r.type}</div>${timeInfo?`<div style="font-size:.65rem;color:var(--text3);margin-top:.15rem">${timeInfo}</div>`:''}</div>`;
+      }).join('')}</div>`;
 
   } else if(role==='host'){
     title.textContent=`${currentUser.name}${currentUser.place?' · '+currentUser.place:''}`;
     const myRooms=DB.rooms.filter(r=>r.hostId===currentUser.id);
+    const myBookings=DB.bookings.filter(b=>b.hostId===currentUser.id);
+    const cls=classifyBookings(myBookings);
     const myCleaning=DB.cleaningRequests.filter(c=>c.hostId===currentUser.id);
     el.innerHTML=`
       <div class="stats-grid">
-        <div class="stat-card"><div class="stat-number">${myRooms.length}</div><div class="stat-label">내 객실</div></div>
-        <div class="stat-card"><div class="stat-number">${DB.bookings.filter(b=>b.hostId===currentUser.id&&b.status==='active').length}</div><div class="stat-label">현재 투숙</div></div>
+        <div class="stat-card"><div class="stat-number" style="color:#FB7185">${cls.checkOutToday.length}</div><div class="stat-label">체크아웃</div></div>
+        <div class="stat-card"><div class="stat-number" style="color:#60A5FA">${cls.checkInToday.length}</div><div class="stat-label">체크인 예정</div></div>
+        <div class="stat-card"><div class="stat-number" style="color:var(--accent)">${cls.staying.length}</div><div class="stat-label">연박 투숙</div></div>
+        <div class="stat-card"><div class="stat-number" style="color:var(--warning)">${cls.upcoming.length}</div><div class="stat-label">예정 예약</div></div>
+      </div>
+      <div class="stats-grid" style="grid-template-columns:1fr 1fr;margin-top:.3rem">
         <div class="stat-card"><div class="stat-number" style="color:var(--accent2)">${myCleaning.filter(c=>c.status==='submitted').length}</div><div class="stat-label">청소 완료확인</div></div>
         <div class="stat-card"><div class="stat-number">${myCleaning.filter(c=>c.status==='pending').length}</div><div class="stat-label">청소 대기</div></div>
       </div>
+      ${cls.checkOutToday.length?`<div class="section-title" style="color:#FB7185">🔴 오늘 체크아웃 (${cls.checkOutToday.length})</div>
+      ${cls.checkOutToday.map(b=>dashBookingCard(b,'checkout')).join('')}`:''}
+      ${cls.checkInToday.length?`<div class="section-title" style="color:#60A5FA">🔵 오늘 체크인 (${cls.checkInToday.length})</div>
+      ${cls.checkInToday.map(b=>dashBookingCard(b,'checkin')).join('')}`:''}
+      ${cls.staying.length?`<div class="section-title" style="color:var(--accent)">🟢 연박 투숙 (${cls.staying.length})</div>
+      ${cls.staying.map(b=>dashBookingCard(b,'staying')).join('')}`:''}
+      ${cls.upcoming.length?`<div class="section-title">📅 예정 예약 (${cls.upcoming.length})</div>
+      <div style="max-height:250px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:.4rem">
+      ${cls.upcoming.map(b=>dashBookingCard(b,'upcoming')).join('')}
+      </div>`:''}
       <div class="section-title">내 객실 현황</div>
       <div class="room-grid">${myRooms.map(r=>`<div class="room-card"><div class="flex-between"><div class="room-number">${r.number}호</div>${statusBadge(r.status)}</div><div class="room-type">${r.type}</div></div>`).join('')}</div>
       <div class="section-title">최근 청소 현황</div>
