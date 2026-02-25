@@ -724,6 +724,16 @@ input,select,textarea{font-family:inherit;outline:none;border:none;}
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 <script>
+// ══════════════════════════ LOCAL DATE HELPER ══════════════
+// toISOString()은 UTC 기준이므로 한국시간(KST)과 최대 9시간 차이남
+// 로컬 시간 기준 YYYY-MM-DD 반환
+function getLocalDate(d){
+  const dt=d||new Date();
+  return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+}
+function getLocalTomorrow(){
+  const t=new Date(); t.setDate(t.getDate()+1); return getLocalDate(t);
+}
 // ══════════════════════════ THEME INIT ═══════════════════════════
 (function(){const t=localStorage.getItem('rpTheme')||'dark';document.documentElement.dataset.theme=t;document.body.style.background=t==='light'?'#F5F7FA':'#0D1117';})();
 
@@ -1037,7 +1047,7 @@ function switchPage(pageId){
 
 function refreshAllStatuses(){
   const now=new Date();
-  const today=now.toISOString().slice(0,10);
+  const today=getLocalDate(now);
   let changed=false;
   DB.bookings.forEach(b=>{
     const newStatus=b.checkOut<today?'past':(b.checkIn<=today&&b.checkOut>=today?'active':'upcoming');
@@ -1049,7 +1059,7 @@ function refreshAllStatuses(){
 // 객실 상세 상태 계산 (실시간)
 function getRoomInfo(room){
   const now=new Date();
-  const today=now.toISOString().slice(0,10);
+  const today=getLocalDate(now);
   const nowHHMM=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
 
   // 이 객실의 현재/오늘 예약
@@ -1124,8 +1134,8 @@ function renderPage(id){
 // ── DASHBOARD ─────────────────────────────────────────────────
 // 오늘 기준 예약 분류 헬퍼
 function classifyBookings(bookings){
-  const today=new Date().toISOString().slice(0,10);
-  const tmr=new Date(Date.now()+86400000).toISOString().slice(0,10);
+  const today=getLocalDate();
+  const tmr=getLocalTomorrow();
   return {
     checkOutToday: bookings.filter(b=>b.checkOut===today),
     checkInToday:  bookings.filter(b=>b.checkIn===today),
@@ -1163,6 +1173,10 @@ function renderDashboard(){
     }).join('');
     const myCleaning=DB.cleaningRequests;
     el.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+        <div style="font-size:.72rem;color:var(--text3)">📅 ${cls.today} 기준</div>
+        <button class="btn btn-ghost btn-sm" style="font-size:.7rem" onclick="renderPage(currentPage);showToast('🔄 화면 갱신됨')">🔄 새로고침</button>
+      </div>
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-number" style="color:#FB7185">${cls.checkOutToday.length}</div><div class="stat-label">체크아웃</div></div>
         <div class="stat-card"><div class="stat-number" style="color:#60A5FA">${cls.checkInToday.length}</div><div class="stat-label">체크인 예정</div></div>
@@ -1194,6 +1208,10 @@ function renderDashboard(){
     const cls=classifyBookings(myBookings);
     const myCleaning=DB.cleaningRequests.filter(c=>c.hostId===currentUser.id);
     el.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+        <div style="font-size:.72rem;color:var(--text3)">📅 ${cls.today} 기준</div>
+        <button class="btn btn-ghost btn-sm" style="font-size:.7rem" onclick="renderPage(currentPage);showToast('🔄 화면 갱신됨')">🔄 새로고침</button>
+      </div>
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-number" style="color:#FB7185">${cls.checkOutToday.length}</div><div class="stat-label">체크아웃</div></div>
         <div class="stat-card"><div class="stat-number" style="color:#60A5FA">${cls.checkInToday.length}</div><div class="stat-label">체크인 예정</div></div>
@@ -1227,9 +1245,13 @@ function renderDashboard(){
   } else { // cleaner
     title.textContent=`안녕하세요, ${currentUser.name}님`;
     const myJobs=DB.cleaningRequests.filter(c=>c.cleanerId===currentUser.id);
-    const today=new Date().toISOString().slice(0,10);
+    const today=getLocalDate();
     const todayJobs=myJobs.filter(c=>c.date===today);
     el.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+        <div style="font-size:.72rem;color:var(--text3)">📅 ${today} 기준</div>
+        <button class="btn btn-ghost btn-sm" style="font-size:.7rem" onclick="renderPage(currentPage);showToast('🔄 화면 갱신됨')">🔄 새로고침</button>
+      </div>
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-number">${myJobs.filter(c=>c.status==='pending').length}</div><div class="stat-label">대기 중</div></div>
         <div class="stat-card"><div class="stat-number" style="color:var(--accent2)">${myJobs.filter(c=>c.status==='inprogress').length}</div><div class="stat-label">진행 중</div></div>
@@ -1496,10 +1518,10 @@ function renderSchedule(){
   const today=new Date();
   const days=[];
   for(let i=-2;i<=7;i++){const d=new Date(today);d.setDate(today.getDate()+i);days.push(d);}
-  const todayStr=today.toISOString().slice(0,10);
+  const todayStr=getLocalDate(today);
   let calHtml='<div class="cal-strip">';
   days.forEach(d=>{
-    const ds=d.toISOString().slice(0,10);
+    const ds=getLocalDate(d);
     const dayNames=['일','월','화','수','목','금','토'];
     const hasClean=(currentUser.role==='cleaner'?DB.cleaningRequests.filter(c=>c.cleanerId===currentUser.id&&c.date===ds):currentUser.role==='admin'?DB.cleaningRequests.filter(c=>c.date===ds):DB.cleaningRequests.filter(c=>c.hostId===currentUser.id&&c.date===ds)).length>0;
     const hasCheckIn=(currentUser.role==='cleaner'?false:currentUser.role==='admin'?DB.bookings.some(b=>b.checkIn===ds):DB.bookings.some(b=>b.hostId===currentUser.id&&b.checkIn===ds));
@@ -1696,7 +1718,19 @@ function renderSettings(){
 
     ${adminExtra}
     <div class="divider"></div>
-    <button class="btn btn-ghost btn-full" onclick="doLogout()">로그아웃</button>`;
+    <div class="section-title">앱 관리</div>
+    <div class="settings-section">
+      <div class="settings-row">
+        <div><div class="settings-row-label">📅 현재 앱 날짜</div><div class="settings-row-sub">${getLocalDate()} (KST)</div></div>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-row-label">🔄 캐시 초기화</div><div class="settings-row-sub">화면이 갱신되지 않을 때 사용</div></div>
+        <button class="btn btn-warning btn-sm" onclick="clearAppCache()">캐시 삭제</button>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <button class="btn btn-ghost btn-full" onclick="doLogout()">로그아웃</button>
+    <div style="text-align:center;font-size:.6rem;color:var(--text3);margin-top:.5rem">RoomPacker v3.0</div>`;
 }
 
 
@@ -2374,7 +2408,7 @@ function openCleaningReqModal(){
   document.getElementById('reqRoomId').innerHTML=myRooms.map(r=>`<option value="${r.id}">${r.number}호 - ${r.type}</option>`).join('');
   const cleaners=DB.users.filter(u=>u.role==='cleaner');
   document.getElementById('reqCleanerId').innerHTML='<option value="">자동 배정</option>'+cleaners.map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
-  document.getElementById('reqDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('reqDate').value=getLocalDate();
   openModal('modalCleaningReq');
 }
 
@@ -2871,9 +2905,9 @@ function icalEventToBooking(ev, room){
 }
 
 function getBookingStatus(checkIn,checkOut){
-  const today=new Date().toISOString().slice(0,10);
-  if(checkOut<=today) return 'past';
-  if(checkIn<=today) return 'active';
+  const today=getLocalDate();
+  if(checkOut<today) return 'past';
+  if(checkIn<=today&&checkOut>=today) return 'active';
   return 'upcoming';
 }
 
@@ -2891,14 +2925,16 @@ async function syncSingleIcal(rId){
       // 이미 존재하는지 확인 (icalUid 또는 id 기준)
       const existing=DB.bookings.find(b=>b.id===booking.id || (b.icalUid && b.icalUid===booking.icalUid));
       if(existing){
-        // 날짜 변경됐으면 업데이트
-        if(existing.checkIn!==booking.checkIn || existing.checkOut!==booking.checkOut){
+        // 날짜나 게스트명 변경 체크
+        const dateChanged=existing.checkIn!==booking.checkIn || existing.checkOut!==booking.checkOut;
+        if(dateChanged){
           existing.checkIn=booking.checkIn;
           existing.checkOut=booking.checkOut;
-          existing.status=booking.status;
           existing.guestName=booking.guestName;
           updated++;
         } else { skipped++; }
+        // 상태는 항상 현재 날짜 기준으로 재계산
+        existing.status=getBookingStatus(existing.checkIn,existing.checkOut);
       } else {
         // 과거 예약은 무시 (7일 전까지만)
         const weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);
@@ -2923,18 +2959,21 @@ async function syncAllIcal(){
   const rooms=DB.rooms.filter(r=>r.icalUrl);
   if(!rooms.length){showToast('iCal URL이 등록된 객실이 없습니다');return;}
   document.getElementById('icalSyncLog').innerHTML='';
+  addIcalLog(`📅 오늘 날짜: ${getLocalDate()} (KST)`);
   addIcalLog(`전체 동기화 시작 (${rooms.length}개 객실)...`);
   for(const room of rooms){
     await syncSingleIcal(room.id);
-    await new Promise(r=>setTimeout(r,500)); // 요청 간격
+    await new Promise(r=>setTimeout(r,500));
   }
+  refreshAllStatuses(); // 전체 예약 상태 재계산
+  saveData();
   addIcalLog('🎉 전체 동기화 완료!');
   playNotifSound();
-  openIcalSyncModal(); // 목록 갱신
+  openIcalSyncModal();
 }
 
 function updateRoomStatusFromBookings(room){
-  const today=new Date().toISOString().slice(0,10);
+  const today=getLocalDate();
   const activeBooking=DB.bookings.find(b=>b.roomId===room.id&&b.checkIn<=today&&b.checkOut>today);
   if(activeBooking) room.status='occupied';
   else if(room.status==='occupied') room.status='vacant';
@@ -3161,7 +3200,7 @@ let audioCtx = null;
 function renderFinance(){
   const el=document.getElementById('financeContent');
   const fin=DB.finance||[];
-  const thisMonth=new Date().toISOString().slice(0,7);
+  const thisMonth=getLocalDate().slice(0,7);
   const monthFin=fin.filter(f=>f.date&&f.date.startsWith(thisMonth));
   const totalIncome=monthFin.filter(f=>f.type==='income').reduce((s,f)=>s+(f.amount||0),0);
   const totalExpense=monthFin.filter(f=>f.type==='expense').reduce((s,f)=>s+(f.amount||0),0);
@@ -3207,7 +3246,7 @@ function openAddFinance(){
   document.getElementById('finType').value='income';
   document.getElementById('finCategory').value='cleaning';
   document.getElementById('finAmount').value='';
-  document.getElementById('finDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('finDate').value=getLocalDate();
   document.getElementById('finMemo').value='';
   // 대상 드롭다운: 객실(호스트) + 청소팀원
   const opts=['<option value="">선택 (선택사항)</option>'];
@@ -3489,15 +3528,38 @@ setTimeout(()=>{
 document.querySelectorAll('.modal-overlay').forEach(ov=>{ov.addEventListener('click',e=>{if(e.target===ov) ov.classList.remove('open');});});
 
 // ══════════════════════════ AUTO REFRESH (날짜 변경 감지) ══════════
-let _lastDate=new Date().toISOString().slice(0,10);
+function clearAppCache(){
+  if(!confirm('캐시를 삭제하고 앱을 새로고침합니다.\n(데이터는 유지됩니다)')) return;
+  if('caches' in window){
+    caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).then(()=>{
+      if(navigator.serviceWorker){
+        navigator.serviceWorker.getRegistrations().then(regs=>{
+          regs.forEach(r=>r.unregister());
+          window.location.reload(true);
+        });
+      } else { window.location.reload(true); }
+    });
+  } else { window.location.reload(true); }
+}
+let _lastDate=getLocalDate();
 setInterval(()=>{
-  const now=new Date().toISOString().slice(0,10);
+  const now=getLocalDate();
   if(now!==_lastDate){
     _lastDate=now;
-    console.log('[AutoRefresh] 날짜 변경 감지:',now);
+    console.log('[AutoRefresh] 날짜 변경:',now);
     if(currentUser) renderPage(currentPage);
   }
-},30000); // 30초마다 체크
+},30000);
+// 5분마다 화면 갱신
+setInterval(()=>{ if(currentUser) renderPage(currentPage); },300000);
+// 앱으로 돌아올 때 즉시 갱신
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&currentUser){
+    _lastDate=getLocalDate();
+    renderPage(currentPage);
+  }
+});
+window.addEventListener('focus',()=>{ if(currentUser) renderPage(currentPage); });
 
 // ══════════════════════════ PWA SERVICE WORKER ══════════════════
 if('serviceWorker' in navigator){
