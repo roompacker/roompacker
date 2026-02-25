@@ -2499,35 +2499,44 @@ function openEditCleaningReq(cId){
   if(!c) return;
   const room=DB.rooms.find(r=>r.id===c.roomId);
   const cleaners=DB.users.filter(u=>u.role==='cleaner');
-  // 연관 예약에서 기본 시간 가져오기
-  const relBooking=DB.bookings.find(b=>b.roomId===c.roomId&&b.checkOut===c.date);
-  const curCoTime=c.checkOutTime||relBooking?.checkOutTime||room?.defaultCheckOut||'11:00';
-  // 체크인 예약 (당일 체크인)
+  const defaultCoTime=room?.defaultCheckOut||'11:00';
+  const defaultCiTime=room?.defaultCheckIn||'15:00';
+  // 체크아웃 예약 (이 날짜에 체크아웃하는 손님)
+  const coBooking=DB.bookings.find(b=>b.roomId===c.roomId&&b.checkOut===c.date);
+  const curCoTime=c.checkOutTime||(coBooking?coBooking.checkOutTime||defaultCoTime:'');
+  // 체크인 예약 (이 날짜에 체크인하는 손님)
   const ciBooking=DB.bookings.find(b=>b.roomId===c.roomId&&b.checkIn===c.date);
-  const curCiTime=c.checkInTime||ciBooking?.checkInTime||room?.defaultCheckIn||'15:00';
+  const curCiTime=c.checkInTime||(ciBooking?ciBooking.checkInTime||defaultCiTime:'');
+  
+  const coSection=coBooking?`
+    <div style="background:rgba(251,113,133,0.08);border-radius:10px;padding:.7rem;margin-bottom:.6rem">
+      <div style="font-size:.78rem;font-weight:600;color:#FB7185;margin-bottom:.4rem">⏰ 체크아웃 (기본 ${defaultCoTime})</div>
+      <div style="font-size:.72rem;color:var(--text2);margin-bottom:.4rem">${coBooking.guestName||'게스트'} · ${coBooking.checkIn} ~ ${coBooking.checkOut}</div>
+      <div class="form-group" style="margin:0"><label class="form-label">레이트체크아웃 시간</label><input type="time" class="form-input" id="editCleanCoTime" value="${curCoTime}"></div>
+    </div>`:`<input type="hidden" id="editCleanCoTime" value="">`;
+    
+  const ciSection=ciBooking?`
+    <div style="background:rgba(96,165,250,0.08);border-radius:10px;padding:.7rem;margin-bottom:.6rem">
+      <div style="font-size:.78rem;font-weight:600;color:#60A5FA;margin-bottom:.4rem">🔵 체크인 (기본 ${defaultCiTime})</div>
+      <div style="font-size:.72rem;color:var(--text2);margin-bottom:.4rem">${ciBooking.guestName||'게스트'} · ${ciBooking.checkIn} ~ ${ciBooking.checkOut}</div>
+      <div class="form-group" style="margin:0"><label class="form-label">얼리체크인 시간</label><input type="time" class="form-input" id="editCleanCiTime" value="${curCiTime}"></div>
+    </div>`:`<input type="hidden" id="editCleanCiTime" value="">`;
+
   document.getElementById('editBookingBody').innerHTML=`
     <input type="hidden" id="editCleanId" value="${c.id}">
     <input type="hidden" id="editCleanOldCoTime" value="${curCoTime}">
     <input type="hidden" id="editCleanOldCiTime" value="${curCiTime}">
     <div style="font-size:.85rem;font-weight:600;margin-bottom:.8rem">🧹 청소 요청 수정 - ${room?.number||'?'}호</div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">날짜</label><input type="date" class="form-input" id="editCleanDate" value="${c.date}"></div>
-      <div class="form-group"><label class="form-label">청소 시간</label><input type="time" class="form-input" id="editCleanTime" value="${c.time}"></div>
-    </div>
-    <div style="background:var(--surface2);border-radius:10px;padding:.7rem;margin-bottom:.8rem">
-      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--warning)">⏰ 체크아웃/체크인 시간 변경</div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">체크아웃 시간</label><input type="time" class="form-input" id="editCleanCoTime" value="${curCoTime}"></div>
-        <div class="form-group"><label class="form-label">체크인 시간</label><input type="time" class="form-input" id="editCleanCiTime" value="${curCiTime}"></div>
-      </div>
-      <div style="font-size:.68rem;color:var(--text3);margin-top:.2rem">레이트체크아웃/얼리체크인 시 변경 (객실 기본시간은 유지됩니다)</div>
-    </div>
+    <div class="form-group"><label class="form-label">날짜</label><input type="date" class="form-input" id="editCleanDate" value="${c.date}"></div>
+    ${coSection}
+    ${ciSection}
+    ${!coBooking&&!ciBooking?'<div style="font-size:.78rem;color:var(--text3);margin-bottom:.6rem">이 날짜에 연결된 체크아웃/체크인 예약이 없습니다</div>':''}
     <div class="form-group"><label class="form-label">담당 청소팀</label>
       <select class="form-select" id="editCleanCleaner">${cleaners.map(u=>`<option value="${u.id}" ${u.id===c.cleanerId?'selected':''}>${u.name}</option>`).join('')}</select>
     </div>
     <div class="form-group"><label class="form-label">메모</label><textarea class="form-textarea" id="editCleanNotes">${c.notes||''}</textarea></div>
     <label style="display:flex;align-items:center;gap:.4rem;margin-bottom:.8rem;font-size:.82rem;cursor:pointer">
-      <input type="checkbox" id="editCleanNotify" checked> 청소팀에게 변경 알림 보내기
+      <input type="checkbox" id="editCleanNotify" checked> 변경 알림 보내기
     </label>
     <div style="display:flex;gap:.4rem">
       <button class="btn btn-accent btn-full" onclick="saveEditCleaningReq()">변경 저장</button>
@@ -2540,43 +2549,61 @@ function saveEditCleaningReq(){
   const cId=document.getElementById('editCleanId').value;
   const c=DB.cleaningRequests.find(x=>x.id===cId);
   if(!c) return;
+  const room=DB.rooms.find(r=>r.id===c.roomId);
+  const defaultCoTime=room?.defaultCheckOut||'11:00';
+  const defaultCiTime=room?.defaultCheckIn||'15:00';
   const newDate=document.getElementById('editCleanDate').value;
-  const newTime=document.getElementById('editCleanTime').value;
   const newCleaner=document.getElementById('editCleanCleaner').value;
   const newCoTime=document.getElementById('editCleanCoTime').value;
   const newCiTime=document.getElementById('editCleanCiTime').value;
   const oldCoTime=document.getElementById('editCleanOldCoTime').value;
   const oldCiTime=document.getElementById('editCleanOldCiTime').value;
   const notify=document.getElementById('editCleanNotify')?.checked;
-  const room=DB.rooms.find(r=>r.id===c.roomId);
   
   // 변경 내역 수집
   const changes=[];
   if(c.date!==newDate) changes.push(`날짜 ${c.date}→${newDate}`);
-  if(c.time!==newTime) changes.push(`청소시간 ${c.time}→${newTime}`);
-  if(newCoTime!==oldCoTime) changes.push(`체크아웃 ${oldCoTime}→${newCoTime}`);
-  if(newCiTime!==oldCiTime) changes.push(`체크인 ${oldCiTime}→${newCiTime}`);
+  if(newCoTime&&newCoTime!==oldCoTime) changes.push(`⏰ 레이트체크아웃 ${oldCoTime}→${newCoTime}`);
+  if(newCiTime&&newCiTime!==oldCiTime) changes.push(`🔵 얼리체크인 ${oldCiTime}→${newCiTime}`);
   
   c.date=newDate;
-  c.time=newTime;
   c.cleanerId=newCleaner;
   c.notes=document.getElementById('editCleanNotes').value.trim();
-  c.checkOutTime=newCoTime;
-  c.checkInTime=newCiTime;
-  // 시간 변경 기록 저장 (대시보드 표시용)
-  if(newCoTime!==oldCoTime||newCiTime!==oldCiTime){
-    c.timeChanged=true;
-    c.timeChangeLog=changes.filter(ch=>ch.includes('체크아웃')||ch.includes('체크인')).join(', ');
+  if(newCoTime) c.checkOutTime=newCoTime;
+  if(newCiTime) c.checkInTime=newCiTime;
+  
+  // 연관 예약 시간도 실제 반영
+  if(newCoTime&&newCoTime!==oldCoTime){
+    const coBooking=DB.bookings.find(b=>b.roomId===c.roomId&&b.checkOut===c.date);
+    if(coBooking) coBooking.checkOutTime=newCoTime;
+  }
+  if(newCiTime&&newCiTime!==oldCiTime){
+    const ciBooking=DB.bookings.find(b=>b.roomId===c.roomId&&b.checkIn===c.date);
+    if(ciBooking) ciBooking.checkInTime=newCiTime;
   }
   
-  if(notify && c.cleanerId && changes.length){
-    addNotif(c.cleanerId,`📢 ${room?.number||''}호 청소 일정 변경!\n${changes.join(' / ')}`);
-    playNotifSound();
+  // 시간 변경 기록 (대시보드 표시용)
+  const timeChanges=changes.filter(ch=>ch.includes('체크아웃')||ch.includes('체크인'));
+  if(timeChanges.length){
+    c.timeChanged=true;
+    c.timeChangeLog=timeChanges.join(' / ');
   }
-  // 관리자에게도 알림 (호스트가 수정한 경우)
-  if(notify && currentUser.role==='host'){
-    const admins=DB.users.filter(u=>u.role==='admin');
-    admins.forEach(a=>addNotif(a.id,`📢 ${currentUser.name}님이 ${room?.number||''}호 청소 일정 변경!\n${changes.join(' / ')}`));
+  
+  // 알림 발송
+  if(notify && changes.length){
+    const roomNum=room?.number||'?';
+    const msg=`📢 ${roomNum}호 일정 변경!\n${changes.join('\n')}`;
+    // 청소팀에게
+    if(c.cleanerId) addNotif(c.cleanerId,msg);
+    // 관리자에게 (호스트가 변경한 경우)
+    if(currentUser.role==='host'){
+      DB.users.filter(u=>u.role==='admin').forEach(a=>addNotif(a.id,`${currentUser.name}님: ${msg}`));
+    }
+    // 호스트에게 (관리자가 변경한 경우)
+    if(currentUser.role==='admin'&&c.hostId&&c.hostId!==currentUser.id){
+      addNotif(c.hostId,msg);
+    }
+    playNotifSound();
   }
   saveData();closeModal('modalEditBooking');showToast('청소 요청이 수정되었습니다');renderPage(currentPage);
 }
