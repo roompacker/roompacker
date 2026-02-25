@@ -440,10 +440,7 @@ input,select,textarea{font-family:inherit;outline:none;border:none;}
     <div class="form-group"><label class="form-label">청소 유형</label>
       <select class="form-select" id="reqType"><option>퇴실청소</option><option>일반청소</option><option>특별청소 (추가요금)</option><option>점검청소</option></select>
     </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">희망 날짜</label><input type="date" class="form-input" id="reqDate"></div>
-      <div class="form-group"><label class="form-label">희망 시간</label><input type="time" class="form-input" id="reqTime"></div>
-    </div>
+    <div class="form-group"><label class="form-label">희망 날짜</label><input type="date" class="form-input" id="reqDate"></div>
     <div class="form-group"><label class="form-label">담당 청소팀</label><select class="form-select" id="reqCleanerId"></select></div>
     <div class="form-group"><label class="form-label">요청 메모</label><textarea class="form-textarea" id="reqNotes" placeholder="특이사항, 요청사항 등"></textarea></div>
     <button class="btn btn-accent btn-full" onclick="addCleaningRequest()">요청 제출</button>
@@ -2352,7 +2349,6 @@ function openCleaningReqModal(){
   const cleaners=DB.users.filter(u=>u.role==='cleaner');
   document.getElementById('reqCleanerId').innerHTML='<option value="">자동 배정</option>'+cleaners.map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
   document.getElementById('reqDate').value=new Date().toISOString().slice(0,10);
-  document.getElementById('reqTime').value='10:00';
   openModal('modalCleaningReq');
 }
 
@@ -2360,19 +2356,20 @@ function addCleaningRequest(){
   const roomId=document.getElementById('reqRoomId').value;
   const type=document.getElementById('reqType').value;
   const date=document.getElementById('reqDate').value;
-  const time=document.getElementById('reqTime').value;
   const cleanerId=document.getElementById('reqCleanerId').value||DB.users.find(u=>u.role==='cleaner')?.id;
   const notes=document.getElementById('reqNotes').value.trim();
   if(!roomId||!date){showToast('필수 항목을 입력해주세요');return;}
   const reqRoom=DB.rooms.find(r=>r.id===roomId);
   const hostId = currentUser.role==='admin' ? (reqRoom?.hostId||currentUser.id) : currentUser.id;
-  // 연관 예약의 체크아웃 시간 자동 연결
+  // 객실 기본 체크아웃 시간을 청소 시간으로 사용
+  const time=reqRoom?.defaultCheckOut||'11:00';
+  // 연관 예약의 체크아웃/체크인 시간 자동 연결
   const relatedBooking=DB.bookings.find(bk=>bk.roomId===roomId&&bk.checkOut===date);
   const checkOutTime=relatedBooking?(relatedBooking.checkOutTime||reqRoom?.defaultCheckOut||'11:00'):'';
   const relatedCiBooking=DB.bookings.find(bk=>bk.roomId===roomId&&bk.checkIn===date);
   const checkInTime=relatedCiBooking?(relatedCiBooking.checkInTime||reqRoom?.defaultCheckIn||'15:00'):'';
   DB.cleaningRequests.push({id:'c'+Date.now(),roomId,hostId,cleanerId,type,date,time,checkOutTime,checkInTime,notes,status:'pending',photos:[],checklistResult:{},rating:0,reviewNote:'',submittedAt:null,confirmedAt:null,timeChanged:false,timeChangeLog:''});
-  addNotif(cleanerId,`${DB.rooms.find(r=>r.id===roomId)?.number}호 청소 작업이 배정되었습니다\n🧹 ${date} ${time}${checkOutTime?' · ⏰체크아웃 '+checkOutTime:''}${checkInTime?' · 🔵체크인 '+checkInTime:''}`);
+  addNotif(cleanerId,`${reqRoom?.number}호 청소 작업이 배정되었습니다\n🧹 ${date} ${time}${checkOutTime?' · ⏰체크아웃 '+checkOutTime:''}${checkInTime?' · 🔵체크인 '+checkInTime:''}`);
   saveData();closeModal('modalCleaningReq');playNotifSound();showToast('청소 요청이 등록되었습니다');renderPage(currentPage);
 }
 
