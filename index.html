@@ -1255,14 +1255,21 @@ function dashBookingCard(b,tag){
   const colors={checkout:'#FB7185',checkin:'#60A5FA',staying:'#00C896',upcoming:'#F59E0B'};
   const bgColors={checkout:'rgba(251,113,133,0.1)',checkin:'rgba(96,165,250,0.1)',staying:'rgba(0,200,150,0.1)',upcoming:'rgba(245,158,11,0.1)'};
   const labels={checkout:'체크아웃',checkin:'체크인',staying:'연박',upcoming:'예정'};
-  const badgeClass={checkout:'badge-danger',checkin:'badge-pending',staying:'badge-occupied',upcoming:'badge-pending'};
+  const badgeClass={checkout:'badge-danger',checkin:'badge-pending',staying:'badge-staying',upcoming:'badge-pending'};
+  // 시간변경 확인
+  const relClean=DB.cleaningRequests.find(c=>c.roomId===b.roomId&&c.date===b.checkOut&&c.timeChanged);
+  const timeChangeHtml=relClean&&relClean.timeChangeLog?`<div style="font-size:.65rem;color:var(--warning);margin-top:.1rem">⚠️ ${relClean.timeChangeLog}</div>`:'';
+  // 실제 체크아웃 시간 (청소요청에서 변경된 시간 우선)
+  const actualCoTime=relClean?.checkOutTime||coTime;
+  const actualCiTime=relClean?.checkInTime||ciTime;
   return `<div class="card" onclick="openBookingDetail('${b.id}')" style="border-left:3px solid ${colors[tag]}">
     <div class="card-header"><div>
       <div class="card-title" style="font-size:1rem"><strong>${room?.number||'?'}호</strong> <span style="font-size:.72rem;font-weight:500;color:${colors[tag]};background:${bgColors[tag]};padding:.1rem .4rem;border-radius:6px">${nights}박</span>${b.source==='airbnb'?'<span style="font-size:.58rem;color:#FF5A5F;background:rgba(255,90,95,0.1);padding:.1rem .35rem;border-radius:5px;margin-left:.3rem">Airbnb</span>':''}</div>
       <div class="card-sub">${room?.type||''} · ${b.checkIn} ~ ${b.checkOut}</div>
     </div>
     <span class="badge ${badgeClass[tag]}">${labels[tag]}</span></div>
-    <div style="font-size:.7rem;color:var(--text3);margin-top:.15rem">${tag==='checkout'?'⏰ 체크아웃 '+coTime:tag==='checkin'?'⏰ 체크인 '+ciTime:'📅 체크아웃 '+coDate+' '+coTime}</div>
+    <div style="font-size:.7rem;color:var(--text3);margin-top:.15rem">${tag==='checkout'?'⏰ 체크아웃 '+actualCoTime:tag==='checkin'?'⏰ 체크인 '+actualCiTime:'📅 체크아웃 '+coDate+' '+actualCoTime}</div>
+    ${timeChangeHtml}
   </div>`;
 }
 
@@ -1381,21 +1388,24 @@ function renderCleanList(list,viewer='admin'){
       if(c.status==='pending') actions=`<button class="btn btn-accent2 btn-sm" onclick="event.stopPropagation();startCleaning('${c.id}')">청소 시작</button>`;
       else if(c.status==='inprogress') actions=`<button class="btn btn-accent btn-sm" onclick="openCleanWork('${c.id}')">작업하기</button>`;
     } else if(viewer==='host'){
+      if(c.status==='pending'||c.status==='inprogress') actions=`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEditCleaningReq('${c.id}')">수정</button> <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteCleaningReq('${c.id}')">삭제</button>`;
       if(c.status==='submitted'||c.status==='confirmed') actions=`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openChecklistView('${c.id}')">체크리스트 보기</button>`;
       if(c.status==='submitted') actions+=` <button class="btn btn-accent btn-sm" onclick="event.stopPropagation();openReviewModal('${c.id}')">별점 남기기</button>`;
     } else {
-      // admin - 모든 상태별 액션
-      if(c.status==='pending') actions=`<button class="btn btn-accent2 btn-sm" onclick="event.stopPropagation();startCleaning('${c.id}')">청소 시작</button> <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteCleaningReq('${c.id}')">삭제</button>`;
-      else if(c.status==='inprogress') actions=`<button class="btn btn-accent btn-sm" onclick="openCleanWork('${c.id}')">작업하기</button>`;
+      // admin
+      if(c.status==='pending') actions=`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEditCleaningReq('${c.id}')">수정</button> <button class="btn btn-accent2 btn-sm" onclick="event.stopPropagation();startCleaning('${c.id}')">청소 시작</button> <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteCleaningReq('${c.id}')">삭제</button>`;
+      else if(c.status==='inprogress') actions=`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEditCleaningReq('${c.id}')">수정</button> <button class="btn btn-accent btn-sm" onclick="openCleanWork('${c.id}')">작업하기</button>`;
       else if(c.status==='submitted') actions=`<button class="btn btn-accent btn-sm" onclick="event.stopPropagation();openAdminReview('${c.id}')">검토하기</button> <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openChecklistView('${c.id}')">체크리스트</button>`;
       else if(c.status==='confirmed') actions=`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openChecklistView('${c.id}')">결과 보기</button> <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openReviewModal('${c.id}')">별점</button> <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteCleaningReq('${c.id}')">삭제</button>`;
     }
+    const timeChangeInfo=c.timeChanged&&c.timeChangeLog?`<div style="font-size:.7rem;color:var(--warning);margin-top:.2rem">⚠️ ${c.timeChangeLog}</div>`:'';
     return `<div class="card">
-      <div class="card-header"><div><div class="card-title">${room?.number||'?'}호 - ${c.type}</div><div class="card-sub">${c.date} ${c.time}${c.checkOutTime?' · 체크아웃 '+c.checkOutTime:''}${cleaner&&viewer!=='cleaner'?' · '+cleaner.name:''}</div></div>${reqStatusBadge(c.status)}</div>
+      <div class="card-header"><div><div class="card-title">${room?.number||'?'}호 - ${c.type}</div><div class="card-sub">${c.date} ${c.time}${c.checkOutTime?' · 체크아웃 '+c.checkOutTime:''}${c.checkInTime?' · 체크인 '+c.checkInTime:''}${cleaner&&viewer!=='cleaner'?' · '+cleaner.name:''}</div></div>${reqStatusBadge(c.status)}</div>
+      ${timeChangeInfo}
       ${c.status!=='pending'?`<div class="text-sm text-muted mt-sm">📋 체크리스트 ${done}/${total} 완료 · 📷 사진 ${c.photos.length}장</div>`:''}
       ${c.notes?`<div class="text-sm text-muted mt-sm">📝 ${c.notes}</div>`:''}
       ${c.rating?`<div class="mt-sm text-sm">⭐ ${c.rating}/5 ${c.reviewNote?'· '+c.reviewNote:''}</div>`:''}
-      ${actions?`<div class="mt-sm flex gap-sm">${actions}</div>`:''}
+      ${actions?`<div class="mt-sm flex gap-sm" style="flex-wrap:wrap">${actions}</div>`:''}
     </div>`;
   }).join('');
 }
@@ -2481,13 +2491,28 @@ function openEditCleaningReq(cId){
   if(!c) return;
   const room=DB.rooms.find(r=>r.id===c.roomId);
   const cleaners=DB.users.filter(u=>u.role==='cleaner');
-  const el=document.getElementById('editBookingBody');
+  // 연관 예약에서 기본 시간 가져오기
+  const relBooking=DB.bookings.find(b=>b.roomId===c.roomId&&b.checkOut===c.date);
+  const curCoTime=c.checkOutTime||relBooking?.checkOutTime||room?.defaultCheckOut||'11:00';
+  // 체크인 예약 (당일 체크인)
+  const ciBooking=DB.bookings.find(b=>b.roomId===c.roomId&&b.checkIn===c.date);
+  const curCiTime=c.checkInTime||ciBooking?.checkInTime||room?.defaultCheckIn||'15:00';
   document.getElementById('editBookingBody').innerHTML=`
     <input type="hidden" id="editCleanId" value="${c.id}">
+    <input type="hidden" id="editCleanOldCoTime" value="${curCoTime}">
+    <input type="hidden" id="editCleanOldCiTime" value="${curCiTime}">
     <div style="font-size:.85rem;font-weight:600;margin-bottom:.8rem">🧹 청소 요청 수정 - ${room?.number||'?'}호</div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">날짜</label><input type="date" class="form-input" id="editCleanDate" value="${c.date}"></div>
-      <div class="form-group"><label class="form-label">시간</label><input type="time" class="form-input" id="editCleanTime" value="${c.time}"></div>
+      <div class="form-group"><label class="form-label">청소 시간</label><input type="time" class="form-input" id="editCleanTime" value="${c.time}"></div>
+    </div>
+    <div style="background:var(--surface2);border-radius:10px;padding:.7rem;margin-bottom:.8rem">
+      <div style="font-size:.78rem;font-weight:600;margin-bottom:.5rem;color:var(--warning)">⏰ 체크아웃/체크인 시간 변경</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">체크아웃 시간</label><input type="time" class="form-input" id="editCleanCoTime" value="${curCoTime}"></div>
+        <div class="form-group"><label class="form-label">체크인 시간</label><input type="time" class="form-input" id="editCleanCiTime" value="${curCiTime}"></div>
+      </div>
+      <div style="font-size:.68rem;color:var(--text3);margin-top:.2rem">레이트체크아웃/얼리체크인 시 변경 (객실 기본시간은 유지됩니다)</div>
     </div>
     <div class="form-group"><label class="form-label">담당 청소팀</label>
       <select class="form-select" id="editCleanCleaner">${cleaners.map(u=>`<option value="${u.id}" ${u.id===c.cleanerId?'selected':''}>${u.name}</option>`).join('')}</select>
@@ -2496,7 +2521,10 @@ function openEditCleaningReq(cId){
     <label style="display:flex;align-items:center;gap:.4rem;margin-bottom:.8rem;font-size:.82rem;cursor:pointer">
       <input type="checkbox" id="editCleanNotify" checked> 청소팀에게 변경 알림 보내기
     </label>
-    <button class="btn btn-accent btn-full" onclick="saveEditCleaningReq()">변경 저장</button>`;
+    <div style="display:flex;gap:.4rem">
+      <button class="btn btn-accent btn-full" onclick="saveEditCleaningReq()">변경 저장</button>
+      <button class="btn btn-danger" style="padding:.6rem 1rem" onclick="deleteCleaningReq('${c.id}');closeModal('modalEditBooking')">삭제</button>
+    </div>`;
   openModal('modalEditBooking');
 }
 
@@ -2507,15 +2535,40 @@ function saveEditCleaningReq(){
   const newDate=document.getElementById('editCleanDate').value;
   const newTime=document.getElementById('editCleanTime').value;
   const newCleaner=document.getElementById('editCleanCleaner').value;
+  const newCoTime=document.getElementById('editCleanCoTime').value;
+  const newCiTime=document.getElementById('editCleanCiTime').value;
+  const oldCoTime=document.getElementById('editCleanOldCoTime').value;
+  const oldCiTime=document.getElementById('editCleanOldCiTime').value;
   const notify=document.getElementById('editCleanNotify')?.checked;
+  const room=DB.rooms.find(r=>r.id===c.roomId);
+  
+  // 변경 내역 수집
+  const changes=[];
+  if(c.date!==newDate) changes.push(`날짜 ${c.date}→${newDate}`);
+  if(c.time!==newTime) changes.push(`청소시간 ${c.time}→${newTime}`);
+  if(newCoTime!==oldCoTime) changes.push(`체크아웃 ${oldCoTime}→${newCoTime}`);
+  if(newCiTime!==oldCiTime) changes.push(`체크인 ${oldCiTime}→${newCiTime}`);
+  
   c.date=newDate;
   c.time=newTime;
   c.cleanerId=newCleaner;
   c.notes=document.getElementById('editCleanNotes').value.trim();
-  const room=DB.rooms.find(r=>r.id===c.roomId);
-  if(notify && c.cleanerId){
-    addNotif(c.cleanerId,`📢 ${room?.number||''}호 청소 일정 변경! ${newDate} ${newTime}`);
+  c.checkOutTime=newCoTime;
+  c.checkInTime=newCiTime;
+  // 시간 변경 기록 저장 (대시보드 표시용)
+  if(newCoTime!==oldCoTime||newCiTime!==oldCiTime){
+    c.timeChanged=true;
+    c.timeChangeLog=changes.filter(ch=>ch.includes('체크아웃')||ch.includes('체크인')).join(', ');
+  }
+  
+  if(notify && c.cleanerId && changes.length){
+    addNotif(c.cleanerId,`📢 ${room?.number||''}호 청소 일정 변경!\n${changes.join(' / ')}`);
     playNotifSound();
+  }
+  // 관리자에게도 알림 (호스트가 수정한 경우)
+  if(notify && currentUser.role==='host'){
+    const admins=DB.users.filter(u=>u.role==='admin');
+    admins.forEach(a=>addNotif(a.id,`📢 ${currentUser.name}님이 ${room?.number||''}호 청소 일정 변경!\n${changes.join(' / ')}`));
   }
   saveData();closeModal('modalEditBooking');showToast('청소 요청이 수정되었습니다');renderPage(currentPage);
 }
@@ -2979,11 +3032,11 @@ function updateNotifDot(){const unread=DB.notifications.filter(n=>n.userId===cur
 function openNotif(){
   const mine=DB.notifications.filter(n=>n.userId===currentUser.id);
   const el=document.getElementById('notifList');
-  // 읽지 않은 알림 수집
-  const unreadList=mine.filter(n=>!n.read);
+  // 읽지 않은 알림 중 확인통보(system)가 아닌 것만 수집
+  const unreadList=mine.filter(n=>!n.read&&n.fromId!=='system');
   
   el.innerHTML=mine.length?mine.slice().reverse().map(n=>{
-    const fromUser=n.fromId?DB.users.find(u=>u.id===n.fromId):null;
+    const fromUser=n.fromId&&n.fromId!=='system'?DB.users.find(u=>u.id===n.fromId):null;
     const fromLabel=fromUser?`<span style="font-size:.68rem;color:var(--text3)">from ${fromUser.name}</span>`:'';
     return `<div class="notif-item ${n.read?'':'notif-unread'}">
       <div class="notif-icon" style="background:var(--surface2)">🔔</div>
@@ -2991,26 +3044,26 @@ function openNotif(){
     </div>`;
   }).join(''):emptyState('🔔','알림 없음');
   
-  // 읽음 처리 + 확인 알림 발송
+  // 읽음 처리
+  mine.forEach(n=>n.read=true);
+  
+  // 확인 알림 발송 (실제 업무 알림만, system 알림은 제외)
   if(unreadList.length>0){
-    // 발신자들에게 확인 알림 전송 (중복 제거)
-    const senderIds=[...new Set(unreadList.map(n=>n.fromId).filter(id=>id&&id!==currentUser.id))];
+    const senderIds=[...new Set(unreadList.map(n=>n.fromId).filter(id=>id&&id!=='system'&&id!==currentUser.id))];
     const myName=currentUser.name||currentUser.id;
     const roleName=currentUser.role==='admin'?'관리자':currentUser.role==='host'?'호스트':'청소팀원';
     senderIds.forEach(sid=>{
-      addNotif(sid,`✅ ${roleName} ${myName}님이 알림 ${unreadList.filter(n=>n.fromId===sid).length}건을 확인했습니다.`,'system');
+      const cnt=unreadList.filter(n=>n.fromId===sid).length;
+      addNotif(sid,`✅ ${roleName} ${myName}님이 알림 ${cnt}건을 확인했습니다.`,'system');
     });
-    // admin에게도 알림 (본인이 admin이 아닌 경우)
     if(currentUser.role!=='admin'){
       const admins=DB.users.filter(u=>u.role==='admin'&&u.id!==currentUser.id&&!senderIds.includes(u.id));
       admins.forEach(a=>{
         addNotif(a.id,`✅ ${roleName} ${myName}님이 알림 ${unreadList.length}건을 확인했습니다.`,'system');
       });
     }
-    mine.forEach(n=>n.read=true);
-    saveData();
   }
-  updateNotifDot();openModal('modalNotif');
+  saveData();updateNotifDot();openModal('modalNotif');
 }
 
 function openModal(id){
