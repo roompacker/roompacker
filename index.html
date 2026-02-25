@@ -2498,26 +2498,17 @@ function openEditCleaningReq(cId){
   const cleaners=DB.users.filter(u=>u.role==='cleaner');
   const defaultCoTime=room?.defaultCheckOut||'11:00';
   const defaultCiTime=room?.defaultCheckIn||'15:00';
-  // 체크아웃 예약 (이 날짜에 체크아웃하는 손님)
-  const coBooking=DB.bookings.find(b=>b.roomId===c.roomId&&b.checkOut===c.date);
-  const curCoTime=c.checkOutTime||(coBooking?coBooking.checkOutTime||defaultCoTime:'');
+  // 체크아웃 예약 (이 날짜에 체크아웃 또는 투숙중인 손님)
+  const coBooking=DB.bookings.find(b=>b.roomId===c.roomId&&b.checkOut===c.date)
+    ||DB.bookings.find(b=>b.roomId===c.roomId&&b.checkIn<=c.date&&b.checkOut>=c.date);
   // 체크인 예약 (이 날짜에 체크인하는 손님)
-  const ciBooking=DB.bookings.find(b=>b.roomId===c.roomId&&b.checkIn===c.date);
-  const curCiTime=c.checkInTime||(ciBooking?ciBooking.checkInTime||defaultCiTime:'');
+  const ciBooking=DB.bookings.find(b=>b.roomId===c.roomId&&b.checkIn===c.date)
+    ||DB.bookings.find(b=>b.roomId===c.roomId&&b.checkIn>c.date);
+  const curCoTime=c.checkOutTime||coBooking?.checkOutTime||defaultCoTime;
+  const curCiTime=c.checkInTime||ciBooking?.checkInTime||defaultCiTime;
   
-  const coSection=coBooking?`
-    <div style="background:rgba(251,113,133,0.08);border-radius:10px;padding:.7rem;margin-bottom:.6rem">
-      <div style="font-size:.78rem;font-weight:600;color:#FB7185;margin-bottom:.4rem">⏰ 체크아웃 (기본 ${defaultCoTime})</div>
-      <div style="font-size:.72rem;color:var(--text2);margin-bottom:.4rem">${coBooking.guestName||'게스트'} · ${coBooking.checkIn} ~ ${coBooking.checkOut}</div>
-      <div class="form-group" style="margin:0"><label class="form-label">레이트체크아웃 시간</label><input type="time" class="form-input" id="editCleanCoTime" value="${curCoTime}"></div>
-    </div>`:`<input type="hidden" id="editCleanCoTime" value="">`;
-    
-  const ciSection=ciBooking?`
-    <div style="background:rgba(96,165,250,0.08);border-radius:10px;padding:.7rem;margin-bottom:.6rem">
-      <div style="font-size:.78rem;font-weight:600;color:#60A5FA;margin-bottom:.4rem">🔵 체크인 (기본 ${defaultCiTime})</div>
-      <div style="font-size:.72rem;color:var(--text2);margin-bottom:.4rem">${ciBooking.guestName||'게스트'} · ${ciBooking.checkIn} ~ ${ciBooking.checkOut}</div>
-      <div class="form-group" style="margin:0"><label class="form-label">얼리체크인 시간</label><input type="time" class="form-input" id="editCleanCiTime" value="${curCiTime}"></div>
-    </div>`:`<input type="hidden" id="editCleanCiTime" value="">`;
+  const coGuestInfo=coBooking?`<div style="font-size:.72rem;color:var(--text2);margin-bottom:.4rem">${coBooking.guestName||'게스트'} · ${coBooking.checkIn} ~ ${coBooking.checkOut}</div>`:'';
+  const ciGuestInfo=ciBooking?`<div style="font-size:.72rem;color:var(--text2);margin-bottom:.4rem">${ciBooking.guestName||'게스트'} · ${ciBooking.checkIn} ~ ${ciBooking.checkOut}</div>`:'';
 
   document.getElementById('editBookingBody').innerHTML=`
     <input type="hidden" id="editCleanId" value="${c.id}">
@@ -2525,9 +2516,17 @@ function openEditCleaningReq(cId){
     <input type="hidden" id="editCleanOldCiTime" value="${curCiTime}">
     <div style="font-size:.85rem;font-weight:600;margin-bottom:.8rem">🧹 청소 요청 수정 - ${room?.number||'?'}호</div>
     <div class="form-group"><label class="form-label">날짜</label><input type="date" class="form-input" id="editCleanDate" value="${c.date}"></div>
-    ${coSection}
-    ${ciSection}
-    ${!coBooking&&!ciBooking?'<div style="font-size:.78rem;color:var(--text3);margin-bottom:.6rem">이 날짜에 연결된 체크아웃/체크인 예약이 없습니다</div>':''}
+    <div style="background:rgba(251,113,133,0.08);border-radius:10px;padding:.7rem;margin-bottom:.6rem">
+      <div style="font-size:.78rem;font-weight:600;color:#FB7185;margin-bottom:.4rem">⏰ 체크아웃 (기본 ${defaultCoTime})</div>
+      ${coGuestInfo}
+      <div class="form-group" style="margin:0"><label class="form-label">레이트체크아웃 시간</label><input type="time" class="form-input" id="editCleanCoTime" value="${curCoTime}"></div>
+    </div>
+    <div style="background:rgba(96,165,250,0.08);border-radius:10px;padding:.7rem;margin-bottom:.6rem">
+      <div style="font-size:.78rem;font-weight:600;color:#60A5FA;margin-bottom:.4rem">🔵 체크인 (기본 ${defaultCiTime})</div>
+      ${ciGuestInfo}
+      <div class="form-group" style="margin:0"><label class="form-label">얼리체크인 시간</label><input type="time" class="form-input" id="editCleanCiTime" value="${curCiTime}"></div>
+    </div>
+    <div style="font-size:.68rem;color:var(--text3);margin-bottom:.6rem">기본시간과 다를 경우만 변경하세요 (객실 기본시간은 유지됩니다)</div>
     <div class="form-group"><label class="form-label">담당 청소팀</label>
       <select class="form-select" id="editCleanCleaner">${cleaners.map(u=>`<option value="${u.id}" ${u.id===c.cleanerId?'selected':''}>${u.name}</option>`).join('')}</select>
     </div>
