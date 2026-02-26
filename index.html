@@ -1087,10 +1087,27 @@ function getRoomInfo(room){
 
   // 상태 판단
   if(coTodayBooking && timePassed){
-    // 체크아웃 시간 지남
-    if(nextBooking && nextBooking.checkIn===today){
-      return {status:'checkout', badge:'체크아웃', badgeClass:'badge-danger',
-        detail:`체크아웃/입실예정 · ${nextBooking.checkIn.slice(5).replace('-','/')} ${nextBooking.checkInTime||room.defaultCheckIn||'15:00'}`};
+    // 체크아웃 시간 지남 → 당일 체크인 확인
+    if(ciTodayBooking && ciTodayBooking.id!==coTodayBooking.id){
+      const ciTime=ciTodayBooking.checkInTime||room.defaultCheckIn||'15:00';
+      if(nowHHMM>=ciTime){
+        // 체크인 시간도 지남 → 새 손님 투숙중
+        const ci=new Date(ciTodayBooking.checkIn);
+        const co=new Date(ciTodayBooking.checkOut);
+        const nights=Math.round((co-ci)/(1000*60*60*24));
+        const coDateStr=ciTodayBooking.checkOut.slice(5).replace('-','/');
+        const newCoTime=ciTodayBooking.checkOutTime||room.defaultCheckOut||'11:00';
+        if(nights>1){
+          return {status:'occupied', badge:'연박', badgeClass:'badge-staying',
+            detail:`투숙중/연박 ${nights}박 · 체크아웃 ${coDateStr} ${newCoTime}`};
+        }
+        return {status:'occupied', badge:'투숙중', badgeClass:'badge-occupied',
+          detail:`투숙중 · OUT ${coDateStr} ${newCoTime}`};
+      } else {
+        // 체크인 시간 아직 안됨
+        return {status:'checkout', badge:'체크아웃', badgeClass:'badge-danger',
+          detail:`체크아웃/입실예정 · IN ${ciTime}`};
+      }
     } else if(nextBooking){
       return {status:'checkout', badge:'체크아웃', badgeClass:'badge-danger',
         detail:`체크아웃/빈방 · 다음 ${nextBooking.checkIn.slice(5).replace('-','/')}`};
