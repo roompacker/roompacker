@@ -1062,8 +1062,8 @@ function getRoomInfo(room){
   const activeBookings=DB.bookings.filter(b=>b.roomId===room.id&&b.checkIn<=today&&b.checkOut>=today);
   // 오늘 체크아웃 예약 (checkOut === today)
   const coTodayBooking=activeBookings.find(b=>b.checkOut===today);
-  // 연박 예약 (checkOut > today, 즉 오늘 이후에 체크아웃)
-  const stayingBooking=activeBookings.find(b=>b.checkOut>today);
+  // 연박 예약 (어제 이전 체크인 + 내일 이후 체크아웃, 엄격히 checkIn < today)
+  const stayingBooking=activeBookings.find(b=>b.checkIn<today&&b.checkOut>today);
   // 다음 예약 (오늘 이후 체크인)
   const nextBooking=DB.bookings.find(b=>b.roomId===room.id&&b.checkIn>today);
   // 오늘 체크인 예약
@@ -1123,8 +1123,20 @@ function getRoomInfo(room){
   } else if(ciTodayBooking){
     // 오늘 체크인
     const ciTime=ciTodayBooking.checkInTime||room.defaultCheckIn||'15:00';
+    const ciNights=Math.round((new Date(ciTodayBooking.checkOut)-new Date(ciTodayBooking.checkIn))/86400000);
+    if(nowHHMM>=ciTime){
+      // 체크인 시간 지남 → 투숙중
+      const coDateStr=ciTodayBooking.checkOut.slice(5).replace('-','/');
+      const coTimeStr=ciTodayBooking.checkOutTime||room.defaultCheckOut||'11:00';
+      if(ciNights>1){
+        return {status:'occupied', badge:'연박', badgeClass:'badge-staying',
+          detail:`투숙중/연박 ${ciNights}박 · 체크아웃 ${coDateStr} ${coTimeStr}`};
+      }
+      return {status:'occupied', badge:'투숙중', badgeClass:'badge-occupied',
+        detail:`투숙중 · OUT ${coDateStr} ${coTimeStr}`};
+    }
     return {status:'checkin', badge:'입실예정', badgeClass:'badge-checkin',
-      detail:`입실예정 · IN ${ciTime}`};
+      detail:`입실예정 · IN ${ciTime}${ciNights>1?' ('+ciNights+'박)':''}`};
   } else {
     return {status:'vacant', badge:'빈방', badgeClass:'badge-vacant', detail:''};
   }
@@ -1151,8 +1163,14 @@ function classifyBookings(bookings){
   const tmr=getLocalTomorrow();
   return {
     checkOutToday: bookings.filter(b=>b.checkOut===today),
-    checkInToday:  bookings.filter(b=>b.checkIn===today),
-    staying:       bookings.filter(b=>b.checkIn<today&&b.checkOut>today), // 연박: 체크인일/체크아웃일 제외
+    checkInToday:  bookings.filter(b=>b.checkIn===today && Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000)<=1),
+    staying:       bookings.filter(b=>{
+      const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
+      // 연박 = (어제 이전 체크인 + 내일 이후 체크아웃) OR (오늘 체크인 + 2박 이상)
+      if(b.checkIn<today&&b.checkOut>today) return true;
+      if(b.checkIn===today&&nights>1) return true;
+      return false;
+    }),
     upcoming:      bookings.filter(b=>b.checkIn>today),
     past:          bookings.filter(b=>b.checkOut<today),
     checkOutTomorrow: bookings.filter(b=>b.checkOut===tmr),
@@ -1163,12 +1181,11 @@ function classifyBookings(bookings){
 // 예약 1건의 상태 뱃지 (통합 함수)
 function getBookingBadge(b){
   const today=getLocalDate();
-  const ci=new Date(b.checkIn),co=new Date(b.checkOut);
-  const nights=Math.round((co-ci)/(86400000));
+  const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
   if(b.checkOut<today) return {tag:'past',label:'지난예약',color:'#94A3B8',bgColor:'rgba(148,163,184,0.1)'};
   if(b.checkOut===today) return {tag:'checkout',label:'체크아웃',color:'#FB7185',bgColor:'rgba(251,113,133,0.1)'};
-  if(b.checkIn===today) return {tag:'checkin',label:'체크인',color:'#60A5FA',bgColor:'rgba(96,165,250,0.1)'};
-  if(b.checkIn<today&&b.checkOut>today) return {tag:'staying',label:`연박 ${nights}박`,color:'#00C896',bgColor:'rgba(0,200,150,0.1)'};
+  if(b.checkIn===today&&nights<=1) return {tag:'checkin',label:'체크인',color:'#60A5FA',bgColor:'rgba(96,165,250,0.1)'};
+  if((b.checkIn<today&&b.checkOut>today)||(b.checkIn===today&&nights>1)) return {tag:'staying',label:`연박 ${nights}박`,color:'#00C896',bgColor:'rgba(0,200,150,0.1)'};
   return {tag:'upcoming',label:'예정',color:'#F59E0B',bgColor:'rgba(245,158,11,0.1)'};
 }
 
@@ -1193,8 +1210,7 @@ function renderDashboard(){
     title.textContent='전체 현황';
     const cls=classifyBookings(DB.bookings);
     const icalRooms=DB.rooms.filter(r=>r.icalUrl);
-    const pendingClean=DB.cleaningRequests.filter(c=>c.status==='pending');
-    const completedClean=DB.cleaningRequests.filter(c=>c.status==='completed');
+    const todayCleanNeeded=cls.checkOutToday.length;
     el.innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
         <div style="font-size:.72rem;color:var(--text3)">📅 ${cls.today} 기준</div>
@@ -1210,31 +1226,19 @@ function renderDashboard(){
         <div class="stat-card" style="cursor:pointer" onclick="scrollToSec('secUpcoming')"><div class="stat-number" style="color:var(--warning);font-size:1.5rem">${cls.upcoming.length}</div><div class="stat-label">예정</div></div>
       </div>
       <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-top:.3rem">
-        <div class="stat-card" style="cursor:pointer" onclick="scrollToSec('secClean')"><div class="stat-number" style="font-size:1.5rem">${pendingClean.length}</div><div class="stat-label">🧹 청소대기</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="switchPage('pageCleaning')"><div class="stat-number" style="color:#FB7185;font-size:1.5rem">${todayCleanNeeded}</div><div class="stat-label">🧹 청소</div></div>
         <div class="stat-card" style="cursor:pointer;border:1px solid var(--warning)" onclick="scrollToSec('secTmr')"><div class="stat-number" style="color:var(--warning);font-size:1.5rem">${cls.checkOutTomorrow.length}</div><div class="stat-label">📅 내일퇴실</div></div>
         <div class="stat-card" style="cursor:pointer" onclick="scrollToSec('secRooms')"><div class="stat-number" style="font-size:1.5rem">${DB.rooms.length}</div><div class="stat-label">🏠 객실</div></div>
       </div>
 
-      ${cls.checkOutToday.length?`<div class="section-title" id="secCO" style="color:#FB7185">🔴 오늘 체크아웃 (${cls.checkOutToday.length})</div>
-      ${cls.checkOutToday.map(b=>dashBookingCard(b)).join('')}`:'<div id="secCO"></div>'}
-      ${cls.checkInToday.length?`<div class="section-title" id="secCI" style="color:#60A5FA">🔵 오늘 체크인 (${cls.checkInToday.length})</div>
-      ${cls.checkInToday.map(b=>dashBookingCard(b)).join('')}`:'<div id="secCI"></div>'}
-      ${cls.staying.length?`<div class="section-title" id="secStay" style="color:var(--accent)">🟢 연박 투숙 (${cls.staying.length})</div>
-      ${cls.staying.map(b=>dashBookingCard(b)).join('')}`:'<div id="secStay"></div>'}
-      ${cls.checkOutTomorrow.length?`<div class="section-title" id="secTmr" style="color:var(--warning)">📅 내일 체크아웃 (${cls.checkOutTomorrow.length})</div>
-      ${cls.checkOutTomorrow.map(b=>dashBookingCard(b)).join('')}`:'<div id="secTmr"></div>'}
+      ${renderGroupedSection(cls.checkOutToday,'secCO','#FB7185','🔴 오늘 체크아웃')}
+      ${renderGroupedSection(cls.checkInToday,'secCI','#60A5FA','🔵 오늘 체크인')}
+      ${renderGroupedSection(cls.staying,'secStay','var(--accent)','🟢 연박 투숙')}
+      ${cls.checkOutTomorrow.length?renderGroupedSection(cls.checkOutTomorrow,'secTmr','var(--warning)','📅 내일 체크아웃'):'<div id="secTmr"></div>'}
       ${cls.upcoming.length?`<div class="section-title" id="secUpcoming">📋 예정 예약 (${cls.upcoming.length})</div>
       <div style="max-height:250px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:.4rem">
-      ${cls.upcoming.map(b=>dashBookingCard(b)).join('')}
+      ${renderGroupedCards(cls.upcoming)}
       </div>`:'<div id="secUpcoming"></div>'}
-
-      <div class="section-title" id="secClean" style="display:flex;justify-content:space-between;align-items:center">🧹 청소 현황 <button class="btn btn-accent btn-sm" style="font-size:.7rem;text-transform:none" onclick="switchPage('pageCleaning')">청소관리 →</button></div>
-      ${pendingClean.slice(0,5).map(c=>{
-        const room=DB.rooms.find(r=>r.id===c.roomId);
-        return '<div class="card"><div class="card-header"><div><div class="card-title">'+
-          (room?.number||'?')+'호 - '+c.type+'</div><div class="card-sub">'+c.date+'</div></div>'+
-          reqStatusBadge(c.status)+'</div></div>';
-      }).join('')||emptyState('🧹','청소 대기 없음')}
 
       <div class="section-title" id="secRooms" style="display:flex;justify-content:space-between;align-items:center">🏠 객실 현황
         <div style="display:flex;gap:.3rem">
@@ -1242,7 +1246,7 @@ function renderDashboard(){
           <button class="btn btn-ghost btn-sm" style="font-size:.7rem" onclick="openModal('modalAddBooking')">+ 예약</button>
         </div>
       </div>
-      <div class="room-grid">${DB.rooms.map(r=>renderRoomCard(r)).join('')}</div>`;
+      ${renderGroupedRooms()}`;
 
   } else if(role==='host'){
     title.textContent=`${currentUser.name}${currentUser.place?' · '+currentUser.place:''}`;
@@ -1262,7 +1266,7 @@ function renderDashboard(){
         <div class="stat-card" style="cursor:pointer" onclick="scrollToSec('secUpcoming')"><div class="stat-number" style="color:var(--warning);font-size:1.5rem">${cls.upcoming.length}</div><div class="stat-label">예정</div></div>
       </div>
       <div class="stats-grid" style="grid-template-columns:1fr 1fr;margin-top:.3rem">
-        <div class="stat-card"><div class="stat-number" style="font-size:1.5rem">${myCleaning.filter(c=>c.status==='pending').length}</div><div class="stat-label">🧹 청소 대기</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="switchPage('pageCleaning')"><div class="stat-number" style="color:#FB7185;font-size:1.5rem">${cls.checkOutToday.length}</div><div class="stat-label">🧹 청소</div></div>
         <div class="stat-card" style="border:1px solid var(--warning)"><div class="stat-number" style="color:var(--warning);font-size:1.5rem">${cls.checkOutTomorrow.length}</div><div class="stat-label">📅 내일퇴실</div></div>
       </div>
       ${cls.checkOutToday.length?`<div class="section-title" id="secCO" style="color:#FB7185">🔴 오늘 체크아웃 (${cls.checkOutToday.length})</div>
@@ -1300,7 +1304,7 @@ function renderDashboard(){
         const ciTime=c.checkInTime||defaultCi;
         const coChanged=c.checkOutTime&&c.checkOutTime!==defaultCo;
         const ciChanged=c.checkInTime&&c.checkInTime!==defaultCi;
-        return '<div class="card" onclick="openCleanWork(\''+c.id+'\')">'+
+        return '<div class="card" onclick="startCleaning(\''+c.id+'\')">'+
           '<div class="card-header"><div><div class="card-title">'+(room?.number||'?')+'호 - '+c.type+'</div><div class="card-sub">'+c.date+'</div></div>'+reqStatusBadge(c.status)+'</div>'+
           '<div style="font-size:.72rem;color:var(--text2);margin-top:.2rem;line-height:1.5">'+
           '⏰ 체크아웃 '+coTime+(coChanged?' <span style="color:var(--warning)">(변경)</span>':'')+'<br>'+
@@ -1311,9 +1315,85 @@ function renderDashboard(){
   }
 }
 
+// ── 호스트/건물별 그룹핑 ────────────────────────────────────────
+function groupByHost(bookings){
+  const groups={};
+  bookings.forEach(b=>{
+    const room=DB.rooms.find(r=>r.id===b.roomId);
+    const host=DB.users.find(u=>u.id===(room?.hostId||b.hostId));
+    const building=room?.type||'기타';
+    const hostName=host?.name||host?.loginId||'미배정';
+    const hostPlace=host?.place||'';
+    const key=building+'|||'+hostName;
+    if(!groups[key]) groups[key]={building,hostName,hostPlace,bookings:[]};
+    groups[key].bookings.push(b);
+  });
+  return Object.values(groups);
+}
+
+function groupRoomsByHost(rooms){
+  const groups={};
+  rooms.forEach(r=>{
+    const host=DB.users.find(u=>u.id===r.hostId);
+    const building=r.type||'기타';
+    const hostName=host?.name||host?.loginId||'미배정';
+    const key=building+'|||'+hostName;
+    if(!groups[key]) groups[key]={building,hostName,rooms:[]};
+    groups[key].rooms.push(r);
+  });
+  return Object.values(groups);
+}
+
+function renderGroupedSection(bookings,secId,color,label){
+  if(!bookings.length) return `<div id="${secId}"></div>`;
+  const groups=groupByHost(bookings);
+  let html=`<div class="section-title" id="${secId}" style="color:${color}">${label} (${bookings.length})</div>`;
+  groups.forEach(g=>{
+    html+=`<div style="margin-bottom:.6rem">
+      <div style="font-size:.72rem;font-weight:700;color:var(--text2);padding:.3rem .5rem;background:var(--surface2);border-radius:6px;margin-bottom:.3rem">
+        🏢 ${g.building} <span style="font-weight:500;color:var(--text3)">/ ${g.hostName}</span>
+      </div>
+      ${g.bookings.map(b=>dashBookingCard(b)).join('')}
+    </div>`;
+  });
+  return html;
+}
+
+function renderGroupedCards(bookings){
+  const groups=groupByHost(bookings);
+  let html='';
+  groups.forEach(g=>{
+    html+=`<div style="margin-bottom:.4rem">
+      <div style="font-size:.68rem;font-weight:700;color:var(--text2);padding:.2rem .4rem;background:var(--surface2);border-radius:5px;margin-bottom:.2rem">
+        🏢 ${g.building} / ${g.hostName}
+      </div>
+      ${g.bookings.map(b=>dashBookingCard(b)).join('')}
+    </div>`;
+  });
+  return html;
+}
+
+function renderGroupedRooms(){
+  const groups=groupRoomsByHost(DB.rooms);
+  let html='';
+  groups.forEach(g=>{
+    html+=`<div style="margin-bottom:.8rem">
+      <div style="font-size:.72rem;font-weight:700;color:var(--text2);padding:.3rem .5rem;background:var(--surface2);border-radius:6px;margin-bottom:.4rem">
+        🏢 ${g.building} / ${g.hostName}
+      </div>
+      <div class="room-grid">${g.rooms.map(r=>renderRoomCard(r)).join('')}</div>
+    </div>`;
+  });
+  return html;
+}
+
 function scrollToSec(id){
   const el=document.getElementById(id);
-  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  if(el){
+    const headerH=document.querySelector('.app-header')?.offsetHeight||50;
+    const y=el.getBoundingClientRect().top+window.scrollY-headerH-10;
+    window.scrollTo({top:y,behavior:'smooth'});
+  }
 }
 
 // ── BOOKING ───────────────────────────────────────────────────
@@ -1362,48 +1442,56 @@ function renderBooking(){
 function renderCleaning(){
   const role=currentUser.role;
   const el=document.getElementById('cleaningContent');
+  const today=getLocalDate();
+  const cls=classifyBookings(role==='host'?DB.bookings.filter(b=>b.hostId===currentUser.id):DB.bookings);
+  const allClean=role==='host'?DB.cleaningRequests.filter(c=>c.hostId===currentUser.id):
+                 role==='cleaner'?DB.cleaningRequests.filter(c=>c.cleanerId===currentUser.id):
+                 DB.cleaningRequests;
+  const pendingClean=allClean.filter(c=>c.status==='pending'||c.status==='inprogress');
+  const doneClean=allClean.filter(c=>['completed','submitted','confirmed'].includes(c.status));
+
   if(role==='admin'){
-    const all=DB.cleaningRequests;
-    const cls=classifyBookings(DB.bookings);
     el.innerHTML=`
       <div class="flex-between" style="margin-bottom:1.2rem"><div class="page-title" style="margin:0">청소 관리</div><button class="btn btn-accent btn-sm" onclick="openCleaningReqModal()">+ 청소 요청</button></div>
-      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
         <div class="stat-card"><div class="stat-number" style="color:#FB7185;font-size:1.5rem">${cls.checkOutToday.length}</div><div class="stat-label">체크아웃</div></div>
-        <div class="stat-card"><div class="stat-number" style="font-size:1.5rem">${all.filter(c=>c.status==='pending').length}</div><div class="stat-label">청소 대기</div></div>
-        <div class="stat-card" style="border:1px solid var(--warning)"><div class="stat-number" style="color:var(--warning);font-size:1.5rem">${cls.checkOutTomorrow.length}</div><div class="stat-label">📅 내일퇴실</div></div>
+        <div class="stat-card"><div class="stat-number" style="font-size:1.5rem">${pendingClean.length}</div><div class="stat-label">청소요청</div></div>
+        <div class="stat-card"><div class="stat-number" style="color:var(--accent);font-size:1.5rem">${doneClean.filter(c=>c.date===today).length}</div><div class="stat-label">청소완료</div></div>
+        <div class="stat-card" style="border:1px solid var(--warning)"><div class="stat-number" style="color:var(--warning);font-size:1.5rem">${cls.checkOutTomorrow.length}</div><div class="stat-label">내일퇴실</div></div>
       </div>
       <div class="inner-tabs" id="cleanAdminTabs">
-        <button class="inner-tab active" onclick="filterClean('all',this,'cleanAdminTabs','cleanAdminList','admin')">전체(${all.length})</button>
-        <button class="inner-tab" onclick="filterClean('pending',this,'cleanAdminTabs','cleanAdminList','admin')">대기(${all.filter(c=>c.status==='pending').length})</button>
-        <button class="inner-tab" onclick="filterClean('completed',this,'cleanAdminTabs','cleanAdminList','admin')">완료</button>
+        <button class="inner-tab active" onclick="filterClean('pending',this,'cleanAdminTabs','cleanAdminList','admin')">요청 (${pendingClean.length})</button>
+        <button class="inner-tab" onclick="filterClean('completed',this,'cleanAdminTabs','cleanAdminList','admin')">완료 (${doneClean.filter(c=>c.date===today).length})</button>
       </div>
-      <div id="cleanAdminList">${renderCleanList(all,'admin')}</div>`;
+      <div id="cleanAdminList">${renderCleanList(pendingClean,'admin')}</div>`;
+
   } else if(role==='host'){
-    const mine=DB.cleaningRequests.filter(c=>c.hostId===currentUser.id);
-    const myBookings=DB.bookings.filter(b=>b.hostId===currentUser.id);
-    const cls=classifyBookings(myBookings);
     el.innerHTML=`
       <div class="flex-between" style="margin-bottom:1.2rem"><div class="page-title" style="margin:0">청소 요청</div><button class="btn btn-accent btn-sm" onclick="openCleaningReqModal()">+ 청소 요청</button></div>
-      <div class="stats-grid" style="grid-template-columns:1fr 1fr">
-        <div class="stat-card"><div class="stat-number" style="font-size:1.5rem">${mine.filter(c=>c.status==='pending').length}</div><div class="stat-label">청소 대기</div></div>
-        <div class="stat-card" style="border:1px solid var(--warning)"><div class="stat-number" style="color:var(--warning);font-size:1.5rem">${cls.checkOutTomorrow.length}</div><div class="stat-label">📅 내일퇴실</div></div>
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card"><div class="stat-number" style="color:#FB7185;font-size:1.5rem">${cls.checkOutToday.length}</div><div class="stat-label">체크아웃</div></div>
+        <div class="stat-card"><div class="stat-number" style="font-size:1.5rem">${pendingClean.length}</div><div class="stat-label">청소요청</div></div>
+        <div class="stat-card"><div class="stat-number" style="color:var(--accent);font-size:1.5rem">${doneClean.filter(c=>c.date===today).length}</div><div class="stat-label">청소완료</div></div>
+        <div class="stat-card" style="border:1px solid var(--warning)"><div class="stat-number" style="color:var(--warning);font-size:1.5rem">${cls.checkOutTomorrow.length}</div><div class="stat-label">내일퇴실</div></div>
       </div>
       <div class="inner-tabs" id="cleanHostTabs">
-        <button class="inner-tab active" onclick="filterClean('all',this,'cleanHostTabs','cleanHostList','host')">전체(${mine.length})</button>
-        <button class="inner-tab" onclick="filterClean('pending',this,'cleanHostTabs','cleanHostList','host')">대기</button>
-        <button class="inner-tab" onclick="filterClean('completed',this,'cleanHostTabs','cleanHostList','host')">완료</button>
+        <button class="inner-tab active" onclick="filterClean('pending',this,'cleanHostTabs','cleanHostList','host')">요청 (${pendingClean.length})</button>
+        <button class="inner-tab" onclick="filterClean('completed',this,'cleanHostTabs','cleanHostList','host')">완료 (${doneClean.filter(c=>c.date===today).length})</button>
       </div>
-      <div id="cleanHostList">${renderCleanList(mine,'host')}</div>`;
+      <div id="cleanHostList">${renderCleanList(pendingClean,'host')}</div>`;
+
   } else {
-    const mine=DB.cleaningRequests.filter(c=>c.cleanerId===currentUser.id);
     el.innerHTML=`
       <div class="flex-between" style="margin-bottom:1.2rem"><div class="page-title" style="margin:0">내 작업</div></div>
+      <div class="stats-grid" style="grid-template-columns:1fr 1fr">
+        <div class="stat-card"><div class="stat-number" style="font-size:1.5rem">${pendingClean.length}</div><div class="stat-label">대기</div></div>
+        <div class="stat-card"><div class="stat-number" style="color:var(--accent);font-size:1.5rem">${doneClean.filter(c=>c.date===today).length}</div><div class="stat-label">완료</div></div>
+      </div>
       <div class="inner-tabs" id="cleanCleanerTabs">
-        <button class="inner-tab active" onclick="filterClean('all',this,'cleanCleanerTabs','cleanCleanerList','cleaner')">전체(${mine.length})</button>
-        <button class="inner-tab" onclick="filterClean('pending',this,'cleanCleanerTabs','cleanCleanerList','cleaner')">대기</button>
+        <button class="inner-tab active" onclick="filterClean('pending',this,'cleanCleanerTabs','cleanCleanerList','cleaner')">요청 (${pendingClean.length})</button>
         <button class="inner-tab" onclick="filterClean('completed',this,'cleanCleanerTabs','cleanCleanerList','cleaner')">완료</button>
       </div>
-      <div id="cleanCleanerList">${renderCleanList(mine,'cleaner')}</div>`;
+      <div id="cleanCleanerList">${renderCleanList(pendingClean,'cleaner')}</div>`;
   }
 }
 
@@ -1414,9 +1502,9 @@ function filterClean(status,btn,tabsId,listId,viewer){
              viewer==='host'    ? DB.cleaningRequests.filter(c=>c.hostId===currentUser.id) :
                                   DB.cleaningRequests;
   let list;
-  if(status==='all') list=base;
-  else if(status==='completed') list=base.filter(c=>['completed','submitted','confirmed'].includes(c.status));
-  else list=base.filter(c=>c.status===status);
+  if(status==='pending') list=base.filter(c=>c.status==='pending'||c.status==='inprogress');
+  else if(status==='completed') list=base.filter(c=>['completed','submitted','confirmed'].includes(c.status)&&c.date===getLocalDate());
+  else list=base;
   document.getElementById(listId).innerHTML=renderCleanList(list,viewer);
 }
 
@@ -1733,7 +1821,7 @@ function renderSettings(){
     </div>
     <div class="divider"></div>
     <button class="btn btn-ghost btn-full" onclick="doLogout()">로그아웃</button>
-    <div style="text-align:center;font-size:.6rem;color:var(--text3);margin-top:.5rem">RoomPacker v4.0</div>`;
+    <div style="text-align:center;font-size:.6rem;color:var(--text3);margin-top:.5rem">RoomPacker v5.0</div>`;
 }
 
 
