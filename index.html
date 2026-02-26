@@ -1161,14 +1161,26 @@ function renderPage(id){
 function classifyBookings(bookings){
   const today=getLocalDate();
   const tmr=getLocalTomorrow();
+  const nowHHMM=new Date().getHours().toString().padStart(2,'0')+':'+new Date().getMinutes().toString().padStart(2,'0');
   return {
     checkOutToday: bookings.filter(b=>b.checkOut===today),
-    checkInToday:  bookings.filter(b=>b.checkIn===today && Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000)<=1),
+    checkInToday:  bookings.filter(b=>{
+      if(b.checkIn!==today) return false;
+      const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
+      if(nights<=1) return true; // 1박은 항상 체크인
+      // 다박: 체크인 시간 전이면 입실예정(체크인), 시간 후면 연박으로
+      const room=DB.rooms.find(r=>r.id===b.roomId);
+      const ciTime=b.checkInTime||room?.defaultCheckIn||'15:00';
+      return nowHHMM<ciTime; // 시간 전이면 체크인 그룹
+    }),
     staying:       bookings.filter(b=>{
       const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
-      // 연박 = (어제 이전 체크인 + 내일 이후 체크아웃) OR (오늘 체크인 + 2박 이상)
       if(b.checkIn<today&&b.checkOut>today) return true;
-      if(b.checkIn===today&&nights>1) return true;
+      if(b.checkIn===today&&nights>1){
+        const room=DB.rooms.find(r=>r.id===b.roomId);
+        const ciTime=b.checkInTime||room?.defaultCheckIn||'15:00';
+        return nowHHMM>=ciTime; // 체크인 시간 지나야 연박
+      }
       return false;
     }),
     upcoming:      bookings.filter(b=>b.checkIn>today),
@@ -1182,10 +1194,18 @@ function classifyBookings(bookings){
 function getBookingBadge(b){
   const today=getLocalDate();
   const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
+  const nowHHMM=new Date().getHours().toString().padStart(2,'0')+':'+new Date().getMinutes().toString().padStart(2,'0');
   if(b.checkOut<today) return {tag:'past',label:'지난예약',color:'#94A3B8',bgColor:'rgba(148,163,184,0.1)'};
   if(b.checkOut===today) return {tag:'checkout',label:'체크아웃',color:'#FB7185',bgColor:'rgba(251,113,133,0.1)'};
-  if(b.checkIn===today&&nights<=1) return {tag:'checkin',label:'체크인',color:'#60A5FA',bgColor:'rgba(96,165,250,0.1)'};
-  if((b.checkIn<today&&b.checkOut>today)||(b.checkIn===today&&nights>1)) return {tag:'staying',label:`연박 ${nights}박`,color:'#00C896',bgColor:'rgba(0,200,150,0.1)'};
+  if(b.checkIn===today){
+    if(nights<=1) return {tag:'checkin',label:'체크인',color:'#60A5FA',bgColor:'rgba(96,165,250,0.1)'};
+    // 다박: 시간 확인
+    const room=DB.rooms.find(r=>r.id===b.roomId);
+    const ciTime=b.checkInTime||room?.defaultCheckIn||'15:00';
+    if(nowHHMM<ciTime) return {tag:'checkin',label:`입실예정 ${nights}박`,color:'#60A5FA',bgColor:'rgba(96,165,250,0.1)'};
+    return {tag:'staying',label:`연박 ${nights}박`,color:'#00C896',bgColor:'rgba(0,200,150,0.1)'};
+  }
+  if(b.checkIn<today&&b.checkOut>today) return {tag:'staying',label:`연박 ${nights}박`,color:'#00C896',bgColor:'rgba(0,200,150,0.1)'};
   return {tag:'upcoming',label:'예정',color:'#F59E0B',bgColor:'rgba(245,158,11,0.1)'};
 }
 
