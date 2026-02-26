@@ -1,4 +1,4 @@
-const CACHE_NAME = 'roompacker-v3';
+const CACHE_NAME = 'roompacker-v4';
 const ASSETS = [
   './',
   './index.html',
