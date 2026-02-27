@@ -414,6 +414,27 @@ input,select,textarea{font-family:inherit;outline:none;border:none;}
   </div>
 </div>
 
+<div class="modal-overlay" id="modalVapid">
+  <div class="modal" style="border-radius:20px">
+    <div class="modal-header"><div class="modal-title">🔑 FCM VAPID 키 설정</div><button class="modal-close" onclick="closeModal('modalVapid')">✕</button></div>
+    <div class="form-group">
+      <label class="form-label">VAPID 키 (웹 푸시 인증서)</label>
+      <input class="form-input" id="vapidKeyInput" placeholder="BxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxQ=">
+      <div style="font-size:.68rem;color:var(--text3);margin-top:.3rem;line-height:1.4">
+        Firebase Console → 프로젝트 설정 → Cloud Messaging → 웹 푸시 인증서 → 키 페어 생성
+      </div>
+    </div>
+    <button class="btn btn-accent btn-full" onclick="saveVapidKey()">저장 및 활성화</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalDevices">
+  <div class="modal" style="border-radius:20px">
+    <div class="modal-header"><div class="modal-title">📱 등록된 기기</div><button class="modal-close" onclick="closeModal('modalDevices')">✕</button></div>
+    <div id="devicesList"></div>
+  </div>
+</div>
+
 <!-- Add Booking -->
 <div class="modal-overlay" id="modalAddBooking">
   <div class="modal">
@@ -725,6 +746,7 @@ input,select,textarea{font-family:inherit;outline:none;border:none;}
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
 <script>
 // ══════════════════════════ LOCAL DATE HELPER ══════════════
 // toISOString()은 UTC 기준이므로 한국시간(KST)과 최대 9시간 차이남
@@ -810,6 +832,7 @@ function normalizeDB(d){
   if(!d.settings) d.settings={appName:'RoomPacker',placeOptions:['오션쏠레뷰','오션파크나인','블루오션']};
   if(!d.settings.placeOptions) d.settings.placeOptions=['오션쏠레뷰','오션파크나인','블루오션'];
   d.settings.placeOptions=toArray(d.settings.placeOptions);
+  if(!d.fcmTokens) d.fcmTokens={};
   // cleaningRequests 내부 배열도 복원
   d.cleaningRequests.forEach(c=>{
     c.photos=toArray(c.photos);
@@ -852,6 +875,7 @@ function initFirebase(config){
     fbRef = db.ref('roomPackerData');
 
     // 실시간 리스너: 다른 기기에서 변경 시 자동 반영
+    let prevNotifCount=0;
     fbRef.on('value', snap => {
       if(fbSaving) return; // 내가 저장한 건 무시
       const data = snap.val();
@@ -864,16 +888,27 @@ function initFirebase(config){
       DB = normalizeDB(data);
       localStorage.setItem('rpData2', JSON.stringify(DB));
 
-      // 현재 로그인 상태면 화면 갱신
+      // 현재 로그인 상태면 화면 갱신 + 새 알림 감지
       if(currentUser){
         const updated = DB.users.find(u=>u.id===currentUser.id);
         if(updated) currentUser = updated;
+        // 새 알림 감지 → 브라우저 알림
+        const myUnread=DB.notifications.filter(n=>n.userId===currentUser.id&&!n.read);
+        if(myUnread.length>prevNotifCount&&prevNotifCount>=0){
+          const newest=myUnread[myUnread.length-1];
+          if(newest) showBrowserNotif('RoomPacker',newest.msg);
+        }
+        prevNotifCount=myUnread.length;
         if(currentPage) renderPage(currentPage);
         updateNotifDot();
       }
     });
 
     firebaseReady = true;
+    // SW에 Firebase config 전달 (백그라운드 푸시용)
+    if(navigator.serviceWorker && navigator.serviceWorker.controller){
+      navigator.serviceWorker.controller.postMessage({type:'FIREBASE_CONFIG',config});
+    }
     return true;
   } catch(e){
     console.error('Firebase 초기화 실패:', e);
@@ -928,6 +963,86 @@ function forceUploadToFirebase(){
 let DB=loadData();
 let currentUser=null,currentPage='',currentCleanWorkId=null,currentReviewId=null,tempRating=0;
 let pendingCtiImage=''; // temp storage for checklist item image
+let fcmMessaging=null; // FCM instance
+
+// ══════════════════════════ PUSH NOTIFICATION ══════════════════
+function requestNotifPermission(){
+  if(!('Notification' in window)) return;
+  if(Notification.permission==='default'){
+    Notification.requestPermission().then(p=>{
+      if(p==='granted'){
+        showToast('🔔 알림이 활성화되었습니다');
+        initFCM();
+      }
+    });
+  } else if(Notification.permission==='granted'){
+    initFCM();
+  }
+}
+
+function showBrowserNotif(title,body){
+  if(!('Notification' in window)||Notification.permission!=='granted') return;
+  // 현재 탭이 활성 상태면 스킵 (인앱 알림만)
+  if(document.visibilityState==='visible') return;
+  try{
+    const n=new Notification(title,{
+      body:body,
+      icon:'./icon-192.png',
+      badge:'./icon-192.png',
+      tag:'rp-notif-'+Date.now(),
+      vibrate:[200,100,200],
+      requireInteraction:false
+    });
+    n.onclick=()=>{window.focus();n.close();};
+    setTimeout(()=>n.close(),8000);
+  }catch(e){
+    // SW 환경에서는 registration.showNotification 사용
+    if(navigator.serviceWorker&&navigator.serviceWorker.controller){
+      navigator.serviceWorker.ready.then(reg=>{
+        reg.showNotification(title,{body,icon:'./icon-192.png',badge:'./icon-192.png',vibrate:[200,100,200]});
+      });
+    }
+  }
+}
+
+function initFCM(){
+  if(!firebaseReady||!firebase.messaging) return;
+  try{
+    fcmMessaging=firebase.messaging();
+    // VAPID 키가 설정되어 있으면 토큰 요청
+    const vapidKey=localStorage.getItem('rpVapidKey');
+    if(vapidKey){
+      registerFCMToken(vapidKey);
+    }
+    // 포그라운드 메시지 수신
+    fcmMessaging.onMessage((payload)=>{
+      const title=payload.notification?.title||'RoomPacker';
+      const body=payload.notification?.body||payload.data?.message||'새 알림';
+      showBrowserNotif(title,body);
+      // 인앱이면 토스트로도 표시
+      if(document.visibilityState==='visible'){
+        showToast('🔔 '+body);
+        playNotifSound();
+        updateNotifDot();
+      }
+    });
+  }catch(e){console.log('FCM init skipped:',e.message);}
+}
+
+async function registerFCMToken(vapidKey){
+  if(!fcmMessaging||!currentUser) return;
+  try{
+    const sw=await navigator.serviceWorker.ready;
+    const token=await fcmMessaging.getToken({vapidKey,serviceWorkerRegistration:sw});
+    if(token){
+      // 사용자별 토큰 저장
+      if(!DB.fcmTokens) DB.fcmTokens={};
+      DB.fcmTokens[currentUser.id]={token,updatedAt:new Date().toISOString(),device:navigator.userAgent.slice(0,50)};
+      saveData();
+      console.log('FCM Token saved for',currentUser.name);
+    }
+  }catch(e){console.log('FCM token failed:',e.message);}
+}
 
 // ══════════════════════════ AUTH ══════════════════════════════
 
@@ -937,7 +1052,8 @@ function doLogin(){
   const id=document.getElementById('loginId').value.trim();
   const pw=document.getElementById('loginPw').value.trim();
   const user=DB.users.find(u=>u.loginId===id&&u.pw===pw);
-  if(!user){document.getElementById('loginError').style.display='block';return;}
+  if(!user){document.getElementById('loginError').style.display='block';document.getElementById('loginError').textContent='아이디 또는 비밀번호가 틀렸습니다';return;}
+  if(user.blocked){document.getElementById('loginError').style.display='block';document.getElementById('loginError').textContent='⛔ 계정이 차단되었습니다. 관리자에게 문의하세요.';return;}
   currentUser=user;
   localStorage.setItem('rpSession',user.id);
   document.getElementById('loginScreen').style.display='none';
@@ -959,7 +1075,7 @@ function tryAutoLogin(){
   const savedId=localStorage.getItem('rpSession');
   if(!savedId) return false;
   const user=DB.users.find(u=>u.id===savedId);
-  if(!user) { localStorage.removeItem('rpSession'); return false; }
+  if(!user||user.blocked) { localStorage.removeItem('rpSession'); return false; }
   currentUser=user;
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('app').style.display='flex';
@@ -1028,6 +1144,7 @@ function initApp(){
     nav.appendChild(btn);
   });
   updateNotifDot();
+  requestNotifPermission();
   switchPage('pageDashboard');
 }
 
@@ -1714,25 +1831,44 @@ function renderSettings(){
     // 모든 계정 표시 (자기 자신 포함)
     const allUsers=DB.users;
     adminExtra=`
+      <!-- 공지/지시 발송 -->
+      <div class="section-title">📢 공지 / 지시 발송</div>
+      <div class="card" style="margin-bottom:1rem">
+        <div class="form-group"><label class="form-label">받는 대상</label>
+          <select class="form-select" id="broadcastTarget">
+            <option value="all">전체</option>
+            <option value="host">호스트만</option>
+            <option value="cleaner">청소팀만</option>
+            ${DB.users.filter(u=>u.id!==currentUser.id&&!u.blocked).map(u=>`<option value="${u.id}">${u.name} (${roleMap[u.role]})</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">메시지</label>
+          <textarea class="form-textarea" id="broadcastMsg" rows="2" placeholder="공지 또는 청소지시 내용"></textarea>
+        </div>
+        <button class="btn btn-accent btn-full" onclick="sendBroadcast()">📢 발송</button>
+      </div>
+
       <!-- 사용자 계정 관리 -->
-      <div class="section-title">계정 관리 <span style="font-size:.75rem;color:var(--text2);text-transform:none;letter-spacing:0;font-weight:400">— 데모 계정 포함 수정/삭제 가능</span></div>
+      <div class="section-title">계정 관리</div>
       <div style="margin-bottom:.8rem;display:flex;justify-content:flex-end">
         <button class="btn btn-accent btn-sm" onclick="openModal('modalAddUser')">+ 계정 추가</button>
       </div>
       ${allUsers.map(u=>{
         const isSelf = u.id === currentUser.id;
+        const isBlocked = !!u.blocked;
         const subInfo = u.role==='host'
           ? `${u.place||'장소 미입력'} · ${roleMap[u.role]} · ${u.phone||'연락처 없음'}`
           : `${u.loginId} · ${roleMap[u.role]} · ${u.phone||'연락처 없음'}`;
-        return `<div class="user-card">
+        return `<div class="user-card" style="${isBlocked?'opacity:.5;border:1px solid var(--danger)':''}">
           <div class="user-avatar" style="background:${roleColors[u.role]}20;color:${roleColors[u.role]}">${u.name.charAt(0)}</div>
           <div class="user-info">
-            <div class="user-name">${u.name} ${isSelf?'<span style="font-size:.7rem;color:var(--accent)">(현재 계정)</span>':''}</div>
+            <div class="user-name">${u.name} ${isSelf?'<span style="font-size:.7rem;color:var(--accent)">(나)</span>':''}${isBlocked?'<span style="font-size:.7rem;color:var(--danger)"> ⛔차단</span>':''}</div>
             <div class="user-role-text">${subInfo}</div>
           </div>
-          <div class="user-actions">
-            <button class="btn btn-warning btn-sm" onclick="openEditUser('${u.id}')">수정</button>
-            ${!isSelf?`<button class="btn btn-danger btn-sm" onclick="deleteUserFromSettings('${u.id}')">삭제</button>`:''}
+          <div class="user-actions" style="display:flex;gap:.2rem;flex-wrap:wrap">
+            ${!isSelf?`<button class="btn ${isBlocked?'btn-accent':'btn-warning'} btn-sm" style="font-size:.65rem" onclick="toggleBlockUser('${u.id}')">${isBlocked?'해제':'차단'}</button>`:''}
+            <button class="btn btn-ghost btn-sm" style="font-size:.65rem" onclick="openEditUser('${u.id}')">수정</button>
+            ${!isSelf?`<button class="btn btn-danger btn-sm" style="font-size:.65rem" onclick="deleteUserFromSettings('${u.id}')">삭제</button>`:''}
           </div>
         </div>`;
       }).join('')}
@@ -1780,6 +1916,23 @@ function renderSettings(){
         </div>`:''}
       </div>
 
+      <!-- 푸시 알림 -->
+      <div class="section-title">🔔 푸시 알림</div>
+      <div class="settings-section">
+        <div class="settings-row">
+          <div><div class="settings-row-label">브라우저 알림</div><div class="settings-row-sub">${typeof Notification!=='undefined'?(Notification.permission==='granted'?'✅ 허용됨':Notification.permission==='denied'?'❌ 차단됨 (브라우저 설정에서 해제)':'⏳ 미설정'):'미지원'}</div></div>
+          <button class="btn btn-accent btn-sm" onclick="requestNotifPermission();setTimeout(()=>renderSettings(),500)">권한 요청</button>
+        </div>
+        ${currentUser.role==='admin'?`<div class="settings-row">
+          <div><div class="settings-row-label">FCM VAPID 키</div><div class="settings-row-sub">Firebase Console → Cloud Messaging → 웹 푸시 인증서</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="openVapidModal()">설정</button>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-row-label">등록된 기기</div><div class="settings-row-sub">${DB.fcmTokens?Object.keys(DB.fcmTokens).length:0}대 등록</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="showRegisteredDevices()">보기</button>
+        </div>`:''}
+      </div>
+
       <!-- 데이터 초기화 -->
       <div class="section-title">데이터 관리</div>
       <div class="settings-section">
@@ -1812,6 +1965,10 @@ function renderSettings(){
     <!-- 알림 & 화면 설정 (모든 사용자) -->
     <div class="section-title">🔔 알림 & 화면</div>
     <div class="settings-section">
+      <div class="settings-row">
+        <div><div class="settings-row-label">📲 푸시 알림</div><div class="settings-row-sub">${typeof Notification!=='undefined'?(Notification.permission==='granted'?'✅ 활성 · 앱 닫아도 알림 수신':Notification.permission==='denied'?'❌ 차단됨 · 브라우저 설정에서 해제':'⏳ 허용하면 실시간 알림 수신'):'브라우저 미지원'}</div></div>
+        <button class="btn ${typeof Notification!=='undefined'&&Notification.permission==='granted'?'btn-accent':'btn-warning'} btn-sm" onclick="requestNotifPermission();setTimeout(()=>renderSettings(),500)">${typeof Notification!=='undefined'&&Notification.permission==='granted'?'✅':'허용'}</button>
+      </div>
       <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:.5rem">
         <div class="settings-row-label">알림 소리</div>
         <div style="display:flex;gap:.4rem">
@@ -1841,7 +1998,7 @@ function renderSettings(){
     </div>
     <div class="divider"></div>
     <button class="btn btn-ghost btn-full" onclick="doLogout()">로그아웃</button>
-    <div style="text-align:center;font-size:.6rem;color:var(--text3);margin-top:.5rem">RoomPacker v5.0</div>`;
+    <div style="text-align:center;font-size:.6rem;color:var(--text3);margin-top:.5rem">RoomPacker v5.1</div>`;
 }
 
 
@@ -2523,7 +2680,7 @@ function openCleaningReqModal(){
   const isAdmin = currentUser.role==='admin';
   const myRooms = isAdmin ? DB.rooms : DB.rooms.filter(r=>r.hostId===currentUser.id);
   document.getElementById('reqRoomId').innerHTML=myRooms.map(r=>`<option value="${r.id}">${r.number}호 - ${r.type}</option>`).join('');
-  const cleaners=DB.users.filter(u=>u.role==='cleaner');
+  const cleaners=DB.users.filter(u=>u.role==='cleaner'&&!u.blocked);
   document.getElementById('reqCleanerId').innerHTML='<option value="">자동 배정</option>'+cleaners.map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
   document.getElementById('reqDate').value=getLocalDate();
   openModal('modalCleaningReq');
@@ -2672,7 +2829,7 @@ function openEditCleaningReq(cId){
   const c=DB.cleaningRequests.find(x=>x.id===cId);
   if(!c) return;
   const room=DB.rooms.find(r=>r.id===c.roomId);
-  const cleaners=DB.users.filter(u=>u.role==='cleaner');
+  const cleaners=DB.users.filter(u=>u.role==='cleaner'&&!u.blocked);
   const defaultCoTime=room?.defaultCheckOut||'11:00';
   const defaultCiTime=room?.defaultCheckIn||'15:00';
   // 체크아웃 예약 (이 날짜에 체크아웃 또는 투숙중인 손님)
@@ -3214,6 +3371,77 @@ function deleteUserFromSettings(uid){
   saveData();showToast('계정이 삭제되었습니다');renderSettings();
 }
 
+function toggleBlockUser(uid){
+  const u=DB.users.find(x=>x.id===uid);
+  if(!u) return;
+  u.blocked=!u.blocked;
+  saveData();
+  showToast(u.blocked?`⛔ ${u.name} 차단됨`:`✅ ${u.name} 차단 해제됨`);
+  renderSettings();
+}
+
+function sendBroadcast(){
+  const target=document.getElementById('broadcastTarget').value;
+  const msg=document.getElementById('broadcastMsg').value.trim();
+  if(!msg){showToast('메시지를 입력하세요');return;}
+  let targets=[];
+  if(target==='all') targets=DB.users.filter(u=>u.id!==currentUser.id&&!u.blocked);
+  else if(target==='host') targets=DB.users.filter(u=>u.role==='host'&&!u.blocked);
+  else if(target==='cleaner') targets=DB.users.filter(u=>u.role==='cleaner'&&!u.blocked);
+  else targets=DB.users.filter(u=>u.id===target&&!u.blocked);
+  if(!targets.length){showToast('발송 대상이 없습니다');return;}
+  targets.forEach(u=>addNotif(u.id,`📢 ${msg}`));
+  document.getElementById('broadcastMsg').value='';
+  saveData();playNotifSound();
+  showToast(`📢 ${targets.length}명에게 발송 완료`);
+}
+
+function openVapidModal(){
+  const saved=localStorage.getItem('rpVapidKey')||'';
+  document.getElementById('vapidKeyInput').value=saved;
+  openModal('modalVapid');
+}
+
+function saveVapidKey(){
+  const key=document.getElementById('vapidKeyInput').value.trim();
+  if(!key){showToast('VAPID 키를 입력하세요');return;}
+  localStorage.setItem('rpVapidKey',key);
+  closeModal('modalVapid');
+  showToast('🔑 VAPID 키 저장됨. FCM 활성화 중...');
+  // 현재 사용자 토큰 등록
+  initFCM();
+  setTimeout(()=>registerFCMToken(key),1000);
+}
+
+function showRegisteredDevices(){
+  const el=document.getElementById('devicesList');
+  if(!DB.fcmTokens||!Object.keys(DB.fcmTokens).length){
+    el.innerHTML=emptyState('📱','등록된 기기 없음');
+  } else {
+    el.innerHTML=Object.entries(DB.fcmTokens).map(([uid,info])=>{
+      const user=DB.users.find(u=>u.id===uid);
+      const roleMap={admin:'관리자',host:'호스트',cleaner:'청소팀'};
+      return `<div class="card" style="margin-bottom:.5rem">
+        <div class="card-header"><div>
+          <div class="card-title">${user?.name||uid} <span style="font-size:.7rem;color:var(--text3)">${roleMap[user?.role]||''}</span></div>
+          <div class="card-sub">${info.device||'기기 정보 없음'}</div>
+          <div style="font-size:.65rem;color:var(--text3)">${info.updatedAt?new Date(info.updatedAt).toLocaleString('ko'):'시간 없음'}</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="testPushToUser('${uid}')">테스트</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  openModal('modalDevices');
+}
+
+function testPushToUser(uid){
+  const user=DB.users.find(u=>u.id===uid);
+  addNotif(uid,`🔔 푸시 테스트: ${user?.name||uid}님, 이 알림이 보이면 정상입니다!`);
+  saveData();
+  showToast(`테스트 알림 발송: ${user?.name||uid}`);
+}
+
 function saveAppName(){DB.settings.appName=document.getElementById('setAppName').value;saveData();showToast('저장되었습니다');}
 
 function resetData(){
@@ -3237,6 +3465,8 @@ function emptyState(icon,title,sub=''){return `<div class="empty-state"><div cla
 
 function addNotif(userId,msg,fromId){
   if(!userId) return;
+  const targetUser=DB.users.find(u=>u.id===userId);
+  if(targetUser&&targetUser.blocked) return; // 차단된 사용자에게 알림 안 보냄
   DB.notifications.push({id:'n'+Date.now()+Math.random(),userId,msg,read:false,time:new Date().toLocaleString('ko',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}),fromId:fromId||currentUser?.id||''});
   if(currentUser&&currentUser.id===userId) { updateNotifDot(); playNotifSound(); }
 }
@@ -3368,7 +3598,7 @@ function openAddFinance(){
   // 대상 드롭다운: 객실(호스트) + 청소팀원
   const opts=['<option value="">선택 (선택사항)</option>'];
   DB.users.filter(u=>u.role==='host').forEach(u=>opts.push(`<option value="${u.id}">${u.name} (${u.place||'호스트'})</option>`));
-  DB.users.filter(u=>u.role==='cleaner').forEach(u=>opts.push(`<option value="${u.id}">${u.name} (청소팀)</option>`));
+  DB.users.filter(u=>u.role==='cleaner'&&!u.blocked).forEach(u=>opts.push(`<option value="${u.id}">${u.name} (청소팀)</option>`));
   document.getElementById('finTarget').innerHTML=opts.join('');
   openModal('modalAddFinance');
 }
@@ -3684,6 +3914,19 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js')
       .then(reg=>{
         console.log('[PWA] Service Worker registered');
+        // Firebase config 전달 (백그라운드 푸시용)
+        const fbConfig=localStorage.getItem('rpFirebaseConfig');
+        if(fbConfig&&fbConfig!=='offline'){
+          try{
+            const config=JSON.parse(fbConfig);
+            reg.active?.postMessage({type:'FIREBASE_CONFIG',config});
+            navigator.serviceWorker.ready.then(()=>{
+              if(navigator.serviceWorker.controller){
+                navigator.serviceWorker.controller.postMessage({type:'FIREBASE_CONFIG',config});
+              }
+            });
+          }catch(e){}
+        }
         // 업데이트 감지
         reg.addEventListener('updatefound',()=>{
           const newSW=reg.installing;
