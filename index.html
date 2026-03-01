@@ -584,11 +584,11 @@ input,select,textarea{font-family:inherit;outline:none;border:none;}
     <div class="form-group"><label class="form-label">항목 제목</label><input type="text" class="form-input" id="guideItemTitle" placeholder="예: 침대 세팅 방법"></div>
     <div class="form-group"><label class="form-label">설명</label><textarea class="form-textarea" id="guideItemDesc" rows="4" placeholder="구체적인 청소/세팅 방법을 작성해주세요"></textarea></div>
     <div class="form-group">
-      <label class="form-label">참고 사진</label>
+      <label class="form-label">참고 사진 (여러 장 가능)</label>
       <div id="guideItemImgPreview" style="margin-bottom:.5rem"></div>
       <label style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:8px;border:2px dashed rgba(14,165,233,.5);background:rgba(14,165,233,.07);color:#38bdf8;font-size:.88rem;font-weight:600;cursor:pointer;position:relative;overflow:hidden">
-        📷 사진 선택
-        <input type="file" id="guideItemImgInput" accept="image/*"
+        📷 사진 추가
+        <input type="file" id="guideItemImgInput" accept="image/*" multiple
           style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer"
           onchange="handleGuideItemImg(this)">
       </label>
@@ -1152,6 +1152,7 @@ function switchPage(pageId){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.page===pageId));
   document.getElementById(pageId)?.classList.add('active');
+  window.scrollTo({top:0,behavior:currentPage===pageId?'smooth':'instant'});
   renderPage(pageId);
   currentPage=pageId;
 }
@@ -1588,19 +1589,23 @@ function renderCleaning(){
   const doneClean=allClean.filter(c=>['completed','submitted','confirmed'].includes(c.status));
 
   if(role==='admin'){
+    // 호스트 목록 생성
+    const hosts=DB.users.filter(u=>u.role==='host');
+    const hostTabs=hosts.map(h=>{
+      const hBookings=DB.bookings.filter(b=>b.hostId===h.id);
+      const hCls=classifyBookings(hBookings);
+      const hClean=DB.cleaningRequests.filter(c=>c.hostId===h.id);
+      const hPending=hClean.filter(c=>c.status==='pending'||c.status==='inprogress');
+      return {id:h.id, name:h.name, place:h.place||'', cls:hCls, pending:hPending.length, clean:hClean};
+    });
+
     el.innerHTML=`
-      <div class="flex-between" style="margin-bottom:1.2rem"><div class="page-title" style="margin:0">청소 관리</div><button class="btn btn-accent btn-sm" onclick="openCleaningReqModal()">+ 청소 요청</button></div>
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
-        <div class="stat-card"><div class="stat-number" style="color:#FB7185;font-size:1.5rem">${cls.checkOutToday.length}</div><div class="stat-label">체크아웃</div></div>
-        <div class="stat-card"><div class="stat-number" style="font-size:1.5rem">${pendingClean.length}</div><div class="stat-label">청소요청</div></div>
-        <div class="stat-card"><div class="stat-number" style="color:var(--accent);font-size:1.5rem">${doneClean.filter(c=>c.date===today).length}</div><div class="stat-label">청소완료</div></div>
-        <div class="stat-card" style="border:1px solid var(--warning)"><div class="stat-number" style="color:var(--warning);font-size:1.5rem">${cls.checkOutTomorrow.length}</div><div class="stat-label">내일퇴실</div></div>
+      <div class="flex-between" style="margin-bottom:1rem"><div class="page-title" style="margin:0">청소 관리</div><button class="btn btn-accent btn-sm" onclick="openCleaningReqModal()">+ 청소 요청</button></div>
+      <div class="inner-tabs" id="cleanHostFilter" style="margin-bottom:.8rem">
+        <button class="inner-tab active" onclick="filterCleanByHost('all',this)">전체</button>
+        ${hostTabs.map(h=>`<button class="inner-tab" onclick="filterCleanByHost('${h.id}',this)">${h.name}${h.pending?'<span style="color:#FB7185;font-weight:700"> '+h.pending+'</span>':''}</button>`).join('')}
       </div>
-      <div class="inner-tabs" id="cleanAdminTabs">
-        <button class="inner-tab active" onclick="filterClean('pending',this,'cleanAdminTabs','cleanAdminList','admin')">요청 (${pendingClean.length})</button>
-        <button class="inner-tab" onclick="filterClean('completed',this,'cleanAdminTabs','cleanAdminList','admin')">완료 (${doneClean.filter(c=>c.date===today).length})</button>
-      </div>
-      <div id="cleanAdminList">${renderCleanList(pendingClean,'admin')}</div>`;
+      <div id="cleanAdminHostContent">${renderCleanHostContent('all',cls,pendingClean,doneClean,today)}</div>`;
 
   } else if(role==='host'){
     el.innerHTML=`
@@ -1632,12 +1637,51 @@ function renderCleaning(){
   }
 }
 
-function filterClean(status,btn,tabsId,listId,viewer){
+// 호스트별 청소 콘텐츠 렌더링
+function renderCleanHostContent(hostId,cls,pendingClean,doneClean,today){
+  let fCls=cls, fPending=pendingClean, fDone=doneClean;
+  let hostLabel='전체';
+  if(hostId!=='all'){
+    const host=DB.users.find(u=>u.id===hostId);
+    hostLabel=host?`${host.name}${host.place?' · '+host.place:''}`:'';
+    const hBookings=DB.bookings.filter(b=>b.hostId===hostId);
+    fCls=classifyBookings(hBookings);
+    fPending=DB.cleaningRequests.filter(c=>c.hostId===hostId&&(c.status==='pending'||c.status==='inprogress'));
+    fDone=DB.cleaningRequests.filter(c=>c.hostId===hostId&&['completed','submitted','confirmed'].includes(c.status));
+  }
+  return `
+    ${hostId!=='all'?`<div style="font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:.5rem">🏢 ${hostLabel}</div>`:''}
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card"><div class="stat-number" style="color:#FB7185;font-size:1.5rem">${fCls.checkOutToday.length}</div><div class="stat-label">체크아웃</div></div>
+      <div class="stat-card"><div class="stat-number" style="font-size:1.5rem">${fPending.length}</div><div class="stat-label">청소요청</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--accent);font-size:1.5rem">${fDone.filter(c=>c.date===today).length}</div><div class="stat-label">청소완료</div></div>
+      <div class="stat-card" style="border:1px solid var(--warning)"><div class="stat-number" style="color:var(--warning);font-size:1.5rem">${fCls.checkOutTomorrow.length}</div><div class="stat-label">내일퇴실</div></div>
+    </div>
+    <div class="inner-tabs" id="cleanAdminTabs">
+      <button class="inner-tab active" onclick="filterClean('pending',this,'cleanAdminTabs','cleanAdminList','admin','${hostId}')">요청 (${fPending.length})</button>
+      <button class="inner-tab" onclick="filterClean('completed',this,'cleanAdminTabs','cleanAdminList','admin','${hostId}')">완료 (${fDone.filter(c=>c.date===today).length})</button>
+    </div>
+    <div id="cleanAdminList">${renderCleanList(fPending,'admin')}</div>`;
+}
+
+function filterCleanByHost(hostId,btn){
+  document.querySelectorAll('#cleanHostFilter .inner-tab').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const today=getLocalDate();
+  const cls=classifyBookings(DB.bookings);
+  const allPending=DB.cleaningRequests.filter(c=>c.status==='pending'||c.status==='inprogress');
+  const allDone=DB.cleaningRequests.filter(c=>['completed','submitted','confirmed'].includes(c.status));
+  document.getElementById('cleanAdminHostContent').innerHTML=renderCleanHostContent(hostId,cls,allPending,allDone,today);
+}
+
+function filterClean(status,btn,tabsId,listId,viewer,hostId){
   document.querySelectorAll(`#${tabsId} .inner-tab`).forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   let base = viewer==='cleaner' ? DB.cleaningRequests.filter(c=>c.cleanerId===currentUser.id) :
              viewer==='host'    ? DB.cleaningRequests.filter(c=>c.hostId===currentUser.id) :
                                   DB.cleaningRequests;
+  // 호스트 필터 적용
+  if(hostId && hostId!=='all') base=base.filter(c=>c.hostId===hostId);
   let list;
   if(status==='pending') list=base.filter(c=>c.status==='pending'||c.status==='inprogress');
   else if(status==='completed') list=base.filter(c=>['completed','submitted','confirmed'].includes(c.status)&&c.date===getLocalDate());
@@ -2517,6 +2561,11 @@ function renderGuideList(roomId, isAdmin){
 
   return list.map((g,idx)=>{
     const room = g.roomId==='all' ? null : DB.rooms.find(r=>r.id===g.roomId);
+    // 이미지 배열 호환 (기존 single image 지원)
+    const imgs = g.images && g.images.length ? g.images : (g.image ? [g.image] : []);
+    const imgHtml = imgs.length ? `<div style="display:flex;gap:.4rem;overflow-x:auto;padding:.3rem 0;scrollbar-width:none">
+      ${imgs.map(src=>`<img src="${src}" style="height:120px;min-width:120px;object-fit:cover;border-radius:8px;cursor:pointer;flex-shrink:0" onclick="event.stopPropagation();openFullscreen(this.src)">`).join('')}
+    </div>` : '';
     return `<div class="card" style="cursor:${isAdmin?'default':'pointer'}" ${isAdmin?'':`onclick="openGuideDetail('${g.id}')"`}>
       <div class="card-header">
         <div>
@@ -2528,8 +2577,8 @@ function renderGuideList(roomId, isAdmin){
           <button class="btn btn-danger btn-sm" onclick="deleteGuideItem('${g.id}')">삭제</button>
         </div>`:''}
       </div>
-      <div class="text-sm text-muted" style="line-height:1.5;margin-bottom:.5rem;white-space:pre-line">${g.desc?(g.desc.length>80?g.desc.slice(0,80)+'...':g.desc):'설명 없음'}</div>
-      ${g.image?`<img src="${g.image}" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="event.stopPropagation();openFullscreen(this.src)">`:''}
+      <div style="font-size:.85rem;color:var(--text2);line-height:1.6;margin-bottom:.5rem;white-space:pre-line">${g.desc||'설명 없음'}</div>
+      ${imgHtml}
     </div>`;
   }).join('');
 }
@@ -2560,19 +2609,22 @@ function openGuideDetail(gId){
   const g=(DB.cleaningGuides||[]).find(x=>x.id===gId);
   if(!g) return;
   const room = g.roomId==='all' ? null : DB.rooms.find(r=>r.id===g.roomId);
+  const imgs = g.images && g.images.length ? g.images : (g.image ? [g.image] : []);
   document.getElementById('guideDetailTitle').textContent = g.title;
   document.getElementById('guideDetailBody').innerHTML=`
     <div style="background:var(--surface2);border-radius:10px;padding:.8rem;margin-bottom:1rem">
       <span class="badge badge-done">${room?room.number+'호 ('+room.type+')':'공용 가이드'}</span>
     </div>
-    ${g.image?`<img src="${g.image}" style="width:100%;max-height:300px;object-fit:cover;border-radius:10px;margin-bottom:1rem;cursor:pointer" onclick="openFullscreen(this.src)">`:''}
+    ${imgs.length?`<div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem">
+      ${imgs.map(src=>`<img src="${src}" style="width:100%;max-height:300px;object-fit:cover;border-radius:10px;cursor:pointer" onclick="openFullscreen(this.src)">`).join('')}
+    </div>`:''}
     <div style="font-size:.92rem;line-height:1.7;color:var(--text);white-space:pre-line">${g.desc||'설명이 없습니다.'}</div>`;
   openModal('modalGuideDetail');
 }
 
 // ── Guide Admin CRUD ──
 function openGuideItemModal(editId){
-  guideImgTemp='';
+  guideImgTemp=[];
   const isEdit = !!editId;
   document.getElementById('guideItemModalTitle').textContent = isEdit ? '가이드 항목 수정' : '가이드 항목 추가';
 
@@ -2589,7 +2641,8 @@ function openGuideItemModal(editId){
     document.getElementById('guideItemTitle').value = g.title;
     document.getElementById('guideItemDesc').value = g.desc;
     document.getElementById('guideItemOrder').value = g.order||0;
-    guideImgTemp = g.image||'';
+    // 기존 단일 image 호환 + images 배열
+    guideImgTemp = g.images && g.images.length ? [...g.images] : (g.image ? [g.image] : []);
   } else {
     document.getElementById('guideItemId').value = '';
     sel.value = guideFilterRoom||'all';
@@ -2602,10 +2655,12 @@ function openGuideItemModal(editId){
 }
 
 function handleGuideItemImg(input){
-  const file = input.files[0];
-  if(!file) return;
-  compressImage(file, 800, 800, 0.6).then(dataUrl=>{
-    guideImgTemp = dataUrl;
+  const files = Array.from(input.files);
+  if(!files.length) return;
+  const promises = files.map(f=>compressImage(f, 800, 800, 0.6));
+  Promise.all(promises).then(urls=>{
+    if(!Array.isArray(guideImgTemp)) guideImgTemp=[];
+    guideImgTemp.push(...urls);
     renderGuideImgPreview();
     input.value='';
   });
@@ -2613,11 +2668,15 @@ function handleGuideItemImg(input){
 
 function renderGuideImgPreview(){
   const el=document.getElementById('guideItemImgPreview');
-  if(guideImgTemp){
-    el.innerHTML=`<div style="position:relative;display:inline-block">
-      <img src="${guideImgTemp}" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openFullscreen(this.src)">
-      <button onclick="guideImgTemp='';renderGuideImgPreview()" style="position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:none;background:rgba(220,40,40,.9);color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
-    </div>`;
+  const imgs = Array.isArray(guideImgTemp) ? guideImgTemp : (guideImgTemp ? [guideImgTemp] : []);
+  if(imgs.length){
+    el.innerHTML=`<div style="display:flex;gap:.4rem;flex-wrap:wrap">
+      ${imgs.map((src,i)=>`<div style="position:relative;width:calc(33.33% - 4px);aspect-ratio:1;border-radius:8px;overflow:hidden">
+        <img src="${src}" style="width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="openFullscreen(this.src)">
+        <button onclick="guideImgTemp.splice(${i},1);renderGuideImgPreview()" style="position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(220,40,40,.9);color:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+      </div>`).join('')}
+    </div>
+    <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">${imgs.length}장 · 사진 추가 가능</div>`;
   } else {
     el.innerHTML='<div style="padding:.4rem 0;font-size:.8rem;color:var(--text3)">사진이 없습니다</div>';
   }
@@ -2630,14 +2689,15 @@ function saveGuideItem(){
   const title = document.getElementById('guideItemTitle').value.trim();
   const desc = document.getElementById('guideItemDesc').value.trim();
   const order = parseInt(document.getElementById('guideItemOrder').value)||0;
+  const images = Array.isArray(guideImgTemp) ? guideImgTemp : (guideImgTemp ? [guideImgTemp] : []);
 
   if(!title){ showToast('제목을 입력해주세요'); return; }
 
   if(id){
     const g=DB.cleaningGuides.find(x=>x.id===id);
-    if(g){ g.roomId=roomId; g.title=title; g.desc=desc; g.image=guideImgTemp; g.order=order; }
+    if(g){ g.roomId=roomId; g.title=title; g.desc=desc; g.images=images; g.image=images[0]||''; g.order=order; }
   } else {
-    DB.cleaningGuides.push({id:'cg'+Date.now(), roomId, title, desc, image:guideImgTemp, order});
+    DB.cleaningGuides.push({id:'cg'+Date.now(), roomId, title, desc, images, image:images[0]||'', order});
   }
   saveData();
   closeModal('modalGuideItem');
