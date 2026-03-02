@@ -1146,6 +1146,8 @@ function initApp(){
   updateNotifDot();
   requestNotifPermission();
   switchPage('pageDashboard');
+  // 앱 시작 시 자동 iCal 동기화 (5초 후, 화면 로딩 우선)
+  setTimeout(()=>autoSyncIcal(),5000);
 }
 
 function switchPage(pageId){
@@ -1608,6 +1610,10 @@ function renderCleaning(){
       <div id="cleanAdminHostContent">${renderCleanHostContent('all',cls,pendingClean,doneClean,today)}</div>`;
 
   } else if(role==='host'){
+    const requestedRoomIds=new Set(DB.cleaningRequests.filter(c=>c.date===today&&c.status!=='cancelled').map(c=>c.roomId));
+    const unassigned=cls.checkOutToday.filter(b=>!requestedRoomIds.has(b.roomId));
+    const cleaners=DB.users.filter(u=>u.role==='cleaner'&&!u.blocked);
+
     el.innerHTML=`
       <div class="flex-between" style="margin-bottom:1.2rem"><div class="page-title" style="margin:0">청소 요청</div><button class="btn btn-accent btn-sm" onclick="openCleaningReqModal()">+ 청소 요청</button></div>
       <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
@@ -1617,10 +1623,11 @@ function renderCleaning(){
         <div class="stat-card" style="border:1px solid var(--warning)"><div class="stat-number" style="color:var(--warning);font-size:1.5rem">${cls.checkOutTomorrow.length}</div><div class="stat-label">내일퇴실</div></div>
       </div>
       <div class="inner-tabs" id="cleanHostTabs">
-        <button class="inner-tab active" onclick="filterClean('pending',this,'cleanHostTabs','cleanHostList','host')">요청 (${pendingClean.length})</button>
+        <button class="inner-tab active" onclick="filterClean('checkout',this,'cleanHostTabs','cleanHostList','host')">체크아웃 (${unassigned.length})</button>
+        <button class="inner-tab" onclick="filterClean('pending',this,'cleanHostTabs','cleanHostList','host')">요청 (${pendingClean.length})</button>
         <button class="inner-tab" onclick="filterClean('completed',this,'cleanHostTabs','cleanHostList','host')">완료 (${doneClean.filter(c=>c.date===today).length})</button>
       </div>
-      <div id="cleanHostList">${renderCleanList(pendingClean,'host')}</div>`;
+      <div id="cleanHostList">${renderCheckoutAssign(unassigned,cls.checkOutToday.filter(b=>requestedRoomIds.has(b.roomId)),cleaners,'host')}</div>`;
 
   } else {
     el.innerHTML=`
@@ -1649,6 +1656,16 @@ function renderCleanHostContent(hostId,cls,pendingClean,doneClean,today){
     fPending=DB.cleaningRequests.filter(c=>c.hostId===hostId&&(c.status==='pending'||c.status==='inprogress'));
     fDone=DB.cleaningRequests.filter(c=>c.hostId===hostId&&['completed','submitted','confirmed'].includes(c.status));
   }
+
+  // 체크아웃 객실 중 아직 청소요청 안 된 것
+  const checkoutRooms=fCls.checkOutToday;
+  const requestedRoomIds=new Set(DB.cleaningRequests.filter(c=>c.date===today&&c.status!=='cancelled').map(c=>c.roomId));
+  const unassigned=checkoutRooms.filter(b=>!requestedRoomIds.has(b.roomId));
+  const assigned=checkoutRooms.filter(b=>requestedRoomIds.has(b.roomId));
+
+  // 청소팀원 목록
+  const cleaners=DB.users.filter(u=>u.role==='cleaner'&&!u.blocked);
+
   return `
     ${hostId!=='all'?`<div style="font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:.5rem">🏢 ${hostLabel}</div>`:''}
     <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
@@ -1657,11 +1674,103 @@ function renderCleanHostContent(hostId,cls,pendingClean,doneClean,today){
       <div class="stat-card"><div class="stat-number" style="color:var(--accent);font-size:1.5rem">${fDone.filter(c=>c.date===today).length}</div><div class="stat-label">청소완료</div></div>
       <div class="stat-card" style="border:1px solid var(--warning)"><div class="stat-number" style="color:var(--warning);font-size:1.5rem">${fCls.checkOutTomorrow.length}</div><div class="stat-label">내일퇴실</div></div>
     </div>
+
     <div class="inner-tabs" id="cleanAdminTabs">
-      <button class="inner-tab active" onclick="filterClean('pending',this,'cleanAdminTabs','cleanAdminList','admin','${hostId}')">요청 (${fPending.length})</button>
+      <button class="inner-tab active" onclick="filterClean('checkout',this,'cleanAdminTabs','cleanAdminList','admin','${hostId}')">체크아웃 (${unassigned.length})</button>
+      <button class="inner-tab" onclick="filterClean('pending',this,'cleanAdminTabs','cleanAdminList','admin','${hostId}')">요청 (${fPending.length})</button>
       <button class="inner-tab" onclick="filterClean('completed',this,'cleanAdminTabs','cleanAdminList','admin','${hostId}')">완료 (${fDone.filter(c=>c.date===today).length})</button>
     </div>
-    <div id="cleanAdminList">${renderCleanList(fPending,'admin')}</div>`;
+    <div id="cleanAdminList">${renderCheckoutAssign(unassigned,assigned,cleaners,hostId)}</div>`;
+}
+
+// 체크아웃 객실 → 청소팀원 배정 화면
+function renderCheckoutAssign(unassigned,assigned,cleaners,hostId){
+  if(!unassigned.length&&!assigned.length) return emptyState('✨','오늘 체크아웃 객실 없음');
+
+  // 청소팀원 탭
+  const cleanerTabsHtml=cleaners.length?`
+    <div class="inner-tabs" id="cleanerAssignTabs" style="margin-bottom:.6rem">
+      ${cleaners.map((c,i)=>`<button class="inner-tab${i===0?' active':''}" onclick="selectCleanerTab('${c.id}',this)" style="font-size:.72rem">${c.name}</button>`).join('')}
+    </div>
+    <input type="hidden" id="selectedCleanerId" value="${cleaners[0]?.id||''}">
+  `:'<div style="font-size:.8rem;color:var(--warning);margin-bottom:.5rem">⚠️ 등록된 청소팀원이 없습니다</div>';
+
+  // 미배정 객실
+  let unassignedHtml='';
+  if(unassigned.length){
+    unassignedHtml=`
+      <div style="font-size:.75rem;font-weight:700;color:#FB7185;margin-bottom:.5rem">🔴 미배정 (${unassigned.length}개)</div>
+      ${cleanerTabsHtml}
+      ${unassigned.map(b=>{
+        const room=DB.rooms.find(r=>r.id===b.roomId);
+        const coTime=b.checkOutTime||room?.defaultCheckOut||'11:00';
+        const ciBooking=DB.bookings.find(bk=>bk.roomId===b.roomId&&bk.checkIn===getLocalDate());
+        const ciTime=ciBooking?(ciBooking.checkInTime||room?.defaultCheckIn||'15:00'):'';
+        const host=DB.users.find(u=>u.id===b.hostId);
+        return `<div class="card" style="border-left:3px solid #FB7185">
+          <div style="display:flex;justify-content:space-between;align-items:start">
+            <div>
+              <div class="card-title">${room?.number||'?'}호 <span style="font-size:.72rem;color:var(--text2)">${room?.type||''}</span></div>
+              <div class="card-sub">⏰ 퇴실 ${coTime}${ciTime?' → 🔵 입실 '+ciTime:' · 빈방'}${host?' · '+host.name:''}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:.3rem;margin-top:.5rem;flex-wrap:wrap">
+            <button class="btn btn-accent btn-sm" onclick="quickAssignClean('${b.roomId}','${b.hostId||''}','퇴실청소')" style="flex:1">🧹 퇴실청소</button>
+            ${ciTime?`<button class="btn btn-accent2 btn-sm" onclick="quickAssignClean('${b.roomId}','${b.hostId||''}','퇴실+입실')" style="flex:1">🔄 퇴실+입실</button>`:''}
+          </div>
+        </div>`;
+      }).join('')}`;
+  }
+
+  // 배정 완료 객실
+  let assignedHtml='';
+  if(assigned.length){
+    assignedHtml=`
+      <div style="font-size:.75rem;font-weight:700;color:var(--accent);margin:${unassigned.length?'1rem':'0'} 0 .5rem">✅ 배정 완료 (${assigned.length}개)</div>
+      ${assigned.map(b=>{
+        const room=DB.rooms.find(r=>r.id===b.roomId);
+        const req=DB.cleaningRequests.find(c=>c.roomId===b.roomId&&c.date===getLocalDate()&&c.status!=='cancelled');
+        const cleaner=req?DB.users.find(u=>u.id===req.cleanerId):null;
+        return `<div class="card" style="border-left:3px solid var(--accent);opacity:.75">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div class="card-title">${room?.number||'?'}호 <span style="font-size:.72rem;color:var(--text2)">${room?.type||''}</span></div>
+              <div class="card-sub">🧹 ${cleaner?.name||'미배정'} · ${req?.type||'퇴실청소'} ${reqStatusBadge(req?.status||'pending')}</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="font-size:.65rem" onclick="deleteCleaningReq('${req?.id}')">취소</button>
+          </div>
+        </div>`;
+      }).join('')}`;
+  }
+
+  return unassignedHtml + assignedHtml;
+}
+
+function selectCleanerTab(cleanerId,btn){
+  document.querySelectorAll('#cleanerAssignTabs .inner-tab').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const hiddenInput=document.getElementById('selectedCleanerId');
+  if(hiddenInput) hiddenInput.value=cleanerId;
+}
+
+function quickAssignClean(roomId,hostId,type){
+  const cleanerIdEl=document.getElementById('selectedCleanerId');
+  const cleanerId=cleanerIdEl?cleanerIdEl.value:'';
+  if(!cleanerId){showToast('청소팀원을 선택해주세요');return;}
+  const room=DB.rooms.find(r=>r.id===roomId);
+  const today=getLocalDate();
+  const time=room?.defaultCheckOut||'11:00';
+  const relatedBooking=DB.bookings.find(bk=>bk.roomId===roomId&&bk.checkOut===today);
+  const checkOutTime=relatedBooking?(relatedBooking.checkOutTime||room?.defaultCheckOut||'11:00'):'';
+  const relatedCiBooking=DB.bookings.find(bk=>bk.roomId===roomId&&bk.checkIn===today);
+  const checkInTime=relatedCiBooking?(relatedCiBooking.checkInTime||room?.defaultCheckIn||'15:00'):'';
+  if(!hostId) hostId=room?.hostId||currentUser.id;
+  DB.cleaningRequests.push({id:'c'+Date.now(),roomId,hostId,cleanerId,type,date:today,time,checkOutTime,checkInTime,notes:'',status:'pending',photos:[],checklistResult:{},rating:0,reviewNote:'',submittedAt:null,confirmedAt:null,timeChanged:false,timeChangeLog:''});
+  const cleaner=DB.users.find(u=>u.id===cleanerId);
+  addNotif(cleanerId,`🧹 ${room?.number}호 ${type} 배정\n⏰ ${today} ${checkOutTime||time}${checkInTime?' → 🔵체크인 '+checkInTime:''}`);
+  saveData();playNotifSound();
+  showToast(`✅ ${room?.number}호 → ${cleaner?.name||'?'} 배정 완료`);
+  renderPage(currentPage);
 }
 
 function filterCleanByHost(hostId,btn){
@@ -1677,6 +1786,23 @@ function filterCleanByHost(hostId,btn){
 function filterClean(status,btn,tabsId,listId,viewer,hostId){
   document.querySelectorAll(`#${tabsId} .inner-tab`).forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  const today=getLocalDate();
+
+  // 체크아웃 탭 (admin/host)
+  if(status==='checkout'){
+    let bookings;
+    if(viewer==='host') bookings=DB.bookings.filter(b=>b.hostId===currentUser.id);
+    else if(hostId&&hostId!=='all') bookings=DB.bookings.filter(b=>b.hostId===hostId);
+    else bookings=DB.bookings;
+    const cls=classifyBookings(bookings);
+    const requestedRoomIds=new Set(DB.cleaningRequests.filter(c=>c.date===today&&c.status!=='cancelled').map(c=>c.roomId));
+    const unassigned=cls.checkOutToday.filter(b=>!requestedRoomIds.has(b.roomId));
+    const assigned=cls.checkOutToday.filter(b=>requestedRoomIds.has(b.roomId));
+    const cleaners=DB.users.filter(u=>u.role==='cleaner'&&!u.blocked);
+    document.getElementById(listId).innerHTML=renderCheckoutAssign(unassigned,assigned,cleaners,hostId||viewer);
+    return;
+  }
+
   let base = viewer==='cleaner' ? DB.cleaningRequests.filter(c=>c.cleanerId===currentUser.id) :
              viewer==='host'    ? DB.cleaningRequests.filter(c=>c.hostId===currentUser.id) :
                                   DB.cleaningRequests;
@@ -3306,6 +3432,66 @@ async function syncAllIcal(){
   openIcalSyncModal();
 }
 
+// 자동 동기화 (조용히, 모달 없이)
+let _autoSyncing=false;
+let _lastAutoSync=0;
+async function autoSyncIcal(){
+  if(_autoSyncing) return;
+  // 마지막 동기화 후 10분 이내면 스킵
+  if(Date.now()-_lastAutoSync<600000) return;
+  const rooms=DB.rooms.filter(r=>r.icalUrl);
+  if(!rooms.length) return;
+  _autoSyncing=true;
+  _lastAutoSync=Date.now();
+  console.log('[AutoSync] iCal 자동 동기화 시작 (',rooms.length,'개 객실)');
+  let totalAdded=0;
+  for(const room of rooms){
+    try{
+      await syncSingleIcalSilent(room.id);
+    }catch(e){console.log('[AutoSync]',room.number+'호 실패:',e.message);}
+    await new Promise(r=>setTimeout(r,300));
+  }
+  refreshAllStatuses();
+  saveData();
+  if(currentUser) renderPage(currentPage);
+  console.log('[AutoSync] 완료');
+  _autoSyncing=false;
+}
+
+// 조용한 개별 동기화 (로그 없이)
+async function syncSingleIcalSilent(roomId){
+  const room=DB.rooms.find(r=>r.id===roomId);
+  if(!room||!room.icalUrl) return;
+  const proxies=[
+    url=>`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    url=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+  ];
+  let icsText=null;
+  for(const proxy of proxies){
+    try{
+      const resp=await fetch(proxy(room.icalUrl),{signal:AbortSignal.timeout(15000)});
+      if(resp.ok){icsText=await resp.text();break;}
+    }catch(e){}
+  }
+  if(!icsText) return;
+  const events=parseIcs(icsText);
+  if(!events.length) return;
+  events.forEach(ev=>{
+    const booking=icalEventToBooking(ev,room);
+    const existing=DB.bookings.find(b=>b.id===booking.id||(b.icalUid&&b.icalUid===booking.icalUid));
+    if(existing){
+      const dateChanged=existing.checkIn!==booking.checkIn||existing.checkOut!==booking.checkOut;
+      if(dateChanged){existing.checkIn=booking.checkIn;existing.checkOut=booking.checkOut;existing.guestName=booking.guestName;}
+      existing.status=getBookingStatus(existing.checkIn,existing.checkOut);
+    } else {
+      const weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);
+      if(new Date(booking.checkOut)>=weekAgo) DB.bookings.push(booking);
+    }
+  });
+  updateRoomStatusFromBookings(room);
+  room.lastIcalSync=new Date().toLocaleString('ko');
+}
+
 function updateRoomStatusFromBookings(room){
   const today=getLocalDate();
   const activeBooking=DB.bookings.find(b=>b.roomId===room.id&&b.checkIn<=today&&b.checkOut>today);
@@ -3959,11 +4145,14 @@ setInterval(()=>{
 },30000);
 // 5분마다 화면 갱신
 setInterval(()=>{ if(currentUser) renderPage(currentPage); },300000);
-// 앱으로 돌아올 때 즉시 갱신
+// 30분마다 자동 iCal 동기화 (조용히)
+setInterval(()=>{ if(currentUser) autoSyncIcal(); },1800000);
+// 앱으로 돌아올 때 즉시 갱신 + 동기화
 document.addEventListener('visibilitychange',()=>{
   if(!document.hidden&&currentUser){
     _lastDate=getLocalDate();
     renderPage(currentPage);
+    autoSyncIcal();
   }
 });
 window.addEventListener('focus',()=>{ if(currentUser) renderPage(currentPage); });
