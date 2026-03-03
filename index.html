@@ -742,6 +742,22 @@ input,select,textarea{font-family:inherit;outline:none;border:none;}
   </div>
 </div>
 
+<div class="modal-overlay" id="modalSupplyReq">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="supplyReqModalTitle">📋 비품 요청</div><button class="modal-close" onclick="closeModal('modalSupplyReq')">✕</button></div>
+    <div class="form-group"><label class="form-label">대상 객실</label>
+      <select class="form-select" id="supReqRoom"></select>
+    </div>
+    <div class="form-group"><label class="form-label">요청 대상</label>
+      <select class="form-select" id="supReqTarget"></select>
+    </div>
+    <div class="form-group"><label class="form-label">요청 내용</label>
+      <textarea class="form-textarea" id="supReqMsg" rows="4" placeholder="필요한 비품과 수량을 작성해주세요&#10;예) 수건 대 5장, 소 10장&#10;샴푸 3개, 치약 5개"></textarea>
+    </div>
+    <button class="btn btn-accent btn-full" onclick="sendSupplyRequest()">📨 요청 보내기</button>
+  </div>
+</div>
+
 
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -829,6 +845,8 @@ function normalizeDB(d){
   d.finance=toArray(d.finance);
   if(!d.supplies) d.supplies=[];
   d.supplies=toArray(d.supplies);
+  if(!d.supplyMemos) d.supplyMemos={};
+  if(!d.supplyRequests) d.supplyRequests=[];
   if(!d.settings) d.settings={appName:'RoomPacker',placeOptions:['오션쏠레뷰','오션파크나인','블루오션']};
   if(!d.settings.placeOptions) d.settings.placeOptions=['오션쏠레뷰','오션파크나인','블루오션'];
   d.settings.placeOptions=toArray(d.settings.placeOptions);
@@ -1110,12 +1128,14 @@ const TABS_CONFIG={
     {id:'pageDashboard',label:'홈',icon:svgDash},
     {id:'pageCleaning',label:'청소요청',icon:svgClean},
     {id:'pageSchedule',label:'일정',icon:svgCal},
+    {id:'pageSupplies',label:'비품',icon:svgBox},
     {id:'pageSettings',label:'설정',icon:svgSet},
   ],
   cleaner:[
     {id:'pageDashboard',label:'홈',icon:svgDash},
     {id:'pageCleaning',label:'내 작업',icon:svgClean},
     {id:'pageSchedule',label:'일정',icon:svgCal},
+    {id:'pageSupplies',label:'비품',icon:svgBox},
     {id:'pageSettings',label:'설정',icon:svgSet},
   ]
 };
@@ -1832,8 +1852,8 @@ function renderCleanList(list,viewer='admin'){
       if(c.status==='pending') actions=`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEditCleaningReq('${c.id}')">수정</button> <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteCleaningReq('${c.id}')">삭제</button>`;
       if(isCompleted) actions=`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openChecklistView('${c.id}')">결과 보기</button> <button class="btn btn-accent btn-sm" onclick="event.stopPropagation();openReviewModal('${c.id}')">별점</button>`;
     } else {
-      if(c.status==='pending') actions=`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEditCleaningReq('${c.id}')">수정</button> <button class="btn btn-accent btn-sm" onclick="event.stopPropagation();startCleaning('${c.id}')">작업하기</button> <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteCleaningReq('${c.id}')">삭제</button>`;
-      else if(c.status==='inprogress') actions=`<button class="btn btn-accent btn-sm" onclick="openCleanWork('${c.id}')">작업하기</button>`;
+      if(c.status==='pending') actions=`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEditCleaningReq('${c.id}')">수정</button> <button class="btn btn-accent btn-sm" onclick="event.stopPropagation();startCleaning('${c.id}')">작업하기</button> <button class="btn btn-warning btn-sm" onclick="event.stopPropagation();adminCompleteCleaning('${c.id}')">완료처리</button> <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteCleaningReq('${c.id}')">삭제</button>`;
+      else if(c.status==='inprogress') actions=`<button class="btn btn-accent btn-sm" onclick="openCleanWork('${c.id}')">작업하기</button> <button class="btn btn-warning btn-sm" onclick="event.stopPropagation();adminCompleteCleaning('${c.id}')">완료처리</button>`;
       else if(isCompleted) actions=`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openChecklistView('${c.id}')">결과 보기</button> <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openReviewModal('${c.id}')">별점</button> <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteCleaningReq('${c.id}')">삭제</button>`;
     }
     // 시간 표시
@@ -2287,6 +2307,26 @@ function startCleaning(cId){
     saveData();
   }
   openCleanWork(cId);
+}
+
+function adminCompleteCleaning(cId){
+  const c=DB.cleaningRequests.find(r=>r.id===cId);
+  if(!c) return;
+  if(!confirm(`이 청소 요청을 완료 처리하시겠습니까?`)) return;
+  // 체크리스트 전부 완료 처리
+  if(!c.checklistResult) c.checklistResult={};
+  DB.checklistTemplates.forEach(t=>{c.checklistResult[t.id]=true;});
+  c.status='completed';
+  c.submittedAt=new Date().toLocaleString('ko',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  c.confirmedAt=c.submittedAt;
+  const room=DB.rooms.find(r=>r.id===c.roomId);
+  // 청소팀원에게 알림
+  if(c.cleanerId) addNotif(c.cleanerId,`✅ ${room?.number||'?'}호 청소가 관리자에 의해 완료 처리되었습니다`);
+  // 호스트에게 알림
+  if(c.hostId) addNotif(c.hostId,`✅ ${room?.number||'?'}호 청소 완료 (관리자 처리)`);
+  saveData();playNotifSound();
+  showToast(`✅ ${room?.number||'?'}호 청소 완료 처리`);
+  renderPage(currentPage);
 }
 
 // ── Image Compression ──
@@ -3890,33 +3930,284 @@ function deleteFinance(fId){
 // ══════════════════════════ SUPPLIES ═════════════════════════
 function renderSupplies(){
   const el=document.getElementById('suppliesContent');
-  const sup=DB.supplies||[];
-  const catLabels={amenity:'어메니티',linen:'린넨/수건',cleaning:'청소용품',electronic:'전자기기',furniture:'가구/인테리어',other:'기타'};
-  const low=sup.filter(s=>s.qty<s.minQty);
+  const role=currentUser.role;
+  const isAdmin=role==='admin';
+  if(!DB.supplyMemos) DB.supplyMemos={};
+  if(!DB.supplyRequests) DB.supplyRequests=[];
+
+  // 객실 탭 생성
+  const roomTabs=[{id:'all',label:'📦 전체'}].concat(DB.rooms.map(r=>({id:r.id,label:r.number+'호'})));
+  const activeRoom=window._supplyRoom||'all';
+
+  // 현재 탭의 요청 수
+  const pendingReqs=DB.supplyRequests.filter(r=>r.status==='pending');
+  const myReqs=role==='host'?DB.supplyRequests.filter(r=>r.targetId===currentUser.id):DB.supplyRequests;
+
   el.innerHTML=`
-    ${low.length?`<div style="background:#FB718515;border:1px solid #FB718530;border-radius:10px;padding:.7rem;margin-bottom:1rem;font-size:.82rem;color:#FB7185">
-      ⚠️ 부족 비품 ${low.length}건: ${low.map(s=>s.name+'('+s.qty+'/'+s.minQty+')').join(', ')}
+    <div class="flex-between" style="margin-bottom:1rem">
+      <div class="page-title" style="margin:0">📦 비품 관리</div>
+      <div style="display:flex;gap:.3rem">
+        <button class="btn btn-accent btn-sm" onclick="openSupplyReqModal()">📋 요청</button>
+        ${isAdmin?`<button class="btn btn-accent2 btn-sm" onclick="openAddSupply()">+ 비품</button>`:''}
+      </div>
+    </div>
+
+    ${pendingReqs.length?`<div style="background:#FB718515;border:1px solid #FB718530;border-radius:10px;padding:.6rem;margin-bottom:.8rem;font-size:.8rem;color:#FB7185">
+      📋 미처리 요청 ${pendingReqs.length}건
     </div>`:''}
-    <div class="section-title">전체 비품 (${sup.length}건)</div>
-    ${sup.length?sup.map(s=>{
-      const room=s.roomId==='common'?'공용':((DB.rooms.find(r=>r.id===s.roomId)?.number||'?')+'호');
-      const isLow=s.qty<s.minQty;
-      return `<div class="card" style="${isLow?'border-left:3px solid #FB7185':''}">
-        <div class="card-header">
-          <div>
-            <div class="card-title">${s.name} <span style="font-size:.7rem;color:var(--text2);font-weight:400">${catLabels[s.category]||''}</span></div>
-            <div class="card-sub">${room} · 수량: <strong style="color:${isLow?'#FB7185':'var(--accent)'}"> ${s.qty}</strong> / ${s.minQty} ${isLow?'<span style="color:#FB7185">⚠️ 부족</span>':''}</div>
-          </div>
-          <div style="display:flex;gap:.3rem;align-items:center">
-            <button class="btn btn-ghost btn-sm" style="font-size:.9rem;padding:.2rem .5rem" onclick="adjustSupply('${s.id}',-1)">−</button>
-            <button class="btn btn-ghost btn-sm" style="font-size:.9rem;padding:.2rem .5rem" onclick="adjustSupply('${s.id}',1)">+</button>
-            <button class="btn btn-ghost btn-sm" onclick="editSupply('${s.id}')">수정</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteSupply('${s.id}')">삭제</button>
-          </div>
-        </div>
-        ${s.memo?`<div class="text-sm text-muted mt-sm">${s.memo}</div>`:''}
+
+    <div class="inner-tabs" id="supplyRoomTabs">
+      ${roomTabs.map(r=>`<button class="inner-tab ${r.id===activeRoom?'active':''}" onclick="filterSupplyRoom('${r.id}',this)">${r.label}</button>`).join('')}
+      <button class="inner-tab ${activeRoom==='requests'?'active':''}" onclick="filterSupplyRoom('requests',this)">📋 요청 (${myReqs.filter(r=>r.status==='pending').length})</button>
+    </div>
+    <div id="supplyListArea">${activeRoom==='requests'?renderSupplyRequests(myReqs):renderSupplyByRoom(activeRoom)}</div>`;
+}
+
+window._supplyRoom='all';
+function filterSupplyRoom(roomId,btn){
+  window._supplyRoom=roomId;
+  document.querySelectorAll('#supplyRoomTabs .inner-tab').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const role=currentUser.role;
+  const myReqs=role==='host'?DB.supplyRequests.filter(r=>r.targetId===currentUser.id):DB.supplyRequests;
+  document.getElementById('supplyListArea').innerHTML=roomId==='requests'?renderSupplyRequests(myReqs):renderSupplyByRoom(roomId);
+}
+
+function renderSupplyByRoom(roomId){
+  const isAdmin=currentUser.role==='admin';
+  if(!DB.supplyMemos) DB.supplyMemos={};
+
+  if(roomId==='all'){
+    // 전체 비품 목록 + 각 객실 메모 요약
+    const rooms=DB.rooms;
+    const sup=DB.supplies||[];
+    const low=sup.filter(s=>s.qty<s.minQty);
+    const catLabels={amenity:'어메니티',linen:'린넨/수건',cleaning:'청소용품',electronic:'전자기기',furniture:'가구/인테리어',other:'기타'};
+
+    let html='';
+
+    // 객실별 메모 요약
+    const memoRooms=rooms.filter(r=>DB.supplyMemos[r.id]&&DB.supplyMemos[r.id].trim());
+    if(memoRooms.length){
+      html+=`<div style="font-size:.78rem;font-weight:700;color:var(--text2);margin:.6rem 0 .4rem">📝 객실별 비품 메모</div>`;
+      html+=memoRooms.map(r=>{
+        const memo=DB.supplyMemos[r.id];
+        return `<div class="card" style="border-left:3px solid var(--warning)">
+          <div class="card-title" style="font-size:.85rem">${r.number}호 <span style="font-size:.68rem;color:var(--text2)">${r.type||''}</span></div>
+          <div style="font-size:.8rem;color:var(--text2);white-space:pre-line;line-height:1.5;margin-top:.3rem">${memo}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // 부족 비품 경고
+    if(low.length){
+      html+=`<div style="background:#FB718515;border:1px solid #FB718530;border-radius:10px;padding:.6rem;margin:.6rem 0;font-size:.8rem;color:#FB7185">
+        ⚠️ 부족 비품 ${low.length}건: ${low.map(s=>s.name+'('+s.qty+'/'+s.minQty+')').join(', ')}
       </div>`;
-    }).join(''):emptyState('📦','비품 없음','위 버튼으로 비품을 등록하세요')}`;
+    }
+
+    // 비품 목록
+    if(sup.length){
+      html+=`<div style="font-size:.78rem;font-weight:700;color:var(--text2);margin:.8rem 0 .4rem">📦 전체 비품 (${sup.length}건)</div>`;
+      html+=sup.map(s=>{
+        const room=s.roomId==='common'?'공용':((DB.rooms.find(r=>r.id===s.roomId)?.number||'?')+'호');
+        const isLow=s.qty<s.minQty;
+        return `<div class="card" style="${isLow?'border-left:3px solid #FB7185':''}">
+          <div class="card-header">
+            <div>
+              <div class="card-title">${s.name} <span style="font-size:.7rem;color:var(--text2);font-weight:400">${catLabels[s.category]||''}</span></div>
+              <div class="card-sub">${room} · 수량: <strong style="color:${isLow?'#FB7185':'var(--accent)'}"> ${s.qty}</strong> / ${s.minQty} ${isLow?'<span style="color:#FB7185">⚠️ 부족</span>':''}</div>
+            </div>
+            ${isAdmin?`<div style="display:flex;gap:.3rem;align-items:center">
+              <button class="btn btn-ghost btn-sm" style="font-size:.9rem;padding:.2rem .5rem" onclick="adjustSupply('${s.id}',-1)">−</button>
+              <button class="btn btn-ghost btn-sm" style="font-size:.9rem;padding:.2rem .5rem" onclick="adjustSupply('${s.id}',1)">+</button>
+              <button class="btn btn-ghost btn-sm" onclick="editSupply('${s.id}')">수정</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteSupply('${s.id}')">삭제</button>
+            </div>`:''}
+          </div>
+          ${s.memo?`<div class="text-sm text-muted mt-sm">${s.memo}</div>`:''}
+        </div>`;
+      }).join('');
+    }
+
+    if(!html) html=emptyState('📦','비품 없음',isAdmin?'+ 비품 버튼으로 등록하세요':'');
+    return html;
+  }
+
+  // 개별 객실
+  const room=DB.rooms.find(r=>r.id===roomId);
+  if(!room) return emptyState('❓','객실 없음');
+  const memo=DB.supplyMemos[roomId]||'';
+  const roomSup=(DB.supplies||[]).filter(s=>s.roomId===roomId);
+  const host=DB.users.find(u=>u.id===room.hostId);
+
+  return `
+    <div class="card" style="border:1.5px solid var(--accent2)">
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:.5rem">
+        <div>
+          <div class="card-title">${room.number}호 · ${room.type||''}</div>
+          <div class="card-sub">${host?host.name+' · ':''}필요 비품 메모</div>
+        </div>
+        <button class="btn btn-accent btn-sm" onclick="saveSupplyMemo('${roomId}')">💾 저장</button>
+      </div>
+      <textarea class="form-textarea" id="supMemo_${roomId}" rows="5" placeholder="이 객실에 필요한 비품을 메모해주세요&#10;예)&#10;수건 대 5장&#10;샴푸 3개&#10;슬리퍼 2켤레" style="font-size:.85rem;line-height:1.6">${memo}</textarea>
+      <div style="display:flex;gap:.3rem;margin-top:.5rem">
+        <button class="btn btn-accent btn-sm" onclick="openSupplyReqFromRoom('${roomId}')">📨 호스트에게 요청</button>
+      </div>
+    </div>
+
+    ${roomSup.length?`
+      <div style="font-size:.78rem;font-weight:700;color:var(--text2);margin:.8rem 0 .4rem">📦 등록된 비품 (${roomSup.length}건)</div>
+      ${roomSup.map(s=>{
+        const isLow=s.qty<s.minQty;
+        const catLabels={amenity:'어메니티',linen:'린넨/수건',cleaning:'청소용품',electronic:'전자기기',furniture:'가구/인테리어',other:'기타'};
+        return `<div class="card" style="${isLow?'border-left:3px solid #FB7185':''}">
+          <div class="card-header">
+            <div>
+              <div class="card-title">${s.name} <span style="font-size:.7rem;color:var(--text2)">${catLabels[s.category]||''}</span></div>
+              <div class="card-sub">수량: <strong style="color:${isLow?'#FB7185':'var(--accent)'}"> ${s.qty}</strong> / ${s.minQty}</div>
+            </div>
+            ${currentUser.role==='admin'?`<div style="display:flex;gap:.3rem;align-items:center">
+              <button class="btn btn-ghost btn-sm" style="font-size:.9rem;padding:.2rem .5rem" onclick="adjustSupply('${s.id}',-1)">−</button>
+              <button class="btn btn-ghost btn-sm" style="font-size:.9rem;padding:.2rem .5rem" onclick="adjustSupply('${s.id}',1)">+</button>
+            </div>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    `:''}`;
+}
+
+function saveSupplyMemo(roomId){
+  const el=document.getElementById('supMemo_'+roomId);
+  if(!el) return;
+  if(!DB.supplyMemos) DB.supplyMemos={};
+  DB.supplyMemos[roomId]=el.value;
+  saveData();
+  showToast('💾 비품 메모 저장 완료');
+}
+
+function openSupplyReqModal(){
+  const roomOpts=DB.rooms.map(r=>`<option value="${r.id}">${r.number}호 - ${r.type||''}</option>`);
+  document.getElementById('supReqRoom').innerHTML=`<option value="common">공용 (전체)</option>`+roomOpts.join('');
+
+  // 요청 대상: 호스트 목록 (청소팀/관리자는 호스트에게, 호스트는 관리자에게)
+  const role=currentUser.role;
+  let targets=[];
+  if(role==='admin'){
+    targets=DB.users.filter(u=>u.role==='host'&&!u.blocked).map(u=>({id:u.id,label:'🏠 '+u.name+' (호스트)'}));
+  } else if(role==='host'){
+    targets=DB.users.filter(u=>u.role==='admin').map(u=>({id:u.id,label:'👑 '+u.name+' (관리자)'}));
+  } else {
+    targets=[...DB.users.filter(u=>u.role==='admin').map(u=>({id:u.id,label:'👑 '+u.name+' (관리자)'})),
+             ...DB.users.filter(u=>u.role==='host'&&!u.blocked).map(u=>({id:u.id,label:'🏠 '+u.name+' (호스트)'}))];
+  }
+  document.getElementById('supReqTarget').innerHTML=targets.map(t=>`<option value="${t.id}">${t.label}</option>`).join('');
+  document.getElementById('supReqMsg').value='';
+  openModal('modalSupplyReq');
+}
+
+function openSupplyReqFromRoom(roomId){
+  openSupplyReqModal();
+  document.getElementById('supReqRoom').value=roomId;
+  // 메모 내용 자동 채우기
+  const memo=DB.supplyMemos?.[roomId];
+  if(memo) document.getElementById('supReqMsg').value=memo;
+}
+
+function sendSupplyRequest(){
+  const roomId=document.getElementById('supReqRoom').value;
+  const targetId=document.getElementById('supReqTarget').value;
+  const msg=document.getElementById('supReqMsg').value.trim();
+  if(!msg){showToast('요청 내용을 입력해주세요');return;}
+  if(!targetId){showToast('요청 대상을 선택해주세요');return;}
+  const room=roomId==='common'?null:DB.rooms.find(r=>r.id===roomId);
+  const roomLabel=room?room.number+'호':'공용';
+  if(!DB.supplyRequests) DB.supplyRequests=[];
+  DB.supplyRequests.push({
+    id:'sr'+Date.now(),
+    roomId,
+    senderId:currentUser.id,
+    targetId,
+    msg,
+    status:'pending',
+    createdAt:new Date().toLocaleString('ko',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}),
+    completedAt:null,
+    reply:''
+  });
+  addNotif(targetId,`📦 비품 요청 (${roomLabel})\n${msg.slice(0,60)}${msg.length>60?'...':''}`);
+  saveData();closeModal('modalSupplyReq');playNotifSound();
+  showToast(`📨 ${roomLabel} 비품 요청을 보냈습니다`);
+  renderSupplies();
+}
+
+function renderSupplyRequests(reqs){
+  if(!reqs.length) return emptyState('📋','비품 요청 없음','📋 요청 버튼으로 비품을 요청하세요');
+  const pending=reqs.filter(r=>r.status==='pending');
+  const done=reqs.filter(r=>r.status==='completed');
+
+  let html='';
+  if(pending.length){
+    html+=`<div style="font-size:.78rem;font-weight:700;color:var(--coral);margin:.4rem 0">🔴 미처리 (${pending.length}건)</div>`;
+    html+=pending.map(r=>renderSupplyReqCard(r)).join('');
+  }
+  if(done.length){
+    html+=`<div style="font-size:.78rem;font-weight:700;color:var(--accent);margin:.8rem 0 .4rem">✅ 처리 완료 (${done.length}건)</div>`;
+    html+=done.slice(0,10).map(r=>renderSupplyReqCard(r)).join('');
+  }
+  return html;
+}
+
+function renderSupplyReqCard(r){
+  const room=r.roomId==='common'?null:DB.rooms.find(rm=>rm.id===r.roomId);
+  const sender=DB.users.find(u=>u.id===r.senderId);
+  const target=DB.users.find(u=>u.id===r.targetId);
+  const isPending=r.status==='pending';
+  const isMine=r.targetId===currentUser.id;
+  const isAdmin=currentUser.role==='admin';
+
+  return `<div class="card" style="border-left:3px solid ${isPending?'var(--coral)':'var(--accent)'}">
+    <div style="display:flex;justify-content:space-between;align-items:start">
+      <div>
+        <div class="card-title">${room?room.number+'호':'공용'} <span style="font-size:.68rem;color:var(--text2)">비품 요청</span></div>
+        <div class="card-sub">${sender?.name||'?'} → ${target?.name||'?'} · ${r.createdAt}</div>
+      </div>
+      <span class="badge ${isPending?'badge-cleaning':'badge-done'}">${isPending?'대기':'완료'}</span>
+    </div>
+    <div style="font-size:.82rem;color:var(--text);white-space:pre-line;line-height:1.5;margin-top:.4rem;background:var(--surface2);padding:.5rem;border-radius:8px">${r.msg}</div>
+    ${r.reply?`<div style="font-size:.8rem;color:var(--accent);margin-top:.3rem;padding:.4rem;background:rgba(0,200,150,.08);border-radius:8px">💬 ${r.reply}</div>`:''}
+    ${isPending&&(isMine||isAdmin)?`<div style="display:flex;gap:.3rem;margin-top:.5rem">
+      <button class="btn btn-accent btn-sm" onclick="completeSupplyReq('${r.id}')">✅ 처리 완료</button>
+      <button class="btn btn-ghost btn-sm" onclick="replySupplyReq('${r.id}')">💬 답변</button>
+      ${isAdmin?`<button class="btn btn-danger btn-sm" onclick="deleteSupplyReq('${r.id}')">삭제</button>`:''}
+    </div>`:''}
+    ${isPending&&!isMine&&!isAdmin?`<div style="font-size:.72rem;color:var(--text3);margin-top:.3rem">상대방의 처리를 기다리고 있습니다</div>`:''}
+  </div>`;
+}
+
+function completeSupplyReq(reqId){
+  const r=DB.supplyRequests.find(x=>x.id===reqId);
+  if(!r) return;
+  r.status='completed';
+  r.completedAt=new Date().toLocaleString('ko',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  const room=r.roomId==='common'?null:DB.rooms.find(rm=>rm.id===r.roomId);
+  addNotif(r.senderId,`✅ ${room?room.number+'호':'공용'} 비품 요청이 처리되었습니다`);
+  saveData();playNotifSound();showToast('✅ 요청 처리 완료');renderSupplies();
+}
+
+function replySupplyReq(reqId){
+  const reply=prompt('답변을 입력하세요:');
+  if(!reply) return;
+  const r=DB.supplyRequests.find(x=>x.id===reqId);
+  if(!r) return;
+  r.reply=reply;
+  addNotif(r.senderId,`💬 비품 요청 답변: ${reply.slice(0,50)}${reply.length>50?'...':''}`);
+  saveData();showToast('💬 답변 전송');renderSupplies();
+}
+
+function deleteSupplyReq(reqId){
+  if(!confirm('이 요청을 삭제하시겠습니까?')) return;
+  DB.supplyRequests=DB.supplyRequests.filter(r=>r.id!==reqId);
+  saveData();showToast('삭제됨');renderSupplies();
 }
 
 function openAddSupply(){
