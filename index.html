@@ -384,10 +384,6 @@ input,select,textarea{font-family:inherit;outline:none;border:none;}
       <div id="financeContent"></div>
     </div>
     <div class="page" id="pageSupplies">
-      <div class="flex-between" style="margin-bottom:1.2rem">
-        <div class="page-title" style="margin:0">📦 비품 현황</div>
-        <button class="btn btn-accent btn-sm" onclick="openAddSupply()">+ 비품 추가</button>
-      </div>
       <div id="suppliesContent"></div>
     </div>
   </div>
@@ -3384,13 +3380,15 @@ function parseIcal(icalText){
 
 function icalEventToBooking(ev, room){
   let guestName=ev.summary||'';
-  guestName=guestName.replace(/^(Reserved|Réservé|Not available|예약됨|Blocked)\s*-?\s*/i,'').trim();
-  if(!guestName || guestName==='Reserved' || guestName==='Not available' || guestName==='Blocked')
-    guestName='';
+  // 차단 날짜 감지 - 예약이 아닌 항목
+  const lc=guestName.toLowerCase();
+  const isBlocked=['reserved','not available','blocked','예약됨','예약 불가','airbnb (not available)','réservé'].some(kw=>lc.includes(kw));
+  guestName=guestName.replace(/^(Reserved|Réservé|Not available|예약됨|Blocked|Airbnb \(Not available\))\s*-?\s*/i,'').trim();
+  if(isBlocked && !guestName) return null; // 차단 날짜는 무시
   return {
-    id:'bical_'+room.id+'_'+(ev.uid||ev.checkIn).replace(/[^a-zA-Z0-9]/g,'').slice(0,20),
+    id:'bical_'+room.id+'_'+(ev.uid||ev.checkIn).replace(/[^a-zA-Z0-9]/g,'').slice(0,40),
     roomId:room.id,
-    guestName,
+    guestName:guestName||'에어비앤비 게스트',
     checkIn:ev.checkIn,
     checkOut:ev.checkOut,
     checkInTime:room.defaultCheckIn||'15:00',
@@ -3419,24 +3417,24 @@ async function syncSingleIcal(rId){
     const text=await fetchIcal(room.icalUrl);
     const events=parseIcal(text);
     addIcalLog(`${room.number}호: ${events.length}개 일정 발견`);
-    let added=0, updated=0, skipped=0;
+    let added=0, updated=0, skipped=0, blocked=0, cancelled=0;
+    const icalUids=new Set();
     events.forEach(ev=>{
       const booking=icalEventToBooking(ev,room);
-      // 이미 존재하는지 확인 (icalUid 또는 id 기준)
+      if(!booking){blocked++;return;}
+      if(ev.uid) icalUids.add(ev.uid);
       const existing=DB.bookings.find(b=>b.id===booking.id || (b.icalUid && b.icalUid===booking.icalUid));
       if(existing){
-        // 날짜나 게스트명 변경 체크
         const dateChanged=existing.checkIn!==booking.checkIn || existing.checkOut!==booking.checkOut;
-        if(dateChanged){
+        const nameChanged=booking.guestName && booking.guestName!=='에어비앤비 게스트' && existing.guestName!==booking.guestName;
+        if(dateChanged||nameChanged){
           existing.checkIn=booking.checkIn;
           existing.checkOut=booking.checkOut;
-          existing.guestName=booking.guestName;
+          if(nameChanged) existing.guestName=booking.guestName;
           updated++;
         } else { skipped++; }
-        // 상태는 항상 현재 날짜 기준으로 재계산
         existing.status=getBookingStatus(existing.checkIn,existing.checkOut);
       } else {
-        // 과거 예약은 무시 (7일 전까지만)
         const weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);
         if(new Date(booking.checkOut)>=weekAgo){
           DB.bookings.push(booking);
@@ -3444,11 +3442,22 @@ async function syncSingleIcal(rId){
         } else { skipped++; }
       }
     });
-    // 객실 상태 업데이트
+    // 취소된 예약 감지: iCal에 없는데 DB에 있는 에어비앤비 예약 (미래분만)
+    if(icalUids.size>0){
+      const today=getLocalDate();
+      const before=DB.bookings.length;
+      DB.bookings=DB.bookings.filter(b=>{
+        if(b.roomId===room.id && b.source==='airbnb' && b.icalUid && b.checkOut>=today){
+          if(!icalUids.has(b.icalUid)) return false;
+        }
+        return true;
+      });
+      cancelled=before-DB.bookings.length;
+    }
     updateRoomStatusFromBookings(room);
     room.lastIcalSync=new Date().toLocaleString('ko');
     saveData();
-    addIcalLog(`${room.number}호 완료 ✅ 추가:${added} 수정:${updated} 건너뜀:${skipped}`);
+    addIcalLog(`${room.number}호 ✅ 추가:${added} 수정:${updated} 차단:${blocked} 취소:${cancelled} 건너뜀:${skipped}`);
     renderPage(currentPage);
   }catch(e){
     addIcalLog(`${room.number}호 실패 ❌ ${e.message}`,true);
@@ -3513,21 +3522,34 @@ async function syncSingleIcalSilent(roomId){
       if(resp.ok){icsText=await resp.text();break;}
     }catch(e){}
   }
-  if(!icsText) return;
-  const events=parseIcs(icsText);
+  if(!icsText||!icsText.includes('BEGIN:VCALENDAR')) return;
+  const events=parseIcal(icsText);
   if(!events.length) return;
+  const icalUids=new Set();
   events.forEach(ev=>{
     const booking=icalEventToBooking(ev,room);
+    if(!booking) return;
+    if(ev.uid) icalUids.add(ev.uid);
     const existing=DB.bookings.find(b=>b.id===booking.id||(b.icalUid&&b.icalUid===booking.icalUid));
     if(existing){
       const dateChanged=existing.checkIn!==booking.checkIn||existing.checkOut!==booking.checkOut;
-      if(dateChanged){existing.checkIn=booking.checkIn;existing.checkOut=booking.checkOut;existing.guestName=booking.guestName;}
+      const nameChanged=booking.guestName&&booking.guestName!=='에어비앤비 게스트'&&existing.guestName!==booking.guestName;
+      if(dateChanged||nameChanged){existing.checkIn=booking.checkIn;existing.checkOut=booking.checkOut;if(nameChanged)existing.guestName=booking.guestName;}
       existing.status=getBookingStatus(existing.checkIn,existing.checkOut);
     } else {
       const weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);
       if(new Date(booking.checkOut)>=weekAgo) DB.bookings.push(booking);
     }
   });
+  if(icalUids.size>0){
+    const today=getLocalDate();
+    DB.bookings=DB.bookings.filter(b=>{
+      if(b.roomId===room.id&&b.source==='airbnb'&&b.icalUid&&b.checkOut>=today){
+        if(!icalUids.has(b.icalUid)) return false;
+      }
+      return true;
+    });
+  }
   updateRoomStatusFromBookings(room);
   room.lastIcalSync=new Date().toLocaleString('ko');
 }
