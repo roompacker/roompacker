@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0F1923">
+<title>RoomView</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0F1923;--surface:#172530;--surface2:#1E3040;--border:#2A3F52;
+  --text:#E8F0F8;--text2:#94B0C8;--text3:#5A7A94;
+  --accent:#00C896;--accent2:#00E5AE;
+  --coral:#FB7185;--blue:#60A5FA;--warning:#F59E0B;
+  --green:#00C896;--radius:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+
+/* ── Setup Screen ── */
+.setup-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;padding:1.5rem}
+.setup-card{background:var(--surface);border-radius:16px;padding:2rem 1.5rem;width:100%;max-width:380px;border:1px solid var(--border)}
+.setup-title{font-size:1.5rem;font-weight:900;text-align:center;margin-bottom:.3rem}
+.setup-title span{color:var(--accent)}
+.setup-sub{font-size:.78rem;color:var(--text2);text-align:center;margin-bottom:1.5rem;line-height:1.5}
+.form-label{font-size:.75rem;font-weight:700;color:var(--text2);margin-bottom:.3rem;display:block}
+.form-input{width:100%;padding:.6rem .8rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.82rem;outline:none;margin-bottom:.8rem;font-family:inherit}
+.form-input:focus{border-color:var(--accent)}
+.btn{padding:.55rem 1rem;border-radius:8px;font-weight:700;font-size:.82rem;border:none;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-accent{background:var(--accent);color:#0A1A14}
+.btn-accent:active{transform:scale(.97)}
+.btn-full{width:100%}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-sm{padding:.3rem .6rem;font-size:.72rem}
+.error-msg{font-size:.75rem;color:var(--coral);text-align:center;margin-top:.5rem;display:none}
+
+/* ── Header ── */
+.app-header{position:sticky;top:0;z-index:100;background:rgba(15,25,35,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:.6rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.header-brand{font-size:1.1rem;font-weight:900;letter-spacing:-.5px}
+.header-brand span{color:var(--accent)}
+.header-badge{font-size:.6rem;font-weight:700;padding:.15rem .5rem;border-radius:20px;background:rgba(0,200,150,.12);color:var(--accent);border:1px solid rgba(0,200,150,.25)}
+.header-right{display:flex;align-items:center;gap:.5rem}
+.sync-badge{font-size:.58rem;padding:.15rem .4rem;border-radius:10px;display:inline;cursor:pointer}
+.sync-badge.ok{background:#00C89620;color:var(--accent)}
+.sync-badge.off{background:#F59E0B20;color:var(--warning)}
+
+/* ── Tab Nav ── */
+.tab-nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:rgba(15,25,35,.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:.15rem;padding:.5rem 0;border:none;background:none;color:var(--text3);font-size:.62rem;font-weight:500;cursor:pointer;font-family:inherit;transition:color .2s}
+.tab-btn svg{width:20px;height:20px}
+.tab-btn.active{color:var(--accent)}
+
+/* ── Content ── */
+.content{padding:.8rem 1rem;padding-bottom:5rem}
+.page{display:none}
+.page.active{display:block}
+.page-title{font-size:1.15rem;font-weight:900;margin-bottom:.8rem}
+
+/* ── Stats ── */
+.stats-grid{display:grid;gap:.4rem;margin-bottom:.6rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.5rem;text-align:center;cursor:pointer;transition:border-color .2s}
+.stat-card:active{border-color:var(--accent)}
+.stat-number{font-size:1.5rem;font-weight:900;line-height:1.2}
+.stat-label{font-size:.68rem;color:var(--text2);margin-top:.1rem}
+
+/* ── Cards ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.7rem;margin-bottom:.4rem;transition:border-color .2s}
+.card:active{border-color:var(--accent)}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start}
+.card-title{font-size:.88rem;font-weight:700}
+.card-sub{font-size:.7rem;color:var(--text2);margin-top:.1rem}
+
+/* ── Badges ── */
+.badge{font-size:.65rem;font-weight:700;padding:.2rem .5rem;border-radius:8px}
+.badge-checkout{color:var(--coral);background:rgba(251,113,133,.1)}
+.badge-checkin{color:var(--blue);background:rgba(96,165,250,.1)}
+.badge-staying{color:var(--green);background:rgba(0,200,150,.1)}
+.badge-occupied{color:var(--green);background:rgba(0,200,150,.1)}
+.badge-vacant{color:var(--text3);background:rgba(90,122,148,.12)}
+.badge-danger{color:var(--coral);background:rgba(251,113,133,.1)}
+
+/* ── Room Cards ── */
+.room-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem}
+.room-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.6rem;transition:border-color .15s}
+.room-number{font-size:1.2rem;font-weight:900}
+.room-type{font-size:.68rem;color:var(--text2);margin-top:.1rem}
+
+/* ── Calendar Strip ── */
+.cal-strip{display:flex;gap:.3rem;overflow-x:auto;padding:.5rem 0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.cal-strip::-webkit-scrollbar{display:none}
+.cal-day{min-width:46px;text-align:center;padding:.4rem .2rem;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:all .15s}
+.cal-day.active{background:var(--accent);color:#0A1A14;border-color:var(--accent)}
+.cal-day.active .cd-day,.cal-day.active .cd-date{color:#0A1A14}
+.cal-day.today{border-color:var(--accent)}
+.cd-day{font-size:.6rem;color:var(--text3);font-weight:500}
+.cd-date{font-size:1rem;font-weight:700;color:var(--text)}
+
+/* ── Timeline ── */
+.timeline-item{display:flex;align-items:flex-start;gap:.6rem;padding:.6rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.4rem}
+.tl-time{font-size:.7rem;font-weight:700;min-width:52px;text-align:center;padding:.3rem;border-radius:8px}
+.tl-time-checkout{color:var(--coral);background:rgba(251,113,133,.1)}
+.tl-time-checkin{color:var(--blue);background:rgba(96,165,250,.1)}
+.tl-time-clean{color:var(--accent);background:rgba(0,200,150,.1)}
+.tl-dot{width:8px;height:8px;border-radius:50%;margin-top:.35rem;flex-shrink:0}
+.tl-content{flex:1;min-width:0}
+.tl-sub{font-size:.7rem;color:var(--text2);margin-top:.1rem}
+
+/* ── Section ── */
+.section-title{font-size:.82rem;font-weight:800;margin:1rem 0 .4rem;display:flex;align-items:center;gap:.3rem}
+
+/* ── Empty State ── */
+.empty-state{text-align:center;padding:2rem;color:var(--text3);font-size:.82rem}
+.empty-icon{font-size:2rem;margin-bottom:.5rem}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--surface2);color:var(--text);padding:.6rem 1.2rem;border-radius:20px;font-size:.78rem;font-weight:600;z-index:9999;opacity:0;transition:all .3s;border:1px solid var(--border);white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* ── Last Sync ── */
+.sync-info{font-size:.65rem;color:var(--text3);text-align:center;padding:.3rem;margin-top:.5rem}
+
+/* ── Pull to refresh ── */
+.refresh-hint{text-align:center;padding:.4rem;font-size:.72rem;color:var(--accent);display:none}
+</style>
+</head>
+<body>
+
+<!-- Setup Screen -->
+<div class="setup-screen" id="setupScreen" style="display:none">
+  <div class="setup-card">
+    <div class="setup-title">Room<span>View</span></div>
+    <div class="setup-sub">RoomPacker 클라우드 데이터를 읽어와<br>예약 현황을 실시간으로 보여줍니다</div>
+    <label class="form-label">Firebase API Key</label>
+    <input type="text" class="form-input" id="fbApiKey" placeholder="AIza...">
+    <label class="form-label">Project ID</label>
+    <input type="text" class="form-input" id="fbProjectId" placeholder="my-project-12345">
+    <label class="form-label">Database URL</label>
+    <input type="text" class="form-input" id="fbDbUrl" placeholder="https://...firebaseio.com">
+    <button class="btn btn-accent btn-full" onclick="connectFirebase()">🔗 연결하기</button>
+    <div class="error-msg" id="fbError"></div>
+  </div>
+</div>
+
+<!-- Loading Screen -->
+<div class="setup-screen" id="loadingScreen">
+  <div style="text-align:center">
+    <div style="font-size:2.5rem;margin-bottom:.8rem">🏠</div>
+    <div class="setup-title">Room<span>View</span></div>
+    <div style="font-size:.78rem;color:var(--text2);margin-top:.5rem">데이터 불러오는 중...</div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="appWrap" style="display:none">
+  <header class="app-header">
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <div class="header-brand">Room<span>View</span></div>
+      <span class="header-badge">읽기전용</span>
+      <span class="sync-badge" id="syncBadge" onclick="manualSync()"></span>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-sm btn-ghost" onclick="refreshAll()" style="font-size:.65rem">🔄 새로고침</button>
+      <button class="btn btn-sm btn-ghost" onclick="resetConfig()" style="font-size:.6rem">⚙️</button>
+    </div>
+  </header>
+
+  <div class="content">
+    <div class="page active" id="pageHome">
+      <div id="homeContent"></div>
+    </div>
+    <div class="page" id="pageSchedule">
+      <div id="scheduleContent"></div>
+    </div>
+    <div class="page" id="pageRooms">
+      <div id="roomsContent"></div>
+    </div>
+  </div>
+
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('pageHome',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      홈
+    </button>
+    <button class="tab-btn" onclick="switchTab('pageSchedule',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      일정
+    </button>
+    <button class="tab-btn" onclick="switchTab('pageRooms',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+      객실
+    </button>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<script>
+// ══════════════════════════ HELPERS ══════════════════════════
+function getLocalDate(d){
+  d=d||new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function getLocalTomorrow(){
+  const d=new Date();d.setDate(d.getDate()+1);return getLocalDate(d);
+}
+
+function toArray(v){return Array.isArray(v)?v:v?Object.values(v):[];}
+function normalizeDB(d){
+  if(!d) d={};
+  if(!d.users) d.users=[];
+  d.users=toArray(d.users);
+  if(!d.rooms) d.rooms=[];
+  d.rooms=toArray(d.rooms);
+  if(!d.bookings) d.bookings=[];
+  d.bookings=toArray(d.bookings);
+  if(!d.cleaningRequests) d.cleaningRequests=[];
+  d.cleaningRequests=toArray(d.cleaningRequests);
+  if(!d.checklistTemplates) d.checklistTemplates=[];
+  d.checklistTemplates=toArray(d.checklistTemplates);
+  if(!d.notifications) d.notifications=[];
+  d.notifications=toArray(d.notifications);
+  if(!d.supplies) d.supplies=[];
+  d.supplies=toArray(d.supplies);
+  // 예약 상태 갱신
+  d.bookings.forEach(b=>{
+    b.status=getBookingStatus(b.checkIn,b.checkOut);
+  });
+  return d;
+}
+
+function getBookingStatus(checkIn,checkOut){
+  const today=getLocalDate();
+  if(checkOut<today) return 'past';
+  if(checkIn<=today&&checkOut>=today) return 'active';
+  return 'upcoming';
+}
+
+function classifyBookings(bookings){
+  const today=getLocalDate();
+  const tmr=getLocalTomorrow();
+  const nowHHMM=new Date().getHours().toString().padStart(2,'0')+':'+new Date().getMinutes().toString().padStart(2,'0');
+  return {
+    checkOutToday: bookings.filter(b=>b.checkOut===today),
+    checkInToday: bookings.filter(b=>{
+      if(b.checkIn!==today) return false;
+      const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
+      if(nights<=1) return true;
+      const room=DB.rooms.find(r=>r.id===b.roomId);
+      const ciTime=b.checkInTime||room?.defaultCheckIn||'15:00';
+      return nowHHMM<ciTime;
+    }),
+    staying: bookings.filter(b=>{
+      const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
+      if(b.checkIn<today&&b.checkOut>today) return true;
+      if(b.checkIn===today&&nights>1){
+        const room=DB.rooms.find(r=>r.id===b.roomId);
+        const ciTime=b.checkInTime||room?.defaultCheckIn||'15:00';
+        return nowHHMM>=ciTime;
+      }
+      return false;
+    }),
+    upcoming: bookings.filter(b=>b.checkIn>today),
+    past: bookings.filter(b=>b.checkOut<today),
+    checkOutTomorrow: bookings.filter(b=>b.checkOut===tmr),
+    today, tomorrow:tmr
+  };
+}
+
+function getBookingBadge(b){
+  const today=getLocalDate();
+  const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
+  const nowHHMM=new Date().getHours().toString().padStart(2,'0')+':'+new Date().getMinutes().toString().padStart(2,'0');
+  if(b.checkOut<today) return {tag:'past',label:'지난예약',color:'#94A3B8',bgColor:'rgba(148,163,184,0.1)'};
+  if(b.checkOut===today) return {tag:'checkout',label:'체크아웃',color:'#FB7185',bgColor:'rgba(251,113,133,0.1)'};
+  if(b.checkIn===today){
+    if(nights<=1) return {tag:'checkin',label:'체크인',color:'#60A5FA',bgColor:'rgba(96,165,250,0.1)'};
+    const room=DB.rooms.find(r=>r.id===b.roomId);
+    const ciTime=b.checkInTime||room?.defaultCheckIn||'15:00';
+    if(nowHHMM<ciTime) return {tag:'checkin',label:`입실예정 ${nights}박`,color:'#60A5FA',bgColor:'rgba(96,165,250,0.1)'};
+    return {tag:'staying',label:`연박 ${nights}박`,color:'#00C896',bgColor:'rgba(0,200,150,0.1)'};
+  }
+  if(b.checkIn<today&&b.checkOut>today) return {tag:'staying',label:`연박 ${nights}박`,color:'#00C896',bgColor:'rgba(0,200,150,0.1)'};
+  return {tag:'upcoming',label:'예정',color:'#F59E0B',bgColor:'rgba(245,158,11,0.1)'};
+}
+
+function getRoomInfo(room){
+  const now=new Date();
+  const today=getLocalDate(now);
+  const nowHHMM=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  const activeBookings=DB.bookings.filter(b=>b.roomId===room.id&&b.checkIn<=today&&b.checkOut>=today);
+  const coTodayBooking=activeBookings.find(b=>b.checkOut===today);
+  const stayingBooking=activeBookings.find(b=>b.checkIn<today&&b.checkOut>today);
+  const nextBooking=DB.bookings.find(b=>b.roomId===room.id&&b.checkIn>today);
+  const ciTodayBooking=DB.bookings.find(b=>b.roomId===room.id&&b.checkIn===today);
+  const coTime=coTodayBooking?(coTodayBooking.checkOutTime||room.defaultCheckOut||'11:00'):'';
+  const timePassed=coTime?nowHHMM>=coTime:false;
+  let stayDays=0,coDate='';
+  if(stayingBooking){stayDays=Math.round((new Date(stayingBooking.checkOut)-new Date(stayingBooking.checkIn))/86400000);coDate=stayingBooking.checkOut.slice(5).replace('-','/');}
+  if(coTodayBooking&&timePassed){
+    if(ciTodayBooking&&ciTodayBooking.id!==coTodayBooking.id){
+      const ciTime=ciTodayBooking.checkInTime||room.defaultCheckIn||'15:00';
+      if(nowHHMM>=ciTime){const ci=new Date(ciTodayBooking.checkIn),co=new Date(ciTodayBooking.checkOut),n=Math.round((co-ci)/86400000),cd=ciTodayBooking.checkOut.slice(5).replace('-','/'),ct=ciTodayBooking.checkOutTime||room.defaultCheckOut||'11:00';if(n>1)return{status:'occupied',badge:'연박',badgeClass:'badge-staying',detail:`투숙중/연박 ${n}박 · 체크아웃 ${cd} ${ct}`};return{status:'occupied',badge:'투숙중',badgeClass:'badge-occupied',detail:`투숙중 · OUT ${cd} ${ct}`};}
+      else return{status:'checkout',badge:'체크아웃',badgeClass:'badge-danger',detail:`체크아웃/입실예정 · IN ${ciTime}`};
+    } else if(nextBooking) return{status:'checkout',badge:'체크아웃',badgeClass:'badge-danger',detail:`체크아웃/빈방 · 다음 ${nextBooking.checkIn.slice(5).replace('-','/')}`};
+    else return{status:'checkout',badge:'체크아웃',badgeClass:'badge-danger',detail:'체크아웃/빈방'};
+  } else if(coTodayBooking&&!timePassed) return{status:'occupied',badge:'투숙중',badgeClass:'badge-occupied',detail:`투숙중 · OUT ${coTime}`};
+  else if(stayingBooking){const sct=stayingBooking.checkOutTime||room.defaultCheckOut||'11:00';return{status:'occupied',badge:'연박',badgeClass:'badge-staying',detail:`투숙중/연박 ${stayDays}박 · 체크아웃 ${coDate} ${sct}`};}
+  else if(ciTodayBooking){
+    const ciTime=ciTodayBooking.checkInTime||room.defaultCheckIn||'15:00';const ciN=Math.round((new Date(ciTodayBooking.checkOut)-new Date(ciTodayBooking.checkIn))/86400000);
+    if(nowHHMM>=ciTime){const cd=ciTodayBooking.checkOut.slice(5).replace('-','/'),ct=ciTodayBooking.checkOutTime||room.defaultCheckOut||'11:00';if(ciN>1)return{status:'occupied',badge:'연박',badgeClass:'badge-staying',detail:`투숙중/연박 ${ciN}박 · 체크아웃 ${cd} ${ct}`};return{status:'occupied',badge:'투숙중',badgeClass:'badge-occupied',detail:`투숙중 · OUT ${cd} ${ct}`};}
+    return{status:'checkin',badge:'입실예정',badgeClass:'badge-checkin',detail:`입실예정 · IN ${ciTime}${ciN>1?' ('+ciN+'박)':''}`};
+  } else return{status:'vacant',badge:'빈방',badgeClass:'badge-vacant',detail:''};
+}
+
+function emptyState(icon,title,sub){
+  return `<div class="empty-state"><div class="empty-icon">${icon}</div><div>${title}</div>${sub?`<div style="font-size:.72rem;margin-top:.3rem">${sub}</div>`:''}</div>`;
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+// ══════════════════════════ DATA ══════════════════════════
+let DB={rooms:[],bookings:[],cleaningRequests:[],users:[],checklistTemplates:[],notifications:[],supplies:[]};
+let firebaseReady=false,fbRef=null;
+let currentTab='pageHome';
+
+// ══════════════════════════ FIREBASE ══════════════════════════
+function connectFirebase(){
+  const apiKey=document.getElementById('fbApiKey').value.trim();
+  const projectId=document.getElementById('fbProjectId').value.trim();
+  const dbUrl=document.getElementById('fbDbUrl').value.trim();
+  const err=document.getElementById('fbError');
+  if(!apiKey||!projectId||!dbUrl){err.textContent='모든 항목을 입력해주세요';err.style.display='block';return;}
+  const config={apiKey,authDomain:projectId+'.firebaseapp.com',databaseURL:dbUrl,projectId};
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(config);
+    fbRef=firebase.database().ref('roomPackerData');
+    fbRef.once('value').then(snap=>{
+      const data=snap.val();
+      if(!data){err.textContent='데이터가 없습니다. RoomPacker에서 먼저 설정해주세요.';err.style.display='block';return;}
+      DB=normalizeDB(data);
+      localStorage.setItem('rvFirebaseConfig',JSON.stringify(config));
+      firebaseReady=true;
+      startRealtimeListener();
+      showApp();
+    }).catch(e=>{err.textContent='연결 실패: '+e.message;err.style.display='block';});
+  }catch(e){err.textContent='오류: '+e.message;err.style.display='block';}
+}
+
+function startRealtimeListener(){
+  if(!fbRef) return;
+  fbRef.on('value',snap=>{
+    const data=snap.val();
+    if(!data) return;
+    DB=normalizeDB(data);
+    renderCurrentTab();
+    updateSyncBadge(true);
+  });
+}
+
+function updateSyncBadge(connected){
+  const el=document.getElementById('syncBadge');
+  if(connected){el.textContent='☁️ 실시간';el.className='sync-badge ok';}
+  else{el.textContent='📱 오프라인';el.className='sync-badge off';}
+}
+
+// ══════════════════════════ iCAL SYNC ══════════════════════════
+const CORS_PROXIES=[
+  {fn:url=>'https://api.allorigins.win/get?url='+encodeURIComponent(url),json:true},
+  {fn:url=>'https://api.allorigins.win/raw?url='+encodeURIComponent(url),json:false},
+  {fn:url=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(url),json:false},
+];
+
+async function fetchIcal(url){
+  for(let i=0;i<CORS_PROXIES.length;i++){
+    const proxy=CORS_PROXIES[i];
+    try{
+      const proxyUrl=proxy.fn(url);
+      const controller=new AbortController();
+      const timer=setTimeout(()=>controller.abort(),15000);
+      const opts={signal:controller.signal};
+      if(proxy.headers) opts.headers=proxy.headers;
+      const resp=await fetch(proxyUrl,opts);
+      clearTimeout(timer);
+      if(resp.ok){
+        let text=await resp.text();
+        if(proxy.json){try{const j=JSON.parse(text);text=j.contents||j.html||j.data||text;}catch(e){}}
+        if(text.includes('BEGIN:VCALENDAR')) return text;
+      }
+    }catch(e){continue;}
+  }
+  throw new Error('프록시 실패');
+}
+
+function parseIcal(icalText){
+  const events=[];
+  const blocks=icalText.split('BEGIN:VEVENT');
+  for(let i=1;i<blocks.length;i++){
+    const block=blocks[i].split('END:VEVENT')[0];
+    const ev={};
+    const dsMatch=block.match(/DTSTART[^:]*:(\d{8})/);
+    const deMatch=block.match(/DTEND[^:]*:(\d{8})/);
+    const sumMatch=block.match(/SUMMARY[^:]*:([^\r\n]+)/);
+    const uidMatch=block.match(/UID[^:]*:([^\r\n]+)/);
+    const descMatch=block.match(/DESCRIPTION[^:]*:([^\r\n]+)/);
+    if(dsMatch){const d=dsMatch[1];ev.checkIn=d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8);}
+    if(deMatch){const d=deMatch[1];ev.checkOut=d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8);}
+    if(sumMatch) ev.summary=sumMatch[1].trim();
+    if(uidMatch) ev.uid=uidMatch[1].trim();
+    if(descMatch) ev.description=descMatch[1].trim();
+    if(ev.checkIn&&ev.checkOut) events.push(ev);
+  }
+  return events;
+}
+
+function icalEventToBooking(ev,room){
+  let guestName=ev.summary||'';
+  const lc=guestName.toLowerCase();
+  const isBlocked=['reserved','not available','blocked','예약됨','예약 불가','airbnb (not available)','réservé'].some(kw=>lc.includes(kw));
+  guestName=guestName.replace(/^(Reserved|Réservé|Not available|예약됨|Blocked|Airbnb \(Not available\))\s*-?\s*/i,'').trim();
+  if(isBlocked&&!guestName) return null;
+  return {
+    id:'bical_'+room.id+'_'+(ev.uid||ev.checkIn).replace(/[^a-zA-Z0-9]/g,'').slice(0,40),
+    roomId:room.id,guestName:guestName||'에어비앤비 게스트',
+    checkIn:ev.checkIn,checkOut:ev.checkOut,
+    checkInTime:room.defaultCheckIn||'15:00',checkOutTime:room.defaultCheckOut||'11:00',
+    phone:'',notes:'에어비앤비 자동연동',
+    status:getBookingStatus(ev.checkIn,ev.checkOut),
+    hostId:room.hostId,icalUid:ev.uid||'',source:'airbnb'
+  };
+}
+
+let _autoSyncing=false,_lastAutoSync=0;
+async function autoSyncIcal(){
+  if(_autoSyncing) return;
+  if(Date.now()-_lastAutoSync<600000) return; // 10분 이내 스킵
+  const rooms=DB.rooms.filter(r=>r.icalUrl);
+  if(!rooms.length) return;
+  _autoSyncing=true;
+  _lastAutoSync=Date.now();
+  console.log('[RoomView] iCal 자동 동기화 시작 ('+rooms.length+'개 객실)');
+  for(const room of rooms){
+    try{await syncRoomIcal(room);}catch(e){console.log('[RoomView]',room.number+'호 실패:',e.message);}
+    await new Promise(r=>setTimeout(r,300));
+  }
+  // Firebase에 저장 (읽기전용이지만 iCal 데이터는 갱신)
+  if(firebaseReady&&fbRef){
+    try{await fbRef.set(DB);console.log('[RoomView] Firebase 저장 완료');}catch(e){console.log('[RoomView] Firebase 저장 실패:',e.message);}
+  }
+  renderCurrentTab();
+  console.log('[RoomView] 자동 동기화 완료');
+  _autoSyncing=false;
+}
+
+async function syncRoomIcal(room){
+  if(!room.icalUrl) return;
+  const text=await fetchIcal(room.icalUrl);
+  if(!text||!text.includes('BEGIN:VCALENDAR')) return;
+  const events=parseIcal(text);
+  if(!events.length) return;
+  const icalUids=new Set();
+  events.forEach(ev=>{
+    const booking=icalEventToBooking(ev,room);
+    if(!booking) return;
+    if(ev.uid) icalUids.add(ev.uid);
+    const existing=DB.bookings.find(b=>b.id===booking.id||(b.icalUid&&b.icalUid===booking.icalUid));
+    if(existing){
+      const dateChanged=existing.checkIn!==booking.checkIn||existing.checkOut!==booking.checkOut;
+      const nameChanged=booking.guestName&&booking.guestName!=='에어비앤비 게스트'&&existing.guestName!==booking.guestName;
+      if(dateChanged||nameChanged){existing.checkIn=booking.checkIn;existing.checkOut=booking.checkOut;if(nameChanged)existing.guestName=booking.guestName;}
+      existing.status=getBookingStatus(existing.checkIn,existing.checkOut);
+    } else {
+      const weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);
+      if(new Date(booking.checkOut)>=weekAgo) DB.bookings.push(booking);
+    }
+  });
+  if(icalUids.size>0){
+    const today=getLocalDate();
+    DB.bookings=DB.bookings.filter(b=>{
+      if(b.roomId===room.id&&b.source==='airbnb'&&b.icalUid&&b.checkOut>=today){
+        if(!icalUids.has(b.icalUid)) return false;
+      }
+      return true;
+    });
+  }
+  room.lastIcalSync=new Date().toLocaleString('ko');
+}
+
+async function manualSync(){
+  showToast('🔄 동기화 중...');
+  _lastAutoSync=0;
+  await autoSyncIcal();
+  showToast('✅ 동기화 완료');
+}
+
+// ══════════════════════════ RENDERING ══════════════════════════
+function groupByHost(bookings){
+  const groups={};
+  bookings.forEach(b=>{
+    const room=DB.rooms.find(r=>r.id===b.roomId);
+    const host=DB.users.find(u=>u.id===(room?.hostId||b.hostId));
+    const building=room?.type||'기타';
+    const hostName=host?.name||host?.loginId||'미배정';
+    const key=building+'|||'+hostName;
+    if(!groups[key]) groups[key]={building,hostName,bookings:[]};
+    groups[key].bookings.push(b);
+  });
+  return Object.values(groups);
+}
+
+function groupRoomsByHost(rooms){
+  const groups={};
+  rooms.forEach(r=>{
+    const host=DB.users.find(u=>u.id===r.hostId);
+    const building=r.type||'기타';
+    const hostName=host?.name||host?.loginId||'미배정';
+    const key=building+'|||'+hostName;
+    if(!groups[key]) groups[key]={building,hostName,rooms:[]};
+    groups[key].rooms.push(r);
+  });
+  return Object.values(groups);
+}
+
+function bookingCard(b){
+  const badge=getBookingBadge(b);
+  const room=DB.rooms.find(r=>r.id===b.roomId);
+  const ci=new Date(b.checkIn),co=new Date(b.checkOut);
+  const nights=Math.max(1,Math.round((co-ci)/86400000));
+  const coTime=b.checkOutTime||room?.defaultCheckOut||'';
+  const ciTime=b.checkInTime||room?.defaultCheckIn||'';
+  const guest=b.guestName&&b.guestName!=='에어비앤비 게스트'?b.guestName:'';
+  const actualCoTime=coTime;
+  return `<div class="card" style="border-left:3px solid ${badge.color}">
+    <div class="card-header"><div>
+      <div class="card-title" style="font-size:1rem"><strong>${room?.number||'?'}호</strong> <span style="font-size:.72rem;font-weight:500;color:${badge.color};background:${badge.bgColor};padding:.1rem .4rem;border-radius:6px">${nights}박</span>${b.source==='airbnb'?'<span style="font-size:.58rem;color:#FF5A5F;background:rgba(255,90,95,0.1);padding:.1rem .35rem;border-radius:5px;margin-left:.3rem">Airbnb</span>':''}</div>
+      <div class="card-sub">${room?.type||''}${guest?' · '+guest:''}</div>
+    </div>
+    <span style="font-size:.7rem;font-weight:600;color:${badge.color};background:${badge.bgColor};padding:.2rem .5rem;border-radius:8px">${badge.label}</span></div>
+    <div style="font-size:.7rem;color:var(--text3);margin-top:.15rem">${badge.tag==='checkout'?'⏰ 체크아웃 '+actualCoTime:badge.tag==='checkin'?'⏰ 체크인 '+ciTime:'📅 '+b.checkIn+' ~ '+b.checkOut+' · OUT '+actualCoTime}</div>
+  </div>`;
+}
+
+function roomCard(r){
+  const info=getRoomInfo(r);
+  const borderColors={occupied:'#00C896',vacant:'#94A3B8',checkout:'#FB7185',checkin:'#60A5FA'};
+  const leftBorder=borderColors[info.status]||'var(--border)';
+  return `<div class="room-card" style="border-left:3px solid ${leftBorder}">
+    <div style="display:flex;justify-content:space-between;align-items:center"><div class="room-number">${r.number}호</div><span class="badge ${info.badgeClass}">${info.badge}</span></div>
+    <div class="room-type">${r.type}</div>
+    ${info.detail?`<div style="font-size:.63rem;color:var(--text3);margin-top:.2rem;line-height:1.3">${info.detail}</div>`:''}
+  </div>`;
+}
+
+function renderGroupedSection(bookings,secId,color,label){
+  if(!bookings.length) return `<div id="${secId}"></div>`;
+  const groups=groupByHost(bookings);
+  let html=`<div class="section-title" id="${secId}" style="color:${color}">${label} (${bookings.length})</div>`;
+  groups.forEach(g=>{
+    html+=`<div style="margin-bottom:.6rem">
+      <div style="font-size:.72rem;font-weight:700;color:var(--text2);padding:.3rem .5rem;background:var(--surface2);border-radius:6px;margin-bottom:.3rem">🏢 ${g.building} <span style="font-weight:500;color:var(--text3)">/ ${g.hostName}</span></div>
+      ${g.bookings.map(b=>bookingCard(b)).join('')}
+    </div>`;
+  });
+  return html;
+}
+
+function renderGroupedCards(bookings){
+  const groups=groupByHost(bookings);
+  let html='';
+  groups.forEach(g=>{
+    html+=`<div style="margin-bottom:.4rem">
+      <div style="font-size:.68rem;font-weight:700;color:var(--text2);padding:.2rem .4rem;background:var(--surface2);border-radius:5px;margin-bottom:.2rem">🏢 ${g.building} / ${g.hostName}</div>
+      ${g.bookings.map(b=>bookingCard(b)).join('')}
+    </div>`;
+  });
+  return html;
+}
+
+function renderGroupedRooms(){
+  const groups=groupRoomsByHost(DB.rooms);
+  let html='';
+  groups.forEach(g=>{
+    html+=`<div style="margin-bottom:.8rem">
+      <div style="font-size:.72rem;font-weight:700;color:var(--text2);padding:.3rem .5rem;background:var(--surface2);border-radius:6px;margin-bottom:.4rem">🏢 ${g.building} / ${g.hostName}</div>
+      <div class="room-grid">${g.rooms.map(r=>roomCard(r)).join('')}</div>
+    </div>`;
+  });
+  return html;
+}
+
+// ── HOME ──
+function renderHome(){
+  const el=document.getElementById('homeContent');
+  const cls=classifyBookings(DB.bookings);
+  const icalRooms=DB.rooms.filter(r=>r.icalUrl);
+  const cleanNeeded=cls.checkOutToday.length;
+
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
+      <div class="page-title" style="margin:0">전체 현황</div>
+      <div style="font-size:.68rem;color:var(--text3)">📅 ${cls.today}</div>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card" onclick="scrollTo('secCO')"><div class="stat-number" style="color:#FB7185">${cls.checkOutToday.length}</div><div class="stat-label">체크아웃</div></div>
+      <div class="stat-card" onclick="scrollTo('secCI')"><div class="stat-number" style="color:#60A5FA">${cls.checkInToday.length}</div><div class="stat-label">체크인</div></div>
+      <div class="stat-card" onclick="scrollTo('secStay')"><div class="stat-number" style="color:var(--accent)">${cls.staying.length}</div><div class="stat-label">연박</div></div>
+      <div class="stat-card" onclick="scrollTo('secUpcoming')"><div class="stat-number" style="color:var(--warning)">${cls.upcoming.length}</div><div class="stat-label">예정</div></div>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card"><div class="stat-number" style="color:#FB7185">${cleanNeeded}</div><div class="stat-label">🧹 청소필요</div></div>
+      <div class="stat-card" style="border:1px solid var(--warning)" onclick="scrollTo('secTmr')"><div class="stat-number" style="color:var(--warning)">${cls.checkOutTomorrow.length}</div><div class="stat-label">📅 내일퇴실</div></div>
+      <div class="stat-card" onclick="switchTab('pageRooms',document.querySelectorAll('.tab-btn')[2])"><div class="stat-number">${DB.rooms.length}</div><div class="stat-label">🏠 객실</div></div>
+    </div>
+
+    ${renderGroupedSection(cls.checkOutToday,'secCO','#FB7185','🔴 오늘 체크아웃')}
+    ${renderGroupedSection(cls.checkInToday,'secCI','#60A5FA','🔵 오늘 체크인')}
+    ${renderGroupedSection(cls.staying,'secStay','var(--accent)','🟢 연박 투숙')}
+    ${cls.checkOutTomorrow.length?renderGroupedSection(cls.checkOutTomorrow,'secTmr','var(--warning)','📅 내일 체크아웃'):'<div id="secTmr"></div>'}
+    ${cls.upcoming.length?`<div class="section-title" id="secUpcoming">📋 예정 예약 (${cls.upcoming.length})</div>
+    <div style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:.4rem">
+    ${renderGroupedCards(cls.upcoming)}</div>`:'<div id="secUpcoming"></div>'}
+
+    <div class="sync-info">마지막 동기화: ${DB.rooms.find(r=>r.lastIcalSync)?.lastIcalSync||'없음'}</div>`;
+}
+
+// ── SCHEDULE ──
+function renderSchedule(){
+  const el=document.getElementById('scheduleContent');
+  const today=new Date();
+  const days=[];
+  for(let i=-2;i<=14;i++){const d=new Date(today);d.setDate(today.getDate()+i);days.push(d);}
+  const todayStr=getLocalDate(today);
+  let calHtml='<div class="page-title">📅 일정</div><div class="cal-strip">';
+  days.forEach(d=>{
+    const ds=getLocalDate(d);
+    const dayNames=['일','월','화','수','목','금','토'];
+    const hasCI=DB.bookings.some(b=>b.checkIn===ds);
+    const hasCO=DB.bookings.some(b=>b.checkOut===ds);
+    const hasClean=DB.cleaningRequests.some(c=>c.date===ds);
+    let dots='';
+    if(hasCI||hasCO||hasClean){
+      dots='<div style="display:flex;gap:2px;justify-content:center;height:5px">';
+      if(hasCI) dots+='<div style="width:5px;height:5px;background:#60A5FA;border-radius:50%"></div>';
+      if(hasCO) dots+='<div style="width:5px;height:5px;background:#FB7185;border-radius:50%"></div>';
+      if(hasClean) dots+='<div style="width:5px;height:5px;background:var(--accent);border-radius:50%"></div>';
+      dots+='</div>';
+    } else dots='<div style="height:5px"></div>';
+    const isSun=d.getDay()===0;const isSat=d.getDay()===6;
+    calHtml+=`<div class="cal-day ${ds===todayStr?'today active':''}" onclick="selectDay('${ds}',this)"><div class="cd-day" style="${isSun?'color:#FB7185':isSat?'color:#60A5FA':''}">${dayNames[d.getDay()]}</div><div class="cd-date">${d.getDate()}</div>${dots}</div>`;
+  });
+  calHtml+='</div>';
+  el.innerHTML=calHtml+'<div id="scheduleDay"></div>';
+  renderScheduleDay(todayStr);
+}
+
+function selectDay(ds,el){
+  document.querySelectorAll('.cal-day').forEach(d=>d.classList.remove('active'));
+  el.classList.add('active');
+  renderScheduleDay(ds);
+}
+
+function renderScheduleDay(ds){
+  const el=document.getElementById('scheduleDay');
+  const bks=DB.bookings.filter(b=>b.checkIn===ds||b.checkOut===ds).map(b=>({...b,_type:'booking'}));
+  const cln=DB.cleaningRequests.filter(c=>c.date===ds).map(c=>({...c,_type:'cleaning'}));
+  const items=[...bks,...cln];
+  if(!items.length){el.innerHTML=emptyState('📅','이 날 일정 없음');return;}
+  items.sort((a,b)=>{const order=x=>x._type==='booking'?(x.checkOut===ds?0:2):1;return order(a)-order(b);});
+  el.innerHTML='<div class="section-title">일정</div>'+items.map(item=>{
+    if(item._type==='booking'){
+      const room=DB.rooms.find(r=>r.id===item.roomId);
+      const isCI=item.checkIn===ds;
+      const dotColor=isCI?'#60A5FA':'#FB7185';
+      const label=isCI?'체크인':'체크아웃';
+      const timeStr=isCI?(item.checkInTime||room?.defaultCheckIn||''):(item.checkOutTime||room?.defaultCheckOut||'');
+      const ci=new Date(item.checkIn),co=new Date(item.checkOut);
+      const nights=Math.max(1,Math.round((co-ci)/86400000));
+      const guest=item.guestName&&item.guestName!=='에어비앤비 게스트'?item.guestName:'';
+      const infoDate=isCI?item.checkOut.slice(5).replace('-','/')+' 체크아웃 예정':item.checkIn.slice(5).replace('-','/')+' 체크인';
+      return `<div class="timeline-item">
+        <div class="tl-time ${isCI?'tl-time-checkin':'tl-time-checkout'}">${label}${timeStr?'<br><span style="font-size:.72rem;font-weight:400">'+timeStr+'</span>':''}</div>
+        <div class="tl-dot" style="background:${dotColor}"></div>
+        <div class="tl-content">
+          <div style="display:flex;align-items:center;gap:.4rem">
+            <span style="font-size:1.1rem;font-weight:800">${room?.number||'?'}호</span>
+            <span style="font-size:.7rem;font-weight:600;color:${dotColor};background:${isCI?'rgba(96,165,250,0.12)':'rgba(251,113,133,0.12)'};padding:.15rem .5rem;border-radius:6px">${nights}박</span>
+            ${item.source==='airbnb'?'<span style="font-size:.58rem;color:#FF5A5F;background:#FF5A5F12;padding:.1rem .35rem;border-radius:5px">Airbnb</span>':''}
+          </div>
+          <div class="tl-sub">${room?.type||''}${guest?' · '+guest:''}</div>
+          <div style="font-size:.68rem;color:var(--text3);margin-top:.15rem">📅 ${infoDate}</div>
+        </div>
+      </div>`;
+    }
+    const room=DB.rooms.find(r=>r.id===item.roomId);
+    const cleaner=DB.users.find(u=>u.id===item.cleanerId);
+    const stBadge=item.status==='pending'?'<span style="color:var(--warning);font-size:.65rem">대기</span>':item.status==='completed'||item.status==='submitted'?'<span style="color:var(--accent);font-size:.65rem">완료</span>':'<span style="color:var(--blue);font-size:.65rem">진행중</span>';
+    return `<div class="timeline-item"><div class="tl-time tl-time-clean">${item.time||''}</div><div class="tl-dot" style="background:var(--accent)"></div><div class="tl-content"><div style="font-size:.95rem;font-weight:700">🧹 ${room?.number||''}호 ${item.type}</div><div class="tl-sub">${cleaner?.name||''} ${stBadge}</div></div></div>`;
+  }).join('');
+}
+
+// ── ROOMS ──
+function renderRooms(){
+  const el=document.getElementById('roomsContent');
+  const cls=classifyBookings(DB.bookings);
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
+      <div class="page-title" style="margin:0">🏠 객실 현황</div>
+      <div style="font-size:.68rem;color:var(--text3)">${DB.rooms.length}개</div>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:.8rem">
+      <div class="stat-card"><div class="stat-number" style="color:#FB7185;font-size:1.2rem">${cls.checkOutToday.length}</div><div class="stat-label">체크아웃</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:#60A5FA;font-size:1.2rem">${cls.checkInToday.length}</div><div class="stat-label">체크인</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--accent);font-size:1.2rem">${cls.staying.length}</div><div class="stat-label">연박</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--warning);font-size:1.2rem">${cls.upcoming.length}</div><div class="stat-label">예정</div></div>
+    </div>
+    ${renderGroupedRooms()}`;
+}
+
+// ── NAV ──
+function switchTab(tabId,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  if(btn) btn.classList.add('active');
+  currentTab=tabId;
+  renderCurrentTab();
+  window.scrollTo(0,0);
+}
+
+function renderCurrentTab(){
+  if(currentTab==='pageHome') renderHome();
+  else if(currentTab==='pageSchedule') renderSchedule();
+  else if(currentTab==='pageRooms') renderRooms();
+}
+
+function scrollTo(id){
+  const el=document.getElementById(id);
+  if(el){
+    const headerH=document.querySelector('.app-header')?.offsetHeight||50;
+    const y=el.getBoundingClientRect().top+window.scrollY-headerH-10;
+    window.scrollTo({top:y,behavior:'smooth'});
+  }
+}
+
+function refreshAll(){
+  renderCurrentTab();
+  showToast('🔄 갱신 완료');
+}
+
+function resetConfig(){
+  if(!confirm('연결 설정을 초기화하시겠습니까?')) return;
+  localStorage.removeItem('rvFirebaseConfig');
+  location.reload();
+}
+
+// ══════════════════════════ INIT ══════════════════════════
+function showApp(){
+  document.getElementById('setupScreen').style.display='none';
+  document.getElementById('loadingScreen').style.display='none';
+  document.getElementById('appWrap').style.display='block';
+  updateSyncBadge(firebaseReady);
+  renderCurrentTab();
+
+  // 자동 iCal 동기화
+  setTimeout(()=>autoSyncIcal(),3000);
+  setInterval(()=>autoSyncIcal(),1800000); // 30분마다
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden) autoSyncIcal();
+  });
+
+  // 1분마다 상태 갱신 (시간 기반 상태 변경 반영)
+  setInterval(()=>renderCurrentTab(),60000);
+}
+
+(function init(){
+  const saved=localStorage.getItem('rvFirebaseConfig');
+  if(!saved){
+    document.getElementById('loadingScreen').style.display='none';
+    document.getElementById('setupScreen').style.display='flex';
+    return;
+  }
+  try{
+    const config=JSON.parse(saved);
+    if(!firebase.apps.length) firebase.initializeApp(config);
+    fbRef=firebase.database().ref('roomPackerData');
+    fbRef.once('value').then(snap=>{
+      const data=snap.val();
+      if(data){
+        DB=normalizeDB(data);
+        firebaseReady=true;
+        startRealtimeListener();
+        showApp();
+      } else {
+        document.getElementById('loadingScreen').style.display='none';
+        document.getElementById('setupScreen').style.display='flex';
+      }
+    }).catch(e=>{
+      document.getElementById('loadingScreen').style.display='none';
+      document.getElementById('setupScreen').style.display='flex';
+    });
+  }catch(e){
+    document.getElementById('loadingScreen').style.display='none';
+    document.getElementById('setupScreen').style.display='flex';
+  }
+})();
+</script>
+</body>
+</html>
