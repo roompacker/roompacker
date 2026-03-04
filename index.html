@@ -1322,9 +1322,7 @@ function classifyBookings(bookings){
     checkOutToday: bookings.filter(b=>b.checkOut===today),
     checkInToday:  bookings.filter(b=>{
       if(b.checkIn!==today) return false;
-      const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
-      if(nights<=1) return true; // 1박만 체크인 그룹
-      return false; // 2박 이상은 연박 그룹으로
+      return true; // 1박이든 다박이든 오늘 체크인은 모두 표시
     }),
     staying:       bookings.filter(b=>{
       const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
