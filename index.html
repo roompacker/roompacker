@@ -4555,22 +4555,6 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('focus',()=>{ if(currentUser) renderPage(currentPage); });
 
 // ══════════════════════════ PWA SERVICE WORKER ══════════════════
-// ══════════════════════════ 시장분석 버튼 ══════════════════════════
-(function(){
-  const btn = document.createElement('a');
-  btn.href = './market.html';
-  btn.innerHTML = '📊<span style="font-size:.6rem;display:block;margin-top:1px">시장분석</span>';
-  btn.style.cssText = 'position:fixed;bottom:70px;right:14px;z-index:150;background:#00C896;color:#000;font-weight:700;font-size:1.2rem;width:52px;height:52px;border-radius:50%;display:none;align-items:center;justify-content:center;flex-direction:column;box-shadow:0 4px 16px rgba(0,200,150,.4);text-decoration:none;text-align:center;';
-  document.body.appendChild(btn);
-  // 로그인 후에만 보이게
-  const orig = window.showApp;
-  setInterval(()=>{
-    const app = document.getElementById('app');
-    if(app && app.style.display==='flex') btn.style.display='flex';
-    else btn.style.display='none';
-  }, 500);
-})();
-
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('./sw.js')
