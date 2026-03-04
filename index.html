@@ -451,6 +451,22 @@ input,select,textarea{font-family:inherit;outline:none;border:none;}
   </div>
 </div>
 
+<!-- Quick Booking (빠른 예약 등록) -->
+<div class="modal-overlay" id="modalQuickBook">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">⚡ 빠른 예약 등록</div><button class="modal-close" onclick="closeModal('modalQuickBook')">✕</button></div>
+    <div style="font-size:.72rem;color:var(--text2);margin-bottom:.8rem;padding:.4rem .6rem;background:var(--surface2);border-radius:8px;line-height:1.5">에어비앤비 알림을 받으셨나요?<br>객실과 날짜만 입력하면 <strong style="color:var(--accent)">즉시 반영</strong>됩니다.<br>iCal 동기화 시 자동으로 중복 방지됩니다.</div>
+    <div class="form-group"><label class="form-label">객실 선택 *</label><select class="form-select" id="qbRoomId"></select></div>
+    <div class="form-group"><label class="form-label">게스트 이름</label><input type="text" class="form-input" id="qbGuestName" placeholder="(선택) 나중에 iCal에서 자동 업데이트"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">체크인 *</label><input type="date" class="form-input" id="qbCheckIn"></div>
+      <div class="form-group"><label class="form-label">체크아웃 *</label><input type="date" class="form-input" id="qbCheckOut"></div>
+    </div>
+    <div class="form-group"><label class="form-label">메모 (선택)</label><input type="text" class="form-input" id="qbNotes" placeholder="특이사항"></div>
+    <button class="btn btn-accent btn-full" onclick="saveQuickBooking()" style="font-size:.9rem;padding:.7rem">⚡ 즉시 등록</button>
+  </div>
+</div>
+
 <!-- Cleaning Request -->
 <div class="modal-overlay" id="modalCleaningReq">
   <div class="modal">
@@ -1372,7 +1388,8 @@ function renderDashboard(){
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
         <div style="font-size:.72rem;color:var(--text3)">📅 ${cls.today} 기준</div>
         <div style="display:flex;gap:.3rem">
-          ${icalRooms.length?`<button class="btn btn-accent2 btn-sm" style="font-size:.68rem" onclick="openIcalSyncModal()">🔄 동기화</button>`:''}
+          <button class="btn btn-sm" style="font-size:.68rem;background:#FF5A5F;color:#fff;font-weight:800" onclick="openQuickBook()">⚡ 빠른등록</button>
+          ${icalRooms.length?`<button class="btn btn-accent2 btn-sm" style="font-size:.68rem" onclick="forceIcalSync()">🔄 동기화</button>`:''}
           <button class="btn btn-ghost btn-sm" style="font-size:.68rem" onclick="renderPage(currentPage);showToast('🔄 갱신됨')">🔄</button>
         </div>
       </div>
@@ -2899,6 +2916,44 @@ function addBooking(){
   saveData();closeModal('modalAddBooking');showToast('예약이 추가되었습니다');renderPage(currentPage);
 }
 
+// ── 빠른 예약 등록 ──
+function openQuickBook(){
+  const rooms=currentUser.role==='admin'?DB.rooms:DB.rooms.filter(r=>r.hostId===currentUser.id);
+  document.getElementById('qbRoomId').innerHTML=rooms.map(r=>`<option value="${r.id}">${r.number}호 - ${r.type}</option>`).join('');
+  document.getElementById('qbGuestName').value='';
+  document.getElementById('qbCheckIn').value=getLocalDate();
+  document.getElementById('qbCheckOut').value=getLocalTomorrow();
+  document.getElementById('qbNotes').value='';
+  openModal('modalQuickBook');
+}
+
+function saveQuickBooking(){
+  const roomId=document.getElementById('qbRoomId').value;
+  const checkIn=document.getElementById('qbCheckIn').value;
+  const checkOut=document.getElementById('qbCheckOut').value;
+  const guestName=document.getElementById('qbGuestName').value.trim()||'에어비앤비 게스트';
+  const notes=document.getElementById('qbNotes').value.trim();
+  if(!roomId||!checkIn||!checkOut){showToast('객실과 날짜는 필수입니다');return;}
+  if(checkIn>=checkOut){showToast('체크아웃은 체크인 이후여야 합니다');return;}
+  // 중복 체크: 같은 객실, 같은 날짜 예약이 이미 있는지
+  const dup=DB.bookings.find(b=>b.roomId===roomId&&b.checkIn===checkIn&&b.checkOut===checkOut);
+  if(dup){showToast('⚠️ 동일 날짜에 이미 예약이 있습니다');return;}
+  const room=DB.rooms.find(r=>r.id===roomId);
+  const hostId=currentUser.role==='admin'?(room?.hostId||currentUser.id):currentUser.id;
+  DB.bookings.push({
+    id:'bq'+Date.now(),roomId,guestName,checkIn,checkOut,
+    checkInTime:room?.defaultCheckIn||'15:00',
+    checkOutTime:room?.defaultCheckOut||'11:00',
+    phone:'',notes:notes?notes:'빠른등록',
+    status:getBookingStatus(checkIn,checkOut),
+    hostId,source:'manual'
+  });
+  if(room) updateRoomStatusFromBookings(room);
+  saveData();closeModal('modalQuickBook');
+  playNotifSound();showToast('⚡ 예약이 즉시 등록되었습니다!');
+  renderPage(currentPage);
+}
+
 function openCleaningReqModal(){
   const isAdmin = currentUser.role==='admin';
   const myRooms = isAdmin ? DB.rooms : DB.rooms.filter(r=>r.hostId===currentUser.id);
@@ -3487,8 +3542,8 @@ let _autoSyncing=false;
 let _lastAutoSync=0;
 async function autoSyncIcal(){
   if(_autoSyncing) return;
-  // 마지막 동기화 후 10분 이내면 스킵
-  if(Date.now()-_lastAutoSync<600000) return;
+  // 마지막 동기화 후 3분 이내면 스킵
+  if(Date.now()-_lastAutoSync<180000) return;
   const rooms=DB.rooms.filter(r=>r.icalUrl);
   if(!rooms.length) return;
   _autoSyncing=true;
@@ -3508,38 +3563,74 @@ async function autoSyncIcal(){
   _autoSyncing=false;
 }
 
-// 조용한 개별 동기화 (로그 없이)
-async function syncSingleIcalSilent(roomId){
+// 대시보드 강제 동기화 버튼
+async function forceIcalSync(){
+  if(_autoSyncing){showToast('동기화 진행 중...');return;}
+  showToast('🔄 iCal 동기화 시작...');
+  _lastAutoSync=0; // 쿨다운 리셋
+  _autoSyncing=true;
+  _lastAutoSync=Date.now();
+  const rooms=DB.rooms.filter(r=>r.icalUrl);
+  let added=0,updated=0,failed=0;
+  for(const room of rooms){
+    try{
+      const result=await syncSingleIcalSilent(room.id,true);
+      if(result){added+=result.added||0;updated+=result.updated||0;}
+    }catch(e){failed++;console.log('[ForceSync]',room.number+'호 실패:',e.message);}
+    await new Promise(r=>setTimeout(r,200));
+  }
+  refreshAllStatuses();
+  saveData();
+  renderPage(currentPage);
+  _autoSyncing=false;
+  showToast(`✅ 동기화 완료! ${rooms.length}개 객실${failed?' ('+failed+'개 실패)':''}`);
+}
+
+// 조용한 개별 동기화 (로그 없이, 결과 반환)
+async function syncSingleIcalSilent(roomId,returnResult){
   const room=DB.rooms.find(r=>r.id===roomId);
-  if(!room||!room.icalUrl) return;
+  if(!room||!room.icalUrl) return null;
   const proxies=[
     url=>`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-    url=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+    url=>`https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+    url=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+    url=>`https://cors-anywhere.herokuapp.com/${url}`
   ];
   let icsText=null;
   for(const proxy of proxies){
     try{
-      const resp=await fetch(proxy(room.icalUrl),{signal:AbortSignal.timeout(15000)});
-      if(resp.ok){icsText=await resp.text();break;}
+      const resp=await fetch(proxy(room.icalUrl),{signal:AbortSignal.timeout(12000)});
+      if(resp.ok){
+        const text=await resp.text();
+        if(text&&text.includes('BEGIN:VCALENDAR')){icsText=text;break;}
+      }
     }catch(e){}
   }
-  if(!icsText||!icsText.includes('BEGIN:VCALENDAR')) return;
+  if(!icsText) return null;
   const events=parseIcal(icsText);
-  if(!events.length) return;
+  if(!events.length) return null;
+  let added=0,updated=0;
   const icalUids=new Set();
   events.forEach(ev=>{
     const booking=icalEventToBooking(ev,room);
     if(!booking) return;
     if(ev.uid) icalUids.add(ev.uid);
-    const existing=DB.bookings.find(b=>b.id===booking.id||(b.icalUid&&b.icalUid===booking.icalUid));
+    // 수동 등록(source='manual')과도 중복 체크: 같은 객실+같은 날짜
+    const existing=DB.bookings.find(b=>
+      b.id===booking.id||
+      (b.icalUid&&b.icalUid===booking.icalUid)||
+      (b.roomId===booking.roomId&&b.checkIn===booking.checkIn&&b.checkOut===booking.checkOut)
+    );
     if(existing){
       const dateChanged=existing.checkIn!==booking.checkIn||existing.checkOut!==booking.checkOut;
       const nameChanged=booking.guestName&&booking.guestName!=='에어비앤비 게스트'&&existing.guestName!==booking.guestName;
-      if(dateChanged||nameChanged){existing.checkIn=booking.checkIn;existing.checkOut=booking.checkOut;if(nameChanged)existing.guestName=booking.guestName;}
+      if(dateChanged||nameChanged){existing.checkIn=booking.checkIn;existing.checkOut=booking.checkOut;if(nameChanged)existing.guestName=booking.guestName;updated++;}
+      // 수동 등록이었으면 iCal 정보로 보강
+      if(existing.source==='manual'&&booking.icalUid){existing.icalUid=booking.icalUid;existing.source='airbnb';}
       existing.status=getBookingStatus(existing.checkIn,existing.checkOut);
     } else {
       const weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);
-      if(new Date(booking.checkOut)>=weekAgo) DB.bookings.push(booking);
+      if(new Date(booking.checkOut)>=weekAgo){DB.bookings.push(booking);added++;}
     }
   });
   if(icalUids.size>0){
@@ -3553,6 +3644,7 @@ async function syncSingleIcalSilent(roomId){
   }
   updateRoomStatusFromBookings(room);
   room.lastIcalSync=new Date().toLocaleString('ko');
+  if(returnResult) return {added,updated};
 }
 
 function updateRoomStatusFromBookings(room){
@@ -4459,8 +4551,8 @@ setInterval(()=>{
 },30000);
 // 5분마다 화면 갱신
 setInterval(()=>{ if(currentUser) renderPage(currentPage); },300000);
-// 30분마다 자동 iCal 동기화 (조용히)
-setInterval(()=>{ if(currentUser) autoSyncIcal(); },1800000);
+// 5분마다 자동 iCal 동기화 (조용히)
+setInterval(()=>{ if(currentUser) autoSyncIcal(); },300000);
 // 앱으로 돌아올 때 즉시 갱신 + 동기화
 document.addEventListener('visibilitychange',()=>{
   if(!document.hidden&&currentUser){
