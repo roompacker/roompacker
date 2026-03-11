@@ -1,4 +1,4 @@
-const CACHE_NAME = 'roompacker-v8';
+const CACHE_NAME = 'roompacker-v9';
 const ASSETS = [
   './',
   './index.html',
@@ -35,7 +35,43 @@ self.addEventListener('message', event => {
       }
     } catch(e) { console.log('SW Firebase init:', e.message); }
   }
+
+  // 메인 앱에서 즉시 동기화 요청
+  if(event.data && event.data.type === 'FORCE_ICAL_SYNC'){
+    broadcastToClients({type:'DO_ICAL_SYNC', force: true});
+  }
 });
+
+// ── Periodic Background Sync (주기적 백그라운드 동기화) ──
+self.addEventListener('periodicsync', event => {
+  if(event.tag === 'ical-sync'){
+    console.log('[SW] Periodic background sync triggered');
+    event.waitUntil(
+      broadcastToClients({type:'DO_ICAL_SYNC', force: false})
+    );
+  }
+});
+
+// ── Background Sync (네트워크 복구 시 동기화) ──
+self.addEventListener('sync', event => {
+  if(event.tag === 'ical-sync-retry'){
+    console.log('[SW] Background sync retry triggered');
+    event.waitUntil(
+      broadcastToClients({type:'DO_ICAL_SYNC', force: true})
+    );
+  }
+});
+
+// 열린 클라이언트에 메시지 브로드캐스트
+async function broadcastToClients(msg){
+  const allClients = await self.clients.matchAll({
+    type: 'window',
+    includeUncontrolled: true
+  });
+  for(const client of allClients){
+    client.postMessage(msg);
+  }
+}
 
 // ── Push Event ──
 self.addEventListener('push', event => {
