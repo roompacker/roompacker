@@ -3311,12 +3311,21 @@ function deletePlaceOption(idx){
 }
 
 // ══════════════════════════ ICAL SYNC ═══════════════════════════
+// ⚠️ CLOUDFLARE WORKER URL 설정
+// 아래 YOUR_WORKER_URL을 실제 Worker URL로 교체하세요
+// 예: https://ical-proxy.내이름.workers.dev
+const CLOUDFLARE_WORKER_URL = '';  // ← 여기에 Worker URL 입력
+
 const CORS_PROXIES = [
+  // 1순위: 본인 Cloudflare Worker (설정 시 가장 안정적)
+  ...(CLOUDFLARE_WORKER_URL ? [{fn: url => CLOUDFLARE_WORKER_URL+'?url='+encodeURIComponent(url), json:false}] : []),
+  // 2순위: codetabs (현재 가장 안정적인 무료 프록시)
+  {fn: url => 'https://api.codetabs.com/v1/proxy/?quest='+encodeURIComponent(url), json:false},
+  {fn: url => 'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(url), json:false},
+  // 3순위: allorigins (가끔 복구됨)
   {fn: url => 'https://api.allorigins.win/get?url='+encodeURIComponent(url), json:true},
   {fn: url => 'https://api.allorigins.win/raw?url='+encodeURIComponent(url), json:false},
-  {fn: url => 'https://corsproxy.io/?url='+encodeURIComponent(url), json:false},
-  {fn: url => 'https://proxy.cors.sh/'+url, json:false, headers:{'x-cors-api-key':'temp_key'}},
-  {fn: url => 'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(url), json:false},
+  // 4순위: 기타
   {fn: url => 'https://everyorigin.jwvbremen.nl/api/get?url='+encodeURIComponent(url), json:true, field:'html'},
 ];
 
