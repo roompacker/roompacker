@@ -603,15 +603,16 @@ main { padding: 0 22px; }
 .cal-day-name.sat { color: #2563EB; }
 
 .cal-day {
-  aspect-ratio: 1;
+  aspect-ratio: auto;
+  height: 56px;
   border-right: 1px solid var(--border-sub);
-  padding: 4px 4px 2px;
+  padding: 3px 3px 2px;
   display: flex;
   flex-direction: column;
   position: relative;
-  min-height: 50px;
   cursor: pointer;
   transition: background .15s;
+  overflow: hidden;
 }
 .cal-day:last-child { border-right: none; }
 .cal-day:active { background: var(--bg-soft); }
@@ -628,12 +629,12 @@ main { padding: 0 22px; }
   box-shadow: inset 0 0 0 2px var(--primary);
 }
 .cal-day-num {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  width: 22px; height: 22px;
+  width: 18px; height: 18px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 50%;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 .cal-day.sun .cal-day-num { color: var(--danger); }
 .cal-day.sat .cal-day-num { color: #2563EB; }
@@ -646,20 +647,21 @@ main { padding: 0 22px; }
   overflow: hidden;
 }
 .cal-event {
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 600;
-  padding: 1px 3px;
-  border-radius: 3px;
+  padding: 0 2px;
+  border-radius: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.3;
 }
 .cal-event.checkout { background: var(--warning-light); color: #92400E; }
 .cal-event.checkin { background: var(--primary-light); color: var(--primary-dark); }
 .cal-event.cleaning { background: #FCE7F3; color: #9D174D; }
 .cal-event.done { background: var(--success-light); color: #047857; opacity: 0.7; }
 .cal-event-more {
-  font-size: 9px;
+  font-size: 8px;
   color: var(--muted);
   font-weight: 600;
 }
@@ -1164,7 +1166,7 @@ main { padding: 0 22px; }
   <div class="login-brand">
     <div class="login-logo">🏨</div>
     <h1 class="login-title">ROOMPACKER</h1>
-    <div class="login-version">v6.0 · Phase 2-C</div>
+    <div class="login-version">v6.0 · Phase 2-D</div>
     <div class="login-tagline">영종도 에어비앤비 운영 플랫폼</div>
   </div>
 
@@ -1197,7 +1199,7 @@ main { padding: 0 22px; }
   <div class="login-bottom">
     <input type="password" class="field-input-login" id="login-pw" placeholder="비밀번호 (아무거나)" autocomplete="current-password">
     <button class="btn-login" id="btn-login">로그인</button>
-    <div class="login-footer">© 2026 RoomPacker · 영종도 · v6.0 Phase 2-C</div>
+    <div class="login-footer">© 2026 RoomPacker · 영종도 · v6.0 Phase 2-D</div>
   </div>
 </div>
 
@@ -1323,8 +1325,8 @@ main { padding: 0 22px; }
       <div class="info-banner" style="margin-top:20px">
         <div class="info-banner-icon">🎉</div>
         <div class="info-banner-text">
-          <strong>v6.0 Phase 2-C 완성!</strong><br>
-          예약 탭에 📅캘린더뷰 / 🔍검색 / 🧺비품메모 / 💰정산 추가됐어요. Phase 3 (Firebase 연동) 준비 중.
+          <strong>v6.0 Phase 2-D 업데이트!</strong><br>
+          ⏰얼리/레이트 체크인 · 🛏️셋팅인원 · 🧺세탁처리 옵션 · 🔄다음입실 자동안내 추가됐어요.
         </div>
       </div>
     </section>
@@ -1718,16 +1720,24 @@ const STORE = {
 
 const DEFAULT_TEMPLATE = `🧹 청소 요청
 
-📍 객실: {객실명}
-📅 청소일: {청소일} {요일}
-👤 게스트: {게스트명} ({인원}명)
-🔑 체크아웃: {체크아웃}
-🔑 다음 체크인: {다음체크인}
+📍 {객실명}
+📅 {청소일} {요일}
 
-📝 메모:
+⏰ 시간 안내
+{시간안내}
+
+🛏️ 셋팅: {인원}인 기준
+
+🔄 다음 입실
+{다음입실안내}
+
+🧺 세탁 처리
+{세탁안내}
+
+📝 특이사항
 {메모}
 
-확인 후 답변 부탁드립니다 🙏`;
+확인 부탁드려요 🙏`;
 
 const DEFAULT_SETTINGS = {
   ical: {
@@ -2124,17 +2134,22 @@ function bookingCardHtml(b) {
   if (b.iCal출처) badges += `<span class="badge badge-ical">📡 iCal</span>`;
   if (b.알림발송됨) badges += `<span class="badge badge-sent">✓ 알림발송</span>`;
   if (hasSupplies) badges += `<span class="badge badge-supplies">🧺 요청있음</span>`;
+  if (b.레이트체크아웃) badges += `<span class="badge" style="background:#FEE2E2; color:#991B1B">⏰ 레이트 ${b.레이트체크아웃시간 || ''}</span>`;
+  if (b.얼리체크인) badges += `<span class="badge" style="background:#DBEAFE; color:#1E40AF">⚡ 얼리 ${b.얼리체크인시간 || ''}</span>`;
+  if (b.세탁처리 === '즉시') badges += `<span class="badge" style="background:#FEE2E2; color:#991B1B">🚨 즉시세탁</span>`;
+  else if (b.세탁처리 === '불필요') badges += `<span class="badge" style="background:#E0E7FF; color:#3730A3">🧺 세탁X</span>`;
 
   return `
     <div class="list-card ${isToday ? 'today' : ''} ${b.청소완료 ? 'completed' : ''}">
       <div class="lc-row">${badges || '<span class="badge badge-soon">예정</span>'}</div>
       <div class="lc-title">${room ? '🏨 ' + esc(room.객실명) : '<span style="color:var(--danger)">(객실 삭제됨)</span>'}</div>
-      <div class="lc-meta">${esc(b.게스트명) || '게스트'}${b.인원 ? ' · ' + b.인원 + '명' : ''}${nights ? ' · ' + nights + '박' : ''}</div>
+      <div class="lc-meta">${esc(b.게스트명) || '게스트'} · 🛏️ ${b.인원 || 2}인 셋팅${nights ? ' · ' + nights + '박' : ''}</div>
       <div class="lc-info">
-        <div class="lc-label">체크인</div><div class="lc-value">${formatDate(b.체크인)}${b.체크인시간 ? ' ' + b.체크인시간 : ''}</div>
-        <div class="lc-label">체크아웃</div><div class="lc-value">${formatDate(b.체크아웃)}${b.체크아웃시간 ? ' ' + b.체크아웃시간 : ''}</div>
+        <div class="lc-label">체크인</div><div class="lc-value">${formatDate(b.체크인)}${b.얼리체크인 ? ' <span style="color:#1E40AF; font-weight:700">⚡' + b.얼리체크인시간 + ' 얼리</span>' : ''}</div>
+        <div class="lc-label">체크아웃</div><div class="lc-value">${formatDate(b.체크아웃)}${b.레이트체크아웃 ? ' <span style="color:#991B1B; font-weight:700">⏰' + b.레이트체크아웃시간 + ' 레이트</span>' : ''}</div>
         <div class="lc-label">청소일</div><div class="lc-value">${formatDate(b.청소일)}</div>
         <div class="lc-label">담당</div><div class="lc-value">${staff ? esc(staff.이름) : '<span style="color:var(--muted)">미지정</span>'}</div>
+        <div class="lc-label">세탁</div><div class="lc-value">${b.세탁처리 === '즉시' ? '🚨 즉시 세탁' : b.세탁처리 === '불필요' ? '✓ 불필요 (가방보관)' : '⚠️ 필요 (건조후 준비)'}</div>
         ${b.연락처 ? `<div class="lc-label">연락처</div><div class="lc-value">${esc(b.연락처)}</div>` : ''}
         ${b.메모 ? `<div class="lc-label">메모</div><div class="lc-value">${esc(b.메모)}</div>` : ''}
       </div>
@@ -2873,8 +2888,9 @@ function openRoomForm(id) {
       <select class="field-select" id="rf-staff">${staffOptions}</select>
     </div>
     <div class="field">
-      <label class="field-label">메모</label>
-      <textarea class="field-textarea" id="rf-memo" placeholder="예: 키박스 1234 / 반려견 가능">${r ? esc(r.메모 || '') : ''}</textarea>
+      <label class="field-label">메모 / 세탁물 보관 장소</label>
+      <textarea class="field-textarea" id="rf-memo" placeholder="예: 키박스 1234 / 반려견 가능&#10;세탁물 보관: 현관 비품함 또는 문 앞">${r ? esc(r.메모 || '') : ''}</textarea>
+      <div class="field-help">청소직원에게 보낼 메시지에 자동 포함됩니다</div>
     </div>
     <div class="field">
       <label class="field-label">📡 에어비앤비 iCal URL</label>
@@ -3040,26 +3056,58 @@ function openBookingForm(id) {
       <label class="field-label">청소일</label>
       <input class="field-input" type="date" id="bf-clean" value="${b ? b.청소일 : today}">
     </div>
-    <div class="field-row">
-      <div class="field">
-        <label class="field-label">게스트명</label>
-        <input class="field-input" id="bf-name" placeholder="홍길동" value="${b ? esc(b.게스트명 || '') : ''}">
+
+    <div class="field" style="background:var(--bg-soft); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border-sub)">
+      <label class="field-label" style="margin-bottom:8px">⏰ 특별 시간 (선택)</label>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px">
+        <input type="checkbox" id="bf-early" ${b && b.얼리체크인 ? 'checked' : ''} style="width:18px; height:18px">
+        <label for="bf-early" style="flex:1; font-size:13px; font-weight:500">얼리 체크인 (조기 입실)</label>
+        <input class="field-input" type="time" id="bf-early-time" value="${b && b.얼리체크인시간 ? b.얼리체크인시간 : '13:00'}" style="width:100px; padding:6px 8px; font-size:13px">
       </div>
-      <div class="field">
-        <label class="field-label">인원</label>
-        <input class="field-input" type="number" min="1" id="bf-guests" value="${b ? (b.인원 || 2) : 2}">
+      <div style="display:flex; align-items:center; gap:10px">
+        <input type="checkbox" id="bf-late" ${b && b.레이트체크아웃 ? 'checked' : ''} style="width:18px; height:18px">
+        <label for="bf-late" style="flex:1; font-size:13px; font-weight:500">레이트 체크아웃 (늦은 퇴실)</label>
+        <input class="field-input" type="time" id="bf-late-time" value="${b && b.레이트체크아웃시간 ? b.레이트체크아웃시간 : '14:00'}" style="width:100px; padding:6px 8px; font-size:13px">
       </div>
     </div>
+
+    <div class="field">
+      <label class="field-label">🛏️ 셋팅 인원 <span style="color:var(--muted); font-weight:400">(침구·수건 기준)</span></label>
+      <select class="field-select" id="bf-guests">
+        <option value="1" ${b && b.인원 == 1 ? 'selected':''}>1명</option>
+        <option value="2" ${(b && b.인원 == 2) || !b ? 'selected':''}>2명</option>
+        <option value="3" ${b && b.인원 == 3 ? 'selected':''}>3명</option>
+        <option value="4" ${b && b.인원 == 4 ? 'selected':''}>4명</option>
+        <option value="5" ${b && b.인원 == 5 ? 'selected':''}>5명</option>
+        <option value="6" ${b && b.인원 == 6 ? 'selected':''}>6명</option>
+        <option value="7" ${b && b.인원 == 7 ? 'selected':''}>7명 이상</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="field-label">🧺 세탁 처리</label>
+      <select class="field-select" id="bf-laundry">
+        <option value="필요" ${!b || !b.세탁처리 || b.세탁처리 === '필요' ? 'selected':''}>세탁 필요 (건조 후 다음 청소시 준비)</option>
+        <option value="불필요" ${b && b.세탁처리 === '불필요' ? 'selected':''}>세탁 불필요 (가방 담아 보관)</option>
+        <option value="즉시" ${b && b.세탁처리 === '즉시' ? 'selected':''}>즉시 세탁 (호스트 요청)</option>
+      </select>
+      <div class="field-help">불필요 시 보관 장소는 객실 메모를 참고합니다</div>
+    </div>
+
     <div class="field">
       <label class="field-label">담당 청소직원</label>
       <select class="field-select" id="bf-staff">${staffOptions}</select>
+    </div>
+    <div class="field">
+      <label class="field-label">게스트명 (선택)</label>
+      <input class="field-input" id="bf-name" placeholder="iCal 동기화시 자동 채워짐" value="${b ? esc(b.게스트명 || '') : ''}">
     </div>
     <div class="field">
       <label class="field-label">연락처</label>
       <input class="field-input" id="bf-phone" placeholder="010-0000-0000" value="${b ? esc(b.연락처 || '') : ''}">
     </div>
     <div class="field">
-      <label class="field-label">메모</label>
+      <label class="field-label">특이사항</label>
       <textarea class="field-textarea" id="bf-memo">${b ? esc(b.메모 || '') : ''}</textarea>
     </div>
   `;
@@ -3106,13 +3154,26 @@ function collectBookingForm() {
     const room = state.rooms.find(r => r.id === 객실ID);
     if (room && room.담당직원ID) 담당직원ID = room.담당직원ID;
   }
+
+  // 새 필드들 안전하게 수집 (요소가 있을 때만)
+  const earlyEl = document.getElementById('bf-early');
+  const lateEl = document.getElementById('bf-late');
+  const earlyTimeEl = document.getElementById('bf-early-time');
+  const lateTimeEl = document.getElementById('bf-late-time');
+  const laundryEl = document.getElementById('bf-laundry');
+
   return {
     객실ID, 체크인, 체크아웃, 청소일,
     게스트명: document.getElementById('bf-name').value.trim(),
-    인원: parseInt(document.getElementById('bf-guests').value) || 1,
+    인원: parseInt(document.getElementById('bf-guests').value) || 2,
     담당직원ID,
     연락처: document.getElementById('bf-phone').value.trim(),
-    메모: document.getElementById('bf-memo').value.trim()
+    메모: document.getElementById('bf-memo').value.trim(),
+    얼리체크인: earlyEl ? earlyEl.checked : false,
+    얼리체크인시간: earlyEl && earlyEl.checked ? (earlyTimeEl.value || '13:00') : null,
+    레이트체크아웃: lateEl ? lateEl.checked : false,
+    레이트체크아웃시간: lateEl && lateEl.checked ? (lateTimeEl.value || '14:00') : null,
+    세탁처리: laundryEl ? laundryEl.value : '필요'
   };
 }
 
@@ -3177,7 +3238,8 @@ function openQuickBookingForm() {
       연락처: '',
       메모: document.getElementById('qf-memo').value.trim(),
       청소완료: false,
-      빠른예약: true
+      빠른예약: true,
+      세탁처리: '필요'
     });
     save(STORE.bookings, state.bookings);
     closeModal();
@@ -3412,7 +3474,8 @@ async function syncRoom(room) {
         연락처: '', 메모: '',
         청소완료: false,
         iCal출처: true,
-        iCalUID: ev.uid || null
+        iCalUID: ev.uid || null,
+        세탁처리: '필요'
       });
       added++;
     }
@@ -3498,8 +3561,16 @@ function openTemplateEditor() {
     </div>
     <div class="field">
       <label class="field-label">메시지 템플릿</label>
-      <textarea class="field-textarea" id="te-template" style="min-height:240px; font-size:13px">${esc(state.settings.template)}</textarea>
-      <div class="field-help">변수: {객실명} {청소일} {요일} {게스트명} {인원} {체크인} {체크아웃} {다음체크인} {메모}</div>
+      <textarea class="field-textarea" id="te-template" style="min-height:280px; font-size:13px">${esc(state.settings.template)}</textarea>
+      <div class="field-help">
+        <strong>핵심 변수 (자동 생성):</strong><br>
+        • {시간안내} - 체크아웃/얼리/레이트 자동 안내<br>
+        • {다음입실안내} - 다음 입실 있음/없음 + 여유시간<br>
+        • {세탁안내} - 세탁 처리 방식<br>
+        • {메모} - 객실+예약+비품요청 통합<br><br>
+        <strong>기본 변수:</strong><br>
+        {객실명} {청소일} {요일} {인원} {게스트명}
+      </div>
     </div>
     <button class="btn btn-outline btn-block" id="te-reset" style="margin-top:8px">기본값으로 되돌리기</button>
   `;
@@ -3525,27 +3596,70 @@ function buildKakaoMessage(booking) {
     .filter(b => b.객실ID === booking.객실ID && b.체크인 > booking.체크아웃)
     .sort((a, b) => a.체크인.localeCompare(b.체크인))[0];
 
+  // 시간 안내 만들기
+  const checkoutTime = (room && room.체크아웃시간) || '11:00';
+  const checkinTime = (room && room.체크인시간) || '15:00';
+  let 시간안내 = `   체크아웃: ${checkoutTime} (정상)`;
+  if (booking.레이트체크아웃 && booking.레이트체크아웃시간) {
+    시간안내 += `\n   ⚠️ 레이트 체크아웃 ${booking.레이트체크아웃시간}`;
+  }
+  if (booking.얼리체크인 && booking.얼리체크인시간) {
+    시간안내 += `\n   ⚡ 다음 손님 얼리 체크인 ${booking.얼리체크인시간}`;
+  }
+
+  // 다음 입실 안내
+  let 다음입실안내;
+  if (nextBooking) {
+    const nextCheckinTime = nextBooking.얼리체크인 && nextBooking.얼리체크인시간
+      ? nextBooking.얼리체크인시간 + ' (얼리)'
+      : checkinTime;
+    const daysGap = Math.round((new Date(nextBooking.체크인) - new Date(booking.체크아웃)) / 86400000);
+    let gapText = '';
+    if (daysGap === 0) gapText = '(연이어 입실 - 시간 촉박!)';
+    else if (daysGap === 1) gapText = '(다음날 입실)';
+    else gapText = `(${daysGap}일 여유)`;
+    다음입실안내 = `   ${formatDate(nextBooking.체크인)} ${nextCheckinTime}\n   ${gapText}`;
+  } else {
+    다음입실안내 = '   ✨ 다음 입실 없음\n   (여유롭게 청소하셔도 됩니다)';
+  }
+
+  // 세탁 안내
+  let 세탁안내;
+  const laundry = booking.세탁처리 || '필요';
+  if (laundry === '필요') {
+    세탁안내 = '   ⚠️ 세탁 필요\n   → 건조 후 다음 청소시 준비';
+  } else if (laundry === '불필요') {
+    세탁안내 = '   ✓ 세탁 불필요\n   → 사용 세탁물은 가방에 담아 보관\n      (보관 장소는 객실 메모 참고)';
+  } else if (laundry === '즉시') {
+    세탁안내 = '   🚨 즉시 세탁 (호스트 요청)';
+  } else {
+    세탁안내 = '   ⚠️ 세탁 필요';
+  }
+
   // 비품 요청도 메모에 포함
   const supplies = state.supplies
     .filter(s => s.객실ID === booking.객실ID && !s.해결됨)
-    .map(s => `- ${s.긴급 ? '🔴' : '•'} ${s.내용}`);
+    .map(s => `   ${s.긴급 ? '🔴' : '•'} ${s.내용}`);
 
   const memoParts = [
-    room && room.메모,
-    booking.메모,
-    supplies.length ? '📋 호스트 요청:\n' + supplies.join('\n') : null
+    room && room.메모 ? '   ' + room.메모.replace(/\n/g, '\n   ') : null,
+    booking.메모 ? '   ' + booking.메모.replace(/\n/g, '\n   ') : null,
+    supplies.length ? '   📋 호스트 요청:\n' + supplies.join('\n') : null
   ].filter(Boolean);
-  const memo = memoParts.join('\n\n') || '없음';
+  const memo = memoParts.join('\n\n') || '   없음';
 
   return state.settings.template
     .replace('{객실명}', room ? room.객실명 : '(객실)')
     .replace('{청소일}', formatDate(booking.청소일))
     .replace('{요일}', getDayOfWeek(booking.청소일))
     .replace('{게스트명}', booking.게스트명 || '게스트')
-    .replace('{인원}', booking.인원 || 1)
+    .replace('{인원}', booking.인원 || 2)
     .replace('{체크인}', formatDate(booking.체크인))
     .replace('{체크아웃}', formatDate(booking.체크아웃))
     .replace('{다음체크인}', nextBooking ? formatDate(nextBooking.체크인) : '미정')
+    .replace('{시간안내}', 시간안내)
+    .replace('{다음입실안내}', 다음입실안내)
+    .replace('{세탁안내}', 세탁안내)
     .replace('{메모}', memo);
 }
 
@@ -3686,7 +3800,7 @@ function openPendingNotifications() {
    ============================================================ */
 function exportData() {
   const data = {
-    version: 'v6.0-Phase2C',
+    version: 'v6.0-Phase2D',
     exportDate: new Date().toISOString(),
     rooms: state.rooms,
     staff: state.staff,
@@ -3755,19 +3869,19 @@ function loadSampleData() {
 
   const r1 = uid(), r2 = uid(), r3 = uid();
   state.rooms = [
-    { id: r1, 객실명: '오션뷰 101호', 건물: '영종 그랜드뷰', 체크인시간: '15:00', 체크아웃시간: '11:00', 담당직원ID: s1, 메모: '키박스 1234', iCalURL: '' },
-    { id: r2, 객실명: '시티뷰 302호', 건물: '영종 그랜드뷰', 체크인시간: '15:00', 체크아웃시간: '11:00', 담당직원ID: s2, 메모: '반려견 가능', iCalURL: '' },
-    { id: r3, 객실명: '비치하우스 201호', 건물: '비치하우스', 체크인시간: '16:00', 체크아웃시간: '11:00', 담당직원ID: s3, 메모: '', iCalURL: '' }
+    { id: r1, 객실명: '오션뷰 101호', 건물: '영종 그랜드뷰', 체크인시간: '15:00', 체크아웃시간: '11:00', 담당직원ID: s1, 메모: '키박스 1234\n세탁물 보관: 현관 비품함', iCalURL: '' },
+    { id: r2, 객실명: '시티뷰 302호', 건물: '영종 그랜드뷰', 체크인시간: '15:00', 체크아웃시간: '11:00', 담당직원ID: s2, 메모: '반려견 가능\n세탁물 보관: 문 앞 가방에', iCalURL: '' },
+    { id: r3, 객실명: '비치하우스 201호', 건물: '비치하우스', 체크인시간: '16:00', 체크아웃시간: '11:00', 담당직원ID: s3, 메모: '세탁물 보관: 비품함 (1층 우측)', iCalURL: '' }
   ];
 
   state.bookings = [
-    { id: uid(), 객실ID: r1, 체크인: ymd(new Date(Date.now() - 86400000)), 체크아웃: today, 청소일: today, 게스트명: '홍길동', 인원: 2, 담당직원ID: s1, 연락처: '010-1111-1111', 메모: '', 청소완료: false },
-    { id: uid(), 객실ID: r2, 체크인: ymd(new Date(Date.now() - 2 * 86400000)), 체크아웃: today, 청소일: today, 게스트명: 'Park 외 가족', 인원: 4, 담당직원ID: s2, 연락처: '', 메모: '베이비침대 정리', 청소완료: false },
-    { id: uid(), 객실ID: r3, 체크인: today, 체크아웃: tomTom, 청소일: tomTom, 게스트명: 'Tanaka', 인원: 2, 담당직원ID: s3, 연락처: '', 메모: '일본 게스트', 청소완료: false },
+    { id: uid(), 객실ID: r1, 체크인: ymd(new Date(Date.now() - 86400000)), 체크아웃: today, 청소일: today, 게스트명: '홍길동', 인원: 2, 담당직원ID: s1, 연락처: '010-1111-1111', 메모: '', 청소완료: false, 세탁처리: '필요' },
+    { id: uid(), 객실ID: r2, 체크인: ymd(new Date(Date.now() - 2 * 86400000)), 체크아웃: today, 청소일: today, 게스트명: 'Park 외 가족', 인원: 4, 담당직원ID: s2, 연락처: '', 메모: '', 청소완료: false, 레이트체크아웃: true, 레이트체크아웃시간: '14:00', 세탁처리: '불필요' },
+    { id: uid(), 객실ID: r3, 체크인: today, 체크아웃: tomTom, 청소일: tomTom, 게스트명: 'Tanaka', 인원: 2, 담당직원ID: s3, 연락처: '', 메모: '일본 게스트', 청소완료: false, 얼리체크인: true, 얼리체크인시간: '13:00', 세탁처리: '즉시' },
     // 정산용 과거 완료 데이터
-    { id: uid(), 객실ID: r1, 체크인: lastWeek, 체크아웃: ymd(new Date(Date.now() - 5 * 86400000)), 청소일: ymd(new Date(Date.now() - 5 * 86400000)), 게스트명: '김민수', 인원: 2, 담당직원ID: s1, 연락처: '', 메모: '', 청소완료: true, 청소완료시각: new Date(Date.now() - 5 * 86400000).toISOString() },
-    { id: uid(), 객실ID: r2, 체크인: lastWeek, 체크아웃: ymd(new Date(Date.now() - 6 * 86400000)), 청소일: ymd(new Date(Date.now() - 6 * 86400000)), 게스트명: 'Smith', 인원: 3, 담당직원ID: s2, 연락처: '', 메모: '', 청소완료: true, 청소완료시각: new Date(Date.now() - 6 * 86400000).toISOString() },
-    { id: uid(), 객실ID: r1, 체크인: lastMonth, 체크아웃: ymd(new Date(Date.now() - 23 * 86400000)), 청소일: ymd(new Date(Date.now() - 23 * 86400000)), 게스트명: '이영희', 인원: 2, 담당직원ID: s1, 연락처: '', 메모: '', 청소완료: true, 청소완료시각: new Date(Date.now() - 23 * 86400000).toISOString() }
+    { id: uid(), 객실ID: r1, 체크인: lastWeek, 체크아웃: ymd(new Date(Date.now() - 5 * 86400000)), 청소일: ymd(new Date(Date.now() - 5 * 86400000)), 게스트명: '김민수', 인원: 2, 담당직원ID: s1, 연락처: '', 메모: '', 청소완료: true, 청소완료시각: new Date(Date.now() - 5 * 86400000).toISOString(), 세탁처리: '필요' },
+    { id: uid(), 객실ID: r2, 체크인: lastWeek, 체크아웃: ymd(new Date(Date.now() - 6 * 86400000)), 청소일: ymd(new Date(Date.now() - 6 * 86400000)), 게스트명: 'Smith', 인원: 3, 담당직원ID: s2, 연락처: '', 메모: '', 청소완료: true, 청소완료시각: new Date(Date.now() - 6 * 86400000).toISOString(), 세탁처리: '필요' },
+    { id: uid(), 객실ID: r1, 체크인: lastMonth, 체크아웃: ymd(new Date(Date.now() - 23 * 86400000)), 청소일: ymd(new Date(Date.now() - 23 * 86400000)), 게스트명: '이영희', 인원: 2, 담당직원ID: s1, 연락처: '', 메모: '', 청소완료: true, 청소완료시각: new Date(Date.now() - 23 * 86400000).toISOString(), 세탁처리: '필요' }
   ];
 
   state.supplies = [
@@ -3926,7 +4040,7 @@ function init() {
     });
 
     render();
-    console.log('🏨 RoomPacker v6.0 Phase 2-C 시작');
+    console.log('🏨 RoomPacker v6.0 Phase 2-D 시작');
   } catch(e) { console.error('init 실패', e); }
 }
 
