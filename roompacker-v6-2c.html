@@ -1,0 +1,3936 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0F766E">
+<title>RoomPacker v6 · 룸페커</title>
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================
+   1. 디자인 토큰 (룸페커 패밀리 룩)
+   ============================================ */
+:root {
+  --bg: #F8F4EC;
+  --bg-soft: #FAF7F1;
+  --card: #FFFFFF;
+  --border: #E8E2D5;
+  --border-sub: #F0EBDF;
+
+  --text: #1F2937;
+  --text-soft: #4B5563;
+  --muted: #9B9588;
+
+  --primary: #0F766E;
+  --primary-dark: #134E4A;
+  --primary-light: #D6F3F0;
+  --accent: #E8927C;
+  --warning: #F59E0B;
+  --warning-light: #FEF3C7;
+  --success: #10B981;
+  --success-light: #D1FAE5;
+  --danger: #EF4444;
+
+  --kakao: #FEE500;
+  --kakao-text: #3C1E1E;
+
+  --shadow-sm: 0 1px 2px rgba(78, 67, 47, 0.05);
+  --shadow: 0 4px 14px rgba(78, 67, 47, 0.08);
+  --shadow-lg: 0 12px 32px rgba(78, 67, 47, 0.12);
+
+  --radius-lg: 20px;
+  --radius: 16px;
+  --radius-sm: 12px;
+  --radius-xs: 8px;
+
+  --tab-h: 66px;
+  --header-h: 60px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { min-height:100%; }
+body {
+  font-family:'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+  overscroll-behavior: none;
+}
+button { font-family:inherit; cursor:pointer; border:none; background:none; color:inherit; text-align:left; }
+input, select, textarea { font-family:inherit; font-size:16px; }
+
+/* ============================================
+   로그인 화면
+   ============================================ */
+.login-screen {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  padding: 0 22px 30px;
+  position: relative;
+}
+.login-screen::before {
+  content:'';
+  position: fixed;
+  top:0; left:0; right:0;
+  height: 50vh;
+  background:
+    radial-gradient(ellipse 120% 80% at 50% 0%, rgba(15, 118, 110, 0.10), transparent 70%),
+    linear-gradient(180deg, #F1ECDD 0%, var(--bg) 100%);
+  z-index: -1;
+}
+.login-brand { text-align: center; padding: 80px 0 40px; }
+.login-logo {
+  width: 88px; height: 88px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 38px;
+  box-shadow: 0 12px 32px rgba(15, 118, 110, 0.3);
+}
+.login-title {
+  font-family: 'Fraunces', serif;
+  font-size: 34px; font-weight: 600;
+  letter-spacing: 0.06em; margin-bottom: 6px;
+}
+.login-version {
+  display: inline-block;
+  font-size: 11px; font-weight: 700;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  padding: 3px 10px;
+  border-radius: 10px;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+.login-tagline { font-size: 14px; color: var(--text-soft); }
+.login-section-title {
+  font-size: 12px; font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 24px 4px 10px;
+}
+.role-card {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%;
+  padding: 16px 18px;
+  background: var(--card);
+  border: 1.5px solid var(--border-sub);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  transition: transform .12s, border-color .15s, box-shadow .15s;
+}
+.role-card:active { transform: scale(0.985); box-shadow: var(--shadow); }
+.role-card.selected {
+  border-color: var(--primary);
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.03), rgba(15, 118, 110, 0.08));
+}
+.role-icon {
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border-sub);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.role-card.selected .role-icon {
+  background: var(--primary); color: white;
+  border-color: transparent;
+}
+.role-info { flex: 1; }
+.role-name { font-size: 15px; font-weight: 700; }
+.role-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.login-bottom { margin-top: auto; padding-top: 30px; }
+.field-input-login {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: white;
+  margin-bottom: 12px;
+}
+.field-input-login:focus { outline: none; border-color: var(--primary); }
+.btn-login {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: 15px; font-weight: 700;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(15, 118, 110, 0.25);
+  transition: transform .1s;
+}
+.btn-login:active { transform: scale(0.985); }
+.login-footer {
+  text-align: center; margin-top: 18px;
+  font-size: 12px; color: var(--muted);
+}
+
+/* ============================================
+   메인 앱
+   ============================================ */
+.app { display: none; padding-bottom: calc(var(--tab-h) + env(safe-area-inset-bottom)); }
+.app.active { display: block; }
+
+.header {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--bg);
+  padding: 16px 22px 12px;
+  display: flex; align-items: center; gap: 12px;
+}
+.header-greeting { flex: 1; }
+.header-hi { font-size: 13px; color: var(--muted); font-weight: 500; }
+.header-name {
+  font-family: 'Fraunces', serif;
+  font-size: 22px; font-weight: 600;
+  letter-spacing: 0.02em; margin-top: 1px;
+}
+.header-icon {
+  width: 40px; height: 40px;
+  background: var(--card);
+  border: 1px solid var(--border-sub);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  position: relative;
+  box-shadow: var(--shadow-sm);
+}
+.header-icon.syncing {
+  animation: rotate 1.2s linear infinite;
+  color: var(--primary);
+}
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+main { padding: 0 22px; }
+.section { display: none; }
+.section.active { display: block; animation: fadeIn .25s ease; }
+@keyframes fadeIn { from {opacity:0; transform:translateY(8px);} to {opacity:1; transform:translateY(0);} }
+
+.section-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+.section-subtitle {
+  font-size: 13px; color: var(--text-soft);
+  margin-bottom: 18px;
+}
+.section-eyebrow {
+  font-size: 11px; font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 24px 4px 10px;
+}
+
+/* ============================================
+   오늘의 미션
+   ============================================ */
+.today-mission {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 12px 28px rgba(15, 118, 110, 0.22);
+  position: relative;
+  overflow: hidden;
+}
+.today-mission::after {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+}
+.mission-date {
+  font-size: 12px; opacity: 0.85;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+  position: relative; z-index: 1;
+}
+.mission-title {
+  font-size: 17px; font-weight: 700;
+  margin-bottom: 14px;
+  position: relative; z-index: 1;
+}
+.mission-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  position: relative; z-index: 1;
+}
+.mission-stat-num {
+  font-size: 28px; font-weight: 800;
+  line-height: 1; letter-spacing: -0.03em;
+}
+.mission-stat-label {
+  font-size: 11px; opacity: 0.85;
+  margin-top: 4px; font-weight: 500;
+}
+
+/* iCal 동기화 상태 */
+.sync-status {
+  background: var(--card);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 12px;
+}
+.sync-status-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--primary-light);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.sync-status-icon.syncing { animation: rotate 1.2s linear infinite; }
+.sync-status-text { flex: 1; min-width: 0; }
+.sync-status-title { font-size: 13px; font-weight: 700; }
+.sync-status-time { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.sync-status-btn {
+  font-size: 12px; font-weight: 700;
+  color: var(--primary);
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--primary-light);
+}
+.sync-status-btn:active { background: var(--primary); color: white; }
+
+/* ============================================
+   빠른 작업
+   ============================================ */
+.quick-action {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%; padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  transition: transform .12s, box-shadow .15s;
+}
+.quick-action:active { transform: scale(0.985); box-shadow: var(--shadow); }
+.qa-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border-sub);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.qa-icon.warm { background: var(--warning-light); border-color: transparent; }
+.qa-icon.cool { background: var(--primary-light); border-color: transparent; }
+.qa-icon.green { background: var(--success-light); border-color: transparent; }
+.qa-text { flex: 1; min-width: 0; }
+.qa-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+.qa-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.qa-arrow { color: var(--muted); font-size: 16px; font-weight: 300; }
+
+.quick-action.featured {
+  background: linear-gradient(135deg, var(--accent) 0%, #D67862 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 8px 20px rgba(232, 146, 124, 0.3);
+}
+.quick-action.featured .qa-icon {
+  background: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.15);
+}
+.quick-action.featured .qa-meta { color: rgba(255,255,255,0.85); }
+.quick-action.featured .qa-arrow { color: rgba(255,255,255,0.7); }
+
+.quick-action.kakao {
+  background: linear-gradient(135deg, #FFE600 0%, #FED800 100%);
+  color: var(--kakao-text);
+  border-color: transparent;
+  box-shadow: 0 6px 16px rgba(254, 229, 0, 0.35);
+}
+.quick-action.kakao .qa-icon {
+  background: rgba(60, 30, 30, 0.12);
+  border-color: transparent;
+}
+.quick-action.kakao .qa-meta { color: rgba(60, 30, 30, 0.7); }
+.quick-action.kakao .qa-arrow { color: rgba(60, 30, 30, 0.5); }
+
+/* ============================================
+   메뉴 그리드
+   ============================================ */
+.menu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.menu-card {
+  display: flex; flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 14px;
+  background: var(--card);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--radius);
+  transition: transform .12s, box-shadow .15s;
+  min-height: 120px;
+  position: relative;
+}
+.menu-card:active { transform: scale(0.985); box-shadow: var(--shadow); }
+.menu-card-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  background: var(--primary-light);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.menu-card-title { font-size: 14px; font-weight: 700; line-height: 1.3; }
+.menu-card-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.menu-card-badge {
+  position: absolute;
+  top: 12px; right: 12px;
+  background: var(--accent);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+/* ============================================
+   리스트 카드
+   ============================================ */
+.list-card {
+  background: var(--card);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  transition: transform .12s;
+}
+.list-card.today {
+  border: 2px solid var(--warning);
+  background: linear-gradient(180deg, var(--warning-light) 0%, white 28%);
+}
+.list-card.completed { opacity: 0.7; }
+
+.lc-row {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+.badge {
+  display: inline-block;
+  font-size: 10px; font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 10px;
+  letter-spacing: 0.02em;
+}
+.badge-today { background: var(--warning); color: white; }
+.badge-tomorrow { background: var(--primary); color: white; }
+.badge-soon { background: var(--border); color: var(--text-soft); }
+.badge-done { background: var(--success); color: white; }
+.badge-progress { background: var(--accent); color: white; }
+.badge-wait { background: var(--bg-soft); color: var(--text-soft); border: 1px solid var(--border-sub); }
+.badge-multi { background: #DBEAFE; color: #1E40AF; }
+.badge-ical { background: #EDE9FE; color: #6D28D9; }
+.badge-sent { background: var(--success-light); color: #047857; }
+.badge-supplies { background: #FEE2E2; color: #991B1B; }
+
+.lc-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 6px;
+  letter-spacing: -0.01em;
+}
+.lc-meta {
+  font-size: 13px;
+  color: var(--text-soft);
+  margin-top: 2px;
+}
+.lc-info {
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px dashed var(--border);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 5px 12px;
+  font-size: 13px;
+}
+.lc-label { color: var(--muted); font-weight: 500; }
+.lc-value { color: var(--text); font-weight: 500; }
+
+.lc-actions {
+  display: flex; gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.btn-mini {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px; font-weight: 600;
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--text);
+}
+.btn-mini.primary { background: var(--primary); color: white; border-color: transparent; }
+.btn-mini.danger { color: var(--danger); }
+.btn-mini.success { background: var(--success); color: white; border-color: transparent; }
+.btn-mini.kakao { background: var(--kakao); color: var(--kakao-text); border-color: transparent; }
+.btn-mini:active { transform: scale(0.96); }
+
+/* 칩 필터 */
+.chips {
+  display: flex; gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  background: var(--card);
+  border: 1px solid var(--border-sub);
+  border-radius: 20px;
+  font-size: 13px; font-weight: 600;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+.chip.active { background: var(--text); color: white; border-color: var(--text); }
+
+/* ============================================
+   🔍 검색바
+   ============================================ */
+.search-bar {
+  position: relative;
+  margin-bottom: 12px;
+}
+.search-icon {
+  position: absolute;
+  left: 14px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  pointer-events: none;
+  color: var(--muted);
+}
+.search-input {
+  width: 100%;
+  padding: 12px 40px 12px 40px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: white;
+  font-size: 15px;
+}
+.search-input:focus { outline: none; border-color: var(--primary); }
+.search-clear {
+  position: absolute;
+  right: 8px; top: 50%;
+  transform: translateY(-50%);
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  color: var(--muted);
+  border-radius: 50%;
+}
+.search-clear:active { background: var(--bg-soft); }
+.search-clear.hidden { display: none; }
+
+/* ============================================
+   📅 캘린더 뷰
+   ============================================ */
+.cal-header {
+  display: flex; align-items: center;
+  margin-bottom: 14px;
+  gap: 8px;
+}
+.cal-month {
+  flex: 1;
+  text-align: center;
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.cal-nav {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--border-sub);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  color: var(--text-soft);
+  box-shadow: var(--shadow-sm);
+}
+.cal-nav:active { transform: scale(0.92); }
+
+.cal-grid {
+  background: var(--card);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.cal-week-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--border-sub);
+}
+.cal-week-row:last-child { border-bottom: none; }
+.cal-day-name {
+  background: var(--bg-soft);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  padding: 8px 0;
+  color: var(--text-soft);
+}
+.cal-day-name.sun { color: var(--danger); }
+.cal-day-name.sat { color: #2563EB; }
+
+.cal-day {
+  aspect-ratio: 1;
+  border-right: 1px solid var(--border-sub);
+  padding: 4px 4px 2px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 50px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.cal-day:last-child { border-right: none; }
+.cal-day:active { background: var(--bg-soft); }
+.cal-day.empty { cursor: default; background: var(--bg-soft); }
+.cal-day.today {
+  background: var(--warning-light);
+}
+.cal-day.today .cal-day-num {
+  background: var(--warning);
+  color: white;
+}
+.cal-day.selected {
+  background: var(--primary-light);
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+.cal-day-num {
+  font-size: 12px;
+  font-weight: 700;
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  margin-bottom: 2px;
+}
+.cal-day.sun .cal-day-num { color: var(--danger); }
+.cal-day.sat .cal-day-num { color: #2563EB; }
+
+.cal-events {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+}
+.cal-event {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 3px;
+  border-radius: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cal-event.checkout { background: var(--warning-light); color: #92400E; }
+.cal-event.checkin { background: var(--primary-light); color: var(--primary-dark); }
+.cal-event.cleaning { background: #FCE7F3; color: #9D174D; }
+.cal-event.done { background: var(--success-light); color: #047857; opacity: 0.7; }
+.cal-event-more {
+  font-size: 9px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* 캘린더 범례 */
+.cal-legend {
+  display: flex; flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  background: var(--card);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--radius-sm);
+}
+.cal-legend-item {
+  display: flex; align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+.cal-legend-dot {
+  width: 10px; height: 10px;
+  border-radius: 3px;
+}
+
+/* 선택한 날짜의 예약 표시 */
+.cal-day-detail {
+  background: var(--card);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.cal-day-detail-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--primary-dark);
+}
+
+/* ============================================
+   🧺 비품/요청 섹션
+   ============================================ */
+.supplies-card {
+  background: var(--card);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.supplies-card.has-request {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, #FEF2F0 0%, white 28%);
+}
+.supplies-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px;
+}
+.supplies-title {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 700;
+}
+.supplies-list {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.supplies-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  padding: 6px 10px;
+  background: var(--bg-soft);
+  border-radius: var(--radius-sm);
+}
+.supplies-item.urgent {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+.supplies-item-icon { flex-shrink: 0; }
+.supplies-item-text { flex: 1; line-height: 1.4; }
+.supplies-item-time {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.supplies-item-del {
+  font-size: 14px;
+  color: var(--muted);
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   💰 정산 카드
+   ============================================ */
+.report-card {
+  background: var(--card);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 10px;
+}
+.report-row {
+  display: flex; align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-sub);
+}
+.report-row:last-child { border-bottom: none; }
+.report-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+}
+.report-count {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary);
+}
+.report-bar-wrap {
+  margin-top: 4px;
+  height: 6px;
+  background: var(--bg-soft);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.report-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  border-radius: 3px;
+}
+
+/* 월 선택기 */
+.month-picker {
+  display: flex; align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  background: var(--card);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--radius);
+}
+.month-picker-label {
+  flex: 1;
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.month-picker-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--bg-soft);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  color: var(--text-soft);
+}
+.month-picker-btn:active { background: var(--border); }
+
+/* 직원 카드 */
+.staff-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+}
+.staff-avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 15px;
+  flex-shrink: 0;
+}
+.staff-info { flex: 1; min-width: 0; }
+.staff-name { font-size: 14px; font-weight: 700; }
+.staff-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.staff-action {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: var(--muted);
+}
+
+/* 더보기 메뉴 */
+.menu-list {
+  background: var(--card);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.menu-row {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-sub);
+}
+.menu-row:last-child { border-bottom: none; }
+.menu-row:active { background: var(--bg-soft); }
+.menu-row-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--bg-soft);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.menu-row-text { flex: 1; }
+.menu-row-title { font-size: 14px; font-weight: 600; }
+.menu-row-desc { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.menu-row-arrow { color: var(--muted); font-size: 16px; }
+.menu-row-badge {
+  font-size: 10px; font-weight: 700;
+  background: var(--accent);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 4px;
+}
+
+/* 하단 탭바 */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  height: var(--tab-h);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border-sub);
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  z-index: 90;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tab-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px;
+  color: var(--muted);
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.02em;
+  position: relative;
+}
+.tab-btn .tab-icon { font-size: 20px; }
+.tab-btn.active { color: var(--primary); }
+.tab-btn.active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  width: 28px; height: 3px;
+  transform: translateX(-50%);
+  background: var(--primary);
+  border-radius: 0 0 3px 3px;
+}
+
+.tab-btn.center { position: relative; }
+.tab-btn.center::after {
+  content: '';
+  position: absolute;
+  top: 8px; left: 50%;
+  transform: translateX(-50%);
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border-radius: 50%;
+  z-index: -1;
+  box-shadow: 0 6px 14px rgba(15, 118, 110, 0.35);
+}
+.tab-btn.center .tab-icon { color: white; font-size: 18px; }
+.tab-btn.center { color: var(--primary); }
+
+/* FAB */
+.fab {
+  position: fixed;
+  right: 20px;
+  bottom: calc(var(--tab-h) + 16px + env(safe-area-inset-bottom));
+  width: 54px; height: 54px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  font-size: 28px; font-weight: 300;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-lg);
+  z-index: 80;
+  display: none;
+}
+.fab.show { display: flex; }
+.fab:active { transform: scale(0.92); }
+
+/* 뷰 토글 (예약 탭) */
+.view-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 14px;
+  background: var(--card);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+}
+.view-toggle-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-soft);
+  text-align: center;
+  transition: all .15s;
+}
+.view-toggle-btn.active {
+  background: var(--primary);
+  color: white;
+}
+
+/* 모달 */
+.modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  z-index: 200;
+  display: none;
+  align-items: flex-end; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-bg.show { display: flex; animation: fade .2s; }
+@keyframes fade { from {opacity:0;} to {opacity:1;} }
+.modal {
+  width: 100%; max-width: 520px;
+  background: white;
+  border-radius: 24px 24px 0 0;
+  max-height: 92vh; overflow-y: auto;
+  animation: slide .25s ease;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@keyframes slide { from {transform:translateY(100%);} to {transform:translateY(0);} }
+.modal-handle { width: 38px; height: 4px; background: var(--border); border-radius: 2px; margin: 10px auto 0; }
+.modal-header {
+  padding: 14px 20px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid var(--border-sub);
+}
+.modal-title { font-size: 17px; font-weight: 700; }
+.modal-close {
+  font-size: 26px; color: var(--muted);
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-body { padding: 20px; }
+.modal-footer {
+  padding: 12px 20px 20px;
+  display: flex; gap: 10px;
+  border-top: 1px solid var(--border-sub);
+}
+
+/* 폼 */
+.field { margin-bottom: 14px; }
+.field-label {
+  display: block;
+  font-size: 13px; font-weight: 600;
+  color: var(--text-soft);
+  margin-bottom: 6px;
+}
+.field-label .required { color: var(--danger); }
+.field-input, .field-select, .field-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: white;
+  color: var(--text);
+  transition: border-color .15s;
+}
+.field-input:focus, .field-select:focus, .field-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.field-textarea { resize: none; min-height: 80px; line-height: 1.5; }
+.field-help { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600;
+  transition: transform .1s;
+  text-align: center;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--primary); color: white; }
+.btn-outline { background: white; color: var(--text); border: 1px solid var(--border); }
+.btn-danger { background: white; color: var(--danger); border: 1px solid var(--border); }
+.btn-block { flex: 1; }
+.btn-kakao { background: var(--kakao); color: var(--kakao-text); }
+
+/* 토스트 + 빈상태 */
+.toast {
+  position: fixed;
+  left: 50%; bottom: calc(var(--tab-h) + 24px);
+  transform: translateX(-50%);
+  background: var(--text);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 24px;
+  font-size: 13px; font-weight: 500;
+  z-index: 300;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s, transform .25s;
+  max-width: 90vw;
+  text-align: center;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+.empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--muted);
+}
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-title { font-size: 15px; font-weight: 600; color: var(--text-soft); margin-bottom: 6px; }
+.empty-desc { font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+
+.info-banner {
+  background: linear-gradient(135deg, var(--primary-light), #E8F5F2);
+  border: 1px solid rgba(15, 118, 110, 0.15);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  display: flex; gap: 12px;
+}
+.info-banner-icon { font-size: 20px; flex-shrink: 0; }
+.info-banner-text {
+  font-size: 13px; line-height: 1.5;
+  color: var(--primary-dark);
+}
+.info-banner-text strong { font-weight: 700; }
+
+.warning-banner {
+  background: var(--warning-light);
+  border: 1px solid #FCD34D;
+}
+.warning-banner .info-banner-text { color: #92400E; }
+
+/* 메시지 미리보기 */
+.preview {
+  background: linear-gradient(180deg, #B6CCDA 0%, #B6CCDA 100%);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin: 14px 0;
+}
+.preview-bubble {
+  background: var(--kakao);
+  color: var(--kakao-text);
+  padding: 12px 14px;
+  border-radius: 4px 14px 14px 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  font-weight: 500;
+}
+
+/* 동기화 진행 */
+.sync-progress {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.sync-progress-title {
+  font-size: 14px; font-weight: 700;
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.sync-progress-list { font-size: 13px; color: var(--text-soft); }
+.sync-log-item {
+  padding: 6px 0;
+  display: flex; gap: 8px;
+  border-bottom: 1px solid var(--border-sub);
+}
+.sync-log-item:last-child { border-bottom: none; }
+.sync-log-success { color: var(--success); }
+.sync-log-error { color: var(--danger); }
+.sync-log-info { color: var(--text-soft); }
+
+@media (max-width: 360px) {
+  main { padding: 0 16px; }
+  .header { padding: 14px 16px 10px; }
+  .login-screen { padding: 0 16px 30px; }
+  .cal-day-num { font-size: 11px; width: 18px; height: 18px; }
+  .cal-event { font-size: 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- 로그인 화면 -->
+<div class="login-screen" id="login-screen">
+  <div class="login-brand">
+    <div class="login-logo">🏨</div>
+    <h1 class="login-title">ROOMPACKER</h1>
+    <div class="login-version">v6.0 · Phase 2-C</div>
+    <div class="login-tagline">영종도 에어비앤비 운영 플랫폼</div>
+  </div>
+
+  <div class="login-section-title">역할 선택</div>
+
+  <button class="role-card" data-role="host">
+    <div class="role-icon">🏠</div>
+    <div class="role-info">
+      <div class="role-name">호스트</div>
+      <div class="role-desc">예약·청소 관리 / 매출 확인</div>
+    </div>
+  </button>
+
+  <button class="role-card" data-role="cleaner">
+    <div class="role-icon">🧹</div>
+    <div class="role-info">
+      <div class="role-name">청소직원</div>
+      <div class="role-desc">담당 청소일정 / 완료 처리</div>
+    </div>
+  </button>
+
+  <button class="role-card" data-role="admin">
+    <div class="role-icon">👑</div>
+    <div class="role-info">
+      <div class="role-name">관리자</div>
+      <div class="role-desc">전체 관리</div>
+    </div>
+  </button>
+
+  <div class="login-bottom">
+    <input type="password" class="field-input-login" id="login-pw" placeholder="비밀번호 (아무거나)" autocomplete="current-password">
+    <button class="btn-login" id="btn-login">로그인</button>
+    <div class="login-footer">© 2026 RoomPacker · 영종도 · v6.0 Phase 2-C</div>
+  </div>
+</div>
+
+<!-- 메인 앱 -->
+<div class="app" id="app">
+
+  <header class="header">
+    <div class="header-greeting">
+      <div class="header-hi" id="header-hi">안녕하세요</div>
+      <div class="header-name" id="header-name">롤리님</div>
+    </div>
+    <button class="header-icon" id="btn-sync-top" aria-label="동기화">🔄</button>
+    <button class="header-icon" id="btn-logout-top" aria-label="로그아웃">🚪</button>
+  </header>
+
+  <main>
+    <!-- 홈 -->
+    <section class="section active" id="section-home">
+      <div class="today-mission">
+        <div class="mission-date" id="mission-date">날짜 로딩...</div>
+        <div class="mission-title">오늘의 미션</div>
+        <div class="mission-stats">
+          <div>
+            <div class="mission-stat-num" id="stat-clean">0</div>
+            <div class="mission-stat-label">청소 예정</div>
+          </div>
+          <div>
+            <div class="mission-stat-num" id="stat-checkin">0</div>
+            <div class="mission-stat-label">체크인</div>
+          </div>
+          <div>
+            <div class="mission-stat-num" id="stat-checkout">0</div>
+            <div class="mission-stat-label">체크아웃</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sync-status" id="sync-status-card" style="display:none">
+        <div class="sync-status-icon" id="sync-status-icon">🔄</div>
+        <div class="sync-status-text">
+          <div class="sync-status-title" id="sync-status-title">자동 동기화 활성</div>
+          <div class="sync-status-time" id="sync-status-time">마지막: 방금 전</div>
+        </div>
+        <button class="sync-status-btn" id="sync-status-btn">즉시</button>
+      </div>
+
+      <div class="section-eyebrow">빠른 작업</div>
+
+      <button class="quick-action featured" id="btn-quick-booking-home">
+        <div class="qa-icon">⚡</div>
+        <div class="qa-text">
+          <div class="qa-title">빠른 예약 추가</div>
+          <div class="qa-meta">방금 들어온 예약 30초 안에</div>
+        </div>
+        <div class="qa-arrow">›</div>
+      </button>
+
+      <button class="quick-action" id="btn-sync-home">
+        <div class="qa-icon cool">🔄</div>
+        <div class="qa-text">
+          <div class="qa-title">iCal 즉시 동기화</div>
+          <div class="qa-meta" id="sync-home-meta">에어비앤비 캘린더 가져오기</div>
+        </div>
+        <div class="qa-arrow">›</div>
+      </button>
+
+      <button class="quick-action kakao" id="btn-send-pending-home">
+        <div class="qa-icon">💬</div>
+        <div class="qa-text">
+          <div class="qa-title">청소직원 카톡 알림</div>
+          <div class="qa-meta" id="pending-meta">미발송 0건</div>
+        </div>
+        <div class="qa-arrow">›</div>
+      </button>
+
+      <div class="section-eyebrow">관리 메뉴</div>
+      <div class="menu-grid">
+        <button class="menu-card" data-tab="booking">
+          <div class="menu-card-icon">📅</div>
+          <div>
+            <div class="menu-card-title">예약 관리</div>
+            <div class="menu-card-meta" id="menu-booking-meta">0건</div>
+          </div>
+        </button>
+        <button class="menu-card" data-tab="cleaning">
+          <div class="menu-card-icon">🧹</div>
+          <div>
+            <div class="menu-card-title">청소 일정</div>
+            <div class="menu-card-meta" id="menu-cleaning-meta">오늘 0건</div>
+          </div>
+        </button>
+        <button class="menu-card" data-tab="more" data-jump="rooms">
+          <div class="menu-card-icon">🏨</div>
+          <div>
+            <div class="menu-card-title">객실 관리</div>
+            <div class="menu-card-meta" id="menu-rooms-meta">0개</div>
+          </div>
+        </button>
+        <button class="menu-card" data-tab="more" data-jump="staff">
+          <div class="menu-card-icon">👥</div>
+          <div>
+            <div class="menu-card-title">청소직원</div>
+            <div class="menu-card-meta" id="menu-staff-meta">0명</div>
+          </div>
+        </button>
+        <button class="menu-card" data-tab="more" data-jump="supplies">
+          <div class="menu-card-icon" style="background:#FEE2E2">🧺</div>
+          <div>
+            <div class="menu-card-title">비품 메모</div>
+            <div class="menu-card-meta" id="menu-supplies-meta">0건 요청</div>
+          </div>
+          <div class="menu-card-badge" id="menu-supplies-badge" style="display:none">!</div>
+        </button>
+        <button class="menu-card" data-tab="more" data-jump="report">
+          <div class="menu-card-icon" style="background:var(--success-light)">💰</div>
+          <div>
+            <div class="menu-card-title">월간 정산</div>
+            <div class="menu-card-meta" id="menu-report-meta">이번달 0건</div>
+          </div>
+        </button>
+      </div>
+
+      <div class="info-banner" style="margin-top:20px">
+        <div class="info-banner-icon">🎉</div>
+        <div class="info-banner-text">
+          <strong>v6.0 Phase 2-C 완성!</strong><br>
+          예약 탭에 📅캘린더뷰 / 🔍검색 / 🧺비품메모 / 💰정산 추가됐어요. Phase 3 (Firebase 연동) 준비 중.
+        </div>
+      </div>
+    </section>
+
+    <!-- 예약 -->
+    <section class="section" id="section-booking">
+      <h2 class="section-title">예약 관리</h2>
+      <p class="section-subtitle" id="booking-subtitle">전체 0건</p>
+
+      <!-- 뷰 토글 -->
+      <div class="view-toggle">
+        <button class="view-toggle-btn active" data-view="list">📋 목록</button>
+        <button class="view-toggle-btn" data-view="calendar">📅 달력</button>
+      </div>
+
+      <!-- 목록 뷰 -->
+      <div id="view-list">
+        <!-- 검색바 -->
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="booking-search" placeholder="게스트명, 객실명 검색...">
+          <button class="search-clear hidden" id="booking-search-clear">×</button>
+        </div>
+
+        <div class="chips" id="booking-chips">
+          <button class="chip active" data-filter="all">전체</button>
+          <button class="chip" data-filter="today">오늘</button>
+          <button class="chip" data-filter="tomorrow">내일</button>
+          <button class="chip" data-filter="week">이번주</button>
+          <button class="chip" data-filter="multi">연박</button>
+          <button class="chip" data-filter="ical">iCal</button>
+        </div>
+
+        <div id="booking-list"></div>
+      </div>
+
+      <!-- 캘린더 뷰 -->
+      <div id="view-calendar" style="display:none">
+        <div class="cal-header">
+          <button class="cal-nav" id="cal-prev">‹</button>
+          <div class="cal-month" id="cal-month">2026년 5월</div>
+          <button class="cal-nav" id="cal-next">›</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div class="cal-legend">
+          <div class="cal-legend-item">
+            <span class="cal-legend-dot" style="background:var(--primary-light)"></span>
+            <span>체크인</span>
+          </div>
+          <div class="cal-legend-item">
+            <span class="cal-legend-dot" style="background:var(--warning-light)"></span>
+            <span>체크아웃</span>
+          </div>
+          <div class="cal-legend-item">
+            <span class="cal-legend-dot" style="background:#FCE7F3"></span>
+            <span>청소</span>
+          </div>
+          <div class="cal-legend-item">
+            <span class="cal-legend-dot" style="background:var(--success-light)"></span>
+            <span>완료</span>
+          </div>
+        </div>
+        <div id="cal-detail"></div>
+      </div>
+    </section>
+
+    <!-- 빠른작업 -->
+    <section class="section" id="section-quick">
+      <h2 class="section-title">빠른 작업</h2>
+      <p class="section-subtitle">자주 쓰는 작업을 한 곳에</p>
+
+      <button class="quick-action featured" id="btn-quick-booking-quick">
+        <div class="qa-icon">⚡</div>
+        <div class="qa-text">
+          <div class="qa-title">빠른 예약 추가</div>
+          <div class="qa-meta">날짜·인원만 입력하면 자동완성</div>
+        </div>
+        <div class="qa-arrow">›</div>
+      </button>
+
+      <button class="quick-action" id="btn-sync-quick">
+        <div class="qa-icon cool">🔄</div>
+        <div class="qa-text">
+          <div class="qa-title">iCal 즉시 동기화</div>
+          <div class="qa-meta">모든 객실의 에어비앤비 캘린더</div>
+        </div>
+        <div class="qa-arrow">›</div>
+      </button>
+
+      <button class="quick-action kakao" id="btn-send-pending-quick">
+        <div class="qa-icon">💬</div>
+        <div class="qa-text">
+          <div class="qa-title">미발송 알림 일괄 발송</div>
+          <div class="qa-meta" id="pending-meta-quick">미발송 0건</div>
+        </div>
+        <div class="qa-arrow">›</div>
+      </button>
+
+      <button class="quick-action" id="btn-add-supplies">
+        <div class="qa-icon" style="background:#FEE2E2">🧺</div>
+        <div class="qa-text">
+          <div class="qa-title">비품 요청 추가</div>
+          <div class="qa-meta">호스트가 새 요청 등록</div>
+        </div>
+        <div class="qa-arrow">›</div>
+      </button>
+
+      <button class="quick-action" id="btn-add-booking-full">
+        <div class="qa-icon green">📅</div>
+        <div class="qa-text">
+          <div class="qa-title">상세 예약 추가</div>
+          <div class="qa-meta">모든 정보를 자세히 입력</div>
+        </div>
+        <div class="qa-arrow">›</div>
+      </button>
+
+      <button class="quick-action" id="btn-add-room">
+        <div class="qa-icon warm">🏨</div>
+        <div class="qa-text">
+          <div class="qa-title">객실 추가</div>
+          <div class="qa-meta">새 숙소 등록</div>
+        </div>
+        <div class="qa-arrow">›</div>
+      </button>
+
+      <button class="quick-action" id="btn-add-staff">
+        <div class="qa-icon" style="background:#FCE7F3">👤</div>
+        <div class="qa-text">
+          <div class="qa-title">청소직원 추가</div>
+          <div class="qa-meta">새 직원 등록</div>
+        </div>
+        <div class="qa-arrow">›</div>
+      </button>
+    </section>
+
+    <!-- 청소 -->
+    <section class="section" id="section-cleaning">
+      <h2 class="section-title">청소 일정</h2>
+      <p class="section-subtitle" id="cleaning-subtitle">오늘 0건</p>
+
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="cleaning-search" placeholder="객실, 직원 검색...">
+        <button class="search-clear hidden" id="cleaning-search-clear">×</button>
+      </div>
+
+      <div class="chips" id="cleaning-chips">
+        <button class="chip active" data-filter="today">오늘</button>
+        <button class="chip" data-filter="tomorrow">내일</button>
+        <button class="chip" data-filter="week">이번주</button>
+        <button class="chip" data-filter="all">전체</button>
+        <button class="chip" data-filter="done">완료됨</button>
+      </div>
+
+      <div id="cleaning-list"></div>
+    </section>
+
+    <!-- 더보기 -->
+    <section class="section" id="section-more">
+      <h2 class="section-title">더보기</h2>
+      <p class="section-subtitle">관리·자동화·정산</p>
+
+      <div class="section-eyebrow">관리</div>
+      <div class="menu-list">
+        <button class="menu-row" id="menu-rooms">
+          <div class="menu-row-icon">🏨</div>
+          <div class="menu-row-text">
+            <div class="menu-row-title">객실 관리</div>
+            <div class="menu-row-desc" id="rooms-desc">0개 객실</div>
+          </div>
+          <div class="menu-row-arrow">›</div>
+        </button>
+        <button class="menu-row" id="menu-staff">
+          <div class="menu-row-icon">👥</div>
+          <div class="menu-row-text">
+            <div class="menu-row-title">청소직원</div>
+            <div class="menu-row-desc" id="staff-desc">0명</div>
+          </div>
+          <div class="menu-row-arrow">›</div>
+        </button>
+        <button class="menu-row" id="menu-supplies">
+          <div class="menu-row-icon">🧺</div>
+          <div class="menu-row-text">
+            <div class="menu-row-title">비품 메모 / 호스트 요청</div>
+            <div class="menu-row-desc" id="supplies-desc">0건 요청</div>
+          </div>
+          <div class="menu-row-arrow">›</div>
+        </button>
+        <button class="menu-row" id="menu-report">
+          <div class="menu-row-icon">💰</div>
+          <div class="menu-row-text">
+            <div class="menu-row-title">월간 정산</div>
+            <div class="menu-row-desc" id="report-desc">이번달 0건</div>
+          </div>
+          <div class="menu-row-arrow">›</div>
+        </button>
+      </div>
+
+      <div class="section-eyebrow">자동화 설정</div>
+      <div class="menu-list">
+        <button class="menu-row" id="menu-ical-settings">
+          <div class="menu-row-icon">🔄</div>
+          <div class="menu-row-text">
+            <div class="menu-row-title">iCal 동기화 설정</div>
+            <div class="menu-row-desc" id="ical-settings-desc">자동 동기화 OFF</div>
+          </div>
+          <div class="menu-row-arrow">›</div>
+        </button>
+        <button class="menu-row" id="menu-message-template">
+          <div class="menu-row-icon">💬</div>
+          <div class="menu-row-text">
+            <div class="menu-row-title">카톡 메시지 템플릿</div>
+            <div class="menu-row-desc">알림 메시지 형식 편집</div>
+          </div>
+          <div class="menu-row-arrow">›</div>
+        </button>
+      </div>
+
+      <div class="section-eyebrow">설정</div>
+      <div class="menu-list">
+        <button class="menu-row" id="menu-export">
+          <div class="menu-row-icon">📤</div>
+          <div class="menu-row-text">
+            <div class="menu-row-title">데이터 백업 (내보내기)</div>
+            <div class="menu-row-desc">JSON 파일로 저장</div>
+          </div>
+          <div class="menu-row-arrow">›</div>
+        </button>
+        <button class="menu-row" id="menu-import">
+          <div class="menu-row-icon">📥</div>
+          <div class="menu-row-text">
+            <div class="menu-row-title">데이터 복원 (불러오기)</div>
+            <div class="menu-row-desc">백업 파일 가져오기</div>
+          </div>
+          <div class="menu-row-arrow">›</div>
+        </button>
+        <button class="menu-row" id="menu-sample">
+          <div class="menu-row-icon">🎁</div>
+          <div class="menu-row-text">
+            <div class="menu-row-title">샘플 데이터 넣기</div>
+            <div class="menu-row-desc">테스트용 객실·직원·예약</div>
+          </div>
+          <div class="menu-row-arrow">›</div>
+        </button>
+        <button class="menu-row" id="menu-reset">
+          <div class="menu-row-icon">🔄</div>
+          <div class="menu-row-text">
+            <div class="menu-row-title" style="color:var(--danger)">전체 초기화</div>
+            <div class="menu-row-desc">모든 데이터 삭제</div>
+          </div>
+          <div class="menu-row-arrow">›</div>
+        </button>
+        <button class="menu-row" id="menu-logout">
+          <div class="menu-row-icon">🚪</div>
+          <div class="menu-row-text">
+            <div class="menu-row-title">로그아웃</div>
+          </div>
+          <div class="menu-row-arrow">›</div>
+        </button>
+      </div>
+
+      <!-- 인라인 관리 화면들 -->
+      <div id="manage-rooms" style="display:none">
+        <div class="section-eyebrow" style="display:flex; align-items:center">
+          <span style="flex:1">객실 목록</span>
+          <button style="font-size:12px; color:var(--primary); font-weight:700" data-back="manage">← 뒤로</button>
+        </div>
+        <div id="rooms-list"></div>
+        <button class="quick-action" id="btn-add-room-inline" style="margin-top:8px">
+          <div class="qa-icon cool">+</div>
+          <div class="qa-text">
+            <div class="qa-title">객실 추가</div>
+            <div class="qa-meta">새 객실 등록</div>
+          </div>
+          <div class="qa-arrow">›</div>
+        </button>
+      </div>
+
+      <div id="manage-staff" style="display:none">
+        <div class="section-eyebrow" style="display:flex; align-items:center">
+          <span style="flex:1">청소직원 목록</span>
+          <button style="font-size:12px; color:var(--primary); font-weight:700" data-back="manage">← 뒤로</button>
+        </div>
+        <div id="staff-list"></div>
+        <button class="quick-action" id="btn-add-staff-inline" style="margin-top:8px">
+          <div class="qa-icon" style="background:#FCE7F3">+</div>
+          <div class="qa-text">
+            <div class="qa-title">청소직원 추가</div>
+            <div class="qa-meta">새 직원 등록</div>
+          </div>
+          <div class="qa-arrow">›</div>
+        </button>
+      </div>
+
+      <!-- 🧺 비품/요청 -->
+      <div id="manage-supplies" style="display:none">
+        <div class="section-eyebrow" style="display:flex; align-items:center">
+          <span style="flex:1">비품 메모 / 호스트 요청</span>
+          <button style="font-size:12px; color:var(--primary); font-weight:700" data-back="manage">← 뒤로</button>
+        </div>
+        <div id="supplies-list"></div>
+        <button class="quick-action" id="btn-add-supplies-inline" style="margin-top:8px">
+          <div class="qa-icon" style="background:#FEE2E2">+</div>
+          <div class="qa-text">
+            <div class="qa-title">새 요청 추가</div>
+            <div class="qa-meta">객실별 비품 메모 / 호스트 요청</div>
+          </div>
+          <div class="qa-arrow">›</div>
+        </button>
+      </div>
+
+      <!-- 💰 월간 정산 -->
+      <div id="manage-report" style="display:none">
+        <div class="section-eyebrow" style="display:flex; align-items:center">
+          <span style="flex:1">월간 정산</span>
+          <button style="font-size:12px; color:var(--primary); font-weight:700" data-back="manage">← 뒤로</button>
+        </div>
+        <div class="month-picker">
+          <button class="month-picker-btn" id="report-prev">‹</button>
+          <div class="month-picker-label" id="report-month">2026년 5월</div>
+          <button class="month-picker-btn" id="report-next">›</button>
+        </div>
+        <div id="report-summary"></div>
+        <div class="section-eyebrow" style="margin-top:14px">객실별 청소 건수</div>
+        <div id="report-rooms"></div>
+        <div class="section-eyebrow" style="margin-top:14px">직원별 청소 건수</div>
+        <div id="report-staff"></div>
+      </div>
+
+      <div class="info-banner" style="margin-top:16px">
+        <div class="info-banner-icon">🛣️</div>
+        <div class="info-banner-text">
+          <strong>다음 단계 (Phase 3):</strong><br>
+          Firebase 클라우드 연동 · 실시간 동기화 · 푸시 알림 · 기존 v5.3 데이터 호환
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <button class="fab" id="fab" aria-label="추가">+</button>
+
+  <nav class="tabbar">
+    <button class="tab-btn active" data-tab="home">
+      <span class="tab-icon">🏠</span><span>홈</span>
+    </button>
+    <button class="tab-btn" data-tab="booking">
+      <span class="tab-icon">📅</span><span>예약</span>
+    </button>
+    <button class="tab-btn center" data-tab="quick">
+      <span class="tab-icon">⚡</span><span style="margin-top:14px">빠른작업</span>
+    </button>
+    <button class="tab-btn" data-tab="cleaning">
+      <span class="tab-icon">🧹</span><span>청소</span>
+    </button>
+    <button class="tab-btn" data-tab="more">
+      <span class="tab-icon">⋯</span><span>더보기</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- 모달 -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">제목</div>
+      <button class="modal-close" id="modal-close">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast">알림</div>
+
+<script>
+'use strict';
+
+/* ============================================================
+   ※ 저장소 키
+   ============================================================ */
+const STORE = {
+  rooms:    '룸페커v6-객실',
+  staff:    '룸페커v6-직원',
+  bookings: '룸페커v6-예약',
+  supplies: '룸페커v6-비품',
+  session:  '룸페커v6-세션',
+  settings: '룸페커v6-설정'
+};
+
+const DEFAULT_TEMPLATE = `🧹 청소 요청
+
+📍 객실: {객실명}
+📅 청소일: {청소일} {요일}
+👤 게스트: {게스트명} ({인원}명)
+🔑 체크아웃: {체크아웃}
+🔑 다음 체크인: {다음체크인}
+
+📝 메모:
+{메모}
+
+확인 후 답변 부탁드립니다 🙏`;
+
+const DEFAULT_SETTINGS = {
+  ical: {
+    autoSync: false,
+    intervalMinutes: 30,
+    lastSyncAt: null,
+    blockedKeywords: ['Not available', 'Blocked', 'Airbnb (Not available)'],
+    cooldownSeconds: 30
+  },
+  template: DEFAULT_TEMPLATE
+};
+
+/* ============================================================
+   ※ 안전한 저장/로드
+   ============================================================ */
+function load(key, fallback) {
+  try {
+    const v = localStorage.getItem(key);
+    return v ? JSON.parse(v) : fallback;
+  } catch(e) { console.error('load 실패:', key, e); return fallback; }
+}
+function save(key, data) {
+  try { localStorage.setItem(key, JSON.stringify(data)); return true; }
+  catch(e) { console.error('save 실패:', key, e); showToast('저장 실패'); return false; }
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+/* ============================================================
+   ※ 전역 상태
+   ============================================================ */
+let state = {
+  rooms:    load(STORE.rooms, []),
+  staff:    load(STORE.staff, []),
+  bookings: load(STORE.bookings, []),
+  supplies: load(STORE.supplies, []),
+  settings: { ...DEFAULT_SETTINGS, ...load(STORE.settings, {}) },
+
+  loggedIn: false,
+  role: null,
+
+  currentTab: 'home',
+  bookingFilter: 'all',
+  bookingSearch: '',
+  bookingView: 'list',  // 'list' | 'calendar'
+  cleaningFilter: 'today',
+  cleaningSearch: '',
+  manageView: null,
+
+  calMonth: new Date(),  // 현재 보고 있는 캘린더 월
+  calSelectedDate: null, // 선택한 날짜
+  reportMonth: new Date(),
+
+  syncing: false,
+  autoSyncTimer: null
+};
+
+state.settings.ical = { ...DEFAULT_SETTINGS.ical, ...(state.settings.ical || {}) };
+if (!state.settings.template) state.settings.template = DEFAULT_TEMPLATE;
+
+/* ============================================================
+   ※ 유틸: 날짜
+   ============================================================ */
+function ymd(d) {
+  if (!(d instanceof Date)) d = new Date(d);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function todayYmd() { return ymd(new Date()); }
+function tomorrowYmd() {
+  const t = new Date(); t.setDate(t.getDate() + 1); return ymd(t);
+}
+function weekEndYmd() {
+  const t = new Date(); t.setDate(t.getDate() + 7); return ymd(t);
+}
+function formatDate(s) {
+  if (!s) return '-';
+  const d = new Date(s);
+  if (isNaN(d)) return s;
+  const days = ['일','월','화','수','목','금','토'];
+  return `${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
+}
+function getDayOfWeek(s) {
+  const d = new Date(s);
+  if (isNaN(d)) return '';
+  const days = ['일','월','화','수','목','금','토'];
+  return days[d.getDay()] + '요일';
+}
+function getDayBadge(s) {
+  if (!s) return null;
+  if (s === todayYmd()) return { cls: 'badge-today', text: '오늘' };
+  if (s === tomorrowYmd()) return { cls: 'badge-tomorrow', text: '내일' };
+  return null;
+}
+function nightsBetween(checkin, checkout) {
+  if (!checkin || !checkout) return 0;
+  return Math.round((new Date(checkout) - new Date(checkin)) / 86400000);
+}
+function timeAgo(iso) {
+  if (!iso) return '없음';
+  const ms = Date.now() - new Date(iso).getTime();
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return '방금 전';
+  if (s < 3600) return `${Math.floor(s/60)}분 전`;
+  if (s < 86400) return `${Math.floor(s/3600)}시간 전`;
+  return `${Math.floor(s/86400)}일 전`;
+}
+
+/* ============================================================
+   ※ 토스트
+   ============================================================ */
+let toastTimer = null;
+function showToast(msg) {
+  try {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+  } catch(e) { console.error(e); }
+}
+
+function esc(s) {
+  if (s === undefined || s === null) return '';
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function openModal(title, body, footer) {
+  try {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-body').innerHTML = body;
+    document.getElementById('modal-footer').innerHTML = footer || '';
+    document.getElementById('modal-bg').classList.add('show');
+  } catch(e) { console.error(e); }
+}
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('show');
+}
+
+/* ============================================================
+   ※ 로그인
+   ============================================================ */
+function handleRoleSelect(e) {
+  state.role = e.currentTarget.dataset.role;
+  document.querySelectorAll('.role-card').forEach(c => {
+    c.classList.toggle('selected', c.dataset.role === state.role);
+  });
+}
+function handleLogin() {
+  if (!state.role) { showToast('역할을 먼저 선택해주세요'); return; }
+  const pw = document.getElementById('login-pw').value;
+  if (!pw) { showToast('비밀번호를 입력해주세요'); return; }
+  state.loggedIn = true;
+  save(STORE.session, { role: state.role, time: Date.now() });
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').classList.add('active');
+  const roleNames = { host: '호스트', cleaner: '청소직원', admin: '관리자' };
+  document.getElementById('header-hi').textContent = `${roleNames[state.role]} 모드`;
+  showToast('환영합니다 ✨');
+  startAutoSyncIfEnabled();
+  render();
+}
+function handleLogout() {
+  if (!confirm('로그아웃 하시겠어요?')) return;
+  stopAutoSync();
+  state.loggedIn = false;
+  state.role = null;
+  localStorage.removeItem(STORE.session);
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('login-pw').value = '';
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+  switchTab('home');
+}
+function tryRestoreSession() {
+  try {
+    const session = load(STORE.session, null);
+    if (!session || !session.role) return;
+    if (Date.now() - (session.time || 0) > 7 * 86400000) {
+      localStorage.removeItem(STORE.session);
+      return;
+    }
+    state.role = session.role;
+    state.loggedIn = true;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').classList.add('active');
+    const roleNames = { host: '호스트', cleaner: '청소직원', admin: '관리자' };
+    document.getElementById('header-hi').textContent = `${roleNames[state.role]} 모드`;
+    startAutoSyncIfEnabled();
+  } catch(e) { console.error(e); }
+}
+
+/* ============================================================
+   ※ 탭 전환
+   ============================================================ */
+function switchTab(tab) {
+  state.currentTab = tab;
+  state.manageView = null;
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  document.querySelectorAll('.section').forEach(s => {
+    s.classList.toggle('active', s.id === 'section-' + tab);
+  });
+  document.getElementById('fab').classList.toggle('show', tab === 'booking' && state.bookingView === 'list');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  render();
+}
+
+/* ============================================================
+   ※ 메인 렌더
+   ============================================================ */
+function render() {
+  try {
+    if (state.currentTab === 'home') renderHome();
+    else if (state.currentTab === 'booking') renderBookings();
+    else if (state.currentTab === 'cleaning') renderCleaning();
+    else if (state.currentTab === 'more') renderMore();
+    renderHomeMeta();
+    renderSyncStatus();
+  } catch(e) { console.error('render 실패', e); }
+}
+
+function renderHome() {
+  const today = new Date();
+  const days = ['일','월','화','수','목','금','토'];
+  document.getElementById('mission-date').textContent =
+    `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일 ${days[today.getDay()]}요일`;
+
+  const t = todayYmd();
+  document.getElementById('stat-clean').textContent =
+    state.bookings.filter(b => b.청소일 === t && !b.청소완료).length;
+  document.getElementById('stat-checkin').textContent =
+    state.bookings.filter(b => b.체크인 === t).length;
+  document.getElementById('stat-checkout').textContent =
+    state.bookings.filter(b => b.체크아웃 === t).length;
+}
+
+function renderHomeMeta() {
+  document.getElementById('menu-booking-meta').textContent = `${state.bookings.length}건`;
+  const t = todayYmd();
+  const todayCount = state.bookings.filter(b => b.청소일 === t && !b.청소완료).length;
+  document.getElementById('menu-cleaning-meta').textContent = `오늘 ${todayCount}건`;
+  document.getElementById('menu-rooms-meta').textContent = `${state.rooms.length}개`;
+  document.getElementById('menu-staff-meta').textContent = `${state.staff.length}명`;
+  document.getElementById('rooms-desc').textContent = `${state.rooms.length}개 객실 등록됨`;
+  document.getElementById('staff-desc').textContent = `${state.staff.length}명 등록됨`;
+
+  // 비품 요청 카운트 (미해결만)
+  const pendingSupplies = state.supplies.filter(s => !s.해결됨).length;
+  const supBadge = document.getElementById('menu-supplies-badge');
+  document.getElementById('menu-supplies-meta').textContent = `${pendingSupplies}건 요청`;
+  document.getElementById('supplies-desc').textContent = `미해결 ${pendingSupplies}건`;
+  if (supBadge) supBadge.style.display = pendingSupplies > 0 ? 'block' : 'none';
+
+  // 정산 — 이번달 청소 완료 건수
+  const now = new Date();
+  const ymStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const monthCount = state.bookings.filter(b => b.청소완료 && (b.청소일 || '').startsWith(ymStr)).length;
+  document.getElementById('menu-report-meta').textContent = `이번달 ${monthCount}건`;
+  document.getElementById('report-desc').textContent = `이번달 ${monthCount}건 청소완료`;
+
+  const pending = state.bookings.filter(b =>
+    !b.청소완료 && !b.알림발송됨 &&
+    b.청소일 >= t && b.청소일 <= weekEndYmd()
+  ).length;
+  document.getElementById('pending-meta').textContent = `미발송 ${pending}건`;
+  document.getElementById('pending-meta-quick').textContent = `미발송 ${pending}건`;
+
+  document.getElementById('ical-settings-desc').textContent =
+    state.settings.ical.autoSync ? `자동 ON · ${state.settings.ical.intervalMinutes}분 주기` : '자동 동기화 OFF';
+}
+
+function renderSyncStatus() {
+  const hasIcal = state.rooms.some(r => r.iCalURL && r.iCalURL.trim());
+  const card = document.getElementById('sync-status-card');
+  card.style.display = hasIcal ? 'flex' : 'none';
+  if (!hasIcal) return;
+
+  const icon = document.getElementById('sync-status-icon');
+  const title = document.getElementById('sync-status-title');
+  const time = document.getElementById('sync-status-time');
+
+  if (state.syncing) {
+    icon.classList.add('syncing');
+    icon.textContent = '🔄';
+    title.textContent = '동기화 중...';
+    time.textContent = '잠시만 기다려주세요';
+  } else {
+    icon.classList.remove('syncing');
+    if (state.settings.ical.autoSync) {
+      icon.textContent = '✓';
+      title.textContent = `자동 동기화 ON (${state.settings.ical.intervalMinutes}분)`;
+    } else {
+      icon.textContent = '🔄';
+      title.textContent = 'iCal 동기화';
+    }
+    time.textContent = `마지막: ${timeAgo(state.settings.ical.lastSyncAt)}`;
+  }
+
+  document.getElementById('sync-home-meta').textContent =
+    state.settings.ical.lastSyncAt
+      ? `마지막 동기화: ${timeAgo(state.settings.ical.lastSyncAt)}`
+      : '에어비앤비 캘린더 가져오기';
+}
+
+/* ============================================================
+   ※ 예약 화면 (목록 + 캘린더 뷰)
+   ============================================================ */
+function renderBookings() {
+  document.getElementById('booking-subtitle').textContent = `전체 ${state.bookings.length}건`;
+  document.getElementById('view-list').style.display = state.bookingView === 'list' ? 'block' : 'none';
+  document.getElementById('view-calendar').style.display = state.bookingView === 'calendar' ? 'block' : 'none';
+  document.querySelectorAll('.view-toggle-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === state.bookingView);
+  });
+  document.getElementById('fab').classList.toggle('show',
+    state.currentTab === 'booking' && state.bookingView === 'list'
+  );
+
+  if (state.bookingView === 'list') renderBookingList();
+  else renderCalendar();
+}
+
+function bookingMatchesFilter(b, filter) {
+  const t = todayYmd();
+  const tm = tomorrowYmd();
+  const we = weekEndYmd();
+  if (filter === 'all') return true;
+  if (filter === 'today') return b.체크아웃 === t || b.체크인 === t;
+  if (filter === 'tomorrow') return b.체크아웃 === tm || b.체크인 === tm;
+  if (filter === 'week') return b.청소일 >= t && b.청소일 <= we;
+  if (filter === 'multi') return nightsBetween(b.체크인, b.체크아웃) >= 2;
+  if (filter === 'ical') return b.iCal출처 === true;
+  return true;
+}
+
+function bookingMatchesSearch(b, query) {
+  if (!query) return true;
+  const q = query.toLowerCase();
+  const room = state.rooms.find(r => r.id === b.객실ID);
+  const staff = b.담당직원ID ? state.staff.find(s => s.id === b.담당직원ID) : null;
+  const haystack = [
+    b.게스트명, b.연락처, b.메모,
+    room ? room.객실명 : '',
+    room ? room.건물 : '',
+    staff ? staff.이름 : ''
+  ].join(' ').toLowerCase();
+  return haystack.includes(q);
+}
+
+function renderBookingList() {
+  const list = document.getElementById('booking-list');
+  const filtered = state.bookings
+    .filter(b => bookingMatchesFilter(b, state.bookingFilter))
+    .filter(b => bookingMatchesSearch(b, state.bookingSearch))
+    .sort((a, b) => (a.청소일 || '').localeCompare(b.청소일 || ''));
+
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">📅</div>
+        <div class="empty-title">${state.bookings.length === 0 ? '등록된 예약이 없어요' : '조건에 맞는 예약이 없어요'}</div>
+        <div class="empty-desc">${state.bookingSearch ? '검색어를 바꿔보세요' : '+ 버튼으로 예약을 추가하세요'}</div>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = filtered.map(b => bookingCardHtml(b)).join('');
+  bindCardActions(list);
+}
+
+function bookingCardHtml(b) {
+  const room = state.rooms.find(r => r.id === b.객실ID);
+  const staff = b.담당직원ID ? state.staff.find(s => s.id === b.담당직원ID) : null;
+  const nights = nightsBetween(b.체크인, b.체크아웃);
+  const isToday = b.체크아웃 === todayYmd() || b.청소일 === todayYmd();
+
+  // 객실에 미해결 비품 요청이 있는지 확인
+  const hasSupplies = b.객실ID && state.supplies.some(s =>
+    s.객실ID === b.객실ID && !s.해결됨
+  );
+
+  let badges = '';
+  const dayBadge = getDayBadge(b.체크아웃);
+  if (dayBadge) badges += `<span class="badge ${dayBadge.cls}">체크아웃 ${dayBadge.text}</span>`;
+  if (b.청소완료) badges += `<span class="badge badge-done">청소완료</span>`;
+  else if (b.청소일 === todayYmd()) badges += `<span class="badge badge-progress">청소 예정</span>`;
+  if (nights >= 2) badges += `<span class="badge badge-multi">${nights}박 연박</span>`;
+  if (b.iCal출처) badges += `<span class="badge badge-ical">📡 iCal</span>`;
+  if (b.알림발송됨) badges += `<span class="badge badge-sent">✓ 알림발송</span>`;
+  if (hasSupplies) badges += `<span class="badge badge-supplies">🧺 요청있음</span>`;
+
+  return `
+    <div class="list-card ${isToday ? 'today' : ''} ${b.청소완료 ? 'completed' : ''}">
+      <div class="lc-row">${badges || '<span class="badge badge-soon">예정</span>'}</div>
+      <div class="lc-title">${room ? '🏨 ' + esc(room.객실명) : '<span style="color:var(--danger)">(객실 삭제됨)</span>'}</div>
+      <div class="lc-meta">${esc(b.게스트명) || '게스트'}${b.인원 ? ' · ' + b.인원 + '명' : ''}${nights ? ' · ' + nights + '박' : ''}</div>
+      <div class="lc-info">
+        <div class="lc-label">체크인</div><div class="lc-value">${formatDate(b.체크인)}${b.체크인시간 ? ' ' + b.체크인시간 : ''}</div>
+        <div class="lc-label">체크아웃</div><div class="lc-value">${formatDate(b.체크아웃)}${b.체크아웃시간 ? ' ' + b.체크아웃시간 : ''}</div>
+        <div class="lc-label">청소일</div><div class="lc-value">${formatDate(b.청소일)}</div>
+        <div class="lc-label">담당</div><div class="lc-value">${staff ? esc(staff.이름) : '<span style="color:var(--muted)">미지정</span>'}</div>
+        ${b.연락처 ? `<div class="lc-label">연락처</div><div class="lc-value">${esc(b.연락처)}</div>` : ''}
+        ${b.메모 ? `<div class="lc-label">메모</div><div class="lc-value">${esc(b.메모)}</div>` : ''}
+      </div>
+      <div class="lc-actions">
+        ${!b.청소완료 ? `<button class="btn-mini success" data-act="done" data-id="${b.id}">✓ 청소완료</button>` : `<button class="btn-mini" data-act="done" data-id="${b.id}">↺ 완료취소</button>`}
+        ${staff ? `<button class="btn-mini kakao" data-act="kakao" data-id="${b.id}">💬 카톡</button>` : ''}
+        <button class="btn-mini" data-act="edit" data-id="${b.id}">수정</button>
+        <button class="btn-mini danger" data-act="del" data-id="${b.id}">삭제</button>
+      </div>
+    </div>
+  `;
+}
+
+function bindCardActions(container) {
+  container.querySelectorAll('[data-act]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const act = btn.dataset.act;
+      const id = btn.dataset.id;
+      if (act === 'edit') openBookingForm(id);
+      else if (act === 'del') deleteBooking(id);
+      else if (act === 'done') toggleCleaningDone(id);
+      else if (act === 'kakao') sendKakaoNotice(id);
+    });
+  });
+}
+
+/* ============================================================
+   ※ 📅 캘린더 뷰
+   ============================================================ */
+function renderCalendar() {
+  const month = state.calMonth;
+  const year = month.getFullYear();
+  const m = month.getMonth();
+
+  document.getElementById('cal-month').textContent = `${year}년 ${m + 1}월`;
+
+  // 달의 첫날 / 마지막날
+  const firstDay = new Date(year, m, 1);
+  const lastDay = new Date(year, m + 1, 0);
+  const startWeekday = firstDay.getDay();
+  const daysInMonth = lastDay.getDate();
+
+  // 그리드 생성: 요일 헤더 + 6주 분량 (42칸)
+  let html = `
+    <div class="cal-week-row">
+      <div class="cal-day-name sun">일</div>
+      <div class="cal-day-name">월</div>
+      <div class="cal-day-name">화</div>
+      <div class="cal-day-name">수</div>
+      <div class="cal-day-name">목</div>
+      <div class="cal-day-name">금</div>
+      <div class="cal-day-name sat">토</div>
+    </div>
+  `;
+
+  // 첫 주 빈 칸 + 날짜
+  let dayCounter = 1;
+  const totalCells = Math.ceil((startWeekday + daysInMonth) / 7) * 7;
+
+  for (let week = 0; week < totalCells / 7; week++) {
+    html += '<div class="cal-week-row">';
+    for (let dow = 0; dow < 7; dow++) {
+      const cellIdx = week * 7 + dow;
+      if (cellIdx < startWeekday || dayCounter > daysInMonth) {
+        html += `<div class="cal-day empty"></div>`;
+      } else {
+        const dayNum = dayCounter;
+        const dateStr = `${year}-${String(m+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+        const isToday = dateStr === todayYmd();
+        const isSelected = state.calSelectedDate === dateStr;
+
+        // 이 날짜의 이벤트 모으기
+        const events = getCalendarEventsForDate(dateStr);
+        const visibleEvents = events.slice(0, 2);
+        const moreCount = events.length - visibleEvents.length;
+
+        const dowClass = dow === 0 ? 'sun' : dow === 6 ? 'sat' : '';
+
+        html += `
+          <div class="cal-day ${dowClass} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" data-date="${dateStr}">
+            <div class="cal-day-num">${dayNum}</div>
+            <div class="cal-events">
+              ${visibleEvents.map(ev => `<div class="cal-event ${ev.type}">${esc(ev.label)}</div>`).join('')}
+              ${moreCount > 0 ? `<div class="cal-event-more">+${moreCount}</div>` : ''}
+            </div>
+          </div>
+        `;
+        dayCounter++;
+      }
+    }
+    html += '</div>';
+  }
+
+  document.getElementById('cal-grid').innerHTML = html;
+
+  // 날짜 클릭 이벤트
+  document.querySelectorAll('.cal-day[data-date]').forEach(cell => {
+    cell.addEventListener('click', () => {
+      state.calSelectedDate = cell.dataset.date;
+      renderCalendar();
+      renderCalDayDetail();
+    });
+  });
+
+  renderCalDayDetail();
+}
+
+function getCalendarEventsForDate(dateStr) {
+  const events = [];
+  state.bookings.forEach(b => {
+    const room = state.rooms.find(r => r.id === b.객실ID);
+    const roomName = room ? room.객실명 : '?';
+    if (b.체크인 === dateStr) {
+      events.push({ type: 'checkin', label: '🔑 ' + roomName, booking: b });
+    }
+    if (b.체크아웃 === dateStr) {
+      const cls = b.청소완료 ? 'done' : 'checkout';
+      events.push({ type: cls, label: '🧹 ' + roomName, booking: b });
+    } else if (b.청소일 === dateStr && b.청소일 !== b.체크아웃) {
+      const cls = b.청소완료 ? 'done' : 'cleaning';
+      events.push({ type: cls, label: '🧹 ' + roomName, booking: b });
+    }
+  });
+  return events;
+}
+
+function renderCalDayDetail() {
+  const detail = document.getElementById('cal-detail');
+  if (!state.calSelectedDate) {
+    detail.innerHTML = `
+      <div class="info-banner">
+        <div class="info-banner-icon">👆</div>
+        <div class="info-banner-text">
+          <strong>날짜를 탭하면</strong> 그 날의 예약·체크인·청소를 자세히 볼 수 있어요.
+        </div>
+      </div>
+    `;
+    return;
+  }
+  const events = getCalendarEventsForDate(state.calSelectedDate);
+  if (events.length === 0) {
+    detail.innerHTML = `
+      <div class="cal-day-detail">
+        <div class="cal-day-detail-title">${formatDate(state.calSelectedDate)}</div>
+        <div style="text-align:center; color:var(--muted); padding:20px 0; font-size:13px">예약 없음</div>
+      </div>
+    `;
+    return;
+  }
+  // 같은 예약이 여러 이벤트(체크인+체크아웃)로 잡히지 않게 unique
+  const uniqueBookings = [];
+  const seen = new Set();
+  events.forEach(ev => {
+    if (!seen.has(ev.booking.id)) {
+      seen.add(ev.booking.id);
+      uniqueBookings.push(ev.booking);
+    }
+  });
+
+  detail.innerHTML = `
+    <div class="cal-day-detail-title" style="margin-bottom:8px; padding:0 4px">
+      ${formatDate(state.calSelectedDate)} (${uniqueBookings.length}건)
+    </div>
+    ${uniqueBookings.map(b => bookingCardHtml(b)).join('')}
+  `;
+  bindCardActions(detail);
+}
+
+function changeMonth(delta) {
+  const m = new Date(state.calMonth);
+  m.setMonth(m.getMonth() + delta);
+  state.calMonth = m;
+  state.calSelectedDate = null;
+  renderCalendar();
+}
+
+/* ============================================================
+   ※ 청소 일정
+   ============================================================ */
+function cleaningMatchesFilter(b, filter) {
+  const t = todayYmd();
+  const tm = tomorrowYmd();
+  const we = weekEndYmd();
+  if (filter === 'all') return !!b.청소일;
+  if (filter === 'today') return b.청소일 === t && !b.청소완료;
+  if (filter === 'tomorrow') return b.청소일 === tm;
+  if (filter === 'week') return b.청소일 >= t && b.청소일 <= we && !b.청소완료;
+  if (filter === 'done') return b.청소완료;
+  return true;
+}
+
+function renderCleaning() {
+  const list = document.getElementById('cleaning-list');
+  const filtered = state.bookings
+    .filter(b => cleaningMatchesFilter(b, state.cleaningFilter))
+    .filter(b => bookingMatchesSearch(b, state.cleaningSearch))
+    .sort((a, b) => (a.청소일 || '').localeCompare(b.청소일 || ''));
+
+  document.getElementById('cleaning-subtitle').textContent =
+    state.cleaningFilter === 'today' ? `오늘 ${filtered.length}건`
+    : state.cleaningFilter === 'tomorrow' ? `내일 ${filtered.length}건`
+    : state.cleaningFilter === 'week' ? `이번주 ${filtered.length}건`
+    : state.cleaningFilter === 'done' ? `완료 ${filtered.length}건`
+    : `전체 ${filtered.length}건`;
+
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">🧹</div>
+        <div class="empty-title">청소 일정이 없어요</div>
+        <div class="empty-desc">${state.cleaningSearch ? '검색어를 바꿔보세요' : '예약 추가시 자동으로 잡혀요'}</div>
+      </div>
+    `;
+    return;
+  }
+  list.innerHTML = filtered.map(b => bookingCardHtml(b)).join('');
+  bindCardActions(list);
+}
+
+/* ============================================================
+   ※ 더보기 화면
+   ============================================================ */
+function renderMore() {
+  const ids = ['manage-rooms', 'manage-staff', 'manage-supplies', 'manage-report'];
+  ids.forEach(id => {
+    document.getElementById(id).style.display = state.manageView === id.replace('manage-', '') ? 'block' : 'none';
+  });
+
+  const showMenus = state.manageView === null;
+  document.querySelectorAll('#section-more > .menu-list, #section-more > .section-eyebrow:not([id^=anchor]), #section-more > .info-banner')
+    .forEach(el => { el.style.display = showMenus ? '' : 'none'; });
+  document.querySelector('#section-more .section-title').style.display = showMenus ? '' : 'none';
+  document.querySelector('#section-more .section-subtitle').style.display = showMenus ? '' : 'none';
+
+  if (state.manageView === 'rooms') renderRoomsList();
+  if (state.manageView === 'staff') renderStaffList();
+  if (state.manageView === 'supplies') renderSuppliesList();
+  if (state.manageView === 'report') renderReport();
+}
+
+function renderRoomsList() {
+  const list = document.getElementById('rooms-list');
+  if (state.rooms.length === 0) {
+    list.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">🏨</div>
+        <div class="empty-title">등록된 객실이 없어요</div>
+        <div class="empty-desc">아래에서 객실을 추가하세요</div>
+      </div>
+    `;
+    return;
+  }
+  list.innerHTML = state.rooms.map(r => {
+    const staff = r.담당직원ID ? state.staff.find(s => s.id === r.담당직원ID) : null;
+    const bookingCount = state.bookings.filter(b => b.객실ID === r.id).length;
+    const supplyCount = state.supplies.filter(s => s.객실ID === r.id && !s.해결됨).length;
+    const hasIcal = r.iCalURL && r.iCalURL.trim();
+    return `
+      <div class="list-card">
+        <div class="lc-row">
+          ${hasIcal ? '<span class="badge badge-ical">📡 iCal 연결</span>' : ''}
+          ${supplyCount > 0 ? `<span class="badge badge-supplies">🧺 요청 ${supplyCount}건</span>` : ''}
+        </div>
+        <div class="lc-title">🏨 ${esc(r.객실명)}</div>
+        <div class="lc-meta">${r.건물 ? esc(r.건물) + ' · ' : ''}예약 ${bookingCount}건</div>
+        <div class="lc-info">
+          <div class="lc-label">체크인</div><div class="lc-value">${esc(r.체크인시간 || '15:00')}</div>
+          <div class="lc-label">체크아웃</div><div class="lc-value">${esc(r.체크아웃시간 || '11:00')}</div>
+          <div class="lc-label">담당청소</div><div class="lc-value">${staff ? esc(staff.이름) : '<span style="color:var(--muted)">미지정</span>'}</div>
+          ${r.메모 ? `<div class="lc-label">메모</div><div class="lc-value">${esc(r.메모)}</div>` : ''}
+        </div>
+        <div class="lc-actions">
+          ${hasIcal ? `<button class="btn-mini primary" data-act="sync-room" data-id="${r.id}">🔄 동기화</button>` : ''}
+          <button class="btn-mini" data-act="edit-room" data-id="${r.id}">수정</button>
+          <button class="btn-mini danger" data-act="del-room" data-id="${r.id}">삭제</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  list.querySelectorAll('[data-act]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const act = btn.dataset.act;
+      const id = btn.dataset.id;
+      if (act === 'edit-room') openRoomForm(id);
+      else if (act === 'del-room') deleteRoom(id);
+      else if (act === 'sync-room') syncSingleRoom(id);
+    });
+  });
+}
+
+function renderStaffList() {
+  const list = document.getElementById('staff-list');
+  if (state.staff.length === 0) {
+    list.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">👥</div>
+        <div class="empty-title">등록된 직원이 없어요</div>
+        <div class="empty-desc">아래에서 직원을 추가하세요</div>
+      </div>
+    `;
+    return;
+  }
+  list.innerHTML = state.staff.map(s => {
+    const roomCount = state.rooms.filter(r => r.담당직원ID === s.id).length;
+    return `
+      <div class="staff-card">
+        <div class="staff-avatar">${esc(s.이름.slice(0,1))}</div>
+        <div class="staff-info">
+          <div class="staff-name">${esc(s.이름)}</div>
+          <div class="staff-meta">📞 ${esc(s.전화번호 || '번호 없음')} · 담당 ${roomCount}개</div>
+        </div>
+        <button class="staff-action" data-act="edit-staff" data-id="${s.id}">›</button>
+      </div>
+    `;
+  }).join('');
+  list.querySelectorAll('[data-act]').forEach(btn => {
+    btn.addEventListener('click', () => openStaffForm(btn.dataset.id));
+  });
+}
+
+/* ============================================================
+   ※ 🧺 비품/요청 화면
+   ============================================================ */
+function renderSuppliesList() {
+  const list = document.getElementById('supplies-list');
+
+  // 객실별로 그룹화
+  const byRoom = {};
+  state.rooms.forEach(r => { byRoom[r.id] = []; });
+  state.supplies.forEach(s => {
+    if (byRoom[s.객실ID]) byRoom[s.객실ID].push(s);
+  });
+
+  // 객실 없는 supplies (객실 삭제된 경우)
+  const orphans = state.supplies.filter(s => !state.rooms.find(r => r.id === s.객실ID));
+
+  if (state.supplies.length === 0 && state.rooms.length === 0) {
+    list.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">🏨</div>
+        <div class="empty-title">먼저 객실을 등록하세요</div>
+        <div class="empty-desc">객실이 있어야 비품 요청을 등록할 수 있어요</div>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+
+  if (state.supplies.length === 0) {
+    html += `
+      <div class="info-banner">
+        <div class="info-banner-icon">💡</div>
+        <div class="info-banner-text">
+          <strong>비품 메모란?</strong><br>
+          호스트가 객실별로 추가 요청사항을 기록할 수 있어요. (예: 욕실 수건 추가, 베이비침대 정리)<br>
+          기록된 요청은 청소 카드에 자동으로 표시됩니다.
+        </div>
+      </div>
+    `;
+  }
+
+  // 객실별 카드 (요청 있는 것만 먼저)
+  const sortedRooms = [...state.rooms].sort((a, b) => {
+    const aPending = (byRoom[a.id] || []).filter(s => !s.해결됨).length;
+    const bPending = (byRoom[b.id] || []).filter(s => !s.해결됨).length;
+    return bPending - aPending;
+  });
+
+  sortedRooms.forEach(room => {
+    const items = byRoom[room.id] || [];
+    if (items.length === 0) return;  // 요청 없는 객실은 표시 안 함
+
+    const pending = items.filter(s => !s.해결됨);
+    const resolved = items.filter(s => s.해결됨);
+
+    html += `
+      <div class="supplies-card ${pending.length > 0 ? 'has-request' : ''}">
+        <div class="supplies-row">
+          <div class="supplies-title">🏨 ${esc(room.객실명)}</div>
+          ${pending.length > 0 ? `<span class="badge badge-supplies">${pending.length}건 요청</span>` : '<span class="badge badge-done">완료</span>'}
+        </div>
+        <div class="supplies-list">
+          ${pending.map(s => `
+            <div class="supplies-item ${s.긴급 ? 'urgent' : ''}">
+              <div class="supplies-item-icon">${s.긴급 ? '🔴' : '📝'}</div>
+              <div class="supplies-item-text">
+                <div>${esc(s.내용)}</div>
+                <div class="supplies-item-time">${timeAgo(s.생성시각)} · ${esc(s.작성자 || '호스트')}</div>
+              </div>
+              <button class="btn-mini success" data-act="resolve-supply" data-id="${s.id}">✓ 완료</button>
+              <button class="supplies-item-del" data-act="del-supply" data-id="${s.id}">×</button>
+            </div>
+          `).join('')}
+          ${resolved.map(s => `
+            <div class="supplies-item" style="opacity:0.5">
+              <div class="supplies-item-icon">✓</div>
+              <div class="supplies-item-text">
+                <div style="text-decoration:line-through">${esc(s.내용)}</div>
+                <div class="supplies-item-time">완료: ${timeAgo(s.해결시각)}</div>
+              </div>
+              <button class="btn-mini" data-act="reopen-supply" data-id="${s.id}">↺</button>
+              <button class="supplies-item-del" data-act="del-supply" data-id="${s.id}">×</button>
+            </div>
+          `).join('')}
+        </div>
+        <div class="lc-actions" style="margin-top:10px">
+          <button class="btn-mini primary" data-act="add-supply-room" data-room="${room.id}">+ 추가</button>
+        </div>
+      </div>
+    `;
+  });
+
+  // 요청 없는 객실들
+  const noRequestRooms = sortedRooms.filter(r => (byRoom[r.id] || []).length === 0);
+  if (noRequestRooms.length > 0) {
+    html += `<div class="section-eyebrow" style="margin-top:14px">요청 없는 객실</div>`;
+    html += noRequestRooms.map(r => `
+      <div class="supplies-card">
+        <div class="supplies-row">
+          <div class="supplies-title">🏨 ${esc(r.객실명)}</div>
+          <button class="btn-mini primary" data-act="add-supply-room" data-room="${r.id}">+ 추가</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // 고아 supplies
+  if (orphans.length > 0) {
+    html += `
+      <div class="warning-banner info-banner" style="margin-top:14px">
+        <div class="info-banner-icon">⚠️</div>
+        <div class="info-banner-text">
+          <strong>객실 삭제됨</strong><br>
+          ${orphans.length}건의 요청이 삭제된 객실에 연결되어 있어요. 정리하시려면 아래에서 삭제하세요.
+        </div>
+      </div>
+      <div class="supplies-card">
+        <div class="supplies-list">
+          ${orphans.map(s => `
+            <div class="supplies-item">
+              <div class="supplies-item-icon">❓</div>
+              <div class="supplies-item-text">
+                <div>${esc(s.내용)}</div>
+                <div class="supplies-item-time">객실 삭제됨</div>
+              </div>
+              <button class="supplies-item-del" data-act="del-supply" data-id="${s.id}">×</button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  list.innerHTML = html;
+
+  list.querySelectorAll('[data-act]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const act = btn.dataset.act;
+      if (act === 'add-supply-room') openSuppliesForm(null, btn.dataset.room);
+      else if (act === 'resolve-supply') resolveSupply(btn.dataset.id);
+      else if (act === 'reopen-supply') reopenSupply(btn.dataset.id);
+      else if (act === 'del-supply') deleteSupply(btn.dataset.id);
+    });
+  });
+}
+
+function openSuppliesForm(id, roomId) {
+  if (state.rooms.length === 0) {
+    showToast('먼저 객실을 등록하세요');
+    return;
+  }
+  const s = id ? state.supplies.find(x => x.id === id) : null;
+  const targetRoomId = roomId || (s ? s.객실ID : state.rooms[0].id);
+
+  const roomOptions = state.rooms.map(r =>
+    `<option value="${r.id}" ${r.id === targetRoomId ? 'selected':''}>${esc(r.객실명)}</option>`
+  ).join('');
+
+  const body = `
+    <div class="field">
+      <label class="field-label">객실 <span class="required">*</span></label>
+      <select class="field-select" id="sf-room">${roomOptions}</select>
+    </div>
+    <div class="field">
+      <label class="field-label">요청 내용 <span class="required">*</span></label>
+      <textarea class="field-textarea" id="sf-content" placeholder="예: 욕실 수건 추가 / 베이비침대 정리 / 청소기 필터 교체">${s ? esc(s.내용) : ''}</textarea>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">긴급도</label>
+        <select class="field-select" id="sf-urgent">
+          <option value="0" ${!s || !s.긴급 ? 'selected':''}>일반</option>
+          <option value="1" ${s && s.긴급 ? 'selected':''}>🔴 긴급</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">작성자 (선택)</label>
+        <input class="field-input" id="sf-writer" placeholder="호스트" value="${s ? esc(s.작성자 || '') : ''}">
+      </div>
+    </div>
+    <div class="info-banner">
+      <div class="info-banner-icon">💡</div>
+      <div class="info-banner-text">
+        등록된 요청은 해당 객실의 <strong>청소 카드에 자동 표시</strong>됩니다.<br>
+        청소완료시 함께 처리해주세요.
+      </div>
+    </div>
+  `;
+  const footer = id
+    ? `<button class="btn btn-danger" id="sf-del">삭제</button>
+       <button class="btn btn-primary btn-block" id="sf-save">저장</button>`
+    : `<button class="btn btn-outline" id="sf-cancel">취소</button>
+       <button class="btn btn-primary btn-block" id="sf-save">추가</button>`;
+
+  openModal(id ? '비품 요청 수정' : '비품 요청 추가', body, footer);
+
+  document.getElementById('sf-save').addEventListener('click', () => {
+    const content = document.getElementById('sf-content').value.trim();
+    if (!content) { showToast('요청 내용을 입력하세요'); return; }
+    const data = {
+      객실ID: document.getElementById('sf-room').value,
+      내용: content,
+      긴급: document.getElementById('sf-urgent').value === '1',
+      작성자: document.getElementById('sf-writer').value.trim() || '호스트'
+    };
+    if (id) {
+      Object.assign(state.supplies.find(x => x.id === id), data);
+    } else {
+      state.supplies.push({
+        id: uid(),
+        ...data,
+        해결됨: false,
+        생성시각: new Date().toISOString()
+      });
+    }
+    save(STORE.supplies, state.supplies);
+    closeModal();
+    showToast(id ? '수정됨' : '요청 추가됨 ✓');
+    render();
+  });
+
+  const cancel = document.getElementById('sf-cancel');
+  if (cancel) cancel.addEventListener('click', closeModal);
+  const del = document.getElementById('sf-del');
+  if (del) del.addEventListener('click', () => deleteSupply(id));
+}
+
+function resolveSupply(id) {
+  const s = state.supplies.find(x => x.id === id);
+  if (!s) return;
+  s.해결됨 = true;
+  s.해결시각 = new Date().toISOString();
+  save(STORE.supplies, state.supplies);
+  showToast('✓ 처리 완료');
+  render();
+}
+
+function reopenSupply(id) {
+  const s = state.supplies.find(x => x.id === id);
+  if (!s) return;
+  s.해결됨 = false;
+  delete s.해결시각;
+  save(STORE.supplies, state.supplies);
+  render();
+}
+
+function deleteSupply(id) {
+  if (!confirm('이 요청을 삭제할까요?')) return;
+  state.supplies = state.supplies.filter(x => x.id !== id);
+  save(STORE.supplies, state.supplies);
+  if (document.getElementById('modal-bg').classList.contains('show')) closeModal();
+  showToast('삭제됨');
+  render();
+}
+
+/* ============================================================
+   ※ 💰 월간 정산 화면
+   ============================================================ */
+function renderReport() {
+  const m = state.reportMonth;
+  const year = m.getFullYear();
+  const monthNum = m.getMonth();
+  const ymStr = `${year}-${String(monthNum + 1).padStart(2, '0')}`;
+
+  document.getElementById('report-month').textContent = `${year}년 ${monthNum + 1}월`;
+
+  // 이번달 청소 데이터
+  const monthBookings = state.bookings.filter(b => (b.청소일 || '').startsWith(ymStr));
+  const completed = monthBookings.filter(b => b.청소완료);
+  const pending = monthBookings.filter(b => !b.청소완료);
+
+  // 요약
+  document.getElementById('report-summary').innerHTML = `
+    <div class="report-card">
+      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; text-align:center">
+        <div>
+          <div style="font-size:24px; font-weight:800; color:var(--success)">${completed.length}</div>
+          <div style="font-size:11px; color:var(--muted); font-weight:600; margin-top:2px">청소완료</div>
+        </div>
+        <div>
+          <div style="font-size:24px; font-weight:800; color:var(--warning)">${pending.length}</div>
+          <div style="font-size:11px; color:var(--muted); font-weight:600; margin-top:2px">예정/진행</div>
+        </div>
+        <div>
+          <div style="font-size:24px; font-weight:800; color:var(--primary)">${monthBookings.length}</div>
+          <div style="font-size:11px; color:var(--muted); font-weight:600; margin-top:2px">전체</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 객실별 통계
+  const roomStats = {};
+  monthBookings.forEach(b => {
+    if (!roomStats[b.객실ID]) roomStats[b.객실ID] = { total: 0, done: 0 };
+    roomStats[b.객실ID].total++;
+    if (b.청소완료) roomStats[b.객실ID].done++;
+  });
+
+  const roomList = Object.keys(roomStats).map(rid => {
+    const room = state.rooms.find(r => r.id === rid);
+    return {
+      name: room ? room.객실명 : '(삭제됨)',
+      ...roomStats[rid]
+    };
+  }).sort((a, b) => b.total - a.total);
+
+  const maxRoom = roomList.length > 0 ? Math.max(...roomList.map(r => r.total)) : 1;
+
+  if (roomList.length === 0) {
+    document.getElementById('report-rooms').innerHTML = `
+      <div class="empty" style="padding:30px"><div class="empty-desc">데이터가 없어요</div></div>
+    `;
+  } else {
+    document.getElementById('report-rooms').innerHTML = `
+      <div class="report-card">
+        ${roomList.map(r => `
+          <div class="report-row" style="flex-direction:column; align-items:stretch">
+            <div style="display:flex; align-items:center; margin-bottom:4px">
+              <span class="report-name">🏨 ${esc(r.name)}</span>
+              <span class="report-count">${r.done} / ${r.total}건</span>
+            </div>
+            <div class="report-bar-wrap">
+              <div class="report-bar-fill" style="width:${(r.total / maxRoom * 100).toFixed(0)}%"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  // 직원별 통계
+  const staffStats = {};
+  monthBookings.forEach(b => {
+    const sid = b.담당직원ID || 'unassigned';
+    if (!staffStats[sid]) staffStats[sid] = { total: 0, done: 0 };
+    staffStats[sid].total++;
+    if (b.청소완료) staffStats[sid].done++;
+  });
+
+  const staffList = Object.keys(staffStats).map(sid => {
+    if (sid === 'unassigned') return { name: '미지정', ...staffStats[sid] };
+    const staff = state.staff.find(s => s.id === sid);
+    return { name: staff ? staff.이름 : '(삭제됨)', ...staffStats[sid] };
+  }).sort((a, b) => b.total - a.total);
+
+  const maxStaff = staffList.length > 0 ? Math.max(...staffList.map(s => s.total)) : 1;
+
+  if (staffList.length === 0) {
+    document.getElementById('report-staff').innerHTML = `
+      <div class="empty" style="padding:30px"><div class="empty-desc">데이터가 없어요</div></div>
+    `;
+  } else {
+    document.getElementById('report-staff').innerHTML = `
+      <div class="report-card">
+        ${staffList.map(s => `
+          <div class="report-row" style="flex-direction:column; align-items:stretch">
+            <div style="display:flex; align-items:center; margin-bottom:4px">
+              <span class="report-name">👤 ${esc(s.name)}</span>
+              <span class="report-count">${s.done} / ${s.total}건</span>
+            </div>
+            <div class="report-bar-wrap">
+              <div class="report-bar-fill" style="width:${(s.total / maxStaff * 100).toFixed(0)}%"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+}
+
+function changeReportMonth(delta) {
+  const m = new Date(state.reportMonth);
+  m.setMonth(m.getMonth() + delta);
+  state.reportMonth = m;
+  renderReport();
+}
+
+/* ============================================================
+   ※ 객실/직원/예약 폼 (Phase 2-A 동일)
+   ============================================================ */
+function openRoomForm(id) {
+  const r = id ? state.rooms.find(x => x.id === id) : null;
+  const staffOptions = state.staff.length === 0
+    ? '<option value="">먼저 직원을 등록하세요</option>'
+    : '<option value="">— 미지정 —</option>' + state.staff.map(s =>
+        `<option value="${s.id}" ${r && r.담당직원ID === s.id ? 'selected':''}>${esc(s.이름)}</option>`
+      ).join('');
+
+  const body = `
+    <div class="field">
+      <label class="field-label">객실명 <span class="required">*</span></label>
+      <input class="field-input" id="rf-name" placeholder="예: 영종 오션뷰 101호" value="${r ? esc(r.객실명) : ''}">
+    </div>
+    <div class="field">
+      <label class="field-label">건물 / 장소</label>
+      <input class="field-input" id="rf-building" placeholder="예: 영종도 그랜드뷰" value="${r ? esc(r.건물 || '') : ''}">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">체크인 시간</label>
+        <input class="field-input" id="rf-checkin" type="time" value="${r ? (r.체크인시간 || '15:00') : '15:00'}">
+      </div>
+      <div class="field">
+        <label class="field-label">체크아웃 시간</label>
+        <input class="field-input" id="rf-checkout" type="time" value="${r ? (r.체크아웃시간 || '11:00') : '11:00'}">
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">담당 청소직원</label>
+      <select class="field-select" id="rf-staff">${staffOptions}</select>
+    </div>
+    <div class="field">
+      <label class="field-label">메모</label>
+      <textarea class="field-textarea" id="rf-memo" placeholder="예: 키박스 1234 / 반려견 가능">${r ? esc(r.메모 || '') : ''}</textarea>
+    </div>
+    <div class="field">
+      <label class="field-label">📡 에어비앤비 iCal URL</label>
+      <input class="field-input" id="rf-ical" placeholder="https://www.airbnb.com/calendar/ical/..." value="${r ? esc(r.iCalURL || '') : ''}">
+      <div class="field-help">에어비앤비 → 캘린더 → 캘린더 내보내기 → URL 복사</div>
+    </div>
+  `;
+  const footer = id
+    ? `<button class="btn btn-danger" id="rf-del">삭제</button>
+       <button class="btn btn-primary btn-block" id="rf-save">저장</button>`
+    : `<button class="btn btn-outline" id="rf-cancel">취소</button>
+       <button class="btn btn-primary btn-block" id="rf-save">추가</button>`;
+
+  openModal(id ? '객실 수정' : '객실 추가', body, footer);
+
+  document.getElementById('rf-save').addEventListener('click', () => {
+    const name = document.getElementById('rf-name').value.trim();
+    if (!name) { showToast('객실명을 입력하세요'); return; }
+    const data = {
+      객실명: name,
+      건물: document.getElementById('rf-building').value.trim(),
+      체크인시간: document.getElementById('rf-checkin').value,
+      체크아웃시간: document.getElementById('rf-checkout').value,
+      담당직원ID: document.getElementById('rf-staff').value || null,
+      메모: document.getElementById('rf-memo').value.trim(),
+      iCalURL: document.getElementById('rf-ical').value.trim()
+    };
+    if (id) Object.assign(state.rooms.find(x => x.id === id), data);
+    else state.rooms.push({ id: uid(), ...data });
+    save(STORE.rooms, state.rooms);
+    closeModal();
+    showToast(id ? '수정됨' : '추가됨 ✓');
+    render();
+  });
+
+  const cancel = document.getElementById('rf-cancel');
+  if (cancel) cancel.addEventListener('click', closeModal);
+  const del = document.getElementById('rf-del');
+  if (del) del.addEventListener('click', () => deleteRoom(id));
+}
+
+function deleteRoom(id) {
+  const room = state.rooms.find(r => r.id === id);
+  if (!room) return;
+  const bookingCount = state.bookings.filter(b => b.객실ID === id).length;
+  const supplyCount = state.supplies.filter(s => s.객실ID === id).length;
+  let msg = `"${room.객실명}" 객실을 삭제할까요?`;
+  if (bookingCount > 0 || supplyCount > 0) {
+    const items = [];
+    if (bookingCount > 0) items.push(`예약 ${bookingCount}건`);
+    if (supplyCount > 0) items.push(`비품요청 ${supplyCount}건`);
+    msg += `\n연결된 ${items.join(', ')}도 함께 삭제됩니다.`;
+  }
+  if (!confirm(msg)) return;
+  state.rooms = state.rooms.filter(r => r.id !== id);
+  state.bookings = state.bookings.filter(b => b.객실ID !== id);
+  state.supplies = state.supplies.filter(s => s.객실ID !== id);
+  save(STORE.rooms, state.rooms);
+  save(STORE.bookings, state.bookings);
+  save(STORE.supplies, state.supplies);
+  closeModal();
+  showToast('삭제됨');
+  render();
+}
+
+function openStaffForm(id) {
+  const s = id ? state.staff.find(x => x.id === id) : null;
+  const body = `
+    <div class="field">
+      <label class="field-label">이름 <span class="required">*</span></label>
+      <input class="field-input" id="ssf-name" placeholder="예: 김여사" value="${s ? esc(s.이름) : ''}">
+    </div>
+    <div class="field">
+      <label class="field-label">전화번호</label>
+      <input class="field-input" id="ssf-phone" type="tel" placeholder="010-0000-0000" value="${s ? esc(s.전화번호 || '') : ''}">
+    </div>
+    <div class="field">
+      <label class="field-label">담당 구역 / 메모</label>
+      <textarea class="field-textarea" id="ssf-memo" placeholder="예: 영종도 일대 / 평일만 가능">${s ? esc(s.메모 || '') : ''}</textarea>
+    </div>
+  `;
+  const footer = id
+    ? `<button class="btn btn-danger" id="ssf-del">삭제</button>
+       <button class="btn btn-primary btn-block" id="ssf-save">저장</button>`
+    : `<button class="btn btn-outline" id="ssf-cancel">취소</button>
+       <button class="btn btn-primary btn-block" id="ssf-save">추가</button>`;
+
+  openModal(id ? '직원 수정' : '직원 추가', body, footer);
+
+  document.getElementById('ssf-save').addEventListener('click', () => {
+    const name = document.getElementById('ssf-name').value.trim();
+    if (!name) { showToast('이름을 입력하세요'); return; }
+    const data = {
+      이름: name,
+      전화번호: document.getElementById('ssf-phone').value.trim(),
+      메모: document.getElementById('ssf-memo').value.trim()
+    };
+    if (id) Object.assign(state.staff.find(x => x.id === id), data);
+    else state.staff.push({ id: uid(), ...data });
+    save(STORE.staff, state.staff);
+    closeModal();
+    showToast(id ? '수정됨' : '추가됨 ✓');
+    render();
+  });
+
+  const cancel = document.getElementById('ssf-cancel');
+  if (cancel) cancel.addEventListener('click', closeModal);
+  const del = document.getElementById('ssf-del');
+  if (del) del.addEventListener('click', () => {
+    const roomCount = state.rooms.filter(r => r.담당직원ID === id).length;
+    const msg = roomCount > 0 ? `이 직원을 삭제할까요?\n담당 객실 ${roomCount}개의 담당자가 비워집니다.` : '이 직원을 삭제할까요?';
+    if (!confirm(msg)) return;
+    state.staff = state.staff.filter(x => x.id !== id);
+    state.rooms.forEach(r => { if (r.담당직원ID === id) r.담당직원ID = null; });
+    save(STORE.staff, state.staff);
+    save(STORE.rooms, state.rooms);
+    closeModal();
+    showToast('삭제됨');
+    render();
+  });
+}
+
+function openBookingForm(id) {
+  if (state.rooms.length === 0) {
+    openModal('객실 먼저 등록 필요',
+      '<p style="line-height:1.7">예약을 추가하려면 먼저 객실을 등록해야 해요.</p>',
+      '<button class="btn btn-outline" id="m-cancel">닫기</button><button class="btn btn-primary btn-block" id="m-go">객실 관리</button>'
+    );
+    document.getElementById('m-cancel').addEventListener('click', closeModal);
+    document.getElementById('m-go').addEventListener('click', () => {
+      closeModal();
+      switchTab('more');
+      setTimeout(() => { state.manageView = 'rooms'; render(); }, 200);
+    });
+    return;
+  }
+
+  const b = id ? state.bookings.find(x => x.id === id) : null;
+  const today = todayYmd();
+  const roomOptions = state.rooms.map(r =>
+    `<option value="${r.id}" ${b && b.객실ID === r.id ? 'selected':''}>${esc(r.객실명)}</option>`
+  ).join('');
+  const staffOptions = '<option value="">자동 (객실 담당자)</option>' + state.staff.map(s =>
+    `<option value="${s.id}" ${b && b.담당직원ID === s.id ? 'selected':''}>${esc(s.이름)}</option>`
+  ).join('');
+
+  const body = `
+    <div class="field">
+      <label class="field-label">객실 <span class="required">*</span></label>
+      <select class="field-select" id="bf-room">${roomOptions}</select>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">체크인 <span class="required">*</span></label>
+        <input class="field-input" type="date" id="bf-in" value="${b ? b.체크인 : today}">
+      </div>
+      <div class="field">
+        <label class="field-label">체크아웃 <span class="required">*</span></label>
+        <input class="field-input" type="date" id="bf-out" value="${b ? b.체크아웃 : today}">
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">청소일</label>
+      <input class="field-input" type="date" id="bf-clean" value="${b ? b.청소일 : today}">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">게스트명</label>
+        <input class="field-input" id="bf-name" placeholder="홍길동" value="${b ? esc(b.게스트명 || '') : ''}">
+      </div>
+      <div class="field">
+        <label class="field-label">인원</label>
+        <input class="field-input" type="number" min="1" id="bf-guests" value="${b ? (b.인원 || 2) : 2}">
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">담당 청소직원</label>
+      <select class="field-select" id="bf-staff">${staffOptions}</select>
+    </div>
+    <div class="field">
+      <label class="field-label">연락처</label>
+      <input class="field-input" id="bf-phone" placeholder="010-0000-0000" value="${b ? esc(b.연락처 || '') : ''}">
+    </div>
+    <div class="field">
+      <label class="field-label">메모</label>
+      <textarea class="field-textarea" id="bf-memo">${b ? esc(b.메모 || '') : ''}</textarea>
+    </div>
+  `;
+  const footer = id
+    ? `<button class="btn btn-danger" id="bf-del">삭제</button>
+       <button class="btn btn-primary btn-block" id="bf-save">저장</button>`
+    : `<button class="btn btn-outline" id="bf-cancel">취소</button>
+       <button class="btn btn-primary btn-block" id="bf-save">추가</button>`;
+
+  openModal(id ? '예약 수정' : '예약 추가', body, footer);
+
+  document.getElementById('bf-out').addEventListener('change', e => {
+    const cleanInput = document.getElementById('bf-clean');
+    if (!b) cleanInput.value = e.target.value;
+  });
+
+  document.getElementById('bf-save').addEventListener('click', () => {
+    const data = collectBookingForm();
+    if (!data) return;
+    if (id) Object.assign(state.bookings.find(x => x.id === id), data);
+    else state.bookings.push({ id: uid(), 청소완료: false, ...data });
+    save(STORE.bookings, state.bookings);
+    closeModal();
+    showToast(id ? '수정됨' : '추가됨 ✓');
+    render();
+  });
+
+  const cancel = document.getElementById('bf-cancel');
+  if (cancel) cancel.addEventListener('click', closeModal);
+  const del = document.getElementById('bf-del');
+  if (del) del.addEventListener('click', () => deleteBooking(id));
+}
+
+function collectBookingForm() {
+  const 객실ID = document.getElementById('bf-room').value;
+  const 체크인 = document.getElementById('bf-in').value;
+  const 체크아웃 = document.getElementById('bf-out').value;
+  const 청소일 = document.getElementById('bf-clean').value || 체크아웃;
+  if (!객실ID) { showToast('객실을 선택하세요'); return null; }
+  if (!체크인 || !체크아웃) { showToast('날짜를 입력하세요'); return null; }
+  if (체크인 > 체크아웃) { showToast('체크아웃이 체크인보다 빠를 수 없어요'); return null; }
+  let 담당직원ID = document.getElementById('bf-staff').value || null;
+  if (!담당직원ID) {
+    const room = state.rooms.find(r => r.id === 객실ID);
+    if (room && room.담당직원ID) 담당직원ID = room.담당직원ID;
+  }
+  return {
+    객실ID, 체크인, 체크아웃, 청소일,
+    게스트명: document.getElementById('bf-name').value.trim(),
+    인원: parseInt(document.getElementById('bf-guests').value) || 1,
+    담당직원ID,
+    연락처: document.getElementById('bf-phone').value.trim(),
+    메모: document.getElementById('bf-memo').value.trim()
+  };
+}
+
+function openQuickBookingForm() {
+  if (state.rooms.length === 0) {
+    showToast('먼저 객실을 등록하세요');
+    return;
+  }
+  const today = todayYmd();
+  const roomOptions = state.rooms.map(r => `<option value="${r.id}">${esc(r.객실명)}</option>`).join('');
+
+  const body = `
+    <div class="info-banner">
+      <div class="info-banner-icon">⚡</div>
+      <div class="info-banner-text">
+        <strong>객실·날짜만 입력하면 즉시 등록</strong>됩니다.
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">객실 <span class="required">*</span></label>
+      <select class="field-select" id="qf-room">${roomOptions}</select>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">체크인 <span class="required">*</span></label>
+        <input class="field-input" type="date" id="qf-in" value="${today}">
+      </div>
+      <div class="field">
+        <label class="field-label">체크아웃 <span class="required">*</span></label>
+        <input class="field-input" type="date" id="qf-out" value="${tomorrowYmd()}">
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">게스트명 (선택)</label>
+      <input class="field-input" id="qf-name" placeholder="비워두면 '게스트'">
+    </div>
+    <div class="field">
+      <label class="field-label">메모 (선택)</label>
+      <input class="field-input" id="qf-memo">
+    </div>
+  `;
+  const footer = `
+    <button class="btn btn-outline" id="qf-cancel">취소</button>
+    <button class="btn btn-primary btn-block" id="qf-save">⚡ 즉시 등록</button>
+  `;
+  openModal('⚡ 빠른 예약', body, footer);
+
+  document.getElementById('qf-save').addEventListener('click', () => {
+    const 객실ID = document.getElementById('qf-room').value;
+    const 체크인 = document.getElementById('qf-in').value;
+    const 체크아웃 = document.getElementById('qf-out').value;
+    if (!객실ID || !체크인 || !체크아웃) { showToast('필수 항목을 입력하세요'); return; }
+    if (체크인 > 체크아웃) { showToast('체크아웃이 체크인보다 빠를 수 없어요'); return; }
+    const room = state.rooms.find(r => r.id === 객실ID);
+    state.bookings.push({
+      id: uid(),
+      객실ID, 체크인, 체크아웃,
+      청소일: 체크아웃,
+      게스트명: document.getElementById('qf-name').value.trim() || '게스트',
+      인원: 2,
+      담당직원ID: room ? room.담당직원ID : null,
+      연락처: '',
+      메모: document.getElementById('qf-memo').value.trim(),
+      청소완료: false,
+      빠른예약: true
+    });
+    save(STORE.bookings, state.bookings);
+    closeModal();
+    showToast('⚡ 등록 완료!');
+    render();
+  });
+  document.getElementById('qf-cancel').addEventListener('click', closeModal);
+}
+
+function toggleCleaningDone(id) {
+  const b = state.bookings.find(x => x.id === id);
+  if (!b) return;
+  b.청소완료 = !b.청소완료;
+  if (b.청소완료) b.청소완료시각 = new Date().toISOString();
+  else delete b.청소완료시각;
+  save(STORE.bookings, state.bookings);
+  showToast(b.청소완료 ? '✓ 청소완료' : '↺ 완료 취소');
+  render();
+}
+
+function deleteBooking(id) {
+  const b = state.bookings.find(x => x.id === id);
+  if (!b) return;
+  const room = state.rooms.find(r => r.id === b.객실ID);
+  if (!confirm(`${room ? room.객실명 : '예약'} 예약을 삭제할까요?`)) return;
+  state.bookings = state.bookings.filter(x => x.id !== id);
+  save(STORE.bookings, state.bookings);
+  if (document.getElementById('modal-bg').classList.contains('show')) closeModal();
+  showToast('삭제됨');
+  render();
+}
+
+/* ============================================================
+   ※ iCal 동기화 (Phase 2-B와 동일)
+   ============================================================ */
+const CORS_PROXIES = [
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  url => `https://cors-anywhere.herokuapp.com/${url}`
+];
+
+function parseIcal(icalText) {
+  try {
+    const events = [];
+    const lines = icalText.split(/\r?\n/);
+    let currentEvent = null;
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      while (i + 1 < lines.length && /^[ \t]/.test(lines[i + 1])) {
+        line += lines[i + 1].slice(1);
+        i++;
+      }
+      if (line === 'BEGIN:VEVENT') currentEvent = {};
+      else if (line === 'END:VEVENT') {
+        if (currentEvent && currentEvent.dtstart && currentEvent.dtend) events.push(currentEvent);
+        currentEvent = null;
+      } else if (currentEvent) {
+        const colonIdx = line.indexOf(':');
+        if (colonIdx === -1) continue;
+        const key = line.slice(0, colonIdx).split(';')[0].toUpperCase();
+        const value = line.slice(colonIdx + 1);
+        if (key === 'DTSTART') currentEvent.dtstart = parseIcalDate(value);
+        else if (key === 'DTEND') currentEvent.dtend = parseIcalDate(value);
+        else if (key === 'SUMMARY') currentEvent.summary = value;
+        else if (key === 'DESCRIPTION') currentEvent.description = value;
+        else if (key === 'UID') currentEvent.uid = value;
+      }
+    }
+    return events;
+  } catch(e) { console.error('parseIcal 실패', e); return []; }
+}
+
+function parseIcalDate(s) {
+  if (!s) return null;
+  const dateOnly = s.length >= 8 ? s.slice(0, 8) : s;
+  if (!/^\d{8}$/.test(dateOnly)) return null;
+  return `${dateOnly.slice(0,4)}-${dateOnly.slice(4,6)}-${dateOnly.slice(6,8)}`;
+}
+
+function isBlockedEvent(event) {
+  const text = (event.summary || '') + ' ' + (event.description || '');
+  return state.settings.ical.blockedKeywords.some(kw =>
+    text.toLowerCase().includes(kw.toLowerCase())
+  );
+}
+
+function extractGuestName(summary) {
+  if (!summary) return '게스트';
+  let name = summary.replace(/^Reserved\s*-?\s*/i, '').trim();
+  if (!name || name.toLowerCase() === 'reserved') return '게스트';
+  return name;
+}
+
+async function syncSingleRoom(roomId) {
+  const room = state.rooms.find(r => r.id === roomId);
+  if (!room || !room.iCalURL) { showToast('iCal URL이 없어요'); return; }
+  await runSync([room]);
+}
+
+async function syncAllRooms() {
+  const rooms = state.rooms.filter(r => r.iCalURL && r.iCalURL.trim());
+  if (rooms.length === 0) {
+    openModal('iCal URL 없음',
+      `<p style="line-height:1.7">먼저 객실에 <strong>iCal URL</strong>을 등록하세요.</p>`,
+      '<button class="btn btn-outline" id="m-cancel">닫기</button><button class="btn btn-primary btn-block" id="m-go">객실 관리</button>'
+    );
+    document.getElementById('m-cancel').addEventListener('click', closeModal);
+    document.getElementById('m-go').addEventListener('click', () => {
+      closeModal();
+      switchTab('more');
+      setTimeout(() => { state.manageView = 'rooms'; render(); }, 200);
+    });
+    return;
+  }
+  await runSync(rooms);
+}
+
+async function runSync(rooms) {
+  if (state.syncing) { showToast('이미 동기화 중'); return; }
+  const last = state.settings.ical.lastSyncAt ? new Date(state.settings.ical.lastSyncAt).getTime() : 0;
+  const cooldownMs = state.settings.ical.cooldownSeconds * 1000;
+  if (Date.now() - last < cooldownMs) {
+    const wait = Math.ceil((cooldownMs - (Date.now() - last)) / 1000);
+    showToast(`잠시 후 다시 (${wait}초)`);
+    return;
+  }
+
+  state.syncing = true;
+  document.getElementById('btn-sync-top').classList.add('syncing');
+  renderSyncStatus();
+
+  openModal('🔄 iCal 동기화', `
+    <div class="sync-progress">
+      <div class="sync-progress-title">
+        <span class="sync-status-icon syncing" style="width:24px; height:24px; font-size:14px">🔄</span>
+        ${rooms.length}개 객실 동기화 중...
+      </div>
+      <div class="sync-progress-list" id="sync-log"></div>
+    </div>
+  `, '');
+
+  let totalAdded = 0, totalUpdated = 0, totalSkipped = 0, totalErrors = 0;
+  for (const room of rooms) {
+    addSyncLog('info', `🏨 ${room.객실명} 동기화 중...`);
+    const result = await syncRoom(room);
+    if (result.error) {
+      totalErrors++;
+      addSyncLog('error', `   ❌ ${result.error}`);
+    } else {
+      totalAdded += result.added;
+      totalUpdated += result.updated;
+      totalSkipped += result.skipped;
+      addSyncLog('success', `   ✓ 추가 ${result.added} / 업데이트 ${result.updated} / 중복 ${result.skipped}`);
+    }
+  }
+
+  state.settings.ical.lastSyncAt = new Date().toISOString();
+  save(STORE.settings, state.settings);
+  save(STORE.bookings, state.bookings);
+
+  state.syncing = false;
+  document.getElementById('btn-sync-top').classList.remove('syncing');
+
+  addSyncLog('info', '');
+  addSyncLog('info', `📊 결과: 신규 ${totalAdded} / 업데이트 ${totalUpdated} / 중복 ${totalSkipped}${totalErrors ? ' / 오류 ' + totalErrors : ''}`);
+
+  document.getElementById('modal-footer').innerHTML = '<button class="btn btn-primary btn-block" id="sync-close">확인</button>';
+  document.getElementById('sync-close').addEventListener('click', () => { closeModal(); render(); });
+
+  if (totalAdded > 0) showToast(`✓ 신규 ${totalAdded}건 추가`);
+  else if (totalErrors > 0) showToast('동기화 일부 실패');
+  else showToast('변경 없음');
+
+  render();
+}
+
+function addSyncLog(type, msg) {
+  const log = document.getElementById('sync-log');
+  if (!log) return;
+  const cls = type === 'success' ? 'sync-log-success' : type === 'error' ? 'sync-log-error' : 'sync-log-info';
+  log.innerHTML += `<div class="sync-log-item ${cls}">${esc(msg)}</div>`;
+}
+
+async function syncRoom(room) {
+  let icalText = null;
+  let lastError = null;
+  for (let i = 0; i < CORS_PROXIES.length; i++) {
+    try {
+      const proxyUrl = CORS_PROXIES[i](room.iCalURL);
+      const res = await fetchWithTimeout(proxyUrl, 15000);
+      if (!res.ok) { lastError = `프록시 ${i+1} 응답 오류 (${res.status})`; continue; }
+      const text = await res.text();
+      if (text.includes('BEGIN:VCALENDAR')) { icalText = text; break; }
+      else lastError = `프록시 ${i+1} 잘못된 응답`;
+    } catch(e) { lastError = `프록시 ${i+1} 실패`; }
+  }
+  if (!icalText) return { error: lastError || '모든 프록시 실패' };
+
+  const events = parseIcal(icalText).filter(e => !isBlockedEvent(e));
+  let added = 0, updated = 0, skipped = 0;
+  for (const ev of events) {
+    if (!ev.dtstart || !ev.dtend) continue;
+    if (ev.dtstart >= ev.dtend) continue;
+    const existing = state.bookings.find(b =>
+      b.객실ID === room.id &&
+      ((b.iCalUID && ev.uid && b.iCalUID === ev.uid) ||
+       (b.체크인 === ev.dtstart && b.체크아웃 === ev.dtend))
+    );
+    if (existing) {
+      let changed = false;
+      if (!existing.iCal출처) {
+        existing.iCal출처 = true;
+        existing.iCalUID = ev.uid || null;
+        changed = true;
+      }
+      if (ev.summary && existing.게스트명 === '게스트') {
+        existing.게스트명 = extractGuestName(ev.summary);
+        changed = true;
+      }
+      if (changed) updated++; else skipped++;
+    } else {
+      state.bookings.push({
+        id: uid(),
+        객실ID: room.id,
+        체크인: ev.dtstart,
+        체크아웃: ev.dtend,
+        청소일: ev.dtend,
+        게스트명: extractGuestName(ev.summary),
+        인원: 2,
+        담당직원ID: room.담당직원ID || null,
+        연락처: '', 메모: '',
+        청소완료: false,
+        iCal출처: true,
+        iCalUID: ev.uid || null
+      });
+      added++;
+    }
+  }
+  return { added, updated, skipped };
+}
+
+function fetchWithTimeout(url, timeoutMs) {
+  return Promise.race([
+    fetch(url, { method: 'GET' }),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('타임아웃')), timeoutMs))
+  ]);
+}
+
+function startAutoSyncIfEnabled() {
+  stopAutoSync();
+  if (!state.settings.ical.autoSync) return;
+  const intervalMs = state.settings.ical.intervalMinutes * 60 * 1000;
+  state.autoSyncTimer = setInterval(() => {
+    if (!state.syncing) syncAllRooms().catch(e => console.error(e));
+  }, intervalMs);
+}
+function stopAutoSync() {
+  if (state.autoSyncTimer) { clearInterval(state.autoSyncTimer); state.autoSyncTimer = null; }
+}
+
+function openIcalSettings() {
+  const s = state.settings.ical;
+  const body = `
+    <div class="info-banner">
+      <div class="info-banner-icon">💡</div>
+      <div class="info-banner-text">
+        <strong>iCal 자동 동기화</strong>를 켜면 설정한 주기마다 자동으로 캘린더를 가져와요.
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">자동 동기화</label>
+      <select class="field-select" id="is-auto">
+        <option value="0" ${!s.autoSync ? 'selected':''}>OFF</option>
+        <option value="1" ${s.autoSync ? 'selected':''}>ON</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="field-label">동기화 주기</label>
+      <select class="field-select" id="is-interval">
+        <option value="15" ${s.intervalMinutes === 15 ? 'selected':''}>15분</option>
+        <option value="30" ${s.intervalMinutes === 30 ? 'selected':''}>30분 (권장)</option>
+        <option value="60" ${s.intervalMinutes === 60 ? 'selected':''}>1시간</option>
+        <option value="180" ${s.intervalMinutes === 180 ? 'selected':''}>3시간</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="field-label">차단 키워드</label>
+      <textarea class="field-textarea" id="is-blocked">${esc((s.blockedKeywords || []).join('\n'))}</textarea>
+      <div class="field-help">한 줄에 하나씩</div>
+    </div>
+  `;
+  openModal('🔄 iCal 동기화 설정', body,
+    '<button class="btn btn-outline" id="is-cancel">취소</button><button class="btn btn-primary btn-block" id="is-save">저장</button>'
+  );
+
+  document.getElementById('is-save').addEventListener('click', () => {
+    state.settings.ical.autoSync = document.getElementById('is-auto').value === '1';
+    state.settings.ical.intervalMinutes = parseInt(document.getElementById('is-interval').value);
+    state.settings.ical.blockedKeywords = document.getElementById('is-blocked').value
+      .split('\n').map(s => s.trim()).filter(Boolean);
+    save(STORE.settings, state.settings);
+    closeModal();
+    showToast('저장됨');
+    startAutoSyncIfEnabled();
+    render();
+  });
+  document.getElementById('is-cancel').addEventListener('click', closeModal);
+}
+
+function openTemplateEditor() {
+  const body = `
+    <div class="info-banner">
+      <div class="info-banner-icon">💬</div>
+      <div class="info-banner-text">
+        <strong>{변수명}</strong>은 자동으로 실제 값으로 바뀌어요.
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">메시지 템플릿</label>
+      <textarea class="field-textarea" id="te-template" style="min-height:240px; font-size:13px">${esc(state.settings.template)}</textarea>
+      <div class="field-help">변수: {객실명} {청소일} {요일} {게스트명} {인원} {체크인} {체크아웃} {다음체크인} {메모}</div>
+    </div>
+    <button class="btn btn-outline btn-block" id="te-reset" style="margin-top:8px">기본값으로 되돌리기</button>
+  `;
+  openModal('💬 카톡 메시지 템플릿', body,
+    '<button class="btn btn-outline" id="te-cancel">취소</button><button class="btn btn-primary btn-block" id="te-save">저장</button>'
+  );
+
+  document.getElementById('te-save').addEventListener('click', () => {
+    state.settings.template = document.getElementById('te-template').value;
+    save(STORE.settings, state.settings);
+    closeModal();
+    showToast('템플릿 저장됨');
+  });
+  document.getElementById('te-cancel').addEventListener('click', closeModal);
+  document.getElementById('te-reset').addEventListener('click', () => {
+    document.getElementById('te-template').value = DEFAULT_TEMPLATE;
+  });
+}
+
+function buildKakaoMessage(booking) {
+  const room = state.rooms.find(r => r.id === booking.객실ID);
+  const nextBooking = state.bookings
+    .filter(b => b.객실ID === booking.객실ID && b.체크인 > booking.체크아웃)
+    .sort((a, b) => a.체크인.localeCompare(b.체크인))[0];
+
+  // 비품 요청도 메모에 포함
+  const supplies = state.supplies
+    .filter(s => s.객실ID === booking.객실ID && !s.해결됨)
+    .map(s => `- ${s.긴급 ? '🔴' : '•'} ${s.내용}`);
+
+  const memoParts = [
+    room && room.메모,
+    booking.메모,
+    supplies.length ? '📋 호스트 요청:\n' + supplies.join('\n') : null
+  ].filter(Boolean);
+  const memo = memoParts.join('\n\n') || '없음';
+
+  return state.settings.template
+    .replace('{객실명}', room ? room.객실명 : '(객실)')
+    .replace('{청소일}', formatDate(booking.청소일))
+    .replace('{요일}', getDayOfWeek(booking.청소일))
+    .replace('{게스트명}', booking.게스트명 || '게스트')
+    .replace('{인원}', booking.인원 || 1)
+    .replace('{체크인}', formatDate(booking.체크인))
+    .replace('{체크아웃}', formatDate(booking.체크아웃))
+    .replace('{다음체크인}', nextBooking ? formatDate(nextBooking.체크인) : '미정')
+    .replace('{메모}', memo);
+}
+
+async function sendKakaoNotice(bookingId) {
+  const b = state.bookings.find(x => x.id === bookingId);
+  if (!b) return;
+  const staff = b.담당직원ID ? state.staff.find(s => s.id === b.담당직원ID) : null;
+  if (!staff) { showToast('담당 직원이 없어요'); return; }
+  const message = buildKakaoMessage(b);
+
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: '청소 알림', text: message });
+      markAsSent(bookingId);
+      showToast(`${staff.이름}님께 발송됨 ✓`);
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+  await fallbackKakao(message, staff, bookingId);
+}
+
+async function fallbackKakao(message, staff, bookingId) {
+  let copied = false;
+  try { await navigator.clipboard.writeText(message); copied = true; }
+  catch(e) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = message;
+      ta.style.position = 'fixed'; ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      copied = true;
+    } catch(e2) { console.error(e2); }
+  }
+  const phoneSafe = staff.전화번호 ? staff.전화번호.replace(/[^0-9]/g, '') : '';
+  const body = `
+    <div class="info-banner">
+      <div class="info-banner-icon">${copied ? '✅' : '⚠️'}</div>
+      <div class="info-banner-text">
+        ${copied ? '메시지가 <strong>복사</strong>됨.' : '복사 실패. 직접 복사하세요.'}<br>
+        <strong>${esc(staff.이름)}님</strong>과의 카톡에서 <strong>꾹 누르고 → 붙여넣기</strong>
+      </div>
+    </div>
+    <div class="preview"><div class="preview-bubble">${esc(message)}</div></div>
+  `;
+  const footer = `
+    ${phoneSafe ? `<button class="btn btn-outline" id="send-sms">📱 문자로</button>` : ''}
+    <button class="btn btn-kakao btn-block" id="open-kakao">💬 카톡 열기</button>
+  `;
+  openModal('카톡 발송', body, footer);
+  document.getElementById('open-kakao').addEventListener('click', () => {
+    location.href = 'kakaotalk://';
+    setTimeout(() => { markAsSent(bookingId); closeModal(); render(); }, 800);
+  });
+  const smsBtn = document.getElementById('send-sms');
+  if (smsBtn) smsBtn.addEventListener('click', () => {
+    location.href = `sms:${phoneSafe}?body=${encodeURIComponent(message)}`;
+    setTimeout(() => { markAsSent(bookingId); closeModal(); render(); }, 800);
+  });
+}
+
+function markAsSent(bookingId) {
+  const b = state.bookings.find(x => x.id === bookingId);
+  if (b) {
+    b.알림발송됨 = true;
+    b.알림발송시각 = new Date().toISOString();
+    save(STORE.bookings, state.bookings);
+  }
+}
+
+function openPendingNotifications() {
+  const t = todayYmd();
+  const we = weekEndYmd();
+  const pending = state.bookings.filter(b =>
+    !b.청소완료 && !b.알림발송됨 &&
+    b.청소일 >= t && b.청소일 <= we &&
+    b.담당직원ID
+  ).sort((a, b) => a.청소일.localeCompare(b.청소일));
+
+  if (pending.length === 0) {
+    openModal('미발송 없음',
+      '<p style="line-height:1.7">현재 발송할 알림이 없어요.</p>',
+      '<button class="btn btn-primary btn-block" id="m-close">확인</button>'
+    );
+    document.getElementById('m-close').addEventListener('click', closeModal);
+    return;
+  }
+
+  const byStaff = {};
+  pending.forEach(b => {
+    if (!byStaff[b.담당직원ID]) byStaff[b.담당직원ID] = [];
+    byStaff[b.담당직원ID].push(b);
+  });
+
+  let listHtml = '';
+  Object.keys(byStaff).forEach(staffId => {
+    const staff = state.staff.find(s => s.id === staffId);
+    const items = byStaff[staffId];
+    listHtml += `
+      <div style="margin-bottom:14px">
+        <div style="font-weight:700; margin-bottom:8px; padding:6px 10px; background:var(--bg-soft); border-radius:8px">
+          👤 ${esc(staff ? staff.이름 : '미지정')} · ${items.length}건
+        </div>
+        ${items.map(b => {
+          const room = state.rooms.find(r => r.id === b.객실ID);
+          return `
+            <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; font-size:13px">
+              <span style="color:var(--muted); min-width:60px">${formatDate(b.청소일).slice(0,7)}</span>
+              <span style="flex:1">${room ? esc(room.객실명) : '?'} · ${esc(b.게스트명) || '게스트'}</span>
+              <button class="btn-mini kakao" data-act="send-one" data-id="${b.id}">💬</button>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  });
+
+  openModal(`💬 미발송 알림 (${pending.length})`, `
+    <div class="info-banner">
+      <div class="info-banner-icon">📨</div>
+      <div class="info-banner-text">미발송 ${pending.length}건이에요. 💬 버튼으로 발송하세요.</div>
+    </div>
+    ${listHtml}
+  `, '<button class="btn btn-outline btn-block" id="m-close">닫기</button>');
+
+  document.querySelectorAll('[data-act="send-one"]').forEach(btn => {
+    btn.addEventListener('click', () => sendKakaoNotice(btn.dataset.id));
+  });
+  document.getElementById('m-close').addEventListener('click', closeModal);
+}
+
+/* ============================================================
+   ※ 데이터 관리 (백업/복원/샘플/초기화)
+   ============================================================ */
+function exportData() {
+  const data = {
+    version: 'v6.0-Phase2C',
+    exportDate: new Date().toISOString(),
+    rooms: state.rooms,
+    staff: state.staff,
+    bookings: state.bookings,
+    supplies: state.supplies,
+    settings: state.settings
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `룸페커v6_백업_${todayYmd()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('백업 ✓');
+}
+
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (!data.rooms || !data.staff || !data.bookings) throw new Error('형식 오류');
+        if (!confirm('현재 데이터를 모두 덮어쓸까요?')) return;
+        state.rooms = data.rooms;
+        state.staff = data.staff;
+        state.bookings = data.bookings;
+        state.supplies = data.supplies || [];
+        if (data.settings) state.settings = { ...DEFAULT_SETTINGS, ...data.settings };
+        save(STORE.rooms, state.rooms);
+        save(STORE.staff, state.staff);
+        save(STORE.bookings, state.bookings);
+        save(STORE.supplies, state.supplies);
+        save(STORE.settings, state.settings);
+        showToast('불러오기 ✓');
+        render();
+      } catch(err) { console.error(err); showToast('파일 오류'); }
+    };
+    reader.readAsText(f);
+  });
+  input.click();
+}
+
+function loadSampleData() {
+  if (state.rooms.length > 0 || state.staff.length > 0 || state.bookings.length > 0) {
+    if (!confirm('현재 데이터를 모두 지우고 샘플을 넣을까요?')) return;
+  }
+  const today = todayYmd();
+  const tom = tomorrowYmd();
+  const tomTom = ymd(new Date(Date.now() + 2 * 86400000));
+  const lastWeek = ymd(new Date(Date.now() - 7 * 86400000));
+  const lastMonth = ymd(new Date(Date.now() - 25 * 86400000));
+
+  const s1 = uid(), s2 = uid(), s3 = uid();
+  state.staff = [
+    { id: s1, 이름: '김여사', 전화번호: '010-1234-5678', 메모: '영종도 일대 평일 가능' },
+    { id: s2, 이름: '박여사', 전화번호: '010-2345-6789', 메모: '주말 가능' },
+    { id: s3, 이름: '이여사', 전화번호: '010-3456-7890', 메모: '베테랑' }
+  ];
+
+  const r1 = uid(), r2 = uid(), r3 = uid();
+  state.rooms = [
+    { id: r1, 객실명: '오션뷰 101호', 건물: '영종 그랜드뷰', 체크인시간: '15:00', 체크아웃시간: '11:00', 담당직원ID: s1, 메모: '키박스 1234', iCalURL: '' },
+    { id: r2, 객실명: '시티뷰 302호', 건물: '영종 그랜드뷰', 체크인시간: '15:00', 체크아웃시간: '11:00', 담당직원ID: s2, 메모: '반려견 가능', iCalURL: '' },
+    { id: r3, 객실명: '비치하우스 201호', 건물: '비치하우스', 체크인시간: '16:00', 체크아웃시간: '11:00', 담당직원ID: s3, 메모: '', iCalURL: '' }
+  ];
+
+  state.bookings = [
+    { id: uid(), 객실ID: r1, 체크인: ymd(new Date(Date.now() - 86400000)), 체크아웃: today, 청소일: today, 게스트명: '홍길동', 인원: 2, 담당직원ID: s1, 연락처: '010-1111-1111', 메모: '', 청소완료: false },
+    { id: uid(), 객실ID: r2, 체크인: ymd(new Date(Date.now() - 2 * 86400000)), 체크아웃: today, 청소일: today, 게스트명: 'Park 외 가족', 인원: 4, 담당직원ID: s2, 연락처: '', 메모: '베이비침대 정리', 청소완료: false },
+    { id: uid(), 객실ID: r3, 체크인: today, 체크아웃: tomTom, 청소일: tomTom, 게스트명: 'Tanaka', 인원: 2, 담당직원ID: s3, 연락처: '', 메모: '일본 게스트', 청소완료: false },
+    // 정산용 과거 완료 데이터
+    { id: uid(), 객실ID: r1, 체크인: lastWeek, 체크아웃: ymd(new Date(Date.now() - 5 * 86400000)), 청소일: ymd(new Date(Date.now() - 5 * 86400000)), 게스트명: '김민수', 인원: 2, 담당직원ID: s1, 연락처: '', 메모: '', 청소완료: true, 청소완료시각: new Date(Date.now() - 5 * 86400000).toISOString() },
+    { id: uid(), 객실ID: r2, 체크인: lastWeek, 체크아웃: ymd(new Date(Date.now() - 6 * 86400000)), 청소일: ymd(new Date(Date.now() - 6 * 86400000)), 게스트명: 'Smith', 인원: 3, 담당직원ID: s2, 연락처: '', 메모: '', 청소완료: true, 청소완료시각: new Date(Date.now() - 6 * 86400000).toISOString() },
+    { id: uid(), 객실ID: r1, 체크인: lastMonth, 체크아웃: ymd(new Date(Date.now() - 23 * 86400000)), 청소일: ymd(new Date(Date.now() - 23 * 86400000)), 게스트명: '이영희', 인원: 2, 담당직원ID: s1, 연락처: '', 메모: '', 청소완료: true, 청소완료시각: new Date(Date.now() - 23 * 86400000).toISOString() }
+  ];
+
+  state.supplies = [
+    { id: uid(), 객실ID: r2, 내용: '욕실 수건 2장 추가', 긴급: false, 작성자: '호스트', 해결됨: false, 생성시각: new Date(Date.now() - 3600000).toISOString() },
+    { id: uid(), 객실ID: r2, 내용: '베이비침대 정리 부탁드려요', 긴급: true, 작성자: '호스트', 해결됨: false, 생성시각: new Date(Date.now() - 7200000).toISOString() },
+    { id: uid(), 객실ID: r1, 내용: '주방 세제 보충', 긴급: false, 작성자: '호스트', 해결됨: true, 생성시각: new Date(Date.now() - 86400000).toISOString(), 해결시각: new Date(Date.now() - 3600000).toISOString() }
+  ];
+
+  save(STORE.rooms, state.rooms);
+  save(STORE.staff, state.staff);
+  save(STORE.bookings, state.bookings);
+  save(STORE.supplies, state.supplies);
+  showToast('샘플 입력 ✓');
+  render();
+}
+
+function resetAllData() {
+  if (!confirm('모든 데이터를 삭제할까요?')) return;
+  if (!confirm('정말 삭제할까요? 마지막 확인입니다.')) return;
+  state.rooms = []; state.staff = []; state.bookings = []; state.supplies = [];
+  Object.values(STORE).forEach(k => { if (k !== STORE.session && k !== STORE.settings) localStorage.removeItem(k); });
+  showToast('초기화 완료');
+  render();
+}
+
+/* ============================================================
+   ※ 초기화
+   ============================================================ */
+function init() {
+  try {
+    document.querySelectorAll('.role-card').forEach(c => c.addEventListener('click', handleRoleSelect));
+    document.getElementById('btn-login').addEventListener('click', handleLogin);
+    document.getElementById('login-pw').addEventListener('keypress', e => {
+      if (e.key === 'Enter') handleLogin();
+    });
+
+    tryRestoreSession();
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    document.getElementById('btn-sync-top').addEventListener('click', syncAllRooms);
+    document.getElementById('btn-logout-top').addEventListener('click', handleLogout);
+
+    document.getElementById('btn-quick-booking-home').addEventListener('click', openQuickBookingForm);
+    document.getElementById('btn-quick-booking-quick').addEventListener('click', openQuickBookingForm);
+    document.getElementById('btn-sync-home').addEventListener('click', syncAllRooms);
+    document.getElementById('btn-sync-quick').addEventListener('click', syncAllRooms);
+    document.getElementById('sync-status-btn').addEventListener('click', syncAllRooms);
+    document.getElementById('btn-send-pending-home').addEventListener('click', openPendingNotifications);
+    document.getElementById('btn-send-pending-quick').addEventListener('click', openPendingNotifications);
+    document.getElementById('btn-add-supplies').addEventListener('click', () => openSuppliesForm(null, null));
+    document.getElementById('btn-add-booking-full').addEventListener('click', () => openBookingForm(null));
+    document.getElementById('btn-add-room').addEventListener('click', () => openRoomForm(null));
+    document.getElementById('btn-add-staff').addEventListener('click', () => openStaffForm(null));
+
+    document.getElementById('fab').addEventListener('click', () => openBookingForm(null));
+
+    // 메뉴 카드 (홈 → 다른 탭)
+    document.querySelectorAll('[data-tab]:not(.tab-btn)').forEach(el => {
+      el.addEventListener('click', () => {
+        const tab = el.dataset.tab;
+        const jump = el.dataset.jump;
+        switchTab(tab);
+        if (jump) setTimeout(() => { state.manageView = jump; render(); }, 100);
+      });
+    });
+
+    // 더보기 메뉴
+    document.getElementById('menu-rooms').addEventListener('click', () => { state.manageView = 'rooms'; render(); });
+    document.getElementById('menu-staff').addEventListener('click', () => { state.manageView = 'staff'; render(); });
+    document.getElementById('menu-supplies').addEventListener('click', () => { state.manageView = 'supplies'; render(); });
+    document.getElementById('menu-report').addEventListener('click', () => { state.manageView = 'report'; render(); });
+
+    document.querySelectorAll('[data-back="manage"]').forEach(b => {
+      b.addEventListener('click', () => { state.manageView = null; render(); });
+    });
+
+    document.getElementById('btn-add-room-inline').addEventListener('click', () => openRoomForm(null));
+    document.getElementById('btn-add-staff-inline').addEventListener('click', () => openStaffForm(null));
+    document.getElementById('btn-add-supplies-inline').addEventListener('click', () => openSuppliesForm(null, null));
+
+    document.getElementById('menu-ical-settings').addEventListener('click', openIcalSettings);
+    document.getElementById('menu-message-template').addEventListener('click', openTemplateEditor);
+    document.getElementById('menu-export').addEventListener('click', exportData);
+    document.getElementById('menu-import').addEventListener('click', importData);
+    document.getElementById('menu-sample').addEventListener('click', loadSampleData);
+    document.getElementById('menu-reset').addEventListener('click', resetAllData);
+    document.getElementById('menu-logout').addEventListener('click', handleLogout);
+
+    // 뷰 토글
+    document.querySelectorAll('.view-toggle-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        state.bookingView = b.dataset.view;
+        renderBookings();
+      });
+    });
+
+    // 캘린더 네비
+    document.getElementById('cal-prev').addEventListener('click', () => changeMonth(-1));
+    document.getElementById('cal-next').addEventListener('click', () => changeMonth(1));
+
+    // 정산 네비
+    document.getElementById('report-prev').addEventListener('click', () => changeReportMonth(-1));
+    document.getElementById('report-next').addEventListener('click', () => changeReportMonth(1));
+
+    // 검색
+    document.getElementById('booking-search').addEventListener('input', e => {
+      state.bookingSearch = e.target.value;
+      const clear = document.getElementById('booking-search-clear');
+      clear.classList.toggle('hidden', !state.bookingSearch);
+      renderBookingList();
+    });
+    document.getElementById('booking-search-clear').addEventListener('click', () => {
+      document.getElementById('booking-search').value = '';
+      state.bookingSearch = '';
+      document.getElementById('booking-search-clear').classList.add('hidden');
+      renderBookingList();
+    });
+    document.getElementById('cleaning-search').addEventListener('input', e => {
+      state.cleaningSearch = e.target.value;
+      const clear = document.getElementById('cleaning-search-clear');
+      clear.classList.toggle('hidden', !state.cleaningSearch);
+      renderCleaning();
+    });
+    document.getElementById('cleaning-search-clear').addEventListener('click', () => {
+      document.getElementById('cleaning-search').value = '';
+      state.cleaningSearch = '';
+      document.getElementById('cleaning-search-clear').classList.add('hidden');
+      renderCleaning();
+    });
+
+    // 칩 필터
+    document.querySelectorAll('#booking-chips .chip').forEach(c => {
+      c.addEventListener('click', () => {
+        document.querySelectorAll('#booking-chips .chip').forEach(x => x.classList.remove('active'));
+        c.classList.add('active');
+        state.bookingFilter = c.dataset.filter;
+        renderBookingList();
+      });
+    });
+    document.querySelectorAll('#cleaning-chips .chip').forEach(c => {
+      c.addEventListener('click', () => {
+        document.querySelectorAll('#cleaning-chips .chip').forEach(x => x.classList.remove('active'));
+        c.classList.add('active');
+        state.cleaningFilter = c.dataset.filter;
+        renderCleaning();
+      });
+    });
+
+    // 모달
+    document.getElementById('modal-close').addEventListener('click', closeModal);
+    document.getElementById('modal-bg').addEventListener('click', e => {
+      if (e.target.id === 'modal-bg') closeModal();
+    });
+
+    render();
+    console.log('🏨 RoomPacker v6.0 Phase 2-C 시작');
+  } catch(e) { console.error('init 실패', e); }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
