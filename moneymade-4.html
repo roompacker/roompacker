@@ -4754,9 +4754,7 @@
         
         // 거래 모달
         document.getElementById('btnAddTx').addEventListener('click', () => openTxModal(null));
-        document.getElementById('btnTxCancel').addEventListener('click', closeTxModal);
-        document.getElementById('btnTxSave').addEventListener('click', saveTx);
-        document.getElementById('btnTxDelete').addEventListener('click', deleteTx);
+        // 거래 모달 버튼 - onclick으로 처리됨 (중복 등록 방지)
         document.querySelectorAll('input[name="txType"]').forEach(r => {
           r.addEventListener('change', () => {
             populateTargets(r.value);
