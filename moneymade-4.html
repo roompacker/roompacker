@@ -833,29 +833,50 @@
     <!-- 📋 예약 탭 -->
     <section class="tab-content" data-tab="booking">
       <div id="bookingContent">
-        <div class="booking-header">
+        <!-- 헤더 -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 2px 10px;">
           <div>
-            <div style="font-size:11px;color:var(--ink-3);font-weight:600;">객실 예약 현황</div>
-            <div class="booking-month-label" id="calBkLabel"></div>
+            <div style="font-size:11px;color:var(--ink-3);font-weight:600;">주간 청소 스케줄</div>
+            <div style="font-size:18px;font-weight:800;color:var(--ink);" id="bkWeekLabel"></div>
           </div>
           <div style="display:flex;gap:6px;align-items:center;">
             <button class="month-nav-btn" id="calBkPrev">◀</button>
+            <button id="bkTodayBtn" style="background:var(--accent-2);color:var(--accent);border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">오늘</button>
             <button class="month-nav-btn" id="calBkNext">▶</button>
             <button class="btn-add" id="btnAddBooking" style="font-size:12px;padding:7px 12px;">+ 예약</button>
           </div>
         </div>
         <!-- 지점 필터 -->
-        <div style="display:flex;gap:6px;margin-bottom:8px;">
+        <div style="display:flex;gap:6px;margin-bottom:10px;">
           <button class="bk-branch-btn active" data-branch="전체" style="flex:1;padding:8px;border:1.5px solid var(--accent);border-radius:10px;background:var(--accent);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">전체</button>
           <button class="bk-branch-btn" data-branch="영종점" style="flex:1;padding:8px;border:1.5px solid var(--line-2);border-radius:10px;background:var(--card);color:var(--ink-2);font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">영종</button>
           <button class="bk-branch-btn" data-branch="송도점" style="flex:1;padding:8px;border:1.5px solid var(--line-2);border-radius:10px;background:var(--card);color:var(--ink-2);font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">송도</button>
         </div>
-        <div class="booking-cal-wrap">
-          <table id="bkCalTable"></table>
-        </div>
-        <div id="bkSumBar" style="display:flex;gap:8px;padding:8px 0;overflow-x:auto;"></div>
+        <!-- 주간 달력 본문 -->
+        <div id="bkWeekBody"></div>
+        <!-- 요약 -->
+        <div id="bkSumBar" style="display:flex;gap:8px;padding:4px 0 8px;overflow-x:auto;"></div>
       </div>
     </section>
+
+    <!-- 청소 정보 팝업 모달 -->
+    <div class="modal" id="bkCleanModal" style="z-index:130;">
+      <div class="modal-content">
+        <div class="modal-title" id="bkCleanTitle">청소 정보</div>
+        <div id="bkCleanBody"></div>
+        <!-- 추가요금 -->
+        <div style="background:var(--bg-2);border-radius:12px;padding:12px;margin-bottom:12px;">
+          <div style="font-size:12px;font-weight:700;color:var(--ink-2);margin-bottom:8px;">💰 추가요금</div>
+          <input type="text" id="bkExtraDesc" placeholder="예: 쇼파베드 추가, 특별청소" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-family:Pretendard,sans-serif;font-size:14px;background:var(--bg);color:var(--text);margin-bottom:6px;">
+          <input type="number" id="bkExtraAmt" placeholder="추가금액 (원)" inputmode="numeric" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-family:Pretendard,sans-serif;font-size:14px;background:var(--bg);color:var(--text);">
+          <div id="bkTotalPreview" style="margin-top:8px;text-align:right;font-size:14px;font-weight:800;color:var(--accent);"></div>
+        </div>
+        <div class="modal-btns">
+          <button class="btn-secondary" onclick="document.getElementById('bkCleanModal').classList.remove('active')">닫기</button>
+          <button class="btn-primary" id="btnBkCleanSave">🧹 청소 기록 저장</button>
+        </div>
+      </div>
+    </div>
 
     <!-- ⏳ 미지급 탭 -->
     <section class="tab-content" data-tab="pending">
@@ -1668,6 +1689,7 @@
     // 예약 탭 상태
     let bkYear = new Date().getFullYear();
     let bkMonth = new Date().getMonth();
+    let bkWeekOffset = 0; // 주간 오프셋
     let bkEditId = null;
     let bkDetId = null;
     let bkBranchFilter = '전체'; // 지점 필터
@@ -3399,7 +3421,7 @@
     // ============================================
     // 거래 모달
     // ============================================
-    function openTxModal(id, bkDate, bkRoomId, bkGuests, bkNightsVal) {
+    function openTxModal(id, bkDate, bkRoomId, bkGuests, bkNightsVal, bkAmount) {
       try {
         const modal = document.getElementById('txModal');
         const title = document.getElementById('txModalTitle');
@@ -3445,6 +3467,7 @@
           setTimeout(function() {
             document.getElementById('txTarget').value = bkRoomId;
             autoFillAmount();
+            if (bkAmount) document.getElementById('txAmount').value = bkAmount;
           }, 50);
           title.textContent = '🧹 청소 수입 기록';
           deleteBtn.style.display = 'none';
@@ -4357,167 +4380,249 @@
     function renderBookingTab() {
       try {
         const DAYS = ['일','월','화','수','목','금','토'];
-        const label = bkYear + '년 ' + (bkMonth+1) + '월';
-        const el = document.getElementById('calBkLabel');
-        if (el) el.textContent = label;
+        const tod = bkDateStr(new Date());
         
-        const rooms = (safeLoad(STORAGE.ROOM) || []).filter(function(r) {
-          if (bkBranchFilter === '전체') return true;
-          return r.branch === bkBranchFilter;
+        // 이번 주 시작(일요일) 계산
+        const weekStart = new Date();
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay() + (bkWeekOffset * 7));
+        weekStart.setHours(0,0,0,0);
+        
+        const weekDates = [];
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(weekStart);
+          d.setDate(d.getDate() + i);
+          weekDates.push(bkDateStr(d));
+        }
+        
+        // 주간 레이블
+        const ws = weekDates[0], we = weekDates[6];
+        const wsParts = ws.split('-'), weParts = we.split('-');
+        document.getElementById('bkWeekLabel').textContent =
+          wsParts[1]+'월 '+wsParts[2]+'일 ~ '+weParts[1]+'월 '+weParts[2]+'일';
+        
+        const allRooms = (safeLoad(STORAGE.ROOM)||[]).filter(function(r){
+          return bkBranchFilter==='전체' || r.branch===bkBranchFilter;
         });
         const books = safeLoadBooks();
-        const dim   = new Date(bkYear, bkMonth+1, 0).getDate();
-        const tod   = bkDateStr(new Date());
+        const allTx = safeLoad(STORAGE.TX)||[];
         
-        function df(d) { return bkYear+'-'+String(bkMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
-        
-        const tbl = document.getElementById('bkCalTable');
-        if (!tbl) return;
-        tbl.innerHTML = '';
-        
-        // thead
-        const thead = document.createElement('thead');
-        const htr   = document.createElement('tr');
-        const th0   = document.createElement('th');
-        th0.className = 'bk-corner';
-        th0.innerHTML = '<span>객실</span>';
-        htr.appendChild(th0);
-        for (let d = 1; d <= dim; d++) {
-          const dt = new Date(bkYear, bkMonth, d), dow = dt.getDay(), ds = df(d);
-          const th = document.createElement('th');
-          th.className = 'bk-dhdr' + (dow===0?' sun':dow===6?' sat':'') + (ds===tod?' bk-tday':'');
-          th.innerHTML = '<div class="dn">'+d+'</div><div class="dw">'+DAYS[dow]+'</div>';
-          htr.appendChild(th);
-        }
-        thead.appendChild(htr);
-        tbl.appendChild(thead);
-        
-        // tbody - 건물별 그룹
-        const tbody = document.createElement('tbody');
-        const bOrd = [], bMap = {};
-        rooms.forEach(function(r) {
+        // 건물별 그룹
+        const bOrd=[], bMap={};
+        allRooms.forEach(function(r){
           const b = r.building || extractBuilding(r.name) || '(미분류)';
-          if (!bMap[b]) { bMap[b] = []; bOrd.push(b); }
+          if(!bMap[b]){bMap[b]=[];bOrd.push(b);}
           bMap[b].push(r);
         });
         
-        if (rooms.length === 0) {
-          const tr = document.createElement('tr');
-          const td = document.createElement('td');
-          td.colSpan = dim+1; td.style.cssText = 'text-align:center;padding:30px;color:var(--ink-3);font-size:13px;';
-          td.textContent = '설정에서 객실을 먼저 추가하세요';
-          tr.appendChild(td); tbody.appendChild(tr);
+        let html = '';
+        
+        // 요일 헤더
+        html += '<div style="display:grid;grid-template-columns:90px repeat(7,1fr);background:var(--ink);border-radius:12px 12px 0 0;overflow:hidden;margin-bottom:0;">';
+        html += '<div style="padding:10px 8px;font-size:11px;color:rgba(255,255,255,.5);font-weight:700;text-align:center;">객실</div>';
+        weekDates.forEach(function(ds) {
+          const dp = ds.split('-'), dow = new Date(dp[0],dp[1]-1,dp[2]).getDay();
+          const isToday = ds===tod;
+          const dayColor = dow===0?'#E8A8A8':dow===6?'#A8C4E8':'rgba(255,255,255,.9)';
+          html += '<div style="padding:8px 4px;text-align:center;background:'+(isToday?'var(--accent)':'transparent')+';border-radius:'+(isToday?'8px':'0')+';">'
+            + '<div style="font-size:14px;font-weight:800;color:'+(isToday?'#fff':dayColor)+';line-height:1;">'+dp[2]+'</div>'
+            + '<div style="font-size:10px;color:'+(isToday?'rgba(255,255,255,.8)':'rgba(255,255,255,.4)')+';margin-top:2px;">'+DAYS[dow]+'</div>'
+            + '</div>';
+        });
+        html += '</div>';
+        
+        if (allRooms.length === 0) {
+          html += '<div style="background:var(--card);border-radius:0 0 12px 12px;padding:30px;text-align:center;color:var(--ink-3);font-size:13px;">등록된 객실이 없어요</div>';
         } else {
-          const ms = df(1), me = df(dim);
           bOrd.forEach(function(bname) {
-            const bldgColor = getBldgColor(bname).border;
-            // 건물 헤더행
-            const btr = document.createElement('tr');
-            const btd = document.createElement('td');
-            btd.className = 'bk-bdiv-lbl';
-            btd.colSpan = dim+1;
-            btd.style.background = bldgColor;
-            btd.textContent = '🏢 ' + bname;
-            btr.appendChild(btd);
-            tbody.appendChild(btr);
+            const col = getBldgColor(bname);
+            // 건물 헤더
+            html += '<div style="background:'+col.border+';padding:7px 12px;font-size:12px;font-weight:800;color:#fff;">🏢 '+bname+'</div>';
             
-            // 객실 행
             bMap[bname].forEach(function(room) {
-              const tr = document.createElement('tr');
-              tr.className = 'bk-room-row';
+              const hoNum = room.name.match(/(\d+호)$/) ? room.name.match(/(\d+호)$/)[1] : room.name;
+              html += '<div style="display:grid;grid-template-columns:90px repeat(7,1fr);background:var(--card);border-bottom:1px solid var(--line);min-height:56px;" data-room-id="'+room.id+'">';
+              // 객실명
+              html += '<div style="padding:8px;border-right:2px solid var(--line-2);display:flex;flex-direction:column;justify-content:center;border-left:3px solid '+col.border+';">'
+                + '<div style="font-size:13px;font-weight:800;color:var(--ink);">'+hoNum+'</div>'
+                + '<div style="font-size:10px;color:var(--ink-3);margin-top:1px;">'+(room.branch||'')+'</div>'
+                + '</div>';
               
-              const tdL = document.createElement('td');
-              tdL.className = 'bk-rlbl';
-              tdL.style.borderLeft = '3px solid ' + getBldgColor(bname).border;
-              tdL.dataset.rid = room.id;
-              tdL.innerHTML = '<div class="rn">' + room.name + '</div><div class="rt">' + (room.building||'') + '</div>';
-              tr.appendChild(tdL);
-              
-              for (let d = 1; d <= dim; d++) {
-                const ds = df(d), dt2 = new Date(bkYear, bkMonth, d), dow = dt2.getDay();
-                const tdC = document.createElement('td');
-                tdC.className = 'bk-dcell' + (dow===0?' sun':dow===6?' sat':'') + (ds===tod?' bk-tday':'');
-                tdC.dataset.rid = room.id; tdC.dataset.date = ds;
-                tdC.innerHTML = '<span class="bk-ph">+</span>';
-                tr.appendChild(tdC);
-              }
-              
-              // 체크아웃 날짜에 청소 표시 (중복 방지)
-              const cleanDots = new Set();
-              books.filter(function(bk){ return bk.roomId===room.id; }).forEach(function(bk) {
-                for (let d = 1; d <= dim; d++) {
-                  if (df(d) === bk.checkOut && !cleanDots.has(df(d))) {
-                    cleanDots.add(df(d));
-                    const cell = tr.cells[d];
-                    if (cell) {
-                      cell.classList.add('bk-clean');
-                      const dot = document.createElement('div');
-                      dot.className = 'bk-clean-dot'; dot.textContent = '청';
-                      cell.appendChild(dot);
-                    }
+              // 각 날짜 셀
+              weekDates.forEach(function(ds) {
+                const dp  = ds.split('-');
+                const dow = new Date(dp[0],dp[1]-1,dp[2]).getDay();
+                const isToday = ds===tod;
+                
+                // 이 날 체크아웃 예약 찾기 (청소일)
+                const cleanBk = books.find(function(bk){ return bk.roomId===room.id && bk.checkOut===ds; });
+                // 이미 청소 거래 있는지
+                const hasTx = allTx.find(function(t){ return t.type==='income' && t.targetId===room.id && t.date===ds; });
+                // 이 날 체크인 (바로입실)
+                const cinBk = books.find(function(bk){ return bk.roomId===room.id && bk.checkIn===ds; });
+                // 예약 중인지 (연박)
+                const stayBk = books.find(function(bk){ return bk.roomId===room.id && bk.checkIn<ds && bk.checkOut>ds; });
+                
+                let cellBg = isToday ? 'rgba(58,58,110,.06)' : dow===0?'rgba(232,168,168,.06)':dow===6?'rgba(168,196,232,.06)':'transparent';
+                let cellContent = '';
+                
+                if (cleanBk) {
+                  // 청소일 - 동그라미
+                  const n = bkNights(cleanBk.checkIn, cleanBk.checkOut);
+                  const btnColor = hasTx ? 'var(--ok)' : 'var(--sub-red)';
+                  const btnLabel = hasTx ? '✅' : '청';
+                  cellBg = hasTx ? 'rgba(45,106,79,.08)' : 'rgba(155,35,53,.1)';
+                  cellContent = '<button class="bk-clean-circle" '
+                    + 'data-bkid="'+cleanBk.id+'" data-roomid="'+room.id+'" data-date="'+ds+'" '
+                    + 'style="width:38px;height:38px;border-radius:50%;background:'+btnColor+';color:white;border:none;'
+                    + 'font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;'
+                    + 'box-shadow:0 2px 6px rgba(0,0,0,.2);">'
+                    + btnLabel+'<br>'
+                    + '<span style="font-size:9px;display:block;line-height:1;">'+n+'박</span>'
+                    + '</button>';
+                  if (cinBk && cinBk.id !== cleanBk.id) {
+                    // 바로입실
+                    cellContent += '<div style="font-size:9px;color:var(--sub-grn);font-weight:700;margin-top:2px;">→입실</div>';
                   }
+                } else if (stayBk) {
+                  // 연박 중
+                  const n = bkNights(stayBk.checkIn, stayBk.checkOut);
+                  cellContent = '<div style="width:100%;height:4px;background:'+BK_COLORS[stayBk.color||0]+';border-radius:2px;margin-top:4px;opacity:.7;"></div>'
+                    + '<div style="font-size:9px;color:var(--ink-3);margin-top:2px;">'+n+'박</div>';
+                } else if (cinBk) {
+                  // 체크인
+                  cellContent = '<div style="font-size:9px;color:var(--sub-grn);font-weight:700;">입실</div>'
+                    + '<div style="font-size:9px;color:var(--ink-3);">'+cinBk.guests+'명</div>';
                 }
+                
+                html += '<div style="background:'+cellBg+';display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid var(--line);padding:4px;cursor:pointer;min-height:56px;" '
+                  + 'data-add-room="'+room.id+'" data-add-date="'+ds+'">'
+                  + cellContent
+                  + '</div>';
               });
-              
-              // 예약 바 - tr에 relative wrapper 추가
-              const barWrap = document.createElement('div');
-              barWrap.style.cssText = 'position:absolute;top:0;left:120px;right:0;height:100%;pointer-events:none;z-index:5;';
-              
-              books.filter(function(bk){ return bk.roomId===room.id && bk.checkIn<me && bk.checkOut>ms; })
-                .forEach(function(bk) {
-                  // 이 달 내 시작/끝 날짜 계산
-                  const cinStr  = bk.checkIn  < ms ? ms  : bk.checkIn;
-                  const coutStr = bk.checkOut > df(dim) ? df(dim+1) : bk.checkOut;
-                  const sd = new Date(cinStr).getDate();
-                  const ed = new Date(coutStr).getDate();
-                  const bw = (ed - sd) * 40 - 6; if (bw <= 0) return;
-                  
-                  const bar = document.createElement('div');
-                  bar.className = 'bk-bar bk-bc' + (bk.color||0);
-                  bar.style.cssText = 'position:absolute;left:' + ((sd-1)*40+3) + 'px;width:' + bw + 'px;top:6px;height:calc(100% - 12px);pointer-events:auto;';
-                  bar.dataset.bid = bk.id;
-                  const n = bkNights(bk.checkIn, bk.checkOut);
-                  const supplies = bk.supplies ? ' · ' + bk.supplies : '';
-                  bar.innerHTML = '<div class="bk-bi"><div style="font-weight:800;">' + (bk.guests?bk.guests+'명':'') + (bk.guests&&n?' · ':' ') + n + '박' + '</div>'
-                    + (bk.memo ? '<div class="bk-l2">' + bk.memo + '</div>' : '')
-                    + (bk.supplies ? '<div class="bk-l2">🛒' + bk.supplies + '</div>' : '')
-                    + '</div>';
-                  barWrap.appendChild(bar);
-                });
-              
-              // wrapper를 tr에 붙이기 (tr에 relative 설정)
-              tr.style.position = 'relative';
-              tr.appendChild(barWrap);
-              
-              tbody.appendChild(tr);
+              html += '</div>';
             });
           });
+          // 마지막 둥근 하단
+          html += '<div style="height:12px;background:var(--card);border-radius:0 0 12px 12px;border-top:1px solid var(--line);"></div>';
         }
-        tbl.appendChild(tbody);
         
         // 요약
-        const sumBar = document.getElementById('bkSumBar');
-        if (sumBar) {
-          const ms2 = df(1), me2 = df(dim);
-          const tot = books.filter(function(b){ return b.checkIn<me2 && b.checkOut>ms2; });
-          const nt  = tot.reduce(function(s,b){ return s+bkNights(b.checkIn,b.checkOut); }, 0);
-          sumBar.innerHTML = [
-            '이번달 <b>'+tot.length+'건</b>',
-            '총 '+nt+'박',
-            '객실 <b>'+rooms.length+'개</b>'
-          ].map(function(t){ return '<div class="bk-chip">'+t+'</div>'; }).join('');
-        }
+        const cleanCount = weekDates.reduce(function(cnt, ds) {
+          return cnt + books.filter(function(bk){ return bk.checkOut===ds; }).length;
+        }, 0);
+        document.getElementById('bkSumBar').innerHTML =
+          '<div class="bk-chip">이번주 청소 <b>'+cleanCount+'건</b></div>'
+          + '<div class="bk-chip">객실 <b>'+allRooms.length+'개</b></div>';
+        
+        const body = document.getElementById('bkWeekBody');
+        body.innerHTML = html;
         
         // 이벤트 바인딩
-        tbl.addEventListener('click', function(e) {
-          const bar  = e.target.closest('.bk-bar');
-          const cell = e.target.closest('td.bk-dcell');
-          const rlbl = e.target.closest('td.bk-rlbl');
-          if (bar)  { openBkDetModal(bar.dataset.bid); return; }
-          if (cell) { openBkModal(null, cell.dataset.rid, cell.dataset.date); return; }
+        // 청소 동그라미 탭 → 팝업
+        body.querySelectorAll('.bk-clean-circle').forEach(function(btn) {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            openBkCleanModal(btn.dataset.bkid, btn.dataset.roomid, btn.dataset.date);
+          });
+        });
+        // 빈 셀 탭 → 예약 등록
+        body.querySelectorAll('[data-add-room]').forEach(function(cell) {
+          cell.addEventListener('click', function(e) {
+            if (e.target.closest('.bk-clean-circle')) return;
+            openBkModal(null, cell.dataset.addRoom, cell.dataset.addDate);
+          });
         });
         
       } catch(e) { console.error('예약탭 오류:', e); }
+    }
+    
+    // 청소 정보 팝업
+    function openBkCleanModal(bkId, roomId, date) {
+      try {
+        const bk   = safeLoadBooks().find(function(b){ return b.id===bkId; });
+        const room = (safeLoad(STORAGE.ROOM)||[]).find(function(r){ return r.id===roomId; });
+        if (!bk || !room) return;
+        
+        const n = bkNights(bk.checkIn, bk.checkOut);
+        const allTx = safeLoad(STORAGE.TX)||[];
+        const existTx = allTx.find(function(t){ return t.type==='income' && t.targetId===roomId && t.date===date; });
+        
+        // 다음 예약 확인 (바로입실 여부)
+        const nextBk = safeLoadBooks().find(function(b){ return b.roomId===roomId && b.checkIn===date; });
+        
+        document.getElementById('bkCleanTitle').textContent = room.name + ' 청소 정보';
+        
+        let body = '<div style="background:var(--bg-2);border-radius:12px;padding:12px;margin-bottom:12px;">';
+        body += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">';
+        body += '<span style="background:var(--sub-red-2);color:var(--sub-red);padding:4px 10px;border-radius:100px;font-size:12px;font-weight:700;">🚪 체크아웃</span>';
+        body += '<span style="background:var(--accent-2);color:var(--accent);padding:4px 10px;border-radius:100px;font-size:12px;font-weight:700;">'+n+'박</span>';
+        if (bk.guests) body += '<span style="background:var(--bg);padding:4px 10px;border-radius:100px;font-size:12px;font-weight:700;">👥 '+bk.guests+'명</span>';
+        body += '</div>';
+        body += '<div style="font-size:13px;color:var(--ink-2);line-height:2;">';
+        body += '📅 '+bk.checkIn+' ~ '+bk.checkOut+'<br>';
+        if (bk.memo) body += '📝 '+bk.memo+'<br>';
+        if (bk.supplies) body += '🛒 <b style="color:var(--accent);">'+bk.supplies+'</b><br>';
+        
+        if (nextBk) {
+          body += '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--line-2);">';
+          body += '<span style="background:var(--sub-grn-2);color:var(--sub-grn);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;">🏠 바로 입실</span> ';
+          body += '<span style="font-size:12px;color:var(--ink-2);">'+bkNights(nextBk.checkIn,nextBk.checkOut)+'박 '+(nextBk.guests||'')+'명</span>';
+          if (nextBk.supplies) body += '<br>🛒 <b style="color:var(--accent);">'+nextBk.supplies+'</b>';
+          body += '</div>';
+        } else {
+          body += '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--line-2);font-size:12px;color:var(--ink-3);">다음 예약 없음 (공실)</div>';
+        }
+        
+        body += '</div></div>';
+        
+        if (room.doorPw || room.supplyPw) {
+          body += '<div style="background:var(--bg-2);border-radius:10px;padding:10px 12px;margin-bottom:12px;display:flex;gap:16px;">';
+          if (room.doorPw)   body += '<span style="font-size:13px;">🔑 '+room.doorPw+'</span>';
+          if (room.supplyPw) body += '<span style="font-size:13px;">📦 '+room.supplyPw+'</span>';
+          body += '</div>';
+        }
+        
+        if (existTx) {
+          body += '<div style="background:var(--ok);border-radius:10px;padding:10px 12px;margin-bottom:12px;text-align:center;color:white;font-size:13px;font-weight:700;">✅ 청소 기록 완료 '+formatMoney(existTx.netAmount||existTx.amount)+'</div>';
+        }
+        
+        document.getElementById('bkCleanBody').innerHTML = body;
+        
+        // 추가요금 입력
+        const extraDesc = document.getElementById('bkExtraDesc');
+        const extraAmt  = document.getElementById('bkExtraAmt');
+        const preview   = document.getElementById('bkTotalPreview');
+        extraDesc.value = bk.extraDesc || '';
+        extraAmt.value  = bk.extraAmt  || '';
+        
+        function updatePreview() {
+          const base  = room.price || 0;
+          const extra = parseInt(extraAmt.value) || 0;
+          if (extra > 0) {
+            preview.textContent = '기본 '+formatMoney(base)+' + 추가 '+formatMoney(extra)+' = 합계 '+formatMoney(base+extra);
+          } else {
+            preview.textContent = '기본 '+formatMoney(base);
+          }
+        }
+        extraAmt.addEventListener('input', updatePreview);
+        updatePreview();
+        
+        // 저장 버튼
+        document.getElementById('btnBkCleanSave').onclick = function() {
+          const extra = parseInt(extraAmt.value) || 0;
+          const desc  = extraDesc.value.trim();
+          // 예약에 추가요금 저장
+          const books2 = safeLoadBooks();
+          const bkIdx  = books2.findIndex(function(b){ return b.id===bkId; });
+          if (bkIdx>=0) { books2[bkIdx].extraAmt=extra; books2[bkIdx].extraDesc=desc; }
+          try { localStorage.setItem(STORAGE.BOOKS, JSON.stringify(books2)); } catch(e){}
+          // 청소 수입 기록 모달 열기
+          document.getElementById('bkCleanModal').classList.remove('active');
+          openTxModal(existTx?existTx.id:null, date, roomId, bk.guests, n, (room.price||0)+extra);
+        };
+        
+        document.getElementById('bkCleanModal').classList.add('active');
+      } catch(e) { console.error(e); }
     }
     
     // 예약 등록 모달
@@ -5556,12 +5661,13 @@
         
         // 예약 탭
         document.getElementById('calBkPrev').addEventListener('click', function() {
-          bkMonth--; if (bkMonth < 0) { bkMonth = 11; bkYear--; }
-          renderBookingTab();
+          bkWeekOffset--; renderBookingTab();
         });
         document.getElementById('calBkNext').addEventListener('click', function() {
-          bkMonth++; if (bkMonth > 11) { bkMonth = 0; bkYear++; }
-          renderBookingTab();
+          bkWeekOffset++; renderBookingTab();
+        });
+        document.getElementById('bkTodayBtn').addEventListener('click', function() {
+          bkWeekOffset = 0; renderBookingTab();
         });
         document.getElementById('btnAddBooking').addEventListener('click', function() {
           openBkModal(null);
