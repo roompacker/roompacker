@@ -3477,10 +3477,16 @@
             branchField.style.display = 'block';
             populateTargets(t.type, t.targetId, t.branch);
             updateCalcPreview();
+            // 수입 기록이면 예약 등록 버튼 표시
+            const bkBtn = document.getElementById('btnTxToBooking');
+            if (bkBtn) bkBtn.style.display = t.type === 'income' ? 'block' : 'none';
           }
         } else {
           title.textContent = '💰 거래 추가';
           deleteBtn.style.display = 'none';
+          // 새 추가는 기본 수입 선택이니 버튼 표시
+          const bkBtn2 = document.getElementById('btnTxToBooking');
+          if (bkBtn2) bkBtn2.style.display = 'block';
           populateTargets('income', null, document.getElementById('txBranchSelect').value);
         }
         
