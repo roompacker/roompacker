@@ -570,71 +570,70 @@
     .booking-cal-wrap::-webkit-scrollbar-thumb { background:var(--line-2); border-radius:2px; }
     #bkCalTable {
       border-collapse:collapse; table-layout:fixed;
-      --LW:120px; --CW:40px; --CH:50px;
-      min-width:calc(120px + 40px*31);
+      --LW:100px; --CW:44px; --CH:62px;
+      min-width:calc(100px + 44px*31);
     }
     #bkCalTable thead tr th {
       background:var(--ink); position:sticky; top:0; z-index:50;
       border-right:1px solid rgba(255,255,255,.1); padding:0;
     }
     #bkCalTable th.bk-corner {
-      width:120px; min-width:120px;
+      width:100px; min-width:100px;
       position:sticky; left:0; z-index:60;
       background:var(--ink);
       border-right:2px solid rgba(255,255,255,.2) !important;
     }
-    #bkCalTable th.bk-corner span { font-size:11px; color:rgba(255,255,255,.6); display:block; padding:10px 0; text-align:center; }
-    #bkCalTable th.bk-dhdr { width:40px; min-width:40px; text-align:center; padding:6px 2px 4px; }
-    #bkCalTable th.bk-dhdr .dn { font-size:12px; font-weight:700; color:#fff; line-height:1; }
-    #bkCalTable th.bk-dhdr .dw { font-size:9px; margin-top:3px; color:rgba(255,255,255,.5); }
+    #bkCalTable th.bk-corner span { font-size:11px; color:rgba(255,255,255,.6); display:block; padding:12px 0; text-align:center; }
+    #bkCalTable th.bk-dhdr { width:44px; min-width:44px; text-align:center; padding:8px 2px 6px; }
+    #bkCalTable th.bk-dhdr .dn { font-size:13px; font-weight:800; color:#fff; line-height:1; }
+    #bkCalTable th.bk-dhdr .dw { font-size:10px; margin-top:3px; color:rgba(255,255,255,.5); }
     #bkCalTable th.bk-dhdr.sat .dn { color:#A8C4E8; }
     #bkCalTable th.bk-dhdr.sun .dn { color:#E8A8A8; }
-    #bkCalTable th.bk-dhdr.bk-tday .dn {
-      background:var(--accent); color:#fff; width:22px; height:22px;
-      border-radius:50%; display:inline-flex; align-items:center; justify-content:center; margin:0 auto;
-    }
+    #bkCalTable th.bk-dhdr.bk-tday { background:var(--accent); }
+    #bkCalTable th.bk-dhdr.bk-tday .dn { color:#fff; font-size:14px; }
+    #bkCalTable th.bk-dhdr.bk-tday .dw { color:rgba(255,255,255,.8); }
     /* 건물 구분행 */
-    #bkCalTable tr.bk-bdiv td { height:24px; padding:0; }
+    #bkCalTable tr.bk-bdiv td { height:28px; padding:0; }
     #bkCalTable td.bk-bdiv-lbl {
       position:sticky; left:0; z-index:10;
-      font-size:11px; font-weight:700; color:#fff;
+      font-size:11px; font-weight:800; color:#fff;
       padding:0 10px;
     }
     /* 객실 행 */
     #bkCalTable tr.bk-room-row td.bk-rlbl {
       position:sticky; left:0; z-index:10;
-      width:120px; min-width:120px; height:50px;
+      width:100px; min-width:100px; height:62px;
       border-right:2px solid var(--line-2);
-      background:var(--card); padding:6px 8px;
+      background:var(--card); padding:8px 8px;
       cursor:pointer;
     }
-    #bkCalTable td.bk-rlbl .rn { font-size:12px; font-weight:700; color:var(--ink); }
+    #bkCalTable td.bk-rlbl .rn { font-size:13px; font-weight:800; color:var(--ink); line-height:1.3; }
     #bkCalTable td.bk-rlbl .rt { font-size:10px; color:var(--ink-3); margin-top:2px; }
     #bkCalTable td.bk-dcell {
-      width:40px; min-width:40px; height:50px;
+      width:44px; min-width:44px; height:62px;
       border-right:1px solid var(--line); position:relative;
       cursor:pointer; vertical-align:top;
     }
-    #bkCalTable td.bk-dcell.bk-tday { background:rgba(58,58,110,.06); }
+    #bkCalTable td.bk-dcell.bk-tday { background:rgba(58,58,110,.08); border-right:1px solid rgba(58,58,110,.3); }
     #bkCalTable td.bk-dcell.sat { background:rgba(168,196,232,.08); }
     #bkCalTable td.bk-dcell.sun { background:rgba(232,168,168,.08); }
-    #bkCalTable td.bk-dcell .bk-ph { font-size:10px; color:var(--line-2); position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); }
-    #bkCalTable td.bk-dcell.bk-clean { background:rgba(212,114,107,.15) !important; }
+    #bkCalTable td.bk-dcell .bk-ph { font-size:11px; color:var(--line-2); position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); }
+    #bkCalTable td.bk-dcell.bk-clean { background:rgba(155,35,53,.12) !important; }
     .bk-clean-dot {
-      position:absolute; bottom:2px; left:50%; transform:translateX(-50%);
-      width:16px; height:16px; border-radius:50%;
+      position:absolute; bottom:3px; left:50%; transform:translateX(-50%);
+      width:18px; height:18px; border-radius:50%;
       background:var(--sub-red); display:flex; align-items:center;
-      justify-content:center; font-size:8px; color:#fff; font-weight:700; z-index:6;
+      justify-content:center; font-size:9px; color:#fff; font-weight:800; z-index:6;
     }
     /* 예약 바 */
     .bk-bar {
-      position:absolute; top:6px; height:calc(100% - 12px);
-      border-radius:6px; z-index:5; overflow:hidden;
-      display:flex; align-items:center; padding:0 6px;
-      cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.15);
+      position:absolute; top:8px; height:calc(100% - 16px);
+      border-radius:7px; z-index:5; overflow:hidden;
+      display:flex; align-items:center; padding:0 7px;
+      cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.18);
     }
-    .bk-bar .bk-bi { font-size:10px; color:#fff; font-weight:700; white-space:nowrap; overflow:hidden; }
-    .bk-bar .bk-l2 { font-size:9px; opacity:.8; }
+    .bk-bar .bk-bi { font-size:11px; color:#fff; font-weight:700; white-space:nowrap; overflow:hidden; }
+    .bk-bar .bk-l2 { font-size:10px; opacity:.85; margin-top:1px; }
     /* 예약 색상 */
     .bk-bc0{background:linear-gradient(90deg,#6A9FD8,#4A7FC0)}
     .bk-bc1{background:linear-gradient(90deg,#6AC47A,#4AA860)}
@@ -844,6 +843,12 @@
             <button class="month-nav-btn" id="calBkNext">▶</button>
             <button class="btn-add" id="btnAddBooking" style="font-size:12px;padding:7px 12px;">+ 예약</button>
           </div>
+        </div>
+        <!-- 지점 필터 -->
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <button class="bk-branch-btn active" data-branch="전체" style="flex:1;padding:8px;border:1.5px solid var(--accent);border-radius:10px;background:var(--accent);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">전체</button>
+          <button class="bk-branch-btn" data-branch="영종점" style="flex:1;padding:8px;border:1.5px solid var(--line-2);border-radius:10px;background:var(--card);color:var(--ink-2);font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">영종</button>
+          <button class="bk-branch-btn" data-branch="송도점" style="flex:1;padding:8px;border:1.5px solid var(--line-2);border-radius:10px;background:var(--card);color:var(--ink-2);font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">송도</button>
         </div>
         <div class="booking-cal-wrap">
           <table id="bkCalTable"></table>
@@ -1665,6 +1670,7 @@
     let bkMonth = new Date().getMonth();
     let bkEditId = null;
     let bkDetId = null;
+    let bkBranchFilter = '전체'; // 지점 필터
     
     const BK_COLORS = [
       '#6A9FD8','#6AC47A','#D4855A','#C47BC4',
@@ -4355,7 +4361,10 @@
         const el = document.getElementById('calBkLabel');
         if (el) el.textContent = label;
         
-        const rooms = safeLoad(STORAGE.ROOM) || [];
+        const rooms = (safeLoad(STORAGE.ROOM) || []).filter(function(r) {
+          if (bkBranchFilter === '전체') return true;
+          return r.branch === bkBranchFilter;
+        });
         const books = safeLoadBooks();
         const dim   = new Date(bkYear, bkMonth+1, 0).getDate();
         const tod   = bkDateStr(new Date());
@@ -5556,6 +5565,18 @@
         });
         document.getElementById('btnAddBooking').addEventListener('click', function() {
           openBkModal(null);
+        });
+        // 지점 필터 버튼
+        document.querySelectorAll('.bk-branch-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            bkBranchFilter = btn.dataset.branch;
+            document.querySelectorAll('.bk-branch-btn').forEach(function(b) {
+              b.style.background = b.dataset.branch === bkBranchFilter ? 'var(--accent)' : 'var(--card)';
+              b.style.color      = b.dataset.branch === bkBranchFilter ? 'white' : 'var(--ink-2)';
+              b.style.borderColor= b.dataset.branch === bkBranchFilter ? 'var(--accent)' : 'var(--line-2)';
+            });
+            renderBookingTab();
+          });
         });
         document.getElementById('bookingModal').addEventListener('click', function(e) {
           if (e.target.id === 'bookingModal') closeBkModal();
