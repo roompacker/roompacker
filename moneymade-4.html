@@ -561,9 +561,10 @@
     }
     .booking-month-label { font-size:18px; font-weight:800; color:var(--ink); }
     .booking-cal-wrap {
-      overflow-x:auto; -webkit-overflow-scrolling:touch;
+      overflow:auto; -webkit-overflow-scrolling:touch;
       background:var(--card); border-radius:14px;
       border:1px solid var(--line); margin-bottom:8px;
+      max-height:60vh;
     }
     .booking-cal-wrap::-webkit-scrollbar { height:3px; }
     .booking-cal-wrap::-webkit-scrollbar-thumb { background:var(--line-2); border-radius:2px; }
@@ -3554,6 +3555,25 @@
               document.getElementById('txDoorPw').value = room.doorPw;
             if (room.supplyPw && !document.getElementById('txSupplyPw').value)
               document.getElementById('txSupplyPw').value = room.supplyPw;
+            
+            // 예약 데이터 자동 연동 - 같은 날 체크아웃 예약 찾기
+            const txDate = document.getElementById('txDatePicker').value;
+            if (txDate) {
+              const books = safeLoadBooks();
+              const bk = books.find(function(b) {
+                return b.roomId === targetId && b.checkOut === txDate;
+              });
+              if (bk) {
+                // 박수/인원 비어있을 때만 자동 채우기
+                if (!document.getElementById('txNights').value)
+                  document.getElementById('txNights').value = bkNights(bk.checkIn, bk.checkOut) || '';
+                if (!document.getElementById('txGuests').value)
+                  document.getElementById('txGuests').value = bk.guests || '';
+                if (!document.getElementById('txMemo').value && bk.memo)
+                  document.getElementById('txMemo').value = bk.memo;
+                showToast('📋 예약 정보 자동 입력됐어요');
+              }
+            }
           }
         } else {
           const staff = safeLoad(STORAGE.STAFF).find(s => s.id === targetId);
@@ -5351,6 +5371,12 @@
           });
         });
         document.getElementById('txTarget').addEventListener('change', autoFillAmount);
+        document.getElementById('txDatePicker').addEventListener('change', function() {
+          document.getElementById('txDate').value = this.value;
+          // 날짜 바뀌면 예약 다시 조회
+          const targetId = document.getElementById('txTarget').value;
+          if (targetId) autoFillAmount();
+        });
         document.getElementById('txAmount').addEventListener('input', updateCalcPreview);
         document.getElementById('txBranchSelect').addEventListener('change', () => {
           const type = document.querySelector('input[name="txType"]:checked').value;
