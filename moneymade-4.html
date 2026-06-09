@@ -3819,14 +3819,18 @@
           .filter(t => t.type === 'income' && t.date === dateStr)
           .sort((a,b) => (a.sortOrder??a.createdAt??0)-(b.sortOrder??b.createdAt??0));
         
-        // 오늘 체크아웃 예약 중 거래 기록 없는 것
+        // 오늘 체크아웃 예약 중 거래 기록 없는 것 (같은 객실 중복 제거 - 가장 최근 예약만)
+        const seenRooms = new Set();
+        dayTxRaw.forEach(t => seenRooms.add(t.targetId)); // 거래 있는 객실 먼저 등록
+        
         const todayBkCheckouts = books.filter(function(bk) {
           if (bk.checkOut !== dateStr) return false;
           const room = rooms.find(function(r){ return r.id === bk.roomId; });
           if (!room) return false;
-          // 이미 거래 기록 있으면 제외
-          const hasTx = dayTxRaw.find(function(t){ return t.targetId === bk.roomId; });
-          return !hasTx;
+          // 이미 거래 기록 있거나 이미 처리한 객실이면 제외
+          if (seenRooms.has(bk.roomId)) return false;
+          seenRooms.add(bk.roomId); // 첫 번째 예약만 통과
+          return true;
         });
         
         // 예약 기반 가상 카드 (거래 없는 체크아웃)
@@ -4429,10 +4433,12 @@
                 tr.appendChild(tdC);
               }
               
-              // 체크아웃 날짜에 청소 표시
+              // 체크아웃 날짜에 청소 표시 (중복 방지)
+              const cleanDots = new Set();
               books.filter(function(bk){ return bk.roomId===room.id; }).forEach(function(bk) {
                 for (let d = 1; d <= dim; d++) {
-                  if (df(d) === bk.checkOut) {
+                  if (df(d) === bk.checkOut && !cleanDots.has(df(d))) {
+                    cleanDots.add(df(d));
                     const cell = tr.cells[d];
                     if (cell) {
                       cell.classList.add('bk-clean');
