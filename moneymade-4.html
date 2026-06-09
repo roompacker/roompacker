@@ -1478,6 +1478,11 @@
         <button class="btn-danger" id="btnTxDelete" onclick="deleteTx()" style="display:none;">🗑️</button>
         <button class="btn-primary" id="btnTxSave" onclick="saveTx()">저장</button>
       </div>
+      <!-- 예약 연동 버튼 (수입 기록일 때만 표시) -->
+      <button id="btnTxToBooking" onclick="txToBooking()" style="display:none;width:100%;margin-top:8px;padding:11px;background:var(--sub-grn-2);color:var(--sub-grn);border:1px solid var(--sub-grn);border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">
+        📋 이 기록으로 예약 등록하기
+      </button>
+      </div>
     </div>
   </div>
   
@@ -3936,28 +3941,77 @@
             + (!t._fromBooking ? '<button class="dash-share-host" data-idx="' + ti + '" style="flex:1;padding:10px;background:var(--accent-2);color:var(--accent);border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">📋 호스트</button>' : '')
             + '</div></div></div>';
         });
+        // ── 준비 스케줄 전체 날짜별 ──
+        const allScheds = filterByBranch(safeLoad(STORAGE.SCHEDULE) || [])
+          .sort((a,b) => a.date.localeCompare(b.date));
+        
+        // 오늘 이후 스케줄만 (지난 것 제외)
+        const todayStr2 = getDateStr(0);
+        const upcomingScheds = allScheds.filter(s => s.date >= todayStr2);
+        
         html += '<div style="background:var(--card);border-radius:14px;margin-bottom:10px;overflow:hidden;border:1px solid var(--line);">'
           + '<div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">'
-          + '<span style="font-size:14px;font-weight:700;color:var(--ink);">준비 스케줄</span>'
+          + '<span style="font-size:14px;font-weight:700;color:var(--ink);">📦 다가올 준비 스케줄</span>'
           + (!dashLocked ? '<button id="btnAddSchedule" style="background:var(--accent);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">+ 추가</button>' : '<span style="font-size:11px;color:var(--warn);">🔒 잠김</span>')
           + '</div>';
-        if (daySchedules.length === 0) {
-          html += '<div style="padding:20px;text-align:center;color:var(--ink-3);font-size:13px;">' + dayLabel + ' 준비 스케줄이 없어요</div>';
+        
+        if (upcomingScheds.length === 0) {
+          html += '<div style="padding:20px;text-align:center;color:var(--ink-3);font-size:13px;">다가올 준비 스케줄이 없어요</div>';
         } else {
-          daySchedules.forEach(s => {
-            const room = rooms.find(r => r.id === s.roomId);
-            const isLocked = s.locked;
-            const rName = room?.name||s.roomName||'객실';
-            const hoNum2 = rName.match(/(\d+호)$/) ? rName.match(/(\d+호)$/)[1] : rName;
-            html += '<div style="padding:11px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">'
-              + '<div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--ink);">' + hoNum2 + (isLocked?' 🔒':'') + '</div>'
-              + '<div style="font-size:11px;color:var(--ink-3);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;">'
-              + (s.checkType?'<span>'+s.checkType+'</span>':'') + (s.nights?'<span>'+s.nights+'박</span>':'') + (s.guests?'<span>'+s.guests+'명</span>':'') + (s.supplies?'<span>🛒 '+s.supplies+'</span>':'') + (s.memo?'<span>📝 '+s.memo+'</span>':'')
-              + '</div></div>'
-              + '<div style="display:flex;gap:4px;">'
-              + '<button class="btn-sched-lock" data-id="' + s.id + '" style="background:none;border:1px solid var(--line-2);border-radius:7px;font-size:14px;cursor:pointer;padding:5px 7px;">' + (isLocked?'🔒':'🔓') + '</button>'
-              + ((!dashLocked&&!isLocked)?'<button class="btn-sched-edit" data-id="' + s.id + '" style="background:none;border:1px solid var(--line-2);border-radius:7px;font-size:13px;cursor:pointer;padding:5px 7px;">✏️</button>':'')
-              + '</div></div>';
+          // 날짜별 그룹핑
+          const schedByDate = {};
+          upcomingScheds.forEach(s => {
+            if (!schedByDate[s.date]) schedByDate[s.date] = [];
+            schedByDate[s.date].push(s);
+          });
+          
+          const tomorrowStr = getDateStr(1);
+          const weekdays = ['일','월','화','수','목','금','토'];
+          
+          Object.keys(schedByDate).sort().forEach(dateKey => {
+            const isToday    = dateKey === todayStr2;
+            const isTomorrow = dateKey === tomorrowStr;
+            const dParts = dateKey.split('-').map(Number);
+            const dObj   = new Date(dParts[0], dParts[1]-1, dParts[2]);
+            const dLabel = dParts[1]+'월 '+dParts[2]+'일 ('+weekdays[dObj.getDay()]+')';
+            
+            // 날짜 헤더 색상
+            let dateBg, dateTxt, dateBadge;
+            if (isToday) {
+              dateBg  = 'var(--sub-red-2)'; dateTxt = 'var(--sub-red)';
+              dateBadge = ' <span style="background:var(--sub-red);color:white;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700;">오늘</span>';
+            } else if (isTomorrow) {
+              dateBg  = 'var(--warn-2)'; dateTxt = 'var(--warn)';
+              dateBadge = ' <span style="background:var(--warn);color:white;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700;">내일</span>';
+            } else {
+              dateBg  = 'var(--bg-2)'; dateTxt = 'var(--ink-2)';
+              dateBadge = '';
+            }
+            
+            html += '<div style="background:'+dateBg+';padding:7px 14px;font-size:12px;font-weight:700;color:'+dateTxt+';">'+dLabel+dateBadge+'</div>';
+            
+            schedByDate[dateKey].forEach(s => {
+              const room = rooms.find(r => r.id === s.roomId);
+              const isLocked = s.locked;
+              const rName = room?.name || s.roomName || '객실';
+              const hoNum2 = rName.match(/(\d+호)$/) ? rName.match(/(\d+호)$/)[1] : rName;
+              const borderCol = isToday ? 'var(--sub-red)' : isTomorrow ? 'var(--warn)' : 'var(--accent)';
+              
+              html += '<div style="padding:10px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;border-left:3px solid '+borderCol+';margin-left:0;">'
+                + '<div style="flex:1;">'
+                + '<div style="font-size:13px;font-weight:700;color:var(--ink);">' + hoNum2 + (isLocked?' 🔒':'') + '</div>'
+                + '<div style="font-size:11px;color:var(--ink-3);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;">'
+                + (s.checkType ? '<span>'+s.checkType+'</span>' : '')
+                + (s.nights    ? '<span>'+s.nights+'박</span>'  : '')
+                + (s.guests    ? '<span>'+s.guests+'명</span>'  : '')
+                + (s.supplies  ? '<span style="color:var(--accent);font-weight:600;">🛒 '+s.supplies+'</span>' : '')
+                + (s.memo      ? '<span>📝 '+s.memo+'</span>'   : '')
+                + '</div></div>'
+                + '<div style="display:flex;gap:4px;">'
+                + '<button class="btn-sched-lock" data-id="'+s.id+'" style="background:none;border:1px solid var(--line-2);border-radius:7px;font-size:14px;cursor:pointer;padding:5px 7px;">'+(isLocked?'🔒':'🔓')+'</button>'
+                + ((!dashLocked&&!isLocked)?'<button class="btn-sched-edit" data-id="'+s.id+'" style="background:none;border:1px solid var(--line-2);border-radius:7px;font-size:13px;cursor:pointer;padding:5px 7px;">✏️</button>':'')
+                + '</div></div>';
+            });
           });
         }
         html += '</div>';
@@ -4035,6 +4089,40 @@
           + '<button onclick="renderDashboard()" style="background:var(--primary);color:white;border:none;border-radius:10px;padding:10px 20px;font-family:Pretendard,sans-serif;font-weight:700;cursor:pointer;">다시 시도</button>'
           + '</div>';
       }
+    }
+    
+    // 청소 기록 → 예약 등록 연동
+    function txToBooking() {
+      try {
+        const date     = document.getElementById('txDatePicker').value;
+        const targetId = document.getElementById('txTarget').value;
+        const nights   = document.getElementById('txNights').value;
+        const guests   = document.getElementById('txGuests').value;
+        const memo     = document.getElementById('txMemo').value;
+        
+        if (!targetId) { alert('객실을 먼저 선택하세요'); return; }
+        if (!date)     { alert('날짜를 먼저 입력하세요'); return; }
+        
+        const cout = date;
+        let cin = '';
+        if (nights && parseInt(nights) > 0) {
+          const cinDate = new Date(date);
+          cinDate.setDate(cinDate.getDate() - parseInt(nights));
+          cin = bkDateStr(cinDate);
+        }
+        
+        closeTxModal();
+        switchTab('booking');
+        setTimeout(function() {
+          openBkModal(null, targetId, cout);
+          if (cin)    document.getElementById('bkIn').value     = cin;
+          if (cout)   document.getElementById('bkOut').value    = cout;
+          if (guests) document.getElementById('bkGuests').value = guests;
+          if (nights) document.getElementById('bkNights').value = nights + '박';
+          if (memo)   document.getElementById('bkMemo').value   = memo;
+          if (cin && cout) document.getElementById('bkNights').value = bkNights(cin, cout) + '박';
+        }, 200);
+      } catch(e) { console.error(e); }
     }
     
     // 카톡 메시지 공유
@@ -5415,9 +5503,11 @@
             populateTargets(r.value);
             updateCalcPreview();
             updatePaidLabel();
-            // 수입일 때만 스케줄 필드 표시
             document.getElementById('txScheduleFields').style.display =
               r.value === 'income' ? 'block' : 'none';
+            // 예약 등록 버튼 표시 (수입일 때만)
+            const bkBtn = document.getElementById('btnTxToBooking');
+            if (bkBtn) bkBtn.style.display = r.value === 'income' ? 'block' : 'none';
           });
         });
         document.getElementById('txTarget').addEventListener('change', autoFillAmount);
