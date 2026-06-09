@@ -1236,6 +1236,9 @@
     <button class="tab-btn active" data-tab="dashboard">
       <span class="tab-icon">🏠</span><span>홈</span>
     </button>
+    <button class="tab-btn" data-tab="booking">
+      <span class="tab-icon">📋</span><span>예약</span>
+    </button>
     <button class="tab-btn" data-tab="calendar">
       <span class="tab-icon">📅</span><span>달력</span>
     </button>
@@ -1244,9 +1247,6 @@
     </button>
     <button class="tab-btn" data-tab="expense">
       <span class="tab-icon">💸</span><span>지출</span>
-    </button>
-    <button class="tab-btn" data-tab="booking">
-      <span class="tab-icon">📋</span><span>예약</span>
     </button>
     <button class="tab-btn" data-tab="pending">
       <span class="tab-icon">⏳</span><span>미지급</span>
@@ -1551,6 +1551,10 @@
       <div class="form-field">
         <label>메모</label>
         <input type="text" id="bkMemo" placeholder="예: 반려동물, 늦은 체크인">
+      </div>
+      <div class="form-field">
+        <label>🛒 입실 준비물 <span style="font-size:11px;color:var(--ink-3);">(있으면 대시보드 자동 등록)</span></label>
+        <input type="text" id="bkSupplies" placeholder="예: 토퍼1, 쇼파베드, 수건3세트">
       </div>
       <div class="modal-btns">
         <button class="btn-secondary" onclick="closeBkModal()">취소</button>
@@ -4346,22 +4350,35 @@
                 }
               });
               
-              // 예약 바
+              // 예약 바 - tr에 relative wrapper 추가
+              const barWrap = document.createElement('div');
+              barWrap.style.cssText = 'position:absolute;top:0;left:120px;right:0;height:100%;pointer-events:none;z-index:5;';
+              
               books.filter(function(bk){ return bk.roomId===room.id && bk.checkIn<me && bk.checkOut>ms; })
                 .forEach(function(bk) {
-                  const cinD  = new Date(bk.checkIn < ms ? ms : bk.checkIn);
-                  const coutD = new Date(bk.checkOut > me ? df(dim+1) : bk.checkOut);
-                  const sd = cinD.getDate(), ed = coutD.getDate();
-                  const bw = (ed - sd) * 40 - 4; if (bw <= 0) return;
+                  // 이 달 내 시작/끝 날짜 계산
+                  const cinStr  = bk.checkIn  < ms ? ms  : bk.checkIn;
+                  const coutStr = bk.checkOut > df(dim) ? df(dim+1) : bk.checkOut;
+                  const sd = new Date(cinStr).getDate();
+                  const ed = new Date(coutStr).getDate();
+                  const bw = (ed - sd) * 40 - 6; if (bw <= 0) return;
+                  
                   const bar = document.createElement('div');
                   bar.className = 'bk-bar bk-bc' + (bk.color||0);
-                  bar.style.left = ((sd-1)*40+2) + 'px';
-                  bar.style.width = bw + 'px';
+                  bar.style.cssText = 'position:absolute;left:' + ((sd-1)*40+3) + 'px;width:' + bw + 'px;top:6px;height:calc(100% - 12px);pointer-events:auto;';
                   bar.dataset.bid = bk.id;
                   const n = bkNights(bk.checkIn, bk.checkOut);
-                  bar.innerHTML = '<div class="bk-bi"><div>' + (bk.guests?bk.guests+'명 · ':'') + n + '박</div>' + (bk.memo?'<div class="bk-l2">'+bk.memo+'</div>':'') + '</div>';
-                  const cell = tr.cells[sd]; if (cell) { cell.style.position='relative'; cell.appendChild(bar); }
+                  const supplies = bk.supplies ? ' · ' + bk.supplies : '';
+                  bar.innerHTML = '<div class="bk-bi"><div style="font-weight:800;">' + (bk.guests?bk.guests+'명':'') + (bk.guests&&n?' · ':' ') + n + '박' + '</div>'
+                    + (bk.memo ? '<div class="bk-l2">' + bk.memo + '</div>' : '')
+                    + (bk.supplies ? '<div class="bk-l2">🛒' + bk.supplies + '</div>' : '')
+                    + '</div>';
+                  barWrap.appendChild(bar);
                 });
+              
+              // wrapper를 tr에 붙이기 (tr에 relative 설정)
+              tr.style.position = 'relative';
+              tr.appendChild(barWrap);
               
               tbody.appendChild(tr);
             });
@@ -4430,16 +4447,18 @@
           document.getElementById('bkOut').value   = bk.checkOut;
           document.getElementById('bkGuests').value = bk.guests || '';
           document.getElementById('bkNights').value = bkNights(bk.checkIn, bk.checkOut) + '박';
-          document.getElementById('bkMemo').value   = bk.memo || '';
+          document.getElementById('bkMemo').value    = bk.memo || '';
+          document.getElementById('bkSupplies').value = bk.supplies || '';
           delBtn.style.display = 'block';
         } else {
           title.textContent = '예약 등록';
           sel.value = defaultRoomId || '';
-          document.getElementById('bkIn').value    = defaultDate || '';
-          document.getElementById('bkOut').value   = '';
+          document.getElementById('bkIn').value     = defaultDate || '';
+          document.getElementById('bkOut').value    = '';
           document.getElementById('bkGuests').value = '';
           document.getElementById('bkNights').value = '';
           document.getElementById('bkMemo').value   = '';
+          document.getElementById('bkSupplies').value = '';
           delBtn.style.display = 'none';
         }
         
@@ -4463,11 +4482,12 @@
     
     function saveBk() {
       try {
-        const roomId  = document.getElementById('bkRoomSel').value;
-        const cin     = document.getElementById('bkIn').value;
-        const cout    = document.getElementById('bkOut').value;
-        const guests  = parseInt(document.getElementById('bkGuests').value) || 0;
-        const memo    = document.getElementById('bkMemo').value.trim();
+        const roomId   = document.getElementById('bkRoomSel').value;
+        const cin      = document.getElementById('bkIn').value;
+        const cout     = document.getElementById('bkOut').value;
+        const guests   = parseInt(document.getElementById('bkGuests').value) || 0;
+        const memo     = document.getElementById('bkMemo').value.trim();
+        const supplies = document.getElementById('bkSupplies').value.trim();
         
         if (!roomId) { alert('객실을 선택하세요'); return; }
         if (!cin)    { alert('체크인 날짜를 입력하세요'); return; }
@@ -4482,7 +4502,8 @@
           checkOut: cout,
           guests:   guests,
           color:    Math.floor(Math.random() * 8),
-          memo:     memo
+          memo:     memo,
+          supplies: supplies
         };
         
         if (bkEditId) {
@@ -4494,6 +4515,35 @@
         
         try { localStorage.setItem(STORAGE.BOOKS, JSON.stringify(books)); }
         catch(e) { alert('저장 실패: ' + e.message); return; }
+        
+        // 준비물 있으면 체크인 날짜에 준비 스케줄 자동 등록
+        if (supplies) {
+          try {
+            const room = safeLoad(STORAGE.ROOM).find(function(r){ return r.id===roomId; }) || {};
+            const scheds = safeLoad(STORAGE.SCHEDULE) || [];
+            // 같은 날 같은 객실 준비 스케줄 있으면 업데이트, 없으면 추가
+            const existIdx = scheds.findIndex(function(s){
+              return s.roomId===roomId && s.date===cin;
+            });
+            const schedData = {
+              id:        existIdx >= 0 ? scheds[existIdx].id : (Date.now().toString(36)+'sc'),
+              date:      cin,
+              roomId:    roomId,
+              roomName:  room.name || '',
+              branch:    room.branch || currentBranch,
+              checkType: '체크인',
+              nights:    bkNights(cin, cout),
+              guests:    guests,
+              supplies:  supplies,
+              memo:      memo,
+              createdAt: Date.now()
+            };
+            if (existIdx >= 0) scheds[existIdx] = schedData;
+            else scheds.push(schedData);
+            localStorage.setItem(STORAGE.SCHEDULE, JSON.stringify(scheds));
+            showToast('✅ 예약 저장 + 준비 스케줄 자동 등록됐어요');
+          } catch(e) { console.error('준비 스케줄 등록 실패:', e); }
+        }
         
         closeBkModal();
         renderBookingTab();
