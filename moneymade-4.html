@@ -12,51 +12,49 @@
   </script>
   <style>
     :root {
-      /* ── 포인트 색 1개만 ── */
-      --ink:       #1C1C1E;   /* 메인 텍스트 - 차콜블랙 */
-      --ink-2:     #48484A;   /* 서브 텍스트 */
-      --ink-3:     #8E8E93;   /* 힌트 텍스트 */
-      --bg:        #F7F6F3;   /* 앱 배경 - 따뜻한 오프화이트 */
-      --bg-2:      #EFEEEB;   /* 섹션 배경 */
-      --card:      #FFFFFF;   /* 카드 */
-      --line:      #E5E4E1;   /* 구분선 */
-      --line-2:    #D4D3D0;   /* 진한 구분선 */
-      /* 포인트 - 딥 인디고 1색 */
-      --accent:    #3A3A6E;   /* 메인 포인트 */
-      --accent-2:  #EBEBF5;   /* 연한 포인트 */
-      /* 상태색 - 채도 낮게 */
-      --ok:        #2D6A4F;   /* 완료/받음 */
-      --ok-2:      #EBF5F0;
-      --warn:      #92400E;   /* 미수금/주의 */
-      --warn-2:    #FEF5E7;
-      --sub-red:   #9B2335;   /* 체크아웃 */
-      --sub-red-2: #FDF0F2;
-      --sub-grn:   #1A5C3A;   /* 체크인 */
-      --sub-grn-2: #EDF7F2;
-      /* 레거시 호환 변수 (기존 코드 유지용) */
-      --primary:   #3A3A6E;
-      --primary-2: #EBEBF5;
-      --primary-3: #2A2A5E;
+      /* ── 클로 시그니처: 주황 + 크림 ── */
+      --ink:       #2C1810;
+      --ink-2:     #5C3D2E;
+      --ink-3:     #A08070;
+      --bg:        #FDF8F3;
+      --bg-2:      #F5EDE3;
+      --card:      #FFFCF9;
+      --line:      #EAE0D5;
+      --line-2:    #D9CCBF;
+      --accent:    #C85A1A;
+      --accent-2:  #FDEBD8;
+      --accent-3:  #A04515;
+      --ok:        #2D6A4F;
+      --ok-2:      #E8F5EE;
+      --warn:      #92400E;
+      --warn-2:    #FEF3E2;
+      --sub-red:   #C0392B;
+      --sub-red-2: #FDEDEB;
+      --sub-grn:   #1A6B45;
+      --sub-grn-2: #E8F7EF;
+      --primary:   #C85A1A;
+      --primary-2: #FDEBD8;
+      --primary-3: #A04515;
       --green:     #2D6A4F;
-      --green-2:   #EBF5F0;
-      --red:       #9B2335;
-      --red-2:     #FDF0F2;
+      --green-2:   #E8F5EE;
+      --red:       #C0392B;
+      --red-2:     #FDEDEB;
       --amber:     #92400E;
-      --amber-2:   #FEF5E7;
-      --purple:    #5C4A8E;
-      --purple-2:  #F0ECFA;
-      --white: #FFFFFF;
-      --gray: #8E8E93;
-      --text: #1C1C1E; --text-2: #48484A; --text-3: #8E8E93;
-      --border: #E5E4E1; --border-2: #D4D3D0;
-      --income: #2D6A4F; --income-light: #EBF5F0;
-      --expense: #9B2335; --expense-light: #FDF0F2;
-      --pending: #92400E; --pending-light: #FEF5E7;
-      --blue-1:#EBEBF5; --blue-2:#D4D3F0; --blue-3:#6B6BA8;
-      --blue-4:#3A3A6E; --blue-5:#2A2A5E;
-      --cream-1:#F7F6F3; --cream-2:#EFEEEB; --cream-3:#E5E4E1;
-      --cream-4:#D4D3D0; --cream-5:#48484A;
-      --purple-light:#F0ECFA;
+      --amber-2:   #FEF3E2;
+      --purple:    #7B4F8E;
+      --purple-2:  #F3EAF8;
+      --white: #FFFCF9;
+      --gray: #A08070;
+      --text: #2C1810; --text-2: #5C3D2E; --text-3: #A08070;
+      --border: #EAE0D5; --border-2: #D9CCBF;
+      --income: #2D6A4F; --income-light: #E8F5EE;
+      --expense: #C0392B; --expense-light: #FDEDEB;
+      --pending: #92400E; --pending-light: #FEF3E2;
+      --blue-1:#FDEBD8; --blue-2:#F8D5B8; --blue-3:#E08040;
+      --blue-4:#C85A1A; --blue-5:#A04515;
+      --cream-1:#FDF8F3; --cream-2:#F5EDE3; --cream-3:#EAE0D5;
+      --cream-4:#D9CCBF; --cream-5:#5C3D2E;
+      --purple-light:#F3EAF8;
     }
     * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
     body {
@@ -68,31 +66,32 @@
 
     /* ── 헤더 ── */
     .header {
-      background: var(--card); padding: 12px 16px;
+      background: linear-gradient(135deg, #C85A1A 0%, #E07030 100%);
+      padding: 14px 16px;
       position: sticky; top: 0; z-index: 10;
-      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(200,90,26,.3);
     }
     .header-row { display:flex; align-items:center; gap:10px; }
     .header h1 {
       font-size: 17px; font-weight: 800;
-      color: var(--text); flex: 1; letter-spacing: -0.3px;
+      color: #fff; flex: 1; letter-spacing: -0.3px;
+      text-shadow: 0 1px 3px rgba(0,0,0,.15);
     }
 
     /* ── 지점 토글 ── */
     .branch-toggle {
-      display:flex; background:var(--bg);
+      display:flex; background:rgba(255,255,255,.2);
       border-radius:10px; padding:3px; gap:2px;
-      border: 1px solid var(--border);
     }
     .branch-btn {
       padding: 6px 11px; border:none;
       background:transparent; border-radius:8px;
       font-family:'Pretendard',sans-serif;
       font-size: 12px; font-weight: 700;
-      color: var(--text-2); cursor:pointer; transition:all 0.15s;
+      color: rgba(255,255,255,.8); cursor:pointer; transition:all 0.15s;
     }
-    .branch-btn.active { background:var(--primary); color:#fff; }
-    .branch-btn.all-btn.active { background:var(--purple); }
+    .branch-btn.active { background:rgba(255,255,255,.95); color:var(--accent); }
+    .branch-btn.all-btn.active { background:rgba(255,255,255,.95); color:var(--accent); }
 
     .main { padding: 14px; }
     .tab-content { display:none; }
@@ -428,18 +427,19 @@
     .tabbar {
       position:fixed; bottom:0; left:0; right:0;
       background:var(--card); display:flex;
-      border-top:1px solid var(--border);
+      border-top:2px solid var(--line);
       padding:7px 0 calc(7px + env(safe-area-inset-bottom));
       z-index:50;
+      box-shadow: 0 -2px 12px rgba(200,90,26,.08);
     }
     .tab-btn {
       flex:1; border:none; background:transparent; padding:7px 2px;
       display:flex; flex-direction:column; align-items:center;
-      gap:3px; cursor:pointer; color:var(--text-3);
+      gap:3px; cursor:pointer; color:var(--ink-3);
       font-size:10px; font-family:'Pretendard',sans-serif;
       font-weight:600; position:relative;
     }
-    .tab-btn.active { color:var(--primary); }
+    .tab-btn.active { color:var(--accent); }
     .tab-icon { font-size:20px; }
     .pending-badge {
       position:absolute; top:4px; right:50%;
@@ -836,8 +836,8 @@
         <!-- 헤더 -->
         <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 2px 10px;">
           <div>
-            <div style="font-size:11px;color:var(--ink-3);font-weight:600;">주간 청소 스케줄</div>
-            <div style="font-size:18px;font-weight:800;color:var(--ink);" id="bkWeekLabel"></div>
+            <div style="font-size:11px;color:var(--ink-3);font-weight:600;">예약 현황</div>
+            <div style="font-size:18px;font-weight:800;color:var(--ink);" id="bkMonthLabel"></div>
           </div>
           <div style="display:flex;gap:6px;align-items:center;">
             <button class="month-nav-btn" id="calBkPrev">◀</button>
@@ -852,9 +852,24 @@
           <button class="bk-branch-btn" data-branch="영종점" style="flex:1;padding:8px;border:1.5px solid var(--line-2);border-radius:10px;background:var(--card);color:var(--ink-2);font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">영종</button>
           <button class="bk-branch-btn" data-branch="송도점" style="flex:1;padding:8px;border:1.5px solid var(--line-2);border-radius:10px;background:var(--card);color:var(--ink-2);font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">송도</button>
         </div>
-        <!-- 주간 달력 본문 -->
-        <div id="bkWeekBody"></div>
-        <!-- 요약 -->
+        <!-- 월간 달력 (미니) -->
+        <div style="background:var(--card);border-radius:14px;border:1px solid var(--line);margin-bottom:10px;overflow:hidden;">
+          <div style="background:linear-gradient(135deg,#C85A1A,#E07030);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:13px;font-weight:800;color:#fff;" id="bkMiniMonthLabel"></span>
+            <span style="font-size:11px;color:rgba(255,255,255,.7);">월간 보기</span>
+          </div>
+          <div id="bkMiniCal" style="padding:8px;"></div>
+        </div>
+        <!-- 주간 상세 (스크롤 고정 날짜) -->
+        <div style="background:var(--card);border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:8px;">
+          <div style="background:var(--bg-2);padding:10px 14px;border-bottom:1px solid var(--line);">
+            <span style="font-size:13px;font-weight:800;color:var(--ink);" id="bkWeekLabel"></span>
+            <span style="font-size:11px;color:var(--ink-3);margin-left:6px;">주간 상세</span>
+          </div>
+          <div style="overflow:auto;max-height:55vh;" id="bkWeekScrollWrap">
+            <div id="bkWeekBody"></div>
+          </div>
+        </div>
         <div id="bkSumBar" style="display:flex;gap:8px;padding:4px 0 8px;overflow-x:auto;"></div>
       </div>
     </section>
@@ -864,7 +879,6 @@
       <div class="modal-content">
         <div class="modal-title" id="bkCleanTitle">청소 정보</div>
         <div id="bkCleanBody"></div>
-        <!-- 추가요금 -->
         <div style="background:var(--bg-2);border-radius:12px;padding:12px;margin-bottom:12px;">
           <div style="font-size:12px;font-weight:700;color:var(--ink-2);margin-bottom:8px;">💰 추가요금</div>
           <input type="text" id="bkExtraDesc" placeholder="예: 쇼파베드 추가, 특별청소" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-family:Pretendard,sans-serif;font-size:14px;background:var(--bg);color:var(--text);margin-bottom:6px;">
@@ -4381,159 +4395,226 @@
       try {
         const DAYS = ['일','월','화','수','목','금','토'];
         const tod = bkDateStr(new Date());
-        
-        // 이번 주 시작(일요일) 계산
-        const weekStart = new Date();
-        weekStart.setDate(weekStart.getDate() - weekStart.getDay() + (bkWeekOffset * 7));
-        weekStart.setHours(0,0,0,0);
-        
-        const weekDates = [];
-        for (let i = 0; i < 7; i++) {
-          const d = new Date(weekStart);
-          d.setDate(d.getDate() + i);
-          weekDates.push(bkDateStr(d));
-        }
-        
-        // 주간 레이블
-        const ws = weekDates[0], we = weekDates[6];
-        const wsParts = ws.split('-'), weParts = we.split('-');
-        document.getElementById('bkWeekLabel').textContent =
-          wsParts[1]+'월 '+wsParts[2]+'일 ~ '+weParts[1]+'월 '+weParts[2]+'일';
-        
+        const now = new Date();
+
+        // ── 현재 달 기준 ──
+        const year  = bkYear;
+        const month = bkMonth;
+        const dim   = new Date(year, month+1, 0).getDate();
+        const firstDow = new Date(year, month, 1).getDay();
+
+        function df(d) { return year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
+
         const allRooms = (safeLoad(STORAGE.ROOM)||[]).filter(function(r){
           return bkBranchFilter==='전체' || r.branch===bkBranchFilter;
         });
         const books = safeLoadBooks();
         const allTx = safeLoad(STORAGE.TX)||[];
-        
-        // 건물별 그룹
+
+        // ── 월간 레이블 ──
+        document.getElementById('bkMonthLabel').textContent = year+'년 '+(month+1)+'월';
+        document.getElementById('bkMiniMonthLabel').textContent = year+'년 '+(month+1)+'월';
+
+        // ── 이번 주 날짜 계산 ──
+        const weekStart = new Date(now);
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay() + (bkWeekOffset * 7));
+        weekStart.setHours(0,0,0,0);
+        const weekDates = [];
+        for (let i=0;i<7;i++){
+          const d=new Date(weekStart); d.setDate(d.getDate()+i);
+          weekDates.push(bkDateStr(d));
+        }
+        const ws=weekDates[0].split('-'), we=weekDates[6].split('-');
+        document.getElementById('bkWeekLabel').textContent =
+          ws[1]+'월 '+ws[2]+'일 ~ '+we[1]+'월 '+we[2]+'일';
+
+        // ══════════════════════
+        // 월간 미니 달력
+        // ══════════════════════
+        // 이 달 청소일 목록
+        const cleanDaysSet = new Set();
+        books.forEach(function(bk){
+          if(bk.checkOut>=df(1)&&bk.checkOut<=df(dim)) cleanDaysSet.add(parseInt(bk.checkOut.split('-')[2]));
+        });
+
+        let miniHtml = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">';
+        DAYS.forEach(function(d,i){
+          const c = i===0?'#C0392B':i===6?'#2563EB':'var(--ink-3)';
+          miniHtml += '<div style="text-align:center;font-size:10px;font-weight:700;color:'+c+';padding:2px;">'+d+'</div>';
+        });
+        miniHtml += '</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">';
+
+        for(let i=0;i<firstDow;i++) miniHtml += '<div></div>';
+        for(let d=1;d<=dim;d++){
+          const ds=df(d), dow=new Date(year,month,d).getDay();
+          const isToday=ds===tod;
+          const isClean=cleanDaysSet.has(d);
+          const inWeek=weekDates.includes(ds);
+          const hasTx=allTx.find(function(t){return t.type==='income'&&t.date===ds&&allRooms.find(function(r){return r.id===t.targetId;});});
+
+          let bg='transparent', textColor=dow===0?'#C0392B':dow===6?'#2563EB':'var(--ink)';
+          let border='none';
+          if(isToday){bg='var(--accent)';textColor='#fff';}
+          else if(inWeek){bg='var(--accent-2)';border='1px solid var(--accent)';}
+
+          miniHtml += '<div style="text-align:center;padding:3px 1px;border-radius:6px;background:'+bg+';border:'+border+';cursor:pointer;position:relative;" data-mini-date="'+ds+'">';
+          miniHtml += '<div style="font-size:11px;font-weight:700;color:'+textColor+';">'+d+'</div>';
+          if(isClean){
+            const dotColor = hasTx ? 'var(--ok)' : 'var(--sub-red)';
+            miniHtml += '<div style="width:5px;height:5px;border-radius:50%;background:'+dotColor+';margin:0 auto;margin-top:1px;"></div>';
+          }
+          miniHtml += '</div>';
+        }
+        miniHtml += '</div>';
+        document.getElementById('bkMiniCal').innerHTML = miniHtml;
+
+        // 미니 달력 날짜 탭 → 해당 주로 이동
+        document.getElementById('bkMiniCal').querySelectorAll('[data-mini-date]').forEach(function(el){
+          el.addEventListener('click', function(){
+            const d = new Date(el.dataset.miniDate);
+            const todD = new Date(now); todD.setHours(0,0,0,0);
+            const startD = new Date(todD); startD.setDate(startD.getDate()-startD.getDay());
+            const clickStart = new Date(d); clickStart.setDate(clickStart.getDate()-clickStart.getDay());
+            bkWeekOffset = Math.round((clickStart-startD)/(7*86400000));
+            renderBookingTab();
+          });
+        });
+
+        // ══════════════════════
+        // 주간 상세 (날짜 고정 스크롤)
+        // ══════════════════════
         const bOrd=[], bMap={};
         allRooms.forEach(function(r){
-          const b = r.building || extractBuilding(r.name) || '(미분류)';
+          const b=r.building||extractBuilding(r.name)||'(미분류)';
           if(!bMap[b]){bMap[b]=[];bOrd.push(b);}
           bMap[b].push(r);
         });
-        
-        let html = '';
-        
-        // 요일 헤더
-        html += '<div style="display:grid;grid-template-columns:90px repeat(7,1fr);background:var(--ink);border-radius:12px 12px 0 0;overflow:hidden;margin-bottom:0;">';
-        html += '<div style="padding:10px 8px;font-size:11px;color:rgba(255,255,255,.5);font-weight:700;text-align:center;">객실</div>';
-        weekDates.forEach(function(ds) {
-          const dp = ds.split('-'), dow = new Date(dp[0],dp[1]-1,dp[2]).getDay();
-          const isToday = ds===tod;
-          const dayColor = dow===0?'#E8A8A8':dow===6?'#A8C4E8':'rgba(255,255,255,.9)';
-          html += '<div style="padding:8px 4px;text-align:center;background:'+(isToday?'var(--accent)':'transparent')+';border-radius:'+(isToday?'8px':'0')+';">'
-            + '<div style="font-size:14px;font-weight:800;color:'+(isToday?'#fff':dayColor)+';line-height:1;">'+dp[2]+'</div>'
-            + '<div style="font-size:10px;color:'+(isToday?'rgba(255,255,255,.8)':'rgba(255,255,255,.4)')+';margin-top:2px;">'+DAYS[dow]+'</div>'
-            + '</div>';
+
+        let wHtml = '';
+
+        // 고정 날짜 헤더행 (sticky)
+        wHtml += '<div style="display:grid;grid-template-columns:80px repeat(7,1fr);position:sticky;top:0;z-index:20;background:var(--ink);border-bottom:2px solid var(--accent);">';
+        wHtml += '<div style="padding:8px 6px;font-size:10px;color:rgba(255,255,255,.5);font-weight:700;text-align:center;border-right:1px solid rgba(255,255,255,.1);">객실</div>';
+        weekDates.forEach(function(ds){
+          const dp=ds.split('-'), dow=new Date(dp[0],dp[1]-1,dp[2]).getDay();
+          const isToday=ds===tod;
+          const dayColor=dow===0?'#F8A8A8':dow===6?'#A8C4F8':'rgba(255,255,255,.9)';
+          wHtml += '<div style="padding:7px 2px;text-align:center;background:'+(isToday?'var(--accent)':'transparent')+';">';
+          wHtml += '<div style="font-size:13px;font-weight:800;color:'+(isToday?'#fff':dayColor)+';line-height:1;">'+dp[2]+'</div>';
+          wHtml += '<div style="font-size:9px;color:'+(isToday?'rgba(255,255,255,.8)':'rgba(255,255,255,.4)')+';margin-top:2px;">'+DAYS[dow]+'</div>';
+          wHtml += '</div>';
         });
-        html += '</div>';
-        
-        if (allRooms.length === 0) {
-          html += '<div style="background:var(--card);border-radius:0 0 12px 12px;padding:30px;text-align:center;color:var(--ink-3);font-size:13px;">등록된 객실이 없어요</div>';
+        wHtml += '</div>';
+
+        if(allRooms.length===0){
+          wHtml += '<div style="padding:30px;text-align:center;color:var(--ink-3);font-size:13px;">설정에서 객실을 먼저 추가하세요</div>';
         } else {
-          bOrd.forEach(function(bname) {
-            const col = getBldgColor(bname);
-            // 건물 헤더
-            html += '<div style="background:'+col.border+';padding:7px 12px;font-size:12px;font-weight:800;color:#fff;">🏢 '+bname+'</div>';
-            
-            bMap[bname].forEach(function(room) {
-              const hoNum = room.name.match(/(\d+호)$/) ? room.name.match(/(\d+호)$/)[1] : room.name;
-              html += '<div style="display:grid;grid-template-columns:90px repeat(7,1fr);background:var(--card);border-bottom:1px solid var(--line);min-height:56px;" data-room-id="'+room.id+'">';
-              // 객실명
-              html += '<div style="padding:8px;border-right:2px solid var(--line-2);display:flex;flex-direction:column;justify-content:center;border-left:3px solid '+col.border+';">'
-                + '<div style="font-size:13px;font-weight:800;color:var(--ink);">'+hoNum+'</div>'
-                + '<div style="font-size:10px;color:var(--ink-3);margin-top:1px;">'+(room.branch||'')+'</div>'
-                + '</div>';
-              
-              // 각 날짜 셀
-              weekDates.forEach(function(ds) {
-                const dp  = ds.split('-');
-                const dow = new Date(dp[0],dp[1]-1,dp[2]).getDay();
-                const isToday = ds===tod;
-                
-                // 이 날 체크아웃 예약 찾기 (청소일)
-                const cleanBk = books.find(function(bk){ return bk.roomId===room.id && bk.checkOut===ds; });
-                // 이미 청소 거래 있는지
-                const hasTx = allTx.find(function(t){ return t.type==='income' && t.targetId===room.id && t.date===ds; });
-                // 이 날 체크인 (바로입실)
-                const cinBk = books.find(function(bk){ return bk.roomId===room.id && bk.checkIn===ds; });
-                // 예약 중인지 (연박)
-                const stayBk = books.find(function(bk){ return bk.roomId===room.id && bk.checkIn<ds && bk.checkOut>ds; });
-                
-                let cellBg = isToday ? 'rgba(58,58,110,.06)' : dow===0?'rgba(232,168,168,.06)':dow===6?'rgba(168,196,232,.06)':'transparent';
-                let cellContent = '';
-                
-                if (cleanBk) {
-                  // 청소일 - 동그라미
-                  const n = bkNights(cleanBk.checkIn, cleanBk.checkOut);
-                  const btnColor = hasTx ? 'var(--ok)' : 'var(--sub-red)';
-                  const btnLabel = hasTx ? '✅' : '청';
-                  cellBg = hasTx ? 'rgba(45,106,79,.08)' : 'rgba(155,35,53,.1)';
-                  cellContent = '<button class="bk-clean-circle" '
-                    + 'data-bkid="'+cleanBk.id+'" data-roomid="'+room.id+'" data-date="'+ds+'" '
-                    + 'style="width:38px;height:38px;border-radius:50%;background:'+btnColor+';color:white;border:none;'
-                    + 'font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;'
-                    + 'box-shadow:0 2px 6px rgba(0,0,0,.2);">'
-                    + btnLabel+'<br>'
-                    + '<span style="font-size:9px;display:block;line-height:1;">'+n+'박</span>'
-                    + '</button>';
-                  if (cinBk && cinBk.id !== cleanBk.id) {
-                    // 바로입실
-                    cellContent += '<div style="font-size:9px;color:var(--sub-grn);font-weight:700;margin-top:2px;">→입실</div>';
+          bOrd.forEach(function(bname){
+            const col=getBldgColor(bname);
+            wHtml += '<div style="background:'+col.border+';padding:5px 10px;font-size:11px;font-weight:800;color:#fff;position:sticky;top:50px;z-index:10;">🏢 '+bname+'</div>';
+
+            bMap[bname].forEach(function(room){
+              const hoNum=room.name.match(/(\d+호)$/)?room.name.match(/(\d+호)$/)[1]:room.name;
+              wHtml += '<div style="display:grid;grid-template-columns:80px repeat(7,1fr);border-bottom:1px solid var(--line);min-height:54px;">';
+              // 객실명 (sticky)
+              wHtml += '<div style="padding:8px 6px;border-right:2px solid var(--line-2);display:flex;flex-direction:column;justify-content:center;background:var(--card);position:sticky;left:0;z-index:5;border-left:3px solid '+col.border+';">';
+              wHtml += '<div style="font-size:12px;font-weight:800;color:var(--ink);line-height:1.2;">'+hoNum+'</div>';
+              wHtml += '<div style="font-size:9px;color:var(--ink-3);margin-top:1px;">'+(room.branch||'')+'</div>';
+              wHtml += '</div>';
+
+              weekDates.forEach(function(ds){
+                const dp=ds.split('-'), dow=new Date(dp[0],dp[1]-1,dp[2]).getDay();
+                const isToday=ds===tod;
+
+                // 예약 상태 분석
+                const cleanBk=books.find(function(bk){return bk.roomId===room.id&&bk.checkOut===ds;});
+                const hasTx=allTx.find(function(t){return t.type==='income'&&t.targetId===room.id&&t.date===ds;});
+                const cinBk=books.find(function(bk){return bk.roomId===room.id&&bk.checkIn===ds;});
+                const stayBk=books.find(function(bk){return bk.roomId===room.id&&bk.checkIn<ds&&bk.checkOut>ds;});
+
+                const bgBase=isToday?'rgba(200,90,26,.06)':dow===0?'rgba(192,57,43,.04)':dow===6?'rgba(37,99,235,.04)':'var(--card)';
+                let cellBg=bgBase;
+                let cellInner='';
+
+                if(cleanBk){
+                  // 청소일 - 작은점 + 선 + 동그라미
+                  cellBg=hasTx?'rgba(45,106,79,.08)':'rgba(192,57,43,.08)';
+                  const circleColor=hasTx?'var(--ok)':'var(--sub-red)';
+                  const n=bkNights(cleanBk.checkIn,cleanBk.checkOut);
+                  cellInner='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;">';
+                  // 점 + 선 + 동그라미
+                  cellInner+='<div style="display:flex;align-items:center;gap:0;width:100%;justify-content:center;">';
+                  cellInner+='<div style="width:5px;height:5px;border-radius:50%;background:'+circleColor+';flex-shrink:0;"></div>';
+                  cellInner+='<div style="flex:1;height:2px;background:'+circleColor+';opacity:.4;"></div>';
+                  cellInner+='<button class="bk-clean-circle" data-bkid="'+cleanBk.id+'" data-roomid="'+room.id+'" data-date="'+ds+'" '
+                    +'style="width:28px;height:28px;border-radius:50%;background:'+circleColor+';color:#fff;border:none;'
+                    +'font-size:9px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;'
+                    +'box-shadow:0 2px 6px rgba(0,0,0,.2);flex-direction:column;line-height:1;">';
+                  cellInner+=(hasTx?'✅':'청')+'<span style="font-size:8px;display:block;">'+n+'박</span></button>';
+                  cellInner+='</div></div>';
+
+                  // 바로 입실?
+                  if(cinBk&&cinBk.id!==cleanBk.id){
+                    cellInner='<div style="background:rgba(26,107,69,.15);height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">'
+                      +'<div style="display:flex;align-items:center;gap:0;width:100%;justify-content:center;padding:0 2px;">'
+                      +'<div style="width:4px;height:4px;border-radius:50%;background:'+circleColor+';flex-shrink:0;"></div>'
+                      +'<div style="flex:1;height:2px;background:'+circleColor+';opacity:.4;"></div>'
+                      +'<button class="bk-clean-circle" data-bkid="'+cleanBk.id+'" data-roomid="'+room.id+'" data-date="'+ds+'" '
+                      +'style="width:26px;height:26px;border-radius:50%;background:'+circleColor+';color:#fff;border:2px solid var(--sub-grn);'
+                      +'font-size:8px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;flex-direction:column;line-height:1;">'
+                      +(hasTx?'✅':'청')+'<span style="font-size:7px;">'+n+'박</span></button>'
+                      +'</div>'
+                      +'<div style="font-size:8px;color:var(--sub-grn);font-weight:700;margin-top:2px;">→입실</div>'
+                      +'</div>';
                   }
-                } else if (stayBk) {
-                  // 연박 중
-                  const n = bkNights(stayBk.checkIn, stayBk.checkOut);
-                  cellContent = '<div style="width:100%;height:4px;background:'+BK_COLORS[stayBk.color||0]+';border-radius:2px;margin-top:4px;opacity:.7;"></div>'
-                    + '<div style="font-size:9px;color:var(--ink-3);margin-top:2px;">'+n+'박</div>';
-                } else if (cinBk) {
+
+                } else if(stayBk){
+                  // 연박 중 - 가로선
+                  const barColor=BK_COLORS[stayBk.color||0];
+                  cellInner='<div style="height:4px;background:'+barColor+';border-radius:2px;margin:0 4px;opacity:.6;margin-top:25px;"></div>';
+                } else if(cinBk){
                   // 체크인
-                  cellContent = '<div style="font-size:9px;color:var(--sub-grn);font-weight:700;">입실</div>'
-                    + '<div style="font-size:9px;color:var(--ink-3);">'+cinBk.guests+'명</div>';
+                  cellInner='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;">'
+                    +'<div style="font-size:9px;color:var(--sub-grn);font-weight:700;">▶입실</div>'
+                    +'<div style="font-size:9px;color:var(--ink-3);">'+cinBk.guests+'명</div>'
+                    +'</div>';
                 }
-                
-                html += '<div style="background:'+cellBg+';display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid var(--line);padding:4px;cursor:pointer;min-height:56px;" '
-                  + 'data-add-room="'+room.id+'" data-add-date="'+ds+'">'
-                  + cellContent
-                  + '</div>';
+
+                wHtml += '<div style="background:'+cellBg+';border-right:1px solid var(--line);padding:4px;cursor:pointer;position:relative;min-height:54px;" '
+                  +'data-add-room="'+room.id+'" data-add-date="'+ds+'">'
+                  +cellInner+'</div>';
               });
-              html += '</div>';
+              wHtml += '</div>';
             });
           });
-          // 마지막 둥근 하단
-          html += '<div style="height:12px;background:var(--card);border-radius:0 0 12px 12px;border-top:1px solid var(--line);"></div>';
         }
-        
+
+        document.getElementById('bkWeekBody').innerHTML = wHtml;
+
         // 요약
-        const cleanCount = weekDates.reduce(function(cnt, ds) {
-          return cnt + books.filter(function(bk){ return bk.checkOut===ds; }).length;
-        }, 0);
-        document.getElementById('bkSumBar').innerHTML =
+        const cleanCount=weekDates.reduce(function(cnt,ds){
+          return cnt+books.filter(function(bk){return bk.checkOut===ds&&allRooms.find(function(r){return r.id===bk.roomId;});}).length;
+        },0);
+        document.getElementById('bkSumBar').innerHTML=
           '<div class="bk-chip">이번주 청소 <b>'+cleanCount+'건</b></div>'
-          + '<div class="bk-chip">객실 <b>'+allRooms.length+'개</b></div>';
-        
-        const body = document.getElementById('bkWeekBody');
-        body.innerHTML = html;
-        
-        // 이벤트 바인딩
-        // 청소 동그라미 탭 → 팝업
-        body.querySelectorAll('.bk-clean-circle').forEach(function(btn) {
-          btn.addEventListener('click', function(e) {
+          +'<div class="bk-chip">객실 <b>'+allRooms.length+'개</b></div>';
+
+        // 이벤트
+        const wb=document.getElementById('bkWeekBody');
+        wb.querySelectorAll('.bk-clean-circle').forEach(function(btn){
+          btn.addEventListener('click',function(e){
             e.stopPropagation();
-            openBkCleanModal(btn.dataset.bkid, btn.dataset.roomid, btn.dataset.date);
+            openBkCleanModal(btn.dataset.bkid,btn.dataset.roomid,btn.dataset.date);
           });
         });
-        // 빈 셀 탭 → 예약 등록
-        body.querySelectorAll('[data-add-room]').forEach(function(cell) {
-          cell.addEventListener('click', function(e) {
-            if (e.target.closest('.bk-clean-circle')) return;
-            openBkModal(null, cell.dataset.addRoom, cell.dataset.addDate);
+        wb.querySelectorAll('[data-add-room]').forEach(function(cell){
+          cell.addEventListener('click',function(e){
+            if(e.target.closest('.bk-clean-circle'))return;
+            openBkModal(null,cell.dataset.addRoom,cell.dataset.addDate);
           });
         });
-        
-      } catch(e) { console.error('예약탭 오류:', e); }
+
+      } catch(e){ console.error('예약탭 오류:',e); }
     }
     
     // 청소 정보 팝업
@@ -5661,13 +5742,16 @@
         
         // 예약 탭
         document.getElementById('calBkPrev').addEventListener('click', function() {
-          bkWeekOffset--; renderBookingTab();
+          bkMonth--; if(bkMonth<0){bkMonth=11;bkYear--;}
+          bkWeekOffset=0; renderBookingTab();
         });
         document.getElementById('calBkNext').addEventListener('click', function() {
-          bkWeekOffset++; renderBookingTab();
+          bkMonth++; if(bkMonth>11){bkMonth=0;bkYear++;}
+          bkWeekOffset=0; renderBookingTab();
         });
         document.getElementById('bkTodayBtn').addEventListener('click', function() {
-          bkWeekOffset = 0; renderBookingTab();
+          bkYear=new Date().getFullYear(); bkMonth=new Date().getMonth();
+          bkWeekOffset=0; renderBookingTab();
         });
         document.getElementById('btnAddBooking').addEventListener('click', function() {
           openBkModal(null);
