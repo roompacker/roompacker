@@ -705,6 +705,14 @@
         🌐 전체 보기 모드 (영종+송도 합산)
       </div>
       
+      <!-- 뷰 전환 탭 -->
+      <div style="display:flex;background:var(--bg-2);border-radius:12px;padding:3px;gap:3px;margin-bottom:10px;">
+        <button id="btnCalViewMonth" style="flex:1;padding:8px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;background:#FFFFFF;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08);">📅 월간</button>
+        <button id="btnCalViewRoom" style="flex:1;padding:8px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;background:transparent;color:var(--ink-3);">🏠 호실별</button>
+      </div>
+
+      <!-- 월간 뷰 -->
+      <div id="calMonthView">
       <div class="month-header">
         <button class="month-nav-btn" data-nav="prev" data-target="calendar">◀</button>
         <div style="text-align:center;">
@@ -756,6 +764,20 @@
         <div id="txList">
           <div class="empty">날짜를 누르면 거래내역이 나와요</div>
         </div>
+      </div>
+      </div><!-- /calMonthView -->
+
+      <!-- 호실별 뷰 -->
+      <div id="calRoomView" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="month-nav-btn" id="calRoomPrev">◀</button>
+            <span style="font-size:16px;font-weight:800;color:var(--ink);" id="calRoomLabel"></span>
+            <button class="month-nav-btn" id="calRoomNext">▶</button>
+          </div>
+          <button id="calRoomToday" style="background:var(--bg-2);color:var(--ink);border:1px solid var(--line-2);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">오늘</button>
+        </div>
+        <div id="calRoomBody"></div>
       </div>
     </section>
     
@@ -2008,6 +2030,111 @@
     // ============================================
     // 달력 탭
     // ============================================
+    // ── 호실별 달력 상태
+    let calRoomYear  = new Date().getFullYear();
+    let calRoomMonth = new Date().getMonth();
+    let calViewMode  = 'month'; // 'month' | 'room'
+
+    function renderCalRoomView() {
+      try {
+        const DAYS = ['일','월','화','수','목','금','토'];
+        const year = calRoomYear, month = calRoomMonth;
+        const dim  = new Date(year, month+1, 0).getDate();
+        const tod  = formatDate(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+        function df(d){ return formatDate(year, month, d); }
+
+        document.getElementById('calRoomLabel').textContent = year+'년 '+(month+1)+'월';
+
+        const allRooms = filterByBranch(safeLoad(STORAGE.ROOM)||[]);
+        const allTx    = filterTxByBranch(safeLoad(STORAGE.TX)||[])
+          .filter(function(t){ return t.type==='income' && t.date>=df(1) && t.date<=df(dim); });
+
+        const bOrd=[], bMap={};
+        allRooms.forEach(function(r){
+          const b=r.building||extractBuilding(r.name)||'(미분류)';
+          if(!bMap[b]){bMap[b]=[];bOrd.push(b);}
+          bMap[b].push(r);
+        });
+
+        let html='';
+        html+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">';
+        html+='<div style="min-width:'+(80+dim*38)+'px;">';
+
+        // 날짜 헤더 (sticky)
+        html+='<div style="display:flex;background:#2D2D2D;border-radius:12px 12px 0 0;position:sticky;top:0;z-index:20;">';
+        html+='<div style="width:80px;min-width:80px;padding:9px 8px;font-size:10px;color:rgba(255,255,255,.4);font-weight:700;border-right:1px solid rgba(255,255,255,.08);">객실</div>';
+        for(let d=1;d<=dim;d++){
+          const dow=new Date(year,month,d).getDay(), ds=df(d), isT=ds===tod;
+          const dc=isT?'#fff':dow===0?'#FF9090':dow===6?'#90B8FF':'rgba(255,255,255,.8)';
+          html+='<div style="width:38px;min-width:38px;text-align:center;padding:6px 2px;background:'+(isT?'#4A4A4A':'transparent')+';border-radius:'+(isT?'6px':'0')+';margin:'+(isT?'3px 1px':'0')+'">'
+            +'<div style="font-size:11px;font-weight:800;color:'+dc+';line-height:1;">'+d+'</div>'
+            +'<div style="font-size:8px;color:'+(isT?'rgba(255,255,255,.7)':'rgba(255,255,255,.4)')+';margin-top:1px;">'+DAYS[dow]+'</div>'
+            +'</div>';
+        }
+        html+='</div>';
+
+        if(allRooms.length===0){
+          html+='<div style="padding:30px;text-align:center;color:var(--ink-3);background:var(--card);">등록된 객실이 없어요</div>';
+        } else {
+          bOrd.forEach(function(bname){
+            const col=getBldgColor(bname);
+            html+='<div style="display:flex;background:'+col.border+';align-items:center;padding:5px 10px;gap:5px;">'
+              +'<div style="width:3px;height:12px;background:rgba(255,255,255,.5);border-radius:2px;"></div>'
+              +'<span style="font-size:11px;font-weight:700;color:#fff;">'+bname+'</span></div>';
+
+            bMap[bname].forEach(function(room){
+              const hoNum=room.name.match(/(\d+호)$/)?room.name.match(/(\d+호)$/)[1]:room.name;
+              const roomTx=allTx.filter(function(t){return t.targetId===room.id;});
+              html+='<div style="display:flex;background:var(--card);border-bottom:1px solid var(--line);min-height:46px;">';
+              html+='<div style="width:80px;min-width:80px;padding:8px 6px;border-right:2px solid var(--line-2);display:flex;flex-direction:column;justify-content:center;background:var(--card);position:sticky;left:0;z-index:5;border-left:3px solid '+col.border+';">'
+                +'<div style="font-size:12px;font-weight:800;color:var(--ink);">'+hoNum+'</div></div>';
+
+              for(let d=1;d<=dim;d++){
+                const ds=df(d), dow=new Date(year,month,d).getDay(), isT=ds===tod;
+                const tx=roomTx.find(function(t){return t.date===ds;});
+                let cellBg=isT?'rgba(45,45,45,.05)':dow===0?'rgba(220,38,38,.03)':dow===6?'rgba(14,165,233,.03)':'var(--card)';
+                let inner='';
+                if(tx){
+                  const cc=tx.paid?'var(--ok)':'var(--warn)';
+                  cellBg=tx.paid?'rgba(22,163,74,.07)':'rgba(217,119,6,.07)';
+                  inner='<button class="cal-room-tx-btn" data-txid="'+tx.id+'"'
+                    +' style="width:34px;height:34px;border-radius:50%;background:'+cc+';color:#fff;border:none;'
+                    +'font-size:9px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;'
+                    +'justify-content:center;line-height:1.2;box-shadow:0 2px 6px rgba(0,0,0,.15);">'
+                    +(tx.paid?'✅':'청')
+                    +(tx.nights?'<span style="font-size:8px;display:block;">'+tx.nights+'박</span>':'')
+                    +'</button>';
+                }
+                html+='<div style="width:38px;min-width:38px;background:'+cellBg
+                  +';border-right:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:2px;"'
+                  +' data-room-add="'+room.id+'" data-date-add="'+ds+'">'
+                  +inner+'</div>';
+              }
+              html+='</div>';
+            });
+          });
+        }
+        html+='</div></div>';
+
+        const body=document.getElementById('calRoomBody');
+        body.innerHTML=html;
+
+        body.querySelectorAll('.cal-room-tx-btn').forEach(function(btn){
+          btn.addEventListener('click', function(e){
+            e.stopPropagation();
+            openTxModal(btn.dataset.txid);
+          });
+        });
+        body.querySelectorAll('[data-room-add]').forEach(function(cell){
+          cell.addEventListener('click', function(e){
+            if(e.target.closest('.cal-room-tx-btn')) return;
+            openTxModal(null, cell.dataset.dateAdd, cell.dataset.roomAdd);
+          });
+        });
+
+      } catch(e){ console.error('호실별 달력 오류:', e); }
+    }
+
     function renderCalendar() {
       try {
         document.getElementById('calTitle').textContent = 
@@ -5843,6 +5970,33 @@
         document.querySelectorAll('.month-nav-btn').forEach(btn => {
           btn.addEventListener('click', () => navigateMonth(btn.dataset.target, btn.dataset.nav));
         });
+        // 달력 뷰 전환
+        document.getElementById('btnCalViewMonth').addEventListener('click', function(){
+          calViewMode='month';
+          document.getElementById('calMonthView').style.display='';
+          document.getElementById('calRoomView').style.display='none';
+          document.getElementById('btnCalViewMonth').style.cssText='flex:1;padding:8px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;background:#FFFFFF;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)';
+          document.getElementById('btnCalViewRoom').style.cssText='flex:1;padding:8px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;background:transparent;color:var(--ink-3)';
+        });
+        document.getElementById('btnCalViewRoom').addEventListener('click', function(){
+          calViewMode='room';
+          calRoomYear=calMonth.year; calRoomMonth=calMonth.month;
+          document.getElementById('calMonthView').style.display='none';
+          document.getElementById('calRoomView').style.display='';
+          document.getElementById('btnCalViewRoom').style.cssText='flex:1;padding:8px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;background:#FFFFFF;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)';
+          document.getElementById('btnCalViewMonth').style.cssText='flex:1;padding:8px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;background:transparent;color:var(--ink-3)';
+          renderCalRoomView();
+        });
+        document.getElementById('calRoomPrev').addEventListener('click', function(){
+          calRoomMonth--; if(calRoomMonth<0){calRoomMonth=11;calRoomYear--;} renderCalRoomView();
+        });
+        document.getElementById('calRoomNext').addEventListener('click', function(){
+          calRoomMonth++; if(calRoomMonth>11){calRoomMonth=0;calRoomYear++;} renderCalRoomView();
+        });
+        document.getElementById('calRoomToday').addEventListener('click', function(){
+          calRoomYear=new Date().getFullYear(); calRoomMonth=new Date().getMonth(); renderCalRoomView();
+        });
+
         document.getElementById('btnCalToday').addEventListener('click', () => goToday('calendar'));
         document.querySelectorAll('[data-today]').forEach(btn => {
           btn.addEventListener('click', () => goToday(btn.dataset.today));
