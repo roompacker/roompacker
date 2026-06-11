@@ -2460,8 +2460,8 @@
         
         const list = document.getElementById('txList');
         
-        if (dayTx.length === 0 && dayBkCout.length === 0 && dayBkCin.length === 0) {
-          list.innerHTML = '<div class="empty">이 날의 기록이 없어요<br>+ 추가 버튼으로 청소 기록을 추가해요</div>';
+        if (dayTx.length === 0 && dayBkCout.length === 0) {
+          list.innerHTML = '<div class="empty">이 날의 청소 기록이 없어요<br>+ 추가 버튼으로 기록을 추가해요</div>';
           return;
         }
         
@@ -2480,13 +2480,7 @@
           // 헤더
           html += '<div style="padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);">';
           html += '<div style="font-size:14px;font-weight:800;color:var(--ink);">'+hoNum+'</div>';
-          html += '<div style="display:flex;gap:8px;align-items:center;">';
-          if (hasTx) {
-            html += '<span style="font-size:11px;color:var(--ok);font-weight:700;">✅ 청소완료</span>';
-          } else {
-            html += '<span style="font-size:11px;color:var(--sub-red);font-weight:700;">🧹 청소예정</span>';
-          }
-          html += '</div></div>';
+          html += '</div>';
           // 정보
           html += '<div style="padding:10px 14px;">';
           // 체크아웃
@@ -2521,25 +2515,24 @@
           html += '</div></div>';
         });
         
-        // 체크아웃 예약 없는 청소 기록
+        // 예약 없는 청소 기록 - 같은 스타일로
         dayTx.forEach(function(t){
           const alreadyShown = dayBkCout.find(function(bk){return bk.roomId===t.targetId;});
           if (alreadyShown) return;
-          html += renderTxItem(t, false, false, true);
-        });
-        
-        // 체크인만 있는 날 (청소 없음)
-        dayBkCin.forEach(function(bk){
-          const alreadyShown = dayBkCout.find(function(b){return b.roomId===bk.roomId;});
-          if (alreadyShown) return;
-          const room  = allRooms.find(function(r){return r.id===bk.roomId;}) || {};
-          const hoNum = (room.name||'').match(/(\d+호)$/) ? (room.name||'').match(/(\d+호)$/)[1] : (room.name||bk.roomId);
-          const n     = bkNights(bk.checkIn, bk.checkOut);
-          html += '<div style="background:var(--card);border-radius:14px;margin-bottom:8px;border:1px solid var(--line);border-left:3px solid var(--sub-grn);padding:10px 14px;">';
-          html += '<div style="font-size:13px;font-weight:800;color:var(--ink);margin-bottom:4px;">'+hoNum+' <span style="font-size:11px;color:var(--sub-grn);font-weight:600;">🏠 체크인</span></div>';
-          html += '<div style="font-size:12px;color:var(--ink-2);">'+n+'박'+(bk.guests?' · '+bk.guests+'명':'')+(bk.supplies?' · 🛒'+bk.supplies:'')+( bk.memo?' · '+bk.memo:'')+'</div>';
+          const room  = allRooms.find(function(r){return r.id===t.targetId;})||{};
+          const hoNum = (room.name||t.targetName||'').match(/(\d+호)$/) ? (room.name||t.targetName||'').match(/(\d+호)$/)[1] : (room.name||t.targetName||t.targetId);
+          html += '<div style="background:var(--card);border-radius:14px;margin-bottom:8px;border:1px solid var(--line);border-left:3px solid var(--ok);overflow:hidden;">';
+          html += '<div style="padding:10px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">';
+          html += '<div style="font-size:14px;font-weight:800;color:var(--ink);">'+hoNum+'</div>';
+          html += '<div style="font-size:13px;font-weight:800;color:var(--ok);">'+formatMoney(t.netAmount||t.amount)+'</div>';
           html += '</div>';
+          html += '<div style="padding:10px 14px;">';
+          if(t.nights||t.guests) html += '<div style="font-size:13px;color:var(--ink-2);margin-bottom:6px;">🚪 체크아웃 · '+(t.nights?t.nights+'박':'')+( t.guests?' · '+t.guests+'명':'')+'</div>';
+          if(t.inSupplies) html += '<div style="background:var(--bg-2);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--ink-2);margin-bottom:6px;">🛒 '+t.inSupplies+'</div>';
+          html += '<button onclick="openTxModal(\''+t.id+'\')" style="width:100%;padding:9px;background:var(--bg-2);color:var(--ink);border:1px solid var(--line-2);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">✏️ 수정</button>';
+          html += '</div></div>';
         });
+        // 체크인만인 날은 표시 안 함 (청소일 아님)
         
         list.innerHTML = html;
         bindTxItemEvents(list);
