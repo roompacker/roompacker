@@ -5080,12 +5080,11 @@
         miniHtml += '</div>';
         document.getElementById('bkMiniCal').innerHTML = miniHtml;
 
-        // 미니 달력 날짜 탭 → 아래 박스로 정보 표시
-        document.getElementById('bkMiniCal').querySelectorAll('[data-mini-date]').forEach(function(el){
-          el.addEventListener('click', function(){
-            renderBkDayDetail(el.dataset.miniDate);
-          });
-        });
+        // 이벤트 위임 - 자식 요소 클릭도 처리
+        document.getElementById('bkMiniCal').onclick = function(e) {
+          const cell = e.target.closest('[data-mini-date]');
+          if (cell) renderBkDayDetail(cell.dataset.miniDate);
+        };
 
         // 요약
         const cleanCount = books.filter(function(bk){
