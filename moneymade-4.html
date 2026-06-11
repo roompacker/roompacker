@@ -165,7 +165,7 @@
     .cal-weekday.sat { color:var(--primary); }
     .cal-days { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
     .cal-day {
-      aspect-ratio:1/1.1; background:var(--bg); border-radius:8px;
+      aspect-ratio:1/1.25; background:var(--bg); border-radius:8px;
       padding:4px; display:flex; flex-direction:column; align-items:center;
       gap:2px; cursor:pointer; border:1.5px solid transparent;
     }
@@ -181,6 +181,18 @@
     .cal-day-amount.expense { color:var(--red); }
     .cal-day.selected .cal-day-amount.income { color:#A7F3D0; }
     .cal-day.selected .cal-day-amount.expense { color:#FCA5A5; }
+
+    .cal-day.cal-day-clean-done { background:rgba(22,163,74,.08); border-color:rgba(22,163,74,.3); }
+    .cal-day.cal-day-clean-pend { background:rgba(217,119,6,.08); border-color:rgba(217,119,6,.3); }
+
+    /* 객실 필터 칩 */
+    .cal-chip {
+      padding:6px 12px; border-radius:100px; border:1.5px solid var(--line-2);
+      font-size:12px; font-weight:700; cursor:pointer;
+      font-family:Pretendard,sans-serif; white-space:nowrap;
+      flex-shrink:0; transition:all 0.15s;
+    }
+    #calRoomChips::-webkit-scrollbar { display:none; }
 
     /* ── 날짜 상세 ── */
     .day-detail, .tx-list-section {
@@ -704,12 +716,6 @@
       <div class="all-mode-banner" id="calAllBanner" style="display:none;">
         🌐 전체 보기 모드 (영종+송도 합산)
       </div>
-      
-      <!-- 뷰 전환 탭 -->
-      <div style="display:flex;background:var(--bg-2);border-radius:12px;padding:3px;gap:3px;margin-bottom:10px;">
-        <button id="btnCalViewMonth" style="flex:1;padding:8px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;background:#FFFFFF;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08);">📅 월간</button>
-        <button id="btnCalViewRoom" style="flex:1;padding:8px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;background:transparent;color:var(--ink-3);">🏠 호실별</button>
-      </div>
 
       <!-- 월간 뷰 -->
       <div id="calMonthView">
@@ -720,6 +726,15 @@
           <button class="month-today-btn" id="btnCalToday">오늘</button>
         </div>
         <button class="month-nav-btn" data-nav="next" data-target="calendar">▶</button>
+      </div>
+
+      <!-- 객실 필터 칩 -->
+      <!-- 객실 필터 버튼 -->
+      <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
+        <button id="btnCalRoomFilter" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--card);border:1.5px solid var(--line-2);border-radius:100px;font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;color:var(--ink);">
+          <span>🏠</span><span id="calRoomFilterLabel">전체 객실</span><span style="color:var(--ink-3);font-size:11px;">▼</span>
+        </button>
+        <button id="btnCalRoomFilterClear" style="display:none;padding:8px 12px;background:var(--ink);color:white;border:none;border-radius:100px;font-size:12px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">✕ 초기화</button>
       </div>
       
       <div class="summary-card">
@@ -755,6 +770,8 @@
         </div>
         <div class="cal-days" id="calDays"></div>
       </div>
+      <!-- 점 범례 -->
+      <div id="calDotLegend" style="display:flex;flex-wrap:wrap;gap:8px;padding:6px 2px 2px;"></div>
       
       <div class="day-detail">
         <div class="day-detail-header">
@@ -767,18 +784,6 @@
       </div>
       </div><!-- /calMonthView -->
 
-      <!-- 호실별 뷰 -->
-      <div id="calRoomView" style="display:none;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <button class="month-nav-btn" id="calRoomPrev">◀</button>
-            <span style="font-size:16px;font-weight:800;color:var(--ink);" id="calRoomLabel"></span>
-            <button class="month-nav-btn" id="calRoomNext">▶</button>
-          </div>
-          <button id="calRoomToday" style="background:var(--bg-2);color:var(--ink);border:1px solid var(--line-2);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">오늘</button>
-        </div>
-        <div id="calRoomBody"></div>
-      </div>
     </section>
     
     <!-- 💰 수입 탭 -->
@@ -901,15 +906,13 @@
           <div id="bkMiniCal"></div>
         </div>
 
-        <!-- 주간 상세 -->
-        <div style="background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:8px;">
-          <div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:13px;font-weight:700;color:var(--ink);" id="bkWeekLabel"></span>
-            <span style="font-size:11px;color:var(--ink-3);">주간 상세</span>
+        <!-- 선택 날짜 정보 박스 -->
+        <div id="bkDayDetail" style="display:none;background:#FFFFFF;border-radius:16px;padding:14px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div style="font-size:15px;font-weight:800;color:var(--ink);" id="bkDayDetailTitle"></div>
+            <button onclick="document.getElementById('bkDayDetail').style.display='none'" style="background:var(--bg-2);border:none;border-radius:8px;width:28px;height:28px;font-size:14px;cursor:pointer;color:var(--ink-3);">×</button>
           </div>
-          <div style="overflow:auto;max-height:52vh;" id="bkWeekScrollWrap">
-            <div id="bkWeekBody"></div>
-          </div>
+          <div id="bkDayDetailBody"></div>
         </div>
 
         <div id="bkSumBar" style="display:flex;gap:8px;padding:4px 0 8px;overflow-x:auto;"></div>
@@ -1693,6 +1696,17 @@
     </div>
   </div>
 
+  <!-- 🏠 객실 필터 모달 -->
+  <div class="modal" id="calRoomFilterModal" style="z-index:130;">
+    <div class="modal-content" style="max-height:80vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="font-size:17px;font-weight:800;color:var(--ink);">객실 선택</div>
+        <button onclick="document.getElementById('calRoomFilterModal').classList.remove('active')" style="background:var(--bg-2);border:none;border-radius:8px;width:30px;height:30px;font-size:16px;cursor:pointer;">×</button>
+      </div>
+      <div id="calRoomFilterList"></div>
+    </div>
+  </div>
+
   <!-- 🗓 스케줄 등록 모달 -->
   <div class="modal" id="scheduleModal">
     <div class="modal-content">
@@ -2030,10 +2044,58 @@
     // ============================================
     // 달력 탭
     // ============================================
+    // 객실 필터 모달
+    function openCalRoomFilterModal() {
+      const allRooms = safeLoad(STORAGE.ROOM) || [];
+      const allTx    = safeLoad(STORAGE.TX) || [];
+      const monthStart = formatDate(calMonth.year, calMonth.month, 1);
+      const monthEnd   = formatDate(calMonth.year, calMonth.month, new Date(calMonth.year, calMonth.month+1, 0).getDate());
+      
+      // 이달 거래 있는 객실 강조
+      const activeIds = new Set(
+        filterTxByBranch(allTx)
+          .filter(function(t){ return t.type==='income' && t.date>=monthStart && t.date<=monthEnd; })
+          .map(function(t){ return t.targetId; })
+      );
+      
+      // 건물별 그룹
+      const bOrd=[], bMap={};
+      filterByBranch(allRooms).forEach(function(r){
+        const b = r.building || extractBuilding(r.name) || '(미분류)';
+        if(!bMap[b]){bMap[b]=[];bOrd.push(b);}
+        bMap[b].push(r);
+      });
+      
+      let html = '';
+      // 전체 선택
+      html += '<button onclick="calFilterRoomId=null;document.getElementById(\'calRoomFilterModal\').classList.remove(\'active\');renderCalendar();" '
+        + 'style="width:100%;padding:13px;margin-bottom:8px;background:'+(calFilterRoomId===null?'var(--ink)':'var(--bg-2)')+';color:'+(calFilterRoomId===null?'#fff':'var(--ink)')+';border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;text-align:left;">'
+        + '🏠 전체 객실</button>';
+      
+      bOrd.forEach(function(bname){
+        const col = getBldgColor(bname);
+        html += '<div style="font-size:11px;font-weight:700;color:var(--ink-3);padding:8px 4px 4px;border-top:1px solid var(--line);">'+bname+'</div>';
+        bMap[bname].forEach(function(r){
+          const hoNum = r.name.match(/(\d+호)$/) ? r.name.match(/(\d+호)$/)[1] : r.name;
+          const isActive = calFilterRoomId === r.id;
+          const hasData  = activeIds.has(r.id);
+          html += '<button onclick="calFilterRoomId=\''+r.id+'\';document.getElementById(\'calRoomFilterModal\').classList.remove(\'active\');renderCalendar();" '
+            + 'style="width:100%;padding:12px 14px;margin-bottom:6px;background:'+(isActive?'var(--ink)':'var(--card)')+';color:'+(isActive?'#fff':'var(--ink)')+';border:1.5px solid '+(isActive?'var(--ink)':'var(--line-2)')+';border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;text-align:left;display:flex;justify-content:space-between;align-items:center;">'
+            + '<span>'+hoNum+'</span>'
+            + (hasData ? '<span style="font-size:11px;font-weight:600;color:'+(isActive?'rgba(255,255,255,.7)':'var(--ink-3)')+';">이달 기록 있음</span>' : '')
+            + '</button>';
+        });
+      });
+      
+      document.getElementById('calRoomFilterList').innerHTML = html;
+      document.getElementById('calRoomFilterModal').classList.add('active');
+    }
+
     // ── 호실별 달력 상태
     let calRoomYear  = new Date().getFullYear();
     let calRoomMonth = new Date().getMonth();
     let calViewMode  = 'month'; // 'month' | 'room'
+    let calFilterRoomId = null; // null = 전체, roomId = 특정 객실
 
     function renderCalRoomView() {
       try {
@@ -2160,15 +2222,71 @@
         const monthStart = formatDate(calMonth.year, calMonth.month, 1);
         const monthEnd = formatDate(calMonth.year, calMonth.month, totalDays);
         const allTx = safeLoad(STORAGE.TX);
-        const monthTx = filterTxByBranch(allTx).filter(t => 
-          t.date >= monthStart && t.date <= monthEnd
+        const allRooms = safeLoad(STORAGE.ROOM) || [];
+        
+        // 객실 필터 버튼 레이블 업데이트
+        const filterLabelEl = document.getElementById('calRoomFilterLabel');
+        const filterClearBtn = document.getElementById('btnCalRoomFilterClear');
+        if (filterLabelEl) {
+          if (calFilterRoomId) {
+            const selRoom = allRooms.find(function(r){ return r.id === calFilterRoomId; });
+            const hoNum = selRoom ? (selRoom.name.match(/(\d+호)$/) ? selRoom.name.match(/(\d+호)$/)[1] : selRoom.name) : '?';
+            filterLabelEl.textContent = hoNum + ' 선택됨';
+            if (filterClearBtn) filterClearBtn.style.display = 'block';
+          } else {
+            filterLabelEl.textContent = '전체 객실';
+            if (filterClearBtn) filterClearBtn.style.display = 'none';
+          }
+        }
+
+        const monthTx = filterTxByBranch(allTx).filter(t =>
+          t.date >= monthStart && t.date <= monthEnd &&
+          (calFilterRoomId === null || t.targetId === calFilterRoomId)
         );
         
+        // 예약 데이터
+        const allBooks = safeLoadBooks();
+        const monthBooks = allBooks.filter(function(bk){
+          return bk.checkOut >= monthStart && bk.checkOut <= monthEnd &&
+            (calFilterRoomId === null || bk.roomId === calFilterRoomId);
+        });
+        
+        // 날짜별 데이터 맵
         const txByDate = {};
         monthTx.forEach(t => {
-          if (!txByDate[t.date]) txByDate[t.date] = { income: 0, expense: 0 };
-          if (t.type === 'income') txByDate[t.date].income += (t.netAmount || t.amount);
-          else txByDate[t.date].expense += (t.netAmount || t.amount);
+          if (!txByDate[t.date]) txByDate[t.date] = { income: 0, expense: 0, rooms: [] };
+          if (t.type === 'income') {
+            txByDate[t.date].income += (t.netAmount || t.amount);
+            txByDate[t.date].rooms.push({ id: t.targetId, paid: t.paid, txId: t.id });
+          } else {
+            txByDate[t.date].expense += (t.netAmount || t.amount);
+          }
+        });
+
+        // 날짜별 예약 체크아웃
+        const bkByDate = {};
+        monthBooks.forEach(function(bk){
+          if (!bkByDate[bk.checkOut]) bkByDate[bk.checkOut] = [];
+          bkByDate[bk.checkOut].push(bk);
+        });
+        // 날짜별 예약 체크인
+        const bkCinByDate = {};
+        allBooks.filter(function(bk){
+          return bk.checkIn >= monthStart && bk.checkIn <= monthEnd &&
+            (calFilterRoomId === null || bk.roomId === calFilterRoomId);
+        }).forEach(function(bk){
+          if (!bkCinByDate[bk.checkIn]) bkCinByDate[bk.checkIn] = [];
+          bkCinByDate[bk.checkIn].push(bk);
+        });
+        
+        // 건물별 색상
+        const roomColorMap = {};
+        const bldgColors = ['#E07878','#78A0E0','#78C878','#E0A878','#A078E0','#78D4D4','#E078A0','#A0C850'];
+        const bldgList = [];
+        allRooms.forEach(function(r){
+          const b = r.building || extractBuilding(r.name) || '(미분류)';
+          if(!bldgList.includes(b)) bldgList.push(b);
+          roomColorMap[r.id] = bldgColors[bldgList.indexOf(b) % bldgColors.length];
         });
         
         const today = new Date();
@@ -2182,25 +2300,49 @@
           if (realMonth > 11) { realMonth = 0; realYear++; }
           const dateStr = formatDate(realYear, realMonth, c.day);
           
-          const isToday = dateStr === todayStr && c.month === 0;
+          const isToday    = dateStr === todayStr && c.month === 0;
           const isSelected = dateStr === selectedDate;
-          const isOtherMonth = c.month !== 0;
-          const tx = txByDate[dateStr];
+          const isOther    = c.month !== 0;
+          const txD  = txByDate[dateStr];
+          const bkD  = bkByDate[dateStr];   // 체크아웃(청소)
+          const cinD = bkCinByDate[dateStr]; // 체크인
           
-          let classes = 'cal-day';
-          if (isOtherMonth) classes += ' other-month';
-          if (isToday) classes += ' today';
-          if (isSelected) classes += ' selected';
-          if (weekday === 0) classes += ' sun';
-          if (weekday === 6) classes += ' sat';
+          let cls = 'cal-day';
+          if (isOther)    cls += ' other-month';
+          if (isToday)    cls += ' today';
+          if (isSelected) cls += ' selected';
+          if (weekday===0) cls += ' sun';
+          if (weekday===6) cls += ' sat';
           
-          let amounts = '';
-          if (tx && !isOtherMonth) {
-            if (tx.income > 0) amounts += '<div class="cal-day-amount income">+' + formatMoneyShort(tx.income) + '</div>';
-            if (tx.expense > 0) amounts += '<div class="cal-day-amount expense">-' + formatMoneyShort(tx.expense) + '</div>';
+          let dots = '';
+          if (!isOther) {
+            const dotItems = [];
+            
+            // 청소 기록 점 (수납완료=초록, 미수금=빨강)
+            if (txD && txD.rooms.length > 0) {
+              txD.rooms.forEach(function(r){
+                dotItems.push(r.paid ? '#16A34A' : '#DC2626');
+              });
+            }
+            
+            // 예약 체크아웃(청소예정) 점 — 청소기록 없는 것만
+            if (bkD) {
+              bkD.forEach(function(bk){
+                const hasTx = txD && txD.rooms.find(function(r){ return r.id === bk.roomId; });
+                if (!hasTx) dotItems.push('#94A3B8'); // 회색 = 예약만 있음
+              });
+            }
+            
+            if (dotItems.length > 0) {
+              dots = '<div style="display:flex;gap:3px;justify-content:center;margin-top:3px;flex-wrap:wrap;">';
+              dotItems.forEach(function(color){
+                dots += '<div style="width:7px;height:7px;border-radius:50%;background:'+color+';flex-shrink:0;"></div>';
+              });
+              dots += '</div>';
+            }
           }
           
-          return '<div class="' + classes + '" data-date="' + dateStr + '"><div class="cal-day-num">' + c.day + '</div>' + amounts + '</div>';
+          return '<div class="'+cls+'" data-date="'+dateStr+'"><div class="cal-day-num">'+c.day+'</div>'+dots+'</div>';
         }).join('');
         
         const grid = document.getElementById('calDays');
@@ -2211,6 +2353,15 @@
             selectDate(cell.dataset.date);
           });
         });
+        
+        // 범례
+        const legendEl = document.getElementById('calDotLegend');
+        if (legendEl) {
+          legendEl.innerHTML =
+            '<div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:50%;background:#DC2626;"></div><span style="font-size:11px;color:var(--ink-3);">미수금</span></div>'
+          + '<div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:50%;background:#16A34A;"></div><span style="font-size:11px;color:var(--ink-3);">완료</span></div>'
+          + '<div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:50%;background:#94A3B8;"></div><span style="font-size:11px;color:var(--ink-3);">예약</span></div>';
+        }
         
         let totalIncome = 0, totalExpense = 0;
         monthTx.forEach(t => {
@@ -2281,33 +2432,118 @@
     function renderDayDetail(dateStr) {
       try {
         const parts = dateStr.split('-').map(Number);
-        const date = new Date(parts[0], parts[1] - 1, parts[2]);
-        const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-        document.getElementById('dayDetailDate').textContent = 
-          parts[1] + '월 ' + parts[2] + '일 (' + weekdays[date.getDay()] + ')';
+        const date  = new Date(parts[0], parts[1]-1, parts[2]);
+        const WDAYS = ['일','월','화','수','목','금','토'];
+        document.getElementById('dayDetailDate').textContent =
+          parts[1]+'월 '+parts[2]+'일 ('+WDAYS[date.getDay()]+')';
         
-        const allTx = safeLoad(STORAGE.TX);
-        // sortOrder 기준 정렬 (없으면 createdAt 기준)
+        const allTx   = safeLoad(STORAGE.TX);
+        const allRooms= safeLoad(STORAGE.ROOM)||[];
+        const allBooks= safeLoadBooks();
+        
         const dayTx = filterTxByBranch(allTx)
-          .filter(t => t.date === dateStr)
-          .sort((a, b) => (a.sortOrder ?? a.createdAt ?? 0) - (b.sortOrder ?? b.createdAt ?? 0));
+          .filter(t => t.date === dateStr &&
+            (calFilterRoomId === null || t.targetId === calFilterRoomId))
+          .sort((a,b) => (a.sortOrder??a.createdAt??0)-(b.sortOrder??b.createdAt??0));
+        
+        // 이 날 체크아웃 예약
+        const dayBkCout = allBooks.filter(function(bk){
+          return bk.checkOut === dateStr &&
+            (calFilterRoomId === null || bk.roomId === calFilterRoomId);
+        });
+        // 이 날 체크인 예약
+        const dayBkCin = allBooks.filter(function(bk){
+          return bk.checkIn === dateStr &&
+            (calFilterRoomId === null || bk.roomId === calFilterRoomId);
+        });
         
         const list = document.getElementById('txList');
-        if (dayTx.length === 0) {
-          list.innerHTML = '<div class="empty">이 날의 거래가 없어요<br>+ 추가 버튼을 눌러보세요</div>';
+        
+        if (dayTx.length === 0 && dayBkCout.length === 0 && dayBkCin.length === 0) {
+          list.innerHTML = '<div class="empty">이 날의 기록이 없어요<br>+ 추가 버튼으로 청소 기록을 추가해요</div>';
           return;
         }
         
-        // 2건 이상이면 드래그 힌트 표시
-        const hint = dayTx.length >= 2
-          ? '<div class="drag-hint">☰ 꾹 누르고 드래그하면 순서를 바꿀 수 있어요</div>'
-          : '';
-        list.innerHTML = hint + dayTx.map(t => renderTxItem(t, false, false, true)).join('');
-        bindTxItemEvents(list);
+        let html = '';
         
-        // 드래그 정렬 바인딩
+        // 예약 체크아웃 (= 청소일)
+        dayBkCout.forEach(function(bk){
+          const room  = allRooms.find(function(r){return r.id===bk.roomId;}) || {};
+          const hoNum = (room.name||bk.roomId).match(/(\d+호)$/) ? (room.name||bk.roomId).match(/(\d+호)$/)[1] : (room.name||bk.roomId);
+          const hasTx = dayTx.find(function(t){return t.targetId===bk.roomId;});
+          const n     = bkNights(bk.checkIn, bk.checkOut);
+          // 다음 예약 (바로입실)
+          const nextBk = allBooks.find(function(b){return b.roomId===bk.roomId&&b.checkIn===dateStr;});
+          
+          html += '<div style="background:var(--card);border-radius:14px;margin-bottom:8px;border:1px solid var(--line);border-left:3px solid '+(hasTx?'var(--ok)':'var(--sub-red)')+';overflow:hidden;">';
+          // 헤더
+          html += '<div style="padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);">';
+          html += '<div style="font-size:14px;font-weight:800;color:var(--ink);">'+hoNum+'</div>';
+          html += '<div style="display:flex;gap:8px;align-items:center;">';
+          if (hasTx) {
+            html += '<span style="font-size:11px;color:var(--ok);font-weight:700;">✅ 청소완료</span>';
+          } else {
+            html += '<span style="font-size:11px;color:var(--sub-red);font-weight:700;">🧹 청소예정</span>';
+          }
+          html += '</div></div>';
+          // 정보
+          html += '<div style="padding:10px 14px;">';
+          // 체크아웃
+          html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">';
+          html += '<span style="font-size:11px;color:var(--sub-red);font-weight:700;width:56px;">🚪체크아웃</span>';
+          html += '<span style="font-size:13px;color:var(--ink);">'+n+'박'+( bk.guests?' · '+bk.guests+'명':'')+( bk.memo?' · '+bk.memo:'')+' </span>';
+          html += '</div>';
+          // 체크인(바로입실)
+          if (nextBk) {
+            const n2 = bkNights(nextBk.checkIn, nextBk.checkOut);
+            html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">';
+            html += '<span style="font-size:11px;color:var(--sub-grn);font-weight:700;width:56px;">🏠바로입실</span>';
+            html += '<span style="font-size:13px;color:var(--ink);">'+n2+'박'+(nextBk.guests?' · '+nextBk.guests+'명':'')+(nextBk.supplies?' · 🛒'+nextBk.supplies:'')+' </span>';
+            html += '</div>';
+          }
+          // 준비물
+          if (bk.supplies) {
+            html += '<div style="background:var(--accent-2);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--accent);font-weight:600;margin-bottom:6px;">🛒 '+bk.supplies+'</div>';
+          }
+          // 버튼
+          html += '<div style="display:flex;gap:6px;margin-top:6px;">';
+          if (!hasTx) {
+            html += '<button onclick="openTxModal(null,\''+dateStr+'\',\''+bk.roomId+'\','+( bk.guests||0)+','+n+')" '
+              +'style="flex:1;padding:9px;background:var(--ink);color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">🧹 청소 기록 추가</button>';
+          } else {
+            html += '<button onclick="openTxModal(\''+hasTx.id+'\')" '
+              +'style="flex:1;padding:9px;background:var(--bg-2);color:var(--ink-2);border:1px solid var(--line-2);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">✏️ 수정</button>';
+          }
+          html += '<button onclick="openBkModal(\''+bk.id+'\')" '
+            +'style="padding:9px 12px;background:var(--bg-2);color:var(--ink-2);border:1px solid var(--line-2);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">📋 예약수정</button>';
+          html += '</div>';
+          html += '</div></div>';
+        });
+        
+        // 체크아웃 예약 없는 청소 기록
+        dayTx.forEach(function(t){
+          const alreadyShown = dayBkCout.find(function(bk){return bk.roomId===t.targetId;});
+          if (alreadyShown) return;
+          html += renderTxItem(t, false, false, true);
+        });
+        
+        // 체크인만 있는 날 (청소 없음)
+        dayBkCin.forEach(function(bk){
+          const alreadyShown = dayBkCout.find(function(b){return b.roomId===bk.roomId;});
+          if (alreadyShown) return;
+          const room  = allRooms.find(function(r){return r.id===bk.roomId;}) || {};
+          const hoNum = (room.name||'').match(/(\d+호)$/) ? (room.name||'').match(/(\d+호)$/)[1] : (room.name||bk.roomId);
+          const n     = bkNights(bk.checkIn, bk.checkOut);
+          html += '<div style="background:var(--card);border-radius:14px;margin-bottom:8px;border:1px solid var(--line);border-left:3px solid var(--sub-grn);padding:10px 14px;">';
+          html += '<div style="font-size:13px;font-weight:800;color:var(--ink);margin-bottom:4px;">'+hoNum+' <span style="font-size:11px;color:var(--sub-grn);font-weight:600;">🏠 체크인</span></div>';
+          html += '<div style="font-size:12px;color:var(--ink-2);">'+n+'박'+(bk.guests?' · '+bk.guests+'명':'')+(bk.supplies?' · 🛒'+bk.supplies:'')+( bk.memo?' · '+bk.memo:'')+'</div>';
+          html += '</div>';
+        });
+        
+        list.innerHTML = html;
+        bindTxItemEvents(list);
         if (dayTx.length >= 2) bindDragSort(list, dateStr);
-      } catch (e) { console.error('renderDayDetail 오류:', e); }
+      } catch(e){ console.error('renderDayDetail 오류:', e); }
     }
     
     // ── 드래그 정렬 ──
@@ -4731,10 +4967,6 @@
           const d=new Date(weekStart); d.setDate(d.getDate()+i);
           weekDates.push(bkDateStr(d));
         }
-        const ws=weekDates[0].split('-'), we=weekDates[6].split('-');
-        document.getElementById('bkWeekLabel').textContent =
-          ws[1]+'월 '+ws[2]+'일 ~ '+we[1]+'월 '+we[2]+'일';
-
         // ══════════════════════
         // 월간 미니 달력
         // ══════════════════════
@@ -4775,135 +5007,123 @@
         miniHtml += '</div>';
         document.getElementById('bkMiniCal').innerHTML = miniHtml;
 
-        // 미니 달력 날짜 탭 → 해당 주로 이동
+        // 미니 달력 날짜 탭 → 아래 박스로 정보 표시
         document.getElementById('bkMiniCal').querySelectorAll('[data-mini-date]').forEach(function(el){
           el.addEventListener('click', function(){
-            const d = new Date(el.dataset.miniDate);
-            const todD = new Date(now); todD.setHours(0,0,0,0);
-            const startD = new Date(todD); startD.setDate(startD.getDate()-startD.getDay());
-            const clickStart = new Date(d); clickStart.setDate(clickStart.getDate()-clickStart.getDay());
-            bkWeekOffset = Math.round((clickStart-startD)/(7*86400000));
-            renderBookingTab();
+            renderBkDayDetail(el.dataset.miniDate);
           });
         });
-
-        // ══════════════════════
-        // 주간 상세 (인포크 스타일)
-        // ══════════════════════
-        const bOrd=[], bMap={};
-        allRooms.forEach(function(r){
-          const b=r.building||extractBuilding(r.name)||('(미분류)');
-          if(!bMap[b]){bMap[b]=[];bOrd.push(b);}
-          bMap[b].push(r);
-        });
-
-        const BKPAL=[
-          ['#7B4AFF','#EDE8FF'],['#0EA5E9','#E0F2FE'],['#10B981','#ECFDF5'],
-          ['#F59E0B','#FFFBEB'],['#EF4444','#FEF2F2'],['#8B5CF6','#F3F0FF'],
-          ['#06B6D4','#ECFEFF'],['#EC4899','#FCE7F3'],
-        ];
-
-        let wHtml = '';
-        wHtml += '<div class="bk-week-hdr">';
-        wHtml += '<div class="bk-week-hdr-room">객실</div>';
-        weekDates.forEach(function(ds){
-          const dp=ds.split('-'), dow=new Date(dp[0],dp[1]-1,dp[2]).getDay();
-          const isToday=ds===tod;
-          const dc=isToday?'#fff':dow===0?'#FF8080':dow===6?'#80B0FF':'rgba(255,255,255,.85)';
-          wHtml+='<div class="bk-week-hdr-cell" style="background:'+(isToday?'#2D2D2D':'transparent')+';border-radius:'+(isToday?'8px':'0')+';margin:'+(isToday?'4px 2px':'0')+'">'
-            +'<div style="font-size:14px;font-weight:800;color:'+dc+';line-height:1;">'+dp[2]+'</div>'
-            +'<div style="font-size:9px;color:'+(isToday?'rgba(255,255,255,.8)':'rgba(255,255,255,.4)')+';margin-top:2px;">'+DAYS[dow]+'</div>'
-            +'</div>';
-        });
-        wHtml+='</div>';
-
-        if(allRooms.length===0){
-          wHtml+='<div style="padding:32px;text-align:center;color:var(--ink-3);">설정에서 객실을 먼저 추가하세요</div>';
-        } else {
-          bOrd.forEach(function(bname, bi){
-            const col=getBldgColor(bname);
-            wHtml+='<div style="background:var(--bg-2);padding:7px 12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--line);">'
-              +'<div style="width:3px;height:14px;background:'+col.border+';border-radius:2px;"></div>'
-              +'<span style="font-size:11px;font-weight:700;color:var(--ink-2);">'+bname+'</span></div>';
-
-            bMap[bname].forEach(function(room, ri){
-              const hoNum=room.name.match(/(\d+호)$/)?room.name.match(/(\d+호)$/)[1]:room.name;
-              const pal=BKPAL[(ri+bi*4)%BKPAL.length];
-              wHtml+='<div class="bk-room-row">';
-              wHtml+='<div class="bk-room-lbl" style="border-left:3px solid '+col.border+';">'
-                +'<div style="font-size:12px;font-weight:800;color:var(--ink);">'+hoNum+'</div></div>';
-
-              weekDates.forEach(function(ds, di){
-                const dp=ds.split('-'), dow=new Date(dp[0],dp[1]-1,dp[2]).getDay();
-                const isToday=ds===tod;
-                const cleanBk=books.find(function(bk){return bk.roomId===room.id&&bk.checkOut===ds;});
-                const hasTx=allTx.find(function(t){return t.type==='income'&&t.targetId===room.id&&t.date===ds;});
-                const cinBk=books.find(function(bk){return bk.roomId===room.id&&bk.checkIn===ds;});
-                const stayBks=books.filter(function(bk){return bk.roomId===room.id&&bk.checkIn<ds&&bk.checkOut>ds;});
-                let cellBg=isToday?'rgba(123,74,255,.04)':dow===0?'rgba(239,68,68,.03)':dow===6?'rgba(14,165,233,.03)':'#fff';
-                let inner='';
-
-                if(cleanBk){
-                  cellBg=hasTx?'rgba(5,150,105,.06)':'rgba(239,68,68,.06)';
-                  const cc=hasTx?'#059669':'#EF4444';
-                  const n=bkNights(cleanBk.checkIn,cleanBk.checkOut);
-                  const prevDs=weekDates[di-1];
-                  const isCont=prevDs&&books.find(function(bk){return bk.roomId===room.id&&bk.checkIn<ds&&bk.checkOut===ds&&bk.checkIn<=prevDs;});
-                  inner+='<div style="display:flex;align-items:center;width:100%;padding:0 2px;">';
-                  if(!isCont) inner+='<div class="bk-dot" style="background:'+cc+';"></div><div class="bk-dash" style="background:'+cc+';flex:1;margin:0 1px;"></div>';
-                  else inner+='<div class="bk-dash" style="background:'+cc+';flex:1;margin:0 1px;"></div>';
-                  inner+='<button class="bk-clean-btn bk-clean-circle" data-bkid="'+cleanBk.id+'" data-roomid="'+room.id+'" data-date="'+ds+'" style="background:'+cc+';width:32px;height:32px;font-size:9px;">';
-                  inner+=hasTx?'✅':'청';
-                  inner+='<span style="font-size:8px;display:block;">'+n+'박</span></button></div>';
-                  if(cinBk&&cinBk.id!==cleanBk.id) inner+='<div style="font-size:8px;color:var(--ok);font-weight:700;text-align:center;">→입실</div>';
-                } else if(stayBks.length>0){
-                  const sb=stayBks[0], lc=BKPAL[sb.color||0][0];
-                  const isFirst=sb.checkIn===ds;
-                  inner+='<div style="display:flex;align-items:center;width:100%;padding:0 3px;">';
-                  if(isFirst) inner+='<div class="bk-start-dot" style="background:'+lc+';"></div>';
-                  inner+='<div style="flex:1;height:3px;background:'+lc+';border-radius:2px;opacity:.6;"></div></div>';
-                  if(isFirst&&sb.guests) inner+='<div style="font-size:8px;color:var(--ink-3);text-align:center;">'+sb.guests+'명</div>';
-                } else if(cinBk){
-                  const lc2=BKPAL[cinBk.color||0][0];
-                  inner='<div style="display:flex;align-items:center;width:100%;padding:0 3px;">'
-                    +'<div class="bk-start-dot" style="background:'+lc2+';"></div>'
-                    +'<div style="flex:1;height:3px;background:'+lc2+';border-radius:0 2px 2px 0;opacity:.6;"></div></div>'
-                    +'<div style="font-size:8px;color:var(--ink-3);text-align:center;">'+( cinBk.guests||'')+'명</div>';
-                }
-                wHtml+='<div class="bk-day-cell" style="background:'+cellBg+';flex-direction:column;" data-add-room="'+room.id+'" data-add-date="'+ds+'">'+inner+'</div>';
-              });
-              wHtml+='</div>';
-            });
-          });
-        }
-
-        document.getElementById('bkWeekBody').innerHTML = wHtml;
-
 
         // 요약
-        const cleanCount=weekDates.reduce(function(cnt,ds){
-          return cnt+books.filter(function(bk){return bk.checkOut===ds&&allRooms.find(function(r){return r.id===bk.roomId;});}).length;
-        },0);
+        const cleanCount = books.filter(function(bk){
+          const ms2 = df(1), me2 = df(dim);
+          return bk.checkOut>=ms2 && bk.checkOut<=me2 && allRooms.find(function(r){return r.id===bk.roomId;});
+        }).length;
         document.getElementById('bkSumBar').innerHTML=
-          '<div class="bk-chip">이번주 청소 <b>'+cleanCount+'건</b></div>'
+          '<div class="bk-chip">이번달 청소 <b>'+cleanCount+'건</b></div>'
           +'<div class="bk-chip">객실 <b>'+allRooms.length+'개</b></div>';
 
-        // 이벤트
-        const wb=document.getElementById('bkWeekBody');
-        wb.querySelectorAll('.bk-clean-circle').forEach(function(btn){
-          btn.addEventListener('click',function(e){
-            e.stopPropagation();
-            openBkCleanModal(btn.dataset.bkid,btn.dataset.roomid,btn.dataset.date);
-          });
+      } catch(e){ console.error('예약탭 오류:',e); }
+    }
+
+    // 예약탭 날짜 탭 → 아래 박스 정보 표시
+    function renderBkDayDetail(dateStr) {
+      try {
+        const parts = dateStr.split('-').map(Number);
+        const WDAYS = ['일','월','화','수','목','금','토'];
+        const dow   = new Date(parts[0],parts[1]-1,parts[2]).getDay();
+        const title = parts[1]+'월 '+parts[2]+'일 ('+WDAYS[dow]+')';
+
+        const allRooms = safeLoad(STORAGE.ROOM)||[];
+        const allTx    = safeLoad(STORAGE.TX)||[];
+        const allBooks = safeLoadBooks();
+
+        // 이날 체크아웃 예약
+        const coutBks = allBooks.filter(function(bk){
+          return bk.checkOut===dateStr && (bkBranchFilter==='전체' || (allRooms.find(function(r){return r.id===bk.roomId&&r.branch===bkBranchFilter;})));
         });
-        wb.querySelectorAll('[data-add-room]').forEach(function(cell){
-          cell.addEventListener('click',function(e){
-            if(e.target.closest('.bk-clean-circle'))return;
-            openBkModal(null,cell.dataset.addRoom,cell.dataset.addDate);
-          });
+        // 이날 체크인 예약
+        const cinBks = allBooks.filter(function(bk){
+          return bk.checkIn===dateStr && (bkBranchFilter==='전체' || (allRooms.find(function(r){return r.id===bk.roomId&&r.branch===bkBranchFilter;})));
+        });
+        // 이날 청소 기록
+        const txs = filterTxByBranch(allTx).filter(function(t){return t.type==='income'&&t.date===dateStr;});
+
+        if (coutBks.length===0 && cinBks.length===0 && txs.length===0) {
+          document.getElementById('bkDayDetail').style.display='none';
+          return;
+        }
+
+        document.getElementById('bkDayDetailTitle').textContent = title;
+
+        let html='';
+
+        // 체크아웃(청소) 예약
+        coutBks.forEach(function(bk){
+          const room  = allRooms.find(function(r){return r.id===bk.roomId;})||{};
+          const hoNum = (room.name||'').match(/(\d+호)$/) ? (room.name||'').match(/(\d+호)$/)[1] : (room.name||bk.roomId);
+          const n     = bkNights(bk.checkIn, bk.checkOut);
+          const hasTx = txs.find(function(t){return t.targetId===bk.roomId;});
+          const nextBk= allBooks.find(function(b){return b.roomId===bk.roomId&&b.checkIn===dateStr&&b.id!==bk.id;});
+
+          html+='<div style="border-radius:12px;border:1px solid var(--line);border-left:3px solid '+(hasTx?'var(--ok)':'var(--sub-red)')+';margin-bottom:8px;overflow:hidden;">';
+          html+='<div style="padding:10px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);">';
+          html+='<div style="font-size:14px;font-weight:800;color:var(--ink);">'+hoNum+'</div>';
+          html+='<span style="font-size:11px;font-weight:700;color:'+(hasTx?'var(--ok)':'var(--sub-red)')+';">'+(hasTx?'✅ 완료':'🧹 청소예정')+'</span>';
+          html+='</div>';
+          html+='<div style="padding:10px 12px;">';
+          html+='<div style="font-size:13px;color:var(--ink-2);margin-bottom:4px;">🚪 체크아웃 · '+n+'박'+(bk.guests?' · '+bk.guests+'명':'')+'</div>';
+          if(nextBk){
+            const n2=bkNights(nextBk.checkIn,nextBk.checkOut);
+            html+='<div style="font-size:13px;color:var(--sub-grn);margin-bottom:4px;">🏠 바로입실 · '+n2+'박'+(nextBk.guests?' · '+nextBk.guests+'명':'')+(nextBk.supplies?' · 🛒'+nextBk.supplies:'')+'</div>';
+          }
+          if(bk.supplies) html+='<div style="font-size:12px;color:var(--ink-3);margin-bottom:6px;">🛒 '+bk.supplies+'</div>';
+          html+='<div style="display:flex;gap:6px;">';
+          if(!hasTx){
+            html+='<button onclick="closeBkDayDetail();openTxModal(null,\''+dateStr+'\',\''+bk.roomId+'\',\''+( bk.guests||'')+'\',\''+n+'\')" '
+              +'style="flex:1;padding:9px;background:var(--ink);color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">🧹 청소 기록</button>';
+          } else {
+            html+='<button onclick="closeBkDayDetail();openTxModal(\''+hasTx.id+'\')" '
+              +'style="flex:1;padding:9px;background:var(--bg-2);color:var(--ink);border:1px solid var(--line-2);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">✏️ 수정</button>';
+          }
+          html+='<button onclick="closeBkDayDetail();openBkModal(\''+bk.id+'\')" '
+            +'style="padding:9px 12px;background:var(--bg-2);color:var(--ink);border:1px solid var(--line-2);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">📋 예약수정</button>';
+          html+='</div></div></div>';
         });
 
-      } catch(e){ console.error('예약탭 오류:',e); }
+        // 청소 기록만 있는 날 (예약 없는 것)
+        txs.forEach(function(t){
+          if(coutBks.find(function(bk){return bk.roomId===t.targetId;})) return;
+          const room=allRooms.find(function(r){return r.id===t.targetId;})||{};
+          const hoNum=(room.name||'').match(/(\d+호)$/)?(room.name||'').match(/(\d+호)$/)[1]:(room.name||t.targetId);
+          html+='<div style="border-radius:12px;border:1px solid var(--line);border-left:3px solid var(--ok);padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">';
+          html+='<div><div style="font-size:14px;font-weight:800;color:var(--ink);">'+hoNum+'</div>';
+          html+='<div style="font-size:12px;color:var(--ink-3);">'+( t.nights?t.nights+'박 ':'')+(t.guests?t.guests+'명':'')+' '+formatMoney(t.netAmount||t.amount)+'</div></div>';
+          html+='<button onclick="closeBkDayDetail();openTxModal(\''+t.id+'\')" style="padding:8px 12px;background:var(--bg-2);color:var(--ink);border:1px solid var(--line-2);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">✏️ 수정</button>';
+          html+='</div>';
+        });
+
+        // 체크인만 있는 날
+        cinBks.forEach(function(bk){
+          if(coutBks.find(function(b){return b.roomId===bk.roomId;})) return;
+          const room=allRooms.find(function(r){return r.id===bk.roomId;})||{};
+          const hoNum=(room.name||'').match(/(\d+호)$/)?(room.name||'').match(/(\d+호)$/)[1]:(room.name||bk.roomId);
+          const n=bkNights(bk.checkIn,bk.checkOut);
+          html+='<div style="border-radius:12px;border:1px solid var(--line);border-left:3px solid var(--sub-grn);padding:10px 12px;margin-bottom:8px;">';
+          html+='<div style="font-size:14px;font-weight:800;color:var(--ink);">'+hoNum+' <span style="font-size:11px;color:var(--sub-grn);">🏠 체크인</span></div>';
+          html+='<div style="font-size:12px;color:var(--ink-3);margin-top:3px;">'+n+'박'+(bk.guests?' · '+bk.guests+'명':'')+(bk.supplies?' · 🛒'+bk.supplies:'')+'</div>';
+          html+='</div>';
+        });
+
+        // + 예약 추가 버튼
+        html+='<button onclick="closeBkDayDetail();openBkModal(null,null,\''+dateStr+'\')" '
+          +'style="width:100%;padding:10px;background:var(--bg-2);color:var(--ink-2);border:1px dashed var(--line-2);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:Pretendard,sans-serif;">+ 이 날 예약 추가</button>';
+
+        document.getElementById('bkDayDetailBody').innerHTML=html;
+        document.getElementById('bkDayDetail').style.display='block';
+        document.getElementById('bkDayDetail').scrollIntoView({behavior:'smooth',block:'nearest'});
+
+      } catch(e){ console.error('bkDayDetail 오류:',e); }
     }
     
     // 청소 정보 팝업
@@ -5132,6 +5352,7 @@
         closeBkModal();
         renderBookingTab();
         if (currentTab === 'dashboard') renderDashboard();
+        if (currentTab === 'calendar') renderCalendar();
         showToast(bkEditId ? '✅ 예약 수정됐어요' : '✅ 예약 등록됐어요');
       } catch(e) { alert('오류: ' + e.message); }
     }
@@ -5956,229 +6177,89 @@
         
         // ★ 이벤트 등록을 renderAll보다 먼저 - renderAll 에러가 이벤트 등록을 막지 않도록
         
-        // 지점 토글 - data-branch 있는 버튼만
-        document.querySelectorAll('.branch-btn[data-branch]').forEach(b => {
-          b.addEventListener('click', () => switchBranch(b.dataset.branch));
-        });
-        
-        // 탭
-        document.querySelectorAll('.tab-btn').forEach(b => {
-          b.addEventListener('click', () => switchTab(b.dataset.tab));
-        });
-        
-        // 월 네비
-        document.querySelectorAll('.month-nav-btn').forEach(btn => {
-          btn.addEventListener('click', () => navigateMonth(btn.dataset.target, btn.dataset.nav));
-        });
-        // 달력 뷰 전환
-        document.getElementById('btnCalViewMonth').addEventListener('click', function(){
-          calViewMode='month';
-          document.getElementById('calMonthView').style.display='';
-          document.getElementById('calRoomView').style.display='none';
-          document.getElementById('btnCalViewMonth').style.cssText='flex:1;padding:8px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;background:#FFFFFF;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)';
-          document.getElementById('btnCalViewRoom').style.cssText='flex:1;padding:8px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;background:transparent;color:var(--ink-3)';
-        });
-        document.getElementById('btnCalViewRoom').addEventListener('click', function(){
-          calViewMode='room';
-          calRoomYear=calMonth.year; calRoomMonth=calMonth.month;
-          document.getElementById('calMonthView').style.display='none';
-          document.getElementById('calRoomView').style.display='';
-          document.getElementById('btnCalViewRoom').style.cssText='flex:1;padding:8px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;background:#FFFFFF;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)';
-          document.getElementById('btnCalViewMonth').style.cssText='flex:1;padding:8px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;background:transparent;color:var(--ink-3)';
-          renderCalRoomView();
-        });
-        document.getElementById('calRoomPrev').addEventListener('click', function(){
-          calRoomMonth--; if(calRoomMonth<0){calRoomMonth=11;calRoomYear--;} renderCalRoomView();
-        });
-        document.getElementById('calRoomNext').addEventListener('click', function(){
-          calRoomMonth++; if(calRoomMonth>11){calRoomMonth=0;calRoomYear++;} renderCalRoomView();
-        });
-        document.getElementById('calRoomToday').addEventListener('click', function(){
-          calRoomYear=new Date().getFullYear(); calRoomMonth=new Date().getMonth(); renderCalRoomView();
-        });
+        // 안전한 이벤트 등록 헬퍼
+        function safeOn(id, ev, fn) { var el=document.getElementById(id); if(el) el.addEventListener(ev,fn); }
 
-        document.getElementById('btnCalToday').addEventListener('click', () => goToday('calendar'));
-        document.querySelectorAll('[data-today]').forEach(btn => {
-          btn.addEventListener('click', () => goToday(btn.dataset.today));
-        });
-        
-        // 미지급 필터 버튼
-        const pFilterAll = document.getElementById('pendingFilterAll');
-        const pFilterMonth = document.getElementById('pendingFilterMonth');
-        if (pFilterAll) {
-          pFilterAll.addEventListener('click', () => {
-            pendingFilterMode = 'all';
-            renderPendingTab();
-          });
-        }
-        if (pFilterMonth) {
-          pFilterMonth.addEventListener('click', () => {
-            pendingFilterMode = 'month';
-            renderPendingTab();
-          });
-        }
-        
-        // 거래 모달
-        document.getElementById('btnAddTx').addEventListener('click', () => openTxModal(null));
-        // 거래 모달 버튼 - onclick으로 처리됨 (중복 등록 방지)
-        document.querySelectorAll('input[name="txType"]').forEach(r => {
-          r.addEventListener('change', () => {
-            populateTargets(r.value);
-            updateCalcPreview();
-            updatePaidLabel();
-            document.getElementById('txScheduleFields').style.display =
-              r.value === 'income' ? 'block' : 'none';
-            // 예약 등록 버튼 표시 (수입일 때만)
-            const bkBtn = document.getElementById('btnTxToBooking');
-            if (bkBtn) bkBtn.style.display = r.value === 'income' ? 'block' : 'none';
+        document.querySelectorAll('.branch-btn[data-branch]').forEach(function(b){ b.addEventListener('click', function(){ switchBranch(b.dataset.branch); }); });
+        document.querySelectorAll('.tab-btn').forEach(function(b){ b.addEventListener('click', function(){ switchTab(b.dataset.tab); }); });
+        document.querySelectorAll('.month-nav-btn[data-target]').forEach(function(btn){ btn.addEventListener('click', function(){ navigateMonth(btn.dataset.target, btn.dataset.nav); }); });
+        safeOn('btnCalToday','click', function(){ goToday('calendar'); });
+        safeOn('btnCalRoomFilter','click', openCalRoomFilterModal);
+        safeOn('btnCalRoomFilterClear','click', function(){ calFilterRoomId=null; renderCalendar(); });
+        var calRoomMod=document.getElementById('calRoomFilterModal'); if(calRoomMod) calRoomMod.addEventListener('click', function(e){ if(e.target.id==='calRoomFilterModal') e.target.classList.remove('active'); });
+        document.querySelectorAll('[data-today]').forEach(function(btn){ btn.addEventListener('click', function(){ goToday(btn.dataset.today); }); });
+        safeOn('pendingFilterAll','click', function(){ pendingFilterMode='all'; renderPendingTab(); });
+        safeOn('pendingFilterMonth','click', function(){ pendingFilterMode='month'; renderPendingTab(); });
+        safeOn('btnAddTx','click', function(){ openTxModal(null); });
+        document.querySelectorAll('input[name="txType"]').forEach(function(r){
+          r.addEventListener('change', function(){
+            populateTargets(r.value); updateCalcPreview(); updatePaidLabel();
+            var sf=document.getElementById('txScheduleFields'); if(sf) sf.style.display=r.value==='income'?'block':'none';
+            var bkBtn=document.getElementById('btnTxToBooking'); if(bkBtn) bkBtn.style.display=r.value==='income'?'block':'none';
           });
         });
-        document.getElementById('txTarget').addEventListener('change', autoFillAmount);
-        document.getElementById('txDatePicker').addEventListener('change', function() {
-          document.getElementById('txDate').value = this.value;
-          // 날짜 바뀌면 예약 다시 조회
-          const targetId = document.getElementById('txTarget').value;
-          if (targetId) autoFillAmount();
+        safeOn('txTarget','change', autoFillAmount);
+        safeOn('txDatePicker','change', function(){
+          var td=document.getElementById('txDate'); if(td) td.value=this.value;
+          var tid=document.getElementById('txTarget'); if(tid&&tid.value) autoFillAmount();
         });
-        document.getElementById('txAmount').addEventListener('input', updateCalcPreview);
-        document.getElementById('txBranchSelect').addEventListener('change', () => {
-          const type = document.querySelector('input[name="txType"]:checked').value;
-          populateTargets(type);
+        safeOn('txAmount','input', updateCalcPreview);
+        safeOn('txBranchSelect','change', function(){
+          var checked=document.querySelector('input[name="txType"]:checked'); if(checked) populateTargets(checked.value);
         });
-        
-        // 스케줄 모달
-        document.getElementById('btnScheduleCancel').addEventListener('click', () => {
-          document.getElementById('scheduleModal').classList.remove('active');
-        });
-        document.getElementById('btnScheduleSave').addEventListener('click', saveSchedule);
-        document.getElementById('btnScheduleDelete').addEventListener('click', deleteSchedule);
-        document.getElementById('scheduleModal').addEventListener('click', (e) => {
-          if (e.target.id === 'scheduleModal') document.getElementById('scheduleModal').classList.remove('active');
-        });
-        
-        // 예약 탭
-        document.getElementById('calBkPrev').addEventListener('click', function() {
-          bkMonth--; if(bkMonth<0){bkMonth=11;bkYear--;}
-          bkWeekOffset=0; renderBookingTab();
-        });
-        document.getElementById('calBkNext').addEventListener('click', function() {
-          bkMonth++; if(bkMonth>11){bkMonth=0;bkYear++;}
-          bkWeekOffset=0; renderBookingTab();
-        });
-        document.getElementById('bkTodayBtn').addEventListener('click', function() {
-          bkYear=new Date().getFullYear(); bkMonth=new Date().getMonth();
-          bkWeekOffset=0; renderBookingTab();
-        });
-        document.getElementById('btnAddBooking').addEventListener('click', function() {
-          openBkModal(null);
-        });
-        // 지점 필터 버튼
-        document.querySelectorAll('.bk-branch-btn').forEach(function(btn) {
-          btn.addEventListener('click', function() {
-            bkBranchFilter = btn.dataset.branch;
-          document.querySelectorAll('.bk-branch-btn').forEach(function(b) {
-            const isActive = b.dataset.branch === bkBranchFilter;
-            b.style.background = isActive ? '#FFFFFF' : 'transparent';
-            b.style.color      = isActive ? 'var(--ink)' : 'var(--ink-3)';
-            b.style.boxShadow  = isActive ? '0 1px 4px rgba(0,0,0,.08)' : 'none';
-          });
+        safeOn('btnScheduleCancel','click', function(){ var m=document.getElementById('scheduleModal'); if(m) m.classList.remove('active'); });
+        safeOn('btnScheduleSave','click', saveSchedule);
+        safeOn('btnScheduleDelete','click', deleteSchedule);
+        var schedMod=document.getElementById('scheduleModal'); if(schedMod) schedMod.addEventListener('click', function(e){ if(e.target.id==='scheduleModal') e.target.classList.remove('active'); });
+        safeOn('calBkPrev','click', function(){ bkMonth--; if(bkMonth<0){bkMonth=11;bkYear--;} bkWeekOffset=0; renderBookingTab(); });
+        safeOn('calBkNext','click', function(){ bkMonth++; if(bkMonth>11){bkMonth=0;bkYear++;} bkWeekOffset=0; renderBookingTab(); });
+        safeOn('bkTodayBtn','click', function(){ bkYear=new Date().getFullYear(); bkMonth=new Date().getMonth(); bkWeekOffset=0; renderBookingTab(); });
+        safeOn('btnAddBooking','click', function(){ openBkModal(null); });
+        document.querySelectorAll('.bk-branch-btn').forEach(function(btn){
+          btn.addEventListener('click', function(){
+            bkBranchFilter=btn.dataset.branch;
+            document.querySelectorAll('.bk-branch-btn').forEach(function(b){
+              var on=b.dataset.branch===bkBranchFilter;
+              b.style.background=on?'#FFFFFF':'transparent'; b.style.color=on?'var(--ink)':'var(--ink-3)'; b.style.boxShadow=on?'0 1px 4px rgba(0,0,0,.08)':'none';
+            });
             renderBookingTab();
           });
         });
-        document.getElementById('bookingModal').addEventListener('click', function(e) {
-          if (e.target.id === 'bookingModal') closeBkModal();
+        var bkMod=document.getElementById('bookingModal'); if(bkMod) bkMod.addEventListener('click', function(e){ if(e.target.id==='bookingModal') closeBkModal(); });
+        var bkDetMod=document.getElementById('bookingDetModal'); if(bkDetMod) bkDetMod.addEventListener('click', function(e){ if(e.target.id==='bookingDetModal') closeBkDetModal(); });
+        safeOn('btnAddStaff','click', function(){ openStaffModal(null); });
+        safeOn('btnAddStaff2','click', function(){ openStaffModal(null); });
+        safeOn('btnStaffCancel','click', closeStaffModal);
+        safeOn('btnStaffSave','click', saveStaff);
+        safeOn('btnAddRoom','click', function(){ openRoomModal(null); });
+        safeOn('btnAddRoom2','click', function(){ openRoomModal(null); });
+        safeOn('btnRoomCancel','click', closeRoomModal);
+        safeOn('btnRoomSave','click', saveRoom);
+        safeOn('btnTxToBookingAll','click', function(){ if(confirm('수입 기록을 예약으로 변환할까요?')) convertTxToBookings(); });
+        safeOn('btnExportData','click', exportAllData);
+        safeOn('btnImportData','click', function(){ var fi=document.getElementById('fileImportData'); if(fi) fi.click(); });
+        safeOn('fileImportData','change', function(e){ if(e.target.files[0]) importAllData(e.target.files[0]); e.target.value=''; });
+        safeOn('btnResetAll','click', resetAllData);
+        safeOn('btnGenReport','click', generateReport);
+        safeOn('btnGenStaffReport','click', generateStaffReport);
+        safeOn('btnCopyReport','click', function(){
+          var text=document.getElementById('reportText')?.textContent; if(!text) return;
+          if(navigator.share) navigator.share({text}).catch(function(){}); else if(navigator.clipboard) navigator.clipboard.writeText(text).then(function(){ showToast('📋 복사됐어요!'); });
         });
-        document.getElementById('bookingDetModal').addEventListener('click', function(e) {
-          if (e.target.id === 'bookingDetModal') closeBkDetModal();
-        });
-        
-        // 설정 모달
-        document.getElementById('btnAddStaff').addEventListener('click', () => openStaffModal(null));
-        document.getElementById('btnAddStaff2').addEventListener('click', () => openStaffModal(null));
-        document.getElementById('btnStaffCancel').addEventListener('click', closeStaffModal);
-        document.getElementById('btnStaffSave').addEventListener('click', saveStaff);
-        document.getElementById('btnAddRoom').addEventListener('click', () => openRoomModal(null));
-        document.getElementById('btnAddRoom2').addEventListener('click', () => openRoomModal(null));
-        document.getElementById('btnRoomCancel').addEventListener('click', closeRoomModal);
-        document.getElementById('btnRoomSave').addEventListener('click', saveRoom);
-        
-        // 💾 백업/복원/초기화
-        document.getElementById('btnTxToBookingAll').addEventListener('click', function() {
-          if (confirm('수입(청소) 기록을 예약 탭으로 변환할까요?\n\n• 박수가 입력된 기록만 변환돼요\n• 중복 예약은 건너뜀\n• 기존 예약은 유지됩니다')) {
-            convertTxToBookings();
-          }
-        });
-        document.getElementById('btnExportData').addEventListener('click', exportAllData);
-        document.getElementById('btnImportData').addEventListener('click', () => {
-          document.getElementById('fileImportData').click();
-        });
-        document.getElementById('fileImportData').addEventListener('change', (e) => {
-          if (e.target.files[0]) importAllData(e.target.files[0]);
-          e.target.value = '';
-        });
-        document.getElementById('btnResetAll').addEventListener('click', resetAllData);
-        
-        // 정산내역 보고서
-        document.getElementById('btnGenReport').addEventListener('click', generateReport);
-        document.getElementById('btnGenStaffReport').addEventListener('click', generateStaffReport);
-        document.getElementById('btnCopyReport').addEventListener('click', () => {
-          const text = document.getElementById('reportText').textContent;
-          if (navigator.share) {
-            navigator.share({ text }).catch(() => {});
-          } else if (navigator.clipboard) {
-            navigator.clipboard.writeText(text).then(() => showToast('📋 복사됐어요! 카카오톡에 붙여넣기 하세요'));
-          }
-        });
-        
-        // 🔍 진단 버튼
-        document.getElementById('btnDiagnose').addEventListener('click', () => {
+        safeOn('btnDiagnose','click', function(){
           try {
-            const tx    = safeLoad(STORAGE.TX);
-            const staff = safeLoad(STORAGE.STAFF);
-            const rooms = safeLoad(STORAGE.ROOM);
-            const branch = localStorage.getItem(STORAGE.BRANCH) || '(없음)';
-            
-            // 브랜치별 거래 집계
-            const branchCount = {};
-            tx.forEach(t => {
-              branchCount[t.branch] = (branchCount[t.branch] || 0) + 1;
-            });
-            
-            const unpaid = tx.filter(t => !t.paid);
-            const months = [...new Set(tx.map(t => t.billingMonth || t.date?.substring(0,7)))].sort().reverse().slice(0,5);
-            
-            const diagEl = document.getElementById('diagResult');
-            diagEl.style.display = 'block';
-            diagEl.innerHTML =
-              '<b>📊 저장된 데이터 현황</b><br>' +
-              '• 현재 지점: <b>' + currentBranch + '</b> (저장값: ' + branch + ')<br>' +
-              '• 거래내역: <b>' + tx.length + '건</b> (미지급: ' + unpaid.length + '건)<br>' +
-              '• 직원: <b>' + staff.length + '명</b><br>' +
-              '• 객실: <b>' + rooms.length + '개</b><br>' +
-              '• 지점별 거래: ' + JSON.stringify(branchCount) + '<br>' +
-              '• 최근 귀속월: ' + (months.join(', ') || '없음') + '<br>' +
-              '• localStorage 키: ' + Object.keys(STORAGE).map(k => STORAGE[k]).join(', ');
-          } catch(e) {
-            document.getElementById('diagResult').style.display = 'block';
-            document.getElementById('diagResult').textContent = '진단 실패: ' + e.message;
-          }
+            var tx=safeLoad(STORAGE.TX), staff=safeLoad(STORAGE.STAFF), rooms=safeLoad(STORAGE.ROOM);
+            var bc={}; tx.forEach(function(t){ bc[t.branch]=(bc[t.branch]||0)+1; });
+            var diagEl=document.getElementById('diagResult');
+            if(diagEl){ diagEl.style.display='block'; diagEl.innerHTML='<b>📊 데이터 현황</b><br>• 지점: <b>'+currentBranch+'</b><br>• 거래: <b>'+tx.length+'건</b> (미지급: '+tx.filter(function(t){return !t.paid;}).length+'건)<br>• 직원: '+staff.length+'명<br>• 객실: '+rooms.length+'개<br>• 지점별: '+JSON.stringify(bc); }
+          } catch(e) { var d=document.getElementById('diagResult'); if(d){d.style.display='block'; d.textContent='진단실패: '+e.message;} }
         });
-        
-        ['staffModal', 'roomModal', 'txModal', 'roomDetailModal'].forEach(id => {
-          document.getElementById(id).addEventListener('click', (e) => {
-            if (e.target.id === id) document.getElementById(id).classList.remove('active');
-          });
+        ['staffModal','roomModal','txModal','roomDetailModal'].forEach(function(id){
+          var el=document.getElementById(id); if(el) el.addEventListener('click', function(e){ if(e.target.id===id) el.classList.remove('active'); });
         });
-        
-        document.getElementById('btnRoomDetailClose').addEventListener('click', () => {
-          document.getElementById('roomDetailModal').classList.remove('active');
-        });
-        
-        // 시뮬레이터
-        ['simExtraRooms', 'simRoomPrice', 'simExtraStaff', 'simStaffCost'].forEach(id => {
-          document.getElementById(id).addEventListener('input', runSimulator);
-        });
-        
+        safeOn('btnRoomDetailClose','click', function(){ var m=document.getElementById('roomDetailModal'); if(m) m.classList.remove('active'); });
+        ['simExtraRooms','simRoomPrice','simExtraStaff','simStaffCost'].forEach(function(id){ safeOn(id,'input',runSimulator); });
+
         // ★ 이벤트 등록 완료 후 renderAll (에러나도 이벤트는 이미 등록됨)
         try { renderAll(); } catch(e) { console.error('초기 렌더 오류:', e); }
         
