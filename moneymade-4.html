@@ -1944,6 +1944,20 @@
       return allTx.filter(t => t.branch === currentBranch);
     }
 
+    // 청소 예정 취소 - 원본 기록의 체크인 정보 삭제
+    function cancelPlanned(fromTxId) {
+      try {
+        if (!confirm('이 청소 예정을 취소할까요?\n(원본 기록의 체크인 정보가 지워져요)')) return;
+        const allTx = safeLoad(STORAGE.TX) || [];
+        const t = allTx.find(function(x){ return x.id === fromTxId; });
+        if (!t) { alert('원본 기록을 찾을 수 없어요'); return; }
+        t.inNights = ''; t.inGuests = ''; t.inSupplies = ''; t.checkinTime = '';
+        localStorage.setItem(STORAGE.TX, JSON.stringify(allTx));
+        showToast('🗑 예정이 취소됐어요');
+        renderAll();
+      } catch(e) { alert('오류: ' + e.message); }
+    }
+
     // ★ 청소 예정 자동 계산 — 청소 기록의 체크인 정보(N박)로 다음 청소일 생성
     // 반환: [{date, roomId, roomName, nights, guests, supplies, checkinTime, fromTxId}]
     function getPlannedCleanings() {
@@ -2534,6 +2548,8 @@
           if (!hasTx) {
             html += '<button onclick="openTxModal(null,\''+dateStr+'\',\''+bk.roomId+'\','+( bk.guests||0)+','+n+')" '
               +'style="flex:1;padding:9px;background:var(--ink);color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">🧹 청소 기록 추가</button>';
+            html += '<button onclick="cancelPlanned(\''+bk.fromTxId+'\')" '
+              +'style="padding:9px 12px;background:var(--bg-2);color:var(--ink-3);border:1px solid var(--line-2);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">🗑 예정취소</button>';
           } else {
             html += '<button onclick="openTxModal(\''+hasTx.id+'\')" '
               +'style="flex:1;padding:9px;background:var(--bg-2);color:var(--ink-2);border:1px solid var(--line-2);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:Pretendard,sans-serif;">✏️ 수정</button>';
