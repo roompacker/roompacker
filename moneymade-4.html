@@ -2316,7 +2316,13 @@
           if (weekday===6) cls += ' sat';
           
           let dots = '';
+          let amounts = '';
           if (!isOther) {
+            // 금액 표시 복원
+            if (txD) {
+              if (txD.income  > 0) amounts += '<div class="cal-day-amount income">+' + formatMoneyShort(txD.income) + '</div>';
+              if (txD.expense > 0) amounts += '<div class="cal-day-amount expense">-' + formatMoneyShort(txD.expense) + '</div>';
+            }
             const dotItems = [];
             
             // 청소 기록 점 (수납완료=초록, 미수금=빨강)
@@ -2343,7 +2349,7 @@
             }
           }
           
-          return '<div class="'+cls+'" data-date="'+dateStr+'"><div class="cal-day-num">'+c.day+'</div>'+dots+'</div>';
+          return '<div class="'+cls+'" data-date="'+dateStr+'"><div class="cal-day-num">'+c.day+'</div>'+amounts+dots+'</div>';
         }).join('');
         
         const grid = document.getElementById('calDays');
@@ -2467,14 +2473,17 @@
         
         let html = '';
         
-        // 예약 체크아웃 (= 청소일)
+        // 예약 체크아웃 (= 청소일) - 같은 객실 중복 제거
+        const ddShown = new Set();
         dayBkCout.forEach(function(bk){
+          if (ddShown.has(bk.roomId)) return;
+          ddShown.add(bk.roomId);
           const room  = allRooms.find(function(r){return r.id===bk.roomId;}) || {};
           const hoNum = (room.name||bk.roomId).match(/(\d+호)$/) ? (room.name||bk.roomId).match(/(\d+호)$/)[1] : (room.name||bk.roomId);
           const hasTx = dayTx.find(function(t){return t.targetId===bk.roomId;});
           const n     = bkNights(bk.checkIn, bk.checkOut);
           // 다음 예약 (바로입실)
-          const nextBk = allBooks.find(function(b){return b.roomId===bk.roomId&&b.checkIn===dateStr;});
+          const nextBk = allBooks.find(function(b){return b.roomId===bk.roomId&&b.checkIn===dateStr&&b.id!==bk.id;});
           
           html += '<div style="background:var(--card);border-radius:14px;margin-bottom:8px;border:1px solid var(--line);border-left:3px solid '+(hasTx?'var(--ok)':'var(--sub-red)')+';overflow:hidden;">';
           // 헤더
@@ -2517,8 +2526,8 @@
         
         // 예약 없는 청소 기록 - 같은 스타일로
         dayTx.forEach(function(t){
-          const alreadyShown = dayBkCout.find(function(bk){return bk.roomId===t.targetId;});
-          if (alreadyShown) return;
+          if (ddShown.has(t.targetId)) return;
+          ddShown.add(t.targetId);
           const room  = allRooms.find(function(r){return r.id===t.targetId;})||{};
           const hoNum = (room.name||t.targetName||'').match(/(\d+호)$/) ? (room.name||t.targetName||'').match(/(\d+호)$/)[1] : (room.name||t.targetName||t.targetId);
           html += '<div style="background:var(--card);border-radius:14px;margin-bottom:8px;border:1px solid var(--line);border-left:3px solid var(--ok);overflow:hidden;">';
@@ -5099,6 +5108,8 @@
     }
 
     // 예약탭 날짜 탭 → 아래 박스 정보 표시
+    function closeBkDayDetail(){ var d=document.getElementById('bkDayDetail'); if(d) d.style.display='none'; }
+
     function renderBkDayDetail(dateStr) {
       try {
         const parts = dateStr.split('-').map(Number);
