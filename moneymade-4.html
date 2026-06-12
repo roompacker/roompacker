@@ -163,11 +163,12 @@
     .cal-weekday { text-align:center; font-size:11px; font-weight:700; color:var(--text-3); padding:4px; }
     .cal-weekday.sun { color:var(--red); }
     .cal-weekday.sat { color:var(--primary); }
-    .cal-days { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+    .cal-days { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:2px; }
     .cal-day {
       aspect-ratio:1/1.25; background:var(--bg); border-radius:8px;
-      padding:4px; display:flex; flex-direction:column; align-items:center;
-      gap:2px; cursor:pointer; border:1.5px solid transparent;
+      padding:3px 1px; display:flex; flex-direction:column; align-items:center;
+      gap:1px; cursor:pointer; border:1.5px solid transparent;
+      min-width:0; overflow:hidden;
     }
     .cal-day.other-month { opacity:0.3; }
     .cal-day.today { border-color:var(--primary); background:var(--primary-2); }
@@ -176,7 +177,7 @@
     .cal-day-num { font-size:12px; font-weight:700; color:var(--text); }
     .cal-day.sun .cal-day-num { color:var(--red); }
     .cal-day.sat .cal-day-num { color:var(--primary); }
-    .cal-day-amount { font-size:9px; font-weight:700; line-height:1.1; text-align:center; width:100%; }
+    .cal-day-amount { font-size:8px; font-weight:700; line-height:1.1; text-align:center; width:100%; white-space:nowrap; overflow:hidden; }
     .cal-day-amount.income { color:var(--green); }
     .cal-day-amount.expense { color:var(--red); }
     .cal-day.selected .cal-day-amount.income { color:#A7F3D0; }
@@ -2341,10 +2342,13 @@
             }
             
             if (dotItems.length > 0) {
-              dots = '<div style="display:flex;gap:3px;justify-content:center;margin-top:3px;flex-wrap:wrap;">';
-              dotItems.forEach(function(color){
-                dots += '<div style="width:7px;height:7px;border-radius:50%;background:'+color+';flex-shrink:0;"></div>';
+              dots = '<div style="display:flex;gap:2px;justify-content:center;margin-top:2px;flex-wrap:wrap;max-width:100%;">';
+              dotItems.slice(0,4).forEach(function(color){
+                dots += '<div style="width:6px;height:6px;border-radius:50%;background:'+color+';flex-shrink:0;"></div>';
               });
+              if (dotItems.length > 4) {
+                dots += '<span style="font-size:8px;color:var(--ink-3);font-weight:700;line-height:6px;">+'+(dotItems.length-4)+'</span>';
+              }
               dots += '</div>';
             }
           }
@@ -4138,6 +4142,8 @@
           if (!room) { alert('객실을 찾을 수 없어요'); return; }
           targetName = room.name;
           taxRate = room.tax || 0;
+          // 수입은 무조건 객실의 실제 지점으로 저장 (지점 오기록 방지)
+          if (room.branch) txBranch = room.branch;
         } else {
           var staff = allStaff.find(function(s){ return s.id === targetId; });
           if (!staff) { alert('직원을 찾을 수 없어요'); return; }
@@ -6240,6 +6246,19 @@
     // ============================================
     function init() {
       try {
+        // 지점 오기록 자동 교정 - 수입 거래의 branch를 객실 실제 지점과 동기화
+        try {
+          var fixRooms = safeLoad(STORAGE.ROOM) || [];
+          var fixTx = safeLoad(STORAGE.TX) || [];
+          var fixed = 0;
+          fixTx.forEach(function(t){
+            if (t.type !== 'income') return;
+            var r = fixRooms.find(function(x){ return x.id === t.targetId; });
+            if (r && r.branch && t.branch !== r.branch) { t.branch = r.branch; fixed++; }
+          });
+          if (fixed > 0) localStorage.setItem(STORAGE.TX, JSON.stringify(fixTx));
+        } catch(fe) {}
+
         // ── 데이터 무결성 사전 검사 ──
         // 복원 직후 또는 앱 시작 시 데이터가 비정상이면 즉시 경고
         (function checkDataIntegrity() {
