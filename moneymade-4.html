@@ -4319,6 +4319,8 @@
           if (bk.checkOut !== dateStr) return false;
           const room = rooms.find(function(r){ return r.id === bk.roomId; });
           if (!room) return false;
+          // 지점 필터 적용
+          if (currentBranch !== ALL && room.branch !== currentBranch) return false;
           // 이미 거래 기록 있거나 이미 처리한 객실이면 제외
           if (seenRooms.has(bk.roomId)) return false;
           seenRooms.add(bk.roomId); // 첫 번째 예약만 통과
