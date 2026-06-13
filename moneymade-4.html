@@ -4791,7 +4791,12 @@
           '──────────────',
           '📌 '+rName,
           '',
-          (s.supplies ? '🛒 준비물: '+s.supplies : '🛒 준비물: 없음'),
+          '🏠 체크인 준비',
+          (s.nights    ? '  '+s.nights+'박' : null),
+          (s.guests    ? '  '+s.guests+'명' : null),
+          (s.supplies  ? '  🛒 준비물: '+s.supplies : null),
+          (room.doorPw  ? '  🔑 도어락: '+room.doorPw  : null),
+          (room.supplyPw? '  📦 비품함: '+room.supplyPw : null),
           '',
           '──────────────',
           '룸메이드',
@@ -4847,13 +4852,36 @@
     function shareWorkerMsg(t, dateLabel) {
       try {
         if (!t) return;
-        // 작업자에게는 객실 + 준비물만 전달
+        const nights = t.nights || '-';
+        const guests = t.guests || '-';
+        const checkoutT = t.checkoutTime || '';
+        const checkinT  = t.checkinTime  || '';
+        const inN = t.inNights || '';
+        const inG = t.inGuests || '';
+
+        const rooms   = safeLoad(STORAGE.ROOM) || [];
+        const room    = rooms.find(r => r.id === t.targetId);
+        const defG    = room?.defaultGuests;
+        const hasCheckin = inN || inG || t.inSupplies;
+
         const lines = [
           '🧹 청소 안내 — ' + dateLabel,
           '──────────────',
           '📌 ' + t.targetName,
           '',
-          t.inSupplies ? '🛒 준비물: ' + t.inSupplies : '🛒 준비물: 없음',
+          '🚪 체크아웃',
+          '  ' + nights + '박 / ' + guests + '명' + (checkoutT ? ' (' + checkoutT + ')' : ''),
+          t.doorPw   ? '  🔑 도어락: ' + t.doorPw   : null,
+          t.supplyPw ? '  📦 비품함: ' + t.supplyPw  : null,
+          '',
+          '🏠 체크인 준비',
+          hasCheckin
+            ? '  ' + (inN||'-') + '박 / ' + (inG||'-') + '명' + (checkinT ? ' (' + checkinT + ')' : '')
+            : defG
+              ? '  체크인 없음 → 기본 ' + defG + '명 기준 셋팅'
+              : '  체크인 예정 없음',
+          t.inSupplies ? '  🛒 준비물: ' + t.inSupplies : null,
+          // 메모(추가비용 등)는 작업자에게 전달하지 않음
           '',
           '──────────────',
           '룸메이드',
