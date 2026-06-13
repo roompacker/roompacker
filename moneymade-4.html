@@ -1509,10 +1509,6 @@
         <input type="month" id="txBillingMonth">
         <div class="form-hint">💡 빈칸이면 청소날짜 기준으로 자동 반영돼요. 미리 예약된 건 여기서 월을 직접 지정하세요!</div>
       </div>
-      <div class="form-field">
-        <label>메모 (선택)</label>
-        <input type="text" id="txMemo" placeholder="예: 5월 22일 청소">
-      </div>
       
       <!-- 수입(객실) 전용 스케줄 정보 -->
       <div id="txScheduleFields" style="border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--bg);margin-bottom:14px;">
@@ -1521,7 +1517,7 @@
         <!-- 체크아웃 (나가는 손님) -->
         <div style="background:var(--red-2);border-radius:8px;padding:10px;margin-bottom:8px;">
           <div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:8px;">🚪 체크아웃 (나가는 손님)</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
             <div class="form-field" style="margin-bottom:0;">
               <label>박수</label>
               <input type="text" id="txNights" placeholder="" inputmode="numeric">
@@ -1534,6 +1530,10 @@
               <label>시간</label>
               <input type="time" id="txCheckoutTime">
             </div>
+          </div>
+          <div class="form-field" style="margin-bottom:0;">
+            <label>메모 (추가비용 등)</label>
+            <input type="text" id="txMemo" placeholder="예: 쇼파베드 2개(추가 5000원)">
           </div>
         </div>
         
@@ -4791,14 +4791,7 @@
           '──────────────',
           '📌 '+rName,
           '',
-          '🏠 체크인 준비',
-          (s.checkType ? '  '+s.checkType : null),
-          (s.nights    ? '  '+s.nights+'박' : null),
-          (s.guests    ? '  '+s.guests+'명' : null),
-          (s.supplies  ? '  🛒 '+s.supplies : null),
-          (s.memo      ? '  📝 '+s.memo    : null),
-          (room.doorPw  ? '  🔑 도어락: '+room.doorPw  : null),
-          (room.supplyPw? '  📦 비품함: '+room.supplyPw : null),
+          (s.supplies ? '🛒 준비물: '+s.supplies : '🛒 준비물: 없음'),
           '',
           '──────────────',
           '룸메이드',
@@ -4854,40 +4847,13 @@
     function shareWorkerMsg(t, dateLabel) {
       try {
         if (!t) return;
-        const nights = t.nights || '-';
-        const guests = t.guests || '-';
-        const checkoutT = t.checkoutTime || '';
-        const checkinT  = t.checkinTime  || '';
-        const inN = t.inNights || '';
-        const inG = t.inGuests || '';
-        const score = (parseInt(t.nights)||0)*1.5 + (parseInt(t.guests)||0);
-        // 난이도 제거됨
-        
-        // 체크인 없을 때 객실 기본 인원 기준 셋팅 표시
-        const rooms   = safeLoad(STORAGE.ROOM) || [];
-        const room    = rooms.find(r => r.id === t.targetId);
-        const defG    = room?.defaultGuests;
-        const hasCheckin = inN || inG || t.inSupplies;
-        
+        // 작업자에게는 객실 + 준비물만 전달
         const lines = [
           '🧹 청소 안내 — ' + dateLabel,
           '──────────────',
           '📌 ' + t.targetName,
           '',
-          '🚪 체크아웃',
-          '  ' + nights + '박 / ' + guests + '명' + (checkoutT ? ' (' + checkoutT + ')' : ''),
-          t.doorPw   ? '  🔑 도어락: ' + t.doorPw   : null,
-          t.supplyPw ? '  📦 비품함: ' + t.supplyPw  : null,
-          '',
-          '🏠 체크인 준비',
-          hasCheckin
-            ? '  ' + (inN||'-') + '박 / ' + (inG||'-') + '명' + (checkinT ? ' (' + checkinT + ')' : '')
-            : defG
-              ? '  체크인 없음 → 기본 ' + defG + '명 기준 셋팅'
-              : '  체크인 예정 없음',
-          (hasCheckin && checkinT && !inN) ? '  도착: ' + checkinT : null,
-          t.inSupplies ? '  🛒 준비물: ' + t.inSupplies : null,
-          t.memo ? '  📝 ' + t.memo : null,
+          t.inSupplies ? '🛒 준비물: ' + t.inSupplies : '🛒 준비물: 없음',
           '',
           '──────────────',
           '룸메이드',
