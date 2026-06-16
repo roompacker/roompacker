@@ -162,6 +162,10 @@ body{display:flex;justify-content:center}
         <strong id="settleTotal">0원</strong>
         <p id="settleDesc">미수금은 객실별로 묶어서 보여드려요.</p>
       </div>
+      <div class="segment" style="margin-bottom:12px;">
+        <button class="segbtn active" data-settle-period="month">📅 이번 달</button>
+        <button class="segbtn" data-settle-period="all">전체 기간</button>
+      </div>
       <div id="settlementGroups"></div>
     </section>
 
@@ -291,7 +295,7 @@ body{display:flex;justify-content:center}
   const STORE='roommade-one-state-v1';
   const LEGACY={staff:'룸메이드캐쉬-직원',rooms:'룸메이드캐쉬-객실',tx:'룸메이드캐쉬-거래내역',branch:'룸메이드캐쉬-현재지점'};
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
-  const today=()=>new Date().toISOString().slice(0,10);
+  const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10);};
   const ym=d=>d.slice(0,7);
   const pad=n=>String(n).padStart(2,'0');
   const money=n=>Number(n||0).toLocaleString('ko-KR')+'원';
@@ -302,7 +306,7 @@ body{display:flex;justify-content:center}
   const currentYM=()=>today().slice(0,7);
   let activeView='home', settleMode='receivable', reportMode='room';
   let scheduleMonth=currentYM(), insightMonth=currentYM(), selectedDate=today(), txType='income';
-  let boardMonth=currentYM(), schedView='calendar', settleOpen={};
+  let boardMonth=currentYM(), schedView='calendar', settleOpen={}, settlePeriod='month';
 
   function demoState(){
     const base=new Date();
@@ -540,7 +544,10 @@ body{display:flex;justify-content:center}
   function renderSettlement(){
     $$('.segbtn[data-settle]').forEach(b=>b.classList.toggle('active',b.dataset.settle===settleMode));let list=branchFilter(state.transactions).filter(t=>t.status!=='cancelled');
     let type,paid,label,desc;if(settleMode==='receivable'){type='income';paid=false;label='현재 받을 돈';desc='미수금은 객실별로 묶어서 보여드려요.'}else if(settleMode==='payable'){type='expense';paid=false;label='현재 줄 돈';desc='직원별 미지급 금액을 바로 처리할 수 있어요.'}else{type=null;paid=true;label='완료된 정산';desc='입금·지급이 끝난 내역입니다.'}
-    list=list.filter(t=>(!type||t.type===type)&&!!t.paid===paid);$('#settleLabel').textContent=label;$('#settleTotal').textContent=money(sum(list));$('#settleDesc').textContent=desc;
+    list=list.filter(t=>(!type||t.type===type)&&!!t.paid===paid);
+    // 기간 필터 (이번 달 / 전체)
+    if(settlePeriod==='month'){const cm=currentYM();list=list.filter(t=>(t.billingMonth||ym(t.date))===cm);}
+    $('#settleLabel').textContent=label+(settlePeriod==='month'?' (이번 달)':'');$('#settleTotal').textContent=money(sum(list));$('#settleDesc').textContent=desc;
     const groups={};list.forEach(t=>{const key=t.targetId||t.targetName;(groups[key] ||= []).push(t)});
     Object.values(groups).forEach(arr=>arr.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0));
     const html=Object.entries(groups).sort((a,b)=>sum(b[1])-sum(a[1])).map(([key,arr])=>{const first=arr[0],amt=sum(arr),name=first.targetName||(first.type==='income'?roomName(key):staffName(key));const open=settleOpen[key];const shown=open?arr:arr.slice(0,4);return `<div class="card group"><div class="grouphead" data-settle-toggle="${key}" style="cursor:pointer;"><div class="avatar">${first.type==='income'?'🏠':'👤'}</div><div class="groupname"><b>${esc(name)}</b><small>${arr.length}건 · ${first.branch} · ${open?'접기 ▲':'전체보기 ▼'}</small></div><div class="groupamt"><b>${money(amt)}</b><small>${paid?'완료':'정산 필요'}</small></div></div>${shown.map(txHTML).join('')}${!paid?`<button class="paybtn" data-pay-group="${key}">${first.type==='income'?'입금 완료 처리':'지급 완료 처리'}</button>`:''}</div>`}).join('');
@@ -633,6 +640,7 @@ body{display:flex;justify-content:center}
     if(b.dataset.month){scheduleMonth=shiftMonth(scheduleMonth,Number(b.dataset.month));renderSchedule()}
     if(b.dataset.boardMonth){boardMonth=shiftMonth(boardMonth,Number(b.dataset.boardMonth));renderBoard()}
     if(b.dataset.schedView){schedView=b.dataset.schedView;$$('[data-sched-view]').forEach(x=>x.classList.toggle('active',x.dataset.schedView===schedView));$('#schedCalendarWrap').style.display=schedView==='calendar'?'block':'none';$('#schedBoardWrap').style.display=schedView==='board'?'block':'none';if(schedView==='board')renderBoard();}
+    if(b.dataset.settlePeriod){settlePeriod=b.dataset.settlePeriod;$$('[data-settle-period]').forEach(x=>x.classList.toggle('active',x.dataset.settlePeriod===settlePeriod));renderSettlement();return;}
     if(b.dataset.settleToggle){const k=b.dataset.settleToggle;settleOpen[k]=!settleOpen[k];renderSettlement();return;}
     if(b.dataset.roomMonth){openRoomMonth(b.dataset.roomMonth);return;}
     if(b.dataset.insightMonth){insightMonth=shiftMonth(insightMonth,Number(b.dataset.insightMonth));renderInsight()}
