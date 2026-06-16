@@ -348,7 +348,7 @@ body{display:flex;justify-content:center}
   }
   function normalize(s){
     s.rooms=Array.isArray(s.rooms)?s.rooms:[];s.staff=Array.isArray(s.staff)?s.staff:[];s.transactions=Array.isArray(s.transactions)?s.transactions:[];s.branch=s.branch||'전체';
-    s.transactions=s.transactions.map(t=>({...t,billingMonth:t.billingMonth||ym(t.date),netAmount:Number(t.netAmount??t.amount??0),amount:Number(t.amount||0),status:t.status||((t.date<=today())?'done':'booked')}));return s;
+    s.transactions=s.transactions.filter(t=>t&&t.date).map(t=>({...t,billingMonth:t.billingMonth||ym(t.date),netAmount:Number(t.netAmount??t.amount??0),amount:Number(t.amount||0),status:t.status||((t.date<=today())?'done':'booked')}));return s;
   }
   let state=loadState();
   function save(){localStorage.setItem(STORE,JSON.stringify(state));}
@@ -546,7 +546,28 @@ body{display:flex;justify-content:center}
   function makeReport(){const targetId=$('#reportTarget').value,month=$('#reportMonth').value;if(!targetId||!month)return toast('대상과 정산 월을 선택해주세요');const type=reportMode==='room'?'income':'expense',entity=(reportMode==='room'?state.rooms:state.staff).find(x=>x.id===targetId),items=state.transactions.filter(t=>t.type===type&&t.targetId===targetId&&(t.billingMonth||ym(t.date))===month&&t.status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date));const total=sum(items),paid=sum(items,null,true),pending=sum(items,null,false);let lines=[`──────────────`,`📋 ${entity.name} ${reportMode==='room'?'청소 정산':'지급 내역'}`,monthText(month),`──────────────`,``];items.forEach((t,i)=>lines.push(`${i+1}. ${dateText(t.date)}  ${money(t.netAmount||t.amount)}${t.memo?' / '+t.memo:''}${!t.paid?' ('+(type==='income'?'미수금':'미지급')+')':''}`));lines.push('',`총 ${items.length}건  ${money(total)}`,`${reportMode==='room'?'입금':'지급'} 완료  ${money(paid)}`,`${reportMode==='room'?'미수금':'미지급'}  ${money(pending)}`,'──────────────');$('#reportBox').textContent=lines.join('\n');$('#reportBox').style.display='block';$('#copyReport').style.display='block'}
   function copyReport(){navigator.clipboard?.writeText($('#reportBox').textContent).then(()=>toast('보고서 문구를 복사했어요')).catch(()=>toast('복사에 실패했어요'))}
   function exportData(){const data={app:'roommade-one',version:1,exportedAt:new Date().toISOString(),currentBranch:state.branch,rooms:state.rooms,staff:state.staff,transactions:state.transactions};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`roommade-one-${today()}.json`;a.click();URL.revokeObjectURL(a.href);toast('백업 파일을 만들었어요')}
-  function importData(file){const rd=new FileReader();rd.onload=e=>{try{const d=JSON.parse(e.target.result),next=normalize({branch:d.currentBranch||d.branch||'전체',rooms:d.rooms||[],staff:d.staff||[],transactions:d.transactions||d.tx||[]});if(!next.rooms.length&&!next.staff.length&&!next.transactions.length)throw Error();if(confirm(`객실 ${next.rooms.length}개, 직원 ${next.staff.length}명, 기록 ${next.transactions.length}건을 가져올까요?`)){state=next;save();setBranch(state.branch);toast('데이터를 가져왔어요')}}catch(err){toast('올바른 백업 파일이 아니에요')}};rd.readAsText(file)}
+  function importData(file){
+    const rd=new FileReader();
+    rd.onload=e=>{
+      let d;
+      try{ d=JSON.parse(e.target.result); }
+      catch(err){ toast('파일을 읽을 수 없어요 (JSON 형식 아님)'); return; }
+      try{
+        // moneymade 백업: {rooms, staff, transactions, currentBranch}
+        // roommade-one 백업: {branch, rooms, staff, transactions}
+        const rooms = d.rooms || [];
+        const staff = d.staff || [];
+        const transactions = d.transactions || d.tx || [];
+        if(!Array.isArray(rooms) || !Array.isArray(transactions)){ toast('백업 형식이 올바르지 않아요'); return; }
+        if(rooms.length===0 && staff.length===0 && transactions.length===0){ toast('백업에 데이터가 없어요'); return; }
+        const next = normalize({ branch: d.currentBranch||d.branch||'전체', rooms, staff, transactions });
+        if(confirm(`객실 ${next.rooms.length}개, 직원 ${next.staff.length}명, 기록 ${next.transactions.length}건을 가져올까요?\n(현재 데이터는 덮어써져요)`)){
+          state=next; save(); setBranch(state.branch); render(); toast('✅ 데이터를 가져왔어요');
+        }
+      }catch(err){ toast('가져오기 실패: '+err.message); }
+    };
+    rd.readAsText(file);
+  }
 
   document.addEventListener('click',e=>{
     const b=e.target.closest('button,[data-edit-tx]');if(!b)return;
