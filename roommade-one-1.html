@@ -104,8 +104,8 @@ body{display:flex;justify-content:center}
       </div>
 
       <div class="section">
-        <div class="sectitle"><h2>최근 기록</h2><button data-goto="settlement">정산보기</button></div>
-        <div class="card" id="recentTx"></div>
+        <div class="sectitle"><h2>🏠 다가올 체크인 준비</h2><button data-goto="schedule">일정보기</button></div>
+        <div class="card" id="checkinPrep"></div>
       </div>
     </section>
 
@@ -411,8 +411,22 @@ body{display:flex;justify-content:center}
     let jobsHtml = jobs.length?jobs.map((t,i)=>jobHTML(t,i)).join(''):'';
     jobsHtml += todayPlanned.map(p=>plannedHTML(p)).join('');
     $('#todayJobs').innerHTML=jobsHtml||empty('☕','오늘 등록된 청소 일정이 없어요');
-    const recent=branchFilter(state.transactions).filter(t=>t.status!=='cancelled').sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||0)-(a.createdAt||0)).slice(0,6);
-    $('#recentTx').innerHTML=recent.length?recent.map(txHTML).join(''):empty('🗂️','아직 기록이 없어요');
+    // 다가올 체크인 준비 (오늘 이후 청소 예정, 날짜순)
+    const prep=getPlannedCleanings().filter(p=>p.date>=today()&&(state.branch==='전체'||p.branch===state.branch)).sort((a,b)=>a.date<b.date?-1:1).slice(0,8);
+    $('#checkinPrep').innerHTML=prep.length?prep.map(prepHTML).join(''):empty('🛏️','다가올 체크인 준비가 없어요');
+  }
+  // 체크인 준비 카드 — 기본 셋팅 + 추가 인원분 표시
+  function prepHTML(p){
+    const room=state.rooms.find(r=>r.id===p.targetId)||{};
+    const baseG=Number(room.baseGuests||room.defaultGuests||0);
+    const g=Number(p.guests||0);
+    const d=new Date(p.date+'T00:00:00');const WD=['일','월','화','수','목','금','토'];
+    const dl=(d.getMonth()+1)+'월 '+d.getDate()+'일('+WD[d.getDay()]+')';
+    let setup='';
+    if(p.supplies){ setup=`<small style="color:#4FB0A3;">🛒 추가준비: ${esc(p.supplies)}</small>`; }
+    else if(baseG&&g>baseG){ setup=`<small style="color:var(--red);">⚠️ 기본 ${baseG}명 → ${g}명 (추가 셋팅 필요)</small>`; }
+    else { setup=`<small style="color:var(--muted);">기본 셋팅</small>`; }
+    return `<div class="job" data-plan-clean="${p.fromId}"><div class="jobtime"><b>${dl}</b><small>${p.branch.replace('점','')}</small></div><div class="jobicon">🛏️</div><div class="jobinfo"><b>${esc(p.targetName)}</b><small>체크인 ${p.nights}박${g?' · '+g+'명':''}</small>${setup}</div><div style="display:flex;gap:4px;"><button class="kkbtn worker" data-kakao-worker="${p.fromId}" data-kakao-kind="plan">💬</button><button class="kkbtn host" data-kakao-host="${p.fromId}" data-kakao-kind="plan">📋</button></div></div>`;
   }
   function plannedHTML(p){return `<div class="job" data-plan-clean="${p.fromId}" style="background:linear-gradient(90deg,rgba(108,164,217,.06),transparent);"><div class="jobtime"><b>예정</b><small>${p.branch.replace('점','')}</small></div><div class="jobicon">🧹</div><div class="jobinfo"><b>${esc(p.targetName)}</b><small>체크인 ${p.nights}박${p.guests?' · '+p.guests+'명':''}${p.supplies?' · 🛒'+esc(p.supplies):''}</small></div><div style="display:flex;gap:4px;"><button class="kkbtn worker" data-kakao-worker="${p.fromId}" data-kakao-kind="plan">💬</button><button class="kkbtn host" data-kakao-host="${p.fromId}" data-kakao-kind="plan">📋</button></div></div>`}
 
