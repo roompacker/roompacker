@@ -332,18 +332,17 @@ body{display:flex;justify-content:center}
   }
 
   function loadState(){
-    // 1순위: 이 앱 자체 저장공간 (가장 최신)
-    try{const s=JSON.parse(localStorage.getItem(STORE));if(s&&Array.isArray(s.transactions))return normalize(s);}catch(e){}
-    // 2순위: 기존 캐쉬앱 데이터 (최초 1회만 가져옴)
+    // 캐쉬 앱과 같은 저장공간을 직접 사용 (완전 공유)
     try{
-      const rooms=JSON.parse(localStorage.getItem(LEGACY.rooms)||'[]'),staff=JSON.parse(localStorage.getItem(LEGACY.staff)||'[]'),transactions=JSON.parse(localStorage.getItem(LEGACY.tx)||'[]');
+      const rooms=JSON.parse(localStorage.getItem(LEGACY.rooms)||'[]');
+      const staff=JSON.parse(localStorage.getItem(LEGACY.staff)||'[]');
+      const transactions=JSON.parse(localStorage.getItem(LEGACY.tx)||'[]');
+      const branch=localStorage.getItem(LEGACY.branch)||'전체';
       if(rooms.length||staff.length||transactions.length){
-        const migrated=normalize({version:1,branch:localStorage.getItem(LEGACY.branch)||'전체',rooms,staff,transactions});
-        localStorage.setItem(STORE,JSON.stringify(migrated)); // 즉시 저장 → 다음부터 안 꼬임
-        return migrated;
+        return normalize({version:1,branch,rooms,staff,transactions});
       }
     }catch(e){}
-    // 3순위: 데모 (저장은 안 함 - 빈 화면 방지용)
+    // 데이터 없으면 데모
     return demoState();
   }
   function normalize(s){
@@ -351,7 +350,21 @@ body{display:flex;justify-content:center}
     s.transactions=s.transactions.filter(t=>t&&t.date).map(t=>({...t,billingMonth:t.billingMonth||ym(t.date),netAmount:Number(t.netAmount??t.amount??0),amount:Number(t.amount||0),status:t.status||((t.date<=today())?'done':'booked')}));return s;
   }
   let state=loadState();
-  function save(){localStorage.setItem(STORE,JSON.stringify(state));}
+  function save(){
+    try{
+      // 캐쉬 앱과 같은 키에 직접 저장 → 두 앱이 데이터 공유
+      localStorage.setItem(LEGACY.rooms,JSON.stringify(state.rooms));
+      localStorage.setItem(LEGACY.staff,JSON.stringify(state.staff));
+      localStorage.setItem(LEGACY.tx,JSON.stringify(state.transactions));
+      localStorage.setItem(LEGACY.branch,state.branch);
+      // 검증
+      if(!localStorage.getItem(LEGACY.tx)){toast('⚠️ 저장 실패 - GitHub Pages 주소로 열어주세요');return false;}
+      return true;
+    }catch(e){
+      toast('⚠️ 저장 안 됨: '+e.message+' (브라우저로 열어주세요)');
+      return false;
+    }
+  }
   function toast(msg){$('.toast')?.remove();const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.append(el);setTimeout(()=>el.remove(),1900)}
   function branchFilter(arr){return state.branch==='전체'?arr:arr.filter(x=>x.branch===state.branch)}
   function monthTx(month= currentYM()){return branchFilter(state.transactions).filter(t=>(t.billingMonth||ym(t.date))===month&&t.status!=='cancelled')}
@@ -381,7 +394,14 @@ body{display:flex;justify-content:center}
   function setView(view){activeView=view;$$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===view));$$('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.nav===view));window.scrollTo({top:0,behavior:'smooth'});render();}
   function setBranch(branch){state.branch=branch;save();$$('.branchbtn').forEach(b=>b.classList.toggle('active',b.dataset.branch===branch));render();}
 
-  function render(){renderHome();renderSchedule();renderBoard();renderSettlement();renderInsight();renderManage();}
+  function render(){
+    try{ renderHome(); }catch(e){ console.error('home',e); }
+    try{ renderSchedule(); }catch(e){ console.error('schedule',e); }
+    try{ renderBoard(); }catch(e){ console.error('board',e); }
+    try{ renderSettlement(); }catch(e){ console.error('settlement',e); }
+    try{ renderInsight(); }catch(e){ console.error('insight',e); }
+    try{ renderManage(); }catch(e){ console.error('manage',e); }
+  }
   function renderHome(){
     const tx=monthTx(currentYM()), income=sum(tx,'income'),expense=sum(tx,'expense'),net=income-expense,recv=sum(tx,'income',false),pay=sum(tx,'expense',false),margin=income?Math.round(net/income*100):0;
     $('#homeMonthLabel').textContent=monthText(currentYM())+' 예상 순익';$('#homeNet').textContent=money(net);$('#homeIncome').textContent=money(income);$('#homeExpense').textContent=money(expense);$('#homeReceivable').textContent=short(recv)+'원';$('#homePayable').textContent=short(pay)+'원';$('#homeMargin').textContent=margin+'%';
