@@ -590,7 +590,7 @@ body{display:flex;justify-content:center}
   }
 
   document.addEventListener('click',e=>{
-    const b=e.target.closest('button,[data-edit-tx]');if(!b)return;
+    const b=e.target.closest('button,[data-edit-tx],[data-settle-toggle],[data-room-month],[data-plan-clean],[data-sched-view]');if(!b)return;
     if(b.dataset.nav)return setView(b.dataset.nav);if(b.dataset.goto)return setView(b.dataset.goto);if(b.dataset.branch)return setBranch(b.dataset.branch);
     if(b.dataset.quick){if(b.dataset.quick==='income'||b.dataset.quick==='expense')openTx(b.dataset.quick);if(b.dataset.quick==='room')openRoom();if(b.dataset.quick==='staff')openStaff()}
     if(b.id==='fab')openTx('income',activeView==='schedule'?selectedDate:today());if(b.dataset.close)return closeModal(b.dataset.close);
