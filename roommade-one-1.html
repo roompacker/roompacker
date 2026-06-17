@@ -305,6 +305,16 @@ body{display:flex;justify-content:center}
   </div>
 </div>
 
+<div class="modal" id="roomviewModal">
+  <div class="sheet">
+    <div class="grab"></div><div class="sheethead"><h3>호스트에게 보낼 객실 선택</h3><button class="close" data-close="roomviewModal">×</button></div>
+    <div class="field"><label>호스트 이름 (화면 제목에 표시)</label><input id="rvHostName" placeholder="예: 김민수 사장님" /></div>
+    <div style="font-size:12px;color:var(--sub);font-weight:700;margin:8px 0 6px;">보낼 객실을 골라주세요 (여러 개 가능)</div>
+    <div id="rvRoomChecks" style="max-height:40vh;overflow-y:auto;margin-bottom:12px;"></div>
+    <button class="primary" id="rvMakeLink">📤 링크 만들어 공유하기</button>
+  </div>
+</div>
+
 <script>
 (() => {
   'use strict';
@@ -541,25 +551,34 @@ body{display:flex;justify-content:center}
   function makeRoomviewLink(){
     const rooms=branchFilter(state.rooms);
     if(!rooms.length){toast('표시할 객실이 없어요');return;}
-    const payloadRooms=rooms.map(room=>{
+    // 객실 체크박스 목록 생성
+    const html=rooms.map(r=>{
+      const ho=(r.name||'').match(/(\d+호)$/)?(r.name||'').match(/(\d+호)$/)[1]:r.name;
+      return `<label style="display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;margin-bottom:7px;cursor:pointer;"><input type="checkbox" class="rv-room-chk" value="${r.id}" style="width:18px;height:18px;"><div><b style="font-size:13px;">${esc(ho)}</b><br><small style="color:var(--muted);font-size:11px;">${esc(r.name)} · ${r.branch}</small></div></label>`;
+    }).join('');
+    $('#rvRoomChecks').innerHTML=html;
+    $('#rvHostName').value='';
+    openModal('roomviewModal');
+  }
+
+  function buildRoomviewLink(){
+    const checked=[...document.querySelectorAll('.rv-room-chk:checked')].map(c=>c.value);
+    if(!checked.length){toast('객실을 하나 이상 선택해주세요');return;}
+    let host=$('#rvHostName').value.trim()||'호스트';
+
+    const payloadRooms=checked.map(roomId=>{
+      const room=state.rooms.find(r=>r.id===roomId)||{};
       const events=[];
       state.transactions.forEach(t=>{
-        if(t.type!=='income'||t.targetId!==room.id||t.status==='cancelled')return;
+        if(t.type!=='income'||t.targetId!==roomId||t.status==='cancelled')return;
         if((t.billingMonth||ym(t.date))!==boardMonth)return;
-        // 체크아웃(청소일) - 정보 없어도 청소 기록이면 표시
         events.push({date:t.date,kind:'out',nights:t.outNights||t.nights||'',guests:t.outGuests||t.guests||'',time:t.outTime||''});
         if(t.inNights&&parseInt(t.inNights)>0)events.push({date:t.date,kind:'in',nights:t.inNights,guests:t.inGuests||'',time:t.inTime||'',supplies:t.inSupplies||''});
       });
       events.sort((a,b)=>a.date!==b.date?(a.date<b.date?-1:1):(a.kind==='out'?-1:1));
       const ho=(room.name||'').match(/(\d+호)$/)?(room.name||'').match(/(\d+호)$/)[1]:room.name;
       return {name:ho,branch:room.branch,events};
-    }).filter(r=>r.events.length>0);
-
-    if(!payloadRooms.length){alert('이번 달('+monthText(boardMonth)+') 청소 기록이 없어요.\n\n먼저 청소 기록을 등록한 뒤,\n그 달로 이동해서 다시 눌러주세요.');return;}
-
-    let host='';
-    try{ host=prompt('호스트 이름을 입력하세요 (화면 제목에 표시됨)','호스트')||''; }catch(e){ host='호스트'; }
-    if(host==='')host='호스트'; // 취소해도 진행
+    });
 
     const payload={host,month:monthText(boardMonth),rooms:payloadRooms};
     let encoded;
@@ -569,19 +588,15 @@ body{display:flex;justify-content:center}
     const base=location.href.split('#')[0].replace(/roommade-one[^/]*\.html$/,'roomview.html');
     const link=base+'#d='+encoded;
     const msg=host+' 님, 객실 현황을 확인하실 수 있는 링크예요.\n\n'+link+'\n\n— 룸메이드';
-    // 공유 시도 → 실패하면 복사 → 그것도 안 되면 직접 보여주기
+    closeModal('roomviewModal');
     if(navigator.share){
       navigator.share({text:msg}).then(()=>toast('✅ 공유 완료')).catch(()=>{ fallbackCopy(msg,link); });
-    } else {
-      fallbackCopy(msg,link);
-    }
+    } else { fallbackCopy(msg,link); }
   }
   function fallbackCopy(msg,link){
     if(navigator.clipboard&&navigator.clipboard.writeText){
       navigator.clipboard.writeText(msg).then(()=>toast('📋 링크가 복사됐어요. 카톡에 붙여넣으세요')).catch(()=>{alert('아래 링크를 길게 눌러 복사하세요:\n\n'+link);});
-    } else {
-      alert('아래 링크를 길게 눌러 복사하세요:\n\n'+link);
-    }
+    } else { alert('아래 링크를 길게 눌러 복사하세요:\n\n'+link); }
   }
 
   function openRoomMonth(roomId){
@@ -768,7 +783,8 @@ body{display:flex;justify-content:center}
   $('#txBranchInput').addEventListener('change',updateTxType);$('#txTargetInput').addEventListener('change',()=>{const id=$('#txTargetInput').value,target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===id);if(target)$('#txAmountInput').value=target.price||target.rate||''});
   $('#saveTx').addEventListener('click',saveTxForm);$('#deleteTx').addEventListener('click',deleteTxForm);$('#saveRoom').addEventListener('click',saveRoomForm);$('#saveStaff').addEventListener('click',saveStaffForm);$('#saveSupply').addEventListener('click',saveSupplyForm);$('#deleteSupply').addEventListener('click',deleteSupplyForm);
   $('#supplyReceiptInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{supplyReceiptData=ev.target.result;$('#supplyReceiptPreview').innerHTML=`<img src="${supplyReceiptData}" style="max-width:100%;border-radius:10px;">`;};r.readAsDataURL(f);});
-  const mrv=$('#makeRoomview');if(mrv)mrv.addEventListener('click',makeRoomviewLink);$('#makeReport').addEventListener('click',makeReport);$('#copyReport').addEventListener('click',copyReport);$('#exportBtn').addEventListener('click',exportData);$('#importBtn').addEventListener('click',()=>$('#importFile').click());$('#importFile').addEventListener('change',e=>e.target.files[0]&&importData(e.target.files[0]));
+  const mrv=$('#makeRoomview');if(mrv)mrv.addEventListener('click',makeRoomviewLink);
+  const rvm=$('#rvMakeLink');if(rvm)rvm.addEventListener('click',buildRoomviewLink);$('#makeReport').addEventListener('click',makeReport);$('#copyReport').addEventListener('click',copyReport);$('#exportBtn').addEventListener('click',exportData);$('#importBtn').addEventListener('click',()=>$('#importFile').click());$('#importFile').addEventListener('change',e=>e.target.files[0]&&importData(e.target.files[0]));
   $('#resetDemo').addEventListener('click',()=>{if(confirm('현재 데이터를 데모 데이터로 초기화할까요?')){state=demoState();save();scheduleMonth=currentYM();insightMonth=currentYM();selectedDate=today();setBranch('전체');toast('데모 데이터로 초기화했어요')}});
   $('#todayBtn').addEventListener('click',()=>{scheduleMonth=currentYM();insightMonth=currentYM();selectedDate=today();setView('home')});
   $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id)}));
