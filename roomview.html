@@ -101,29 +101,24 @@
     }
 
     rooms.forEach(function(room){
+      var stays=room.stays||room.events||[];
       html+='<div class="sec"><div class="card room">';
       html+='<div class="room-h"><div class="rico">🏠</div><div><b>'+esc(room.name)+'</b>'
-        +'<small>'+esc(room.branch||'')+' · 예약 '+(room.events?room.events.length:0)+'건</small></div></div>';
+        +'<small>'+esc(room.branch||'')+' · 예약 '+stays.length+'건</small></div></div>';
 
-      if(!room.events||room.events.length===0){
+      if(stays.length===0){
         html+='<div class="empty" style="padding:24px"><div class="big">🗓️</div>이 달 일정이 없어요</div>';
       } else {
-        room.events.forEach(function(ev){
-          var tag='', body='';
-          if(ev.kind==='in'){
-            tag='<span class="tag in">체크인</span>';
-            body=(ev.nights?ev.nights+'박':'')+(ev.guests?' · '+ev.guests+'명':'')+(ev.time?' · '+ev.time:'');
-          } else if(ev.kind==='out'){
-            tag='<span class="tag out">체크아웃</span>';
-            body=(ev.nights?ev.nights+'박':'')+(ev.guests?' · '+ev.guests+'명':'')+(ev.time?' · '+ev.time:'');
-          }
-          var setup='';
-          if(ev.kind==='in'){
-            if(ev.supplies) setup='<div class="s"><span class="tag set">추가 셋팅</span>'+esc(ev.supplies)+'</div>';
-            else setup='<div class="s">기본 셋팅</div>';
-          }
-          html+='<div class="row"><div class="d">'+dlabel(ev.date)+'</div>'
-            +'<div class="body"><div class="t">'+tag+body+'</div>'+setup+'</div></div>';
+        stays.forEach(function(s){
+          // 6/1~2(1박) 4명
+          var ci=s.checkIn.split('-'), co=s.checkOut.split('-');
+          var range=parseInt(ci[1])+'/'+parseInt(ci[2])+'~'+parseInt(co[2]);
+          var line=range+'('+s.nights+'박)'+(s.guests?' '+s.guests+'명':'');
+          var extra='';
+          if(s.supplies) extra+='<div class="s"><span class="tag set">추가</span>'+esc(s.supplies)+'</div>';
+          if(s.memo)     extra+='<div class="s" style="color:var(--gold);">* '+esc(s.memo)+'</div>';
+          html+='<div class="row"><div class="d">'+parseInt(ci[2])+'일</div>'
+            +'<div class="body"><div class="t">'+line+'</div>'+extra+'</div></div>';
         });
       }
       html+='</div></div>';
