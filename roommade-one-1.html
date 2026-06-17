@@ -568,16 +568,22 @@ body{display:flex;justify-content:center}
 
     const payloadRooms=checked.map(roomId=>{
       const room=state.rooms.find(r=>r.id===roomId)||{};
-      const events=[];
+      // 예약 한 건 = 체크인 정보가 있는 청소기록 (시작일 + N박)
+      const stays=[];
       state.transactions.forEach(t=>{
         if(t.type!=='income'||t.targetId!==roomId||t.status==='cancelled')return;
         if((t.billingMonth||ym(t.date))!==boardMonth)return;
-        events.push({date:t.date,kind:'out',nights:t.outNights||t.nights||'',guests:t.outGuests||t.guests||'',time:t.outTime||''});
-        if(t.inNights&&parseInt(t.inNights)>0)events.push({date:t.date,kind:'in',nights:t.inNights,guests:t.inGuests||'',time:t.inTime||'',supplies:t.inSupplies||''});
+        if(t.inNights&&parseInt(t.inNights)>0){
+          // 체크인날 = 청소날(t.date), 체크아웃 = +N박
+          const ci=t.date;
+          const d=new Date(ci+'T00:00:00');d.setDate(d.getDate()+parseInt(t.inNights));
+          const co=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+          stays.push({checkIn:ci,checkOut:co,nights:t.inNights,guests:t.inGuests||'',supplies:t.inSupplies||'',memo:t.memo||''});
+        }
       });
-      events.sort((a,b)=>a.date!==b.date?(a.date<b.date?-1:1):(a.kind==='out'?-1:1));
+      stays.sort((a,b)=>a.checkIn<b.checkIn?-1:a.checkIn>b.checkIn?1:0);
       const ho=(room.name||'').match(/(\d+호)$/)?(room.name||'').match(/(\d+호)$/)[1]:room.name;
-      return {name:ho,branch:room.branch,events};
+      return {name:ho,branch:room.branch,stays};
     });
 
     const payload={host,month:monthText(boardMonth),rooms:payloadRooms};
