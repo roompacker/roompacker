@@ -137,6 +137,7 @@ body{display:flex;justify-content:center}
           <div><b id="boardMonthTitle">2026년 6월</b><small>객실 누르면 그 달 체크인·아웃 전체</small></div>
           <button data-board-month="1">›</button>
         </div>
+        <button id="makeRoomview" style="width:100%;background:var(--navy);color:#fff;border:0;border-radius:14px;padding:13px;font-size:13px;font-weight:800;cursor:pointer;font-family:Pretendard,sans-serif;margin-bottom:14px;">📤 호스트에게 룸뷰 링크 보내기</button>
         <div id="boardList"></div>
       </div>
     </section>
@@ -536,6 +537,40 @@ body{display:flex;justify-content:center}
     $('#boardList').innerHTML=html;
   }
 
+  // 호스트용 룸뷰 링크 생성 + 공유
+  function makeRoomviewLink(){
+    const rooms=branchFilter(state.rooms);
+    if(!rooms.length){toast('표시할 객실이 없어요');return;}
+    // 각 객실의 이번달 체크인/아웃 이벤트 모으기 (청소기록 기반)
+    const payloadRooms=rooms.map(room=>{
+      const events=[];
+      state.transactions.forEach(t=>{
+        if(t.type!=='income'||t.targetId!==room.id||t.status==='cancelled')return;
+        if((t.billingMonth||ym(t.date))!==boardMonth)return;
+        events.push({date:t.date,kind:'out',nights:t.outNights||t.nights||'',guests:t.outGuests||t.guests||'',time:t.outTime||''});
+        if(t.inNights&&parseInt(t.inNights)>0)events.push({date:t.date,kind:'in',nights:t.inNights,guests:t.inGuests||'',time:t.inTime||'',supplies:t.inSupplies||''});
+      });
+      events.sort((a,b)=>a.date!==b.date?(a.date<b.date?-1:1):(a.kind==='out'?-1:1));
+      const ho=(room.name||'').match(/(\d+호)$/)?(room.name||'').match(/(\d+호)$/)[1]:room.name;
+      return {name:ho,branch:room.branch,events};
+    }).filter(r=>r.events.length>0);
+
+    if(!payloadRooms.length){toast('이번 달 일정이 있는 객실이 없어요');return;}
+
+    const host=prompt('호스트 이름을 입력하세요 (링크에 표시됨)','호스트')||'호스트';
+    const payload={host,month:monthText(boardMonth),rooms:payloadRooms};
+    let encoded;
+    try{ encoded=encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(payload))))); }
+    catch(e){ toast('링크 생성 실패: '+e.message); return; }
+
+    const base=location.href.split('#')[0].replace(/roommade-one[^/]*\.html$/,'roomview.html');
+    const link=base+'#d='+encoded;
+    const msg=host+' 님, 객실 현황을 확인하실 수 있는 링크예요.\n\n'+link+'\n\n— 룸메이드';
+    if(navigator.share){navigator.share({text:msg}).catch(()=>{});}
+    else if(navigator.clipboard){navigator.clipboard.writeText(msg).then(()=>toast('📋 링크가 복사됐어요')).catch(()=>prompt('복사해서 보내세요',link));}
+    else prompt('복사해서 보내세요',link);
+  }
+
   function openRoomMonth(roomId){
     const room=state.rooms.find(r=>r.id===roomId)||{};
     const ho=(room.name||'').match(/(\d+호)$/)?(room.name||'').match(/(\d+호)$/)[1]:room.name;
@@ -719,7 +754,8 @@ body{display:flex;justify-content:center}
   });
   $('#txBranchInput').addEventListener('change',updateTxType);$('#txTargetInput').addEventListener('change',()=>{const id=$('#txTargetInput').value,target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===id);if(target)$('#txAmountInput').value=target.price||target.rate||''});
   $('#saveTx').addEventListener('click',saveTxForm);$('#deleteTx').addEventListener('click',deleteTxForm);$('#saveRoom').addEventListener('click',saveRoomForm);$('#saveStaff').addEventListener('click',saveStaffForm);$('#saveSupply').addEventListener('click',saveSupplyForm);$('#deleteSupply').addEventListener('click',deleteSupplyForm);
-  $('#supplyReceiptInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{supplyReceiptData=ev.target.result;$('#supplyReceiptPreview').innerHTML=`<img src="${supplyReceiptData}" style="max-width:100%;border-radius:10px;">`;};r.readAsDataURL(f);});$('#makeReport').addEventListener('click',makeReport);$('#copyReport').addEventListener('click',copyReport);$('#exportBtn').addEventListener('click',exportData);$('#importBtn').addEventListener('click',()=>$('#importFile').click());$('#importFile').addEventListener('change',e=>e.target.files[0]&&importData(e.target.files[0]));
+  $('#supplyReceiptInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{supplyReceiptData=ev.target.result;$('#supplyReceiptPreview').innerHTML=`<img src="${supplyReceiptData}" style="max-width:100%;border-radius:10px;">`;};r.readAsDataURL(f);});
+  const mrv=$('#makeRoomview');if(mrv)mrv.addEventListener('click',makeRoomviewLink);$('#makeReport').addEventListener('click',makeReport);$('#copyReport').addEventListener('click',copyReport);$('#exportBtn').addEventListener('click',exportData);$('#importBtn').addEventListener('click',()=>$('#importFile').click());$('#importFile').addEventListener('change',e=>e.target.files[0]&&importData(e.target.files[0]));
   $('#resetDemo').addEventListener('click',()=>{if(confirm('현재 데이터를 데모 데이터로 초기화할까요?')){state=demoState();save();scheduleMonth=currentYM();insightMonth=currentYM();selectedDate=today();setBranch('전체');toast('데모 데이터로 초기화했어요')}});
   $('#todayBtn').addEventListener('click',()=>{scheduleMonth=currentYM();insightMonth=currentYM();selectedDate=today();setView('home')});
   $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id)}));
