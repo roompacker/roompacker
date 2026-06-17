@@ -2,7 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="format-detection" content="telephone=no" />
 <meta name="theme-color" content="#2F6FAF" />
 <title>ROOMMADE ONE</title>
 <style>
@@ -55,6 +59,25 @@ body{display:flex;justify-content:center}
 .toast{position:fixed;left:50%;bottom:94px;transform:translateX(-50%);z-index:200;background:linear-gradient(145deg,var(--navy),var(--navy2));color:white;padding:11px 16px;border-radius:99px;font-size:11px;font-weight:700;box-shadow:0 8px 25px rgba(47,111,175,.22);white-space:nowrap;animation:toast .2s ease}
 @keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}@keyframes toast{from{transform:translate(-50%,10px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
 @media(min-width:561px){.app{box-shadow:0 0 40px rgba(101,112,126,.12)}.modal{align-items:center}.sheet{border-radius:28px;max-height:88vh}}
+
+/* Galaxy Chrome · iPhone Safari 공통 모바일 최적화 */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;overscroll-behavior-y:none}
+body{min-height:100dvh;overscroll-behavior-y:none}
+.app{min-height:100dvh;padding-bottom:calc(104px + env(safe-area-inset-bottom))}
+.topbar{padding-top:calc(14px + env(safe-area-inset-top))}
+button,.branchbtn,.segbtn,.navbtn,.primary,.secondary,.addmini,.editbtn,.kkbtn{touch-action:manipulation}
+input,select,textarea{min-height:44px}
+@media(max-width:560px){
+  input,select,textarea{font-size:16px}
+  .sheet{padding-left:14px;padding-right:14px}
+  .bottomnav{padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+  .fab{bottom:calc(86px + env(safe-area-inset-bottom))}
+  .toast{bottom:calc(94px + env(safe-area-inset-bottom))}
+}
+@supports(-webkit-touch-callout:none){
+  .modal{height:100dvh}
+  .sheet{max-height:88dvh}
+}
 </style>
 </head>
 <body>
@@ -272,6 +295,7 @@ body{display:flex;justify-content:center}
     <div class="grab"></div><div class="sheethead"><h3>객실 등록</h3><button class="close" data-close="roomModal">×</button></div>
     <input type="hidden" id="roomEditId" />
     <div class="field"><label>객실명</label><input id="roomNameInput" placeholder="예: 한라웨스턴파크 1807호" /></div>
+    <div class="field"><label>담당 호스트명 <span style="color:var(--muted);font-weight:400;">(호스트 현황판 제목)</span></label><input id="roomHostInput" placeholder="예: 김민수 사장님" /></div>
     <div class="twocol"><div class="field"><label>지점</label><select id="roomBranchInput"><option>영종점</option><option>송도점</option></select></div><div class="field"><label>기본 청소비</label><input type="number" id="roomPriceInput" placeholder="28000" /></div></div>
     <div class="twocol"><div class="field"><label>세금률 %</label><input type="number" step="0.1" id="roomTaxInput" placeholder="0" /></div><div class="field"><label>기본 인원</label><input type="number" id="roomBaseGuests" placeholder="예: 4" /></div></div>
     <div class="twocol"><div class="field"><label>도어락 비번</label><input id="roomDoorPw" placeholder="예: 37098877*" /></div><div class="field"><label>비품함 비번</label><input id="roomSupplyPw" placeholder="예: 998" /></div></div>
@@ -527,7 +551,7 @@ body{display:flex;justify-content:center}
     $('#calendarDays').innerHTML=html;$('#selectedDateTitle').textContent=dateText(selectedDate);const list=branchFilter(state.transactions).filter(t=>t.date===selectedDate&&t.status!=='cancelled').sort((a,b)=>a.type.localeCompare(b.type));$('#selectedDateList').innerHTML=list.length?list.map(txHTML).join(''):empty('📭','이 날짜에는 등록된 내역이 없어요');
   }
 
-  // 객실 현황판
+  // 객실 현황판 — 객실별 예약·청소·준비상태 요약
   function renderBoard(){
     $('#boardMonthTitle').textContent=monthText(boardMonth);
     const rooms=branchFilter(state.rooms);
@@ -540,8 +564,14 @@ body{display:flex;justify-content:center}
       brRooms.forEach(room=>{
         const cleans=state.transactions.filter(t=>t.type==='income'&&t.targetId===room.id&&(t.billingMonth||ym(t.date))===boardMonth&&t.status!=='cancelled');
         const ho=(room.name||'').match(/(\d+호)$/)?(room.name||'').match(/(\d+호)$/)[1]:room.name;
-        const cnt=cleans.length;
-        html+=`<button class="card group" data-room-month="${room.id}" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;border:1px solid var(--line);padding:14px 16px;"><div style="display:flex;align-items:center;gap:11px;min-width:0;"><div style="width:38px;height:38px;border-radius:12px;background:var(--sky);display:grid;place-items:center;font-size:17px;flex-shrink:0;">🏠</div><div style="min-width:0;"><b style="font-size:15px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(ho)}</b><small style="color:var(--muted);font-size:11px;">${cnt>0?'청소 '+cnt+'건':'기록 없음'}</small></div></div><span style="color:var(--muted);font-size:16px;flex-shrink:0;">›</span></button>`;
+        const reservations=cleans.filter(t=>Number(t.inNights)>0).length;
+        const done=cleans.filter(t=>t.status==='done').length;
+        const prep=cleans.filter(t=>{
+          const guests=Number(t.inGuests||0),base=Number(room.baseGuests||0);
+          return !!t.inSupplies||(base>0&&guests>base);
+        }).length;
+        const hostLabel=room.hostName?`<small style="display:block;color:var(--navy);font-size:10px;margin-bottom:3px;">👤 ${esc(room.hostName)}</small>`:'';
+        html+=`<button class="card group" data-room-month="${room.id}" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;border:1px solid var(--line);padding:14px 16px;"><div style="display:flex;align-items:center;gap:11px;min-width:0;"><div style="width:42px;height:42px;border-radius:14px;background:var(--sky);display:grid;place-items:center;font-size:18px;flex-shrink:0;">🏠</div><div style="min-width:0;">${hostLabel}<b style="font-size:15px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(ho)}</b><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;"><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#EEF4FA;color:var(--navy);">예약 ${reservations}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#EDF7F4;color:#358879;">청소완료 ${done}/${cleans.length}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:${prep?'#FFF1E5':'#F2F3F5'};color:${prep?'var(--amber)':'var(--muted)'};">준비 ${prep}</span></div></div></div><span style="color:var(--muted);font-size:16px;flex-shrink:0;">›</span></button>`;
       });
     });
     $('#boardList').innerHTML=html;
@@ -554,7 +584,7 @@ body{display:flex;justify-content:center}
     // 객실 체크박스 목록 생성
     const html=rooms.map(r=>{
       const ho=(r.name||'').match(/(\d+호)$/)?(r.name||'').match(/(\d+호)$/)[1]:r.name;
-      return `<label style="display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;margin-bottom:7px;cursor:pointer;"><input type="checkbox" class="rv-room-chk" value="${r.id}" style="width:18px;height:18px;"><div><b style="font-size:13px;">${esc(ho)}</b><br><small style="color:var(--muted);font-size:11px;">${esc(r.name)} · ${r.branch}</small></div></label>`;
+      return `<label style="display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;margin-bottom:7px;cursor:pointer;min-height:54px;"><input type="checkbox" class="rv-room-chk" value="${r.id}" data-host="${esc(r.hostName||'')}" style="width:22px;height:22px;flex-shrink:0;"><div><b style="font-size:13px;">${esc(ho)}</b>${r.hostName?` <span style="font-size:9px;color:var(--navy);background:var(--sky);padding:3px 6px;border-radius:99px;">${esc(r.hostName)}</span>`:''}<br><small style="color:var(--muted);font-size:11px;">${esc(r.name)} · ${r.branch}</small></div></label>`;
     }).join('');
     $('#rvRoomChecks').innerHTML=html;
     $('#rvHostName').value='';
@@ -564,51 +594,56 @@ body{display:flex;justify-content:center}
   function buildRoomviewLink(){
     const checked=[...document.querySelectorAll('.rv-room-chk:checked')].map(c=>c.value);
     if(!checked.length){toast('객실을 하나 이상 선택해주세요');return;}
-    let host=$('#rvHostName').value.trim()||'호스트';
+    let host=$('#rvHostName').value.trim();
+    if(!host){
+      const names=[...new Set(checked.map(id=>state.rooms.find(r=>r.id===id)?.hostName).filter(Boolean))];
+      host=names.length===1?names[0]:'호스트';
+    }
 
-    // 데이터 초압축: 날짜는 "월.일" 숫자, 박수만(체크아웃은 룸뷰에서 계산)
-    const mm=parseInt(boardMonth.slice(5,7));
+    // 호스트에게 필요한 정보만 포함: 금액·비밀번호·직원·내부메모는 제외
     const payloadRooms=checked.map(roomId=>{
       const room=state.rooms.find(r=>r.id===roomId)||{};
-      const stays=[];
-      state.transactions.forEach(t=>{
-        if(t.type!=='income'||t.targetId!==roomId||t.status==='cancelled')return;
-        if((t.billingMonth||ym(t.date))!==boardMonth)return;
-        if(t.inNights&&parseInt(t.inNights)>0){
-          const day=parseInt(t.date.slice(8,10)); // 체크인 일
-          // 배열로 최소화: [일, 박수, 인원, 추가물(있으면)]
-          const arr=[day,parseInt(t.inNights),parseInt(t.inGuests)||0];
-          const ex=(t.inSupplies||'')+(t.memo?(t.inSupplies?' / ':'')+t.memo:'');
-          if(ex)arr.push(ex);
-          stays.push(arr);
-        }
-      });
-      stays.sort((a,b)=>a[0]-b[0]);
-      const ho=(room.name||'').match(/(\d+호)$/)?(room.name||'').match(/(\d+호)$/)[1]:room.name;
-      return [ho,stays];
+      const events=state.transactions
+        .filter(t=>t.type==='income'&&t.targetId===roomId&&t.status!=='cancelled'&&(t.billingMonth||ym(t.date))===boardMonth)
+        .sort((a,b)=>a.date.localeCompare(b.date))
+        .map(t=>({
+          d:t.date,
+          s:t.status||'booked',
+          o:{n:t.outNights||t.nights||'',g:t.outGuests||t.guests||'',t:t.outTime||''},
+          i:{n:t.inNights||'',g:t.inGuests||'',t:t.inTime||''},
+          p:t.inSupplies||''
+        }));
+      return {id:room.id,n:room.name||'',short:(room.name||'').match(/(\d+호)$/)?.[1]||room.name||'',b:room.branch||'',bg:Number(room.baseGuests||0),e:events};
     });
 
-    const payload={h:host,m:mm,r:payloadRooms};
+    const payload={v:2,h:host,m:boardMonth,g:today(),r:payloadRooms};
     let encoded;
     try{
-      const bytes=new TextEncoder().encode(JSON.stringify(payload));
-      let bin='';bytes.forEach(b=>bin+=String.fromCharCode(b));
-      encoded=btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,''); // URL-safe base64
-    }
-    catch(e){ alert('링크 생성 실패: '+e.message); return; }
+      const json=JSON.stringify(payload);
+      const bytes=new TextEncoder().encode(json);
+      let bin='';for(let i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);
+      encoded=btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    }catch(e){alert('링크 생성 실패: '+e.message);return;}
 
-    const base=location.href.split('#')[0].replace(/roommade-one[^/]*\.html$/,'roomview.html');
-    const link=base+'#d='+encoded;
-    const msg=host+' 님, 객실 현황 링크예요.\n'+link;
+    let link;
+    try{link=new URL('roomview.html',location.href.split('#')[0]).href+'#d='+encoded;}
+    catch(e){link='roomview.html#d='+encoded;}
+    const msg=`${host} 님, ${monthText(boardMonth)} 객실 현황입니다.\n예약·청소·준비사항을 아래 링크에서 확인해주세요.\n${link}`;
     closeModal('roomviewModal');
     if(navigator.share){
-      navigator.share({text:msg}).then(()=>toast('✅ 공유 완료')).catch(()=>{ fallbackCopy(msg,link); });
-    } else { fallbackCopy(msg,link); }
+      navigator.share({title:'ROOMMADE 객실 현황',text:msg,url:link}).then(()=>toast('✅ 공유 완료')).catch(err=>{if(err&&err.name!=='AbortError')fallbackCopy(msg,link);});
+    }else fallbackCopy(msg,link);
   }
   function fallbackCopy(msg,link){
-    if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(msg).then(()=>toast('📋 링크가 복사됐어요. 카톡에 붙여넣으세요')).catch(()=>{alert('아래 링크를 길게 눌러 복사하세요:\n\n'+link);});
-    } else { alert('아래 링크를 길게 눌러 복사하세요:\n\n'+link); }
+    const done=()=>toast('📋 링크가 복사됐어요. 카톡에 붙여넣으세요');
+    if(navigator.clipboard&&window.isSecureContext){
+      navigator.clipboard.writeText(msg).then(done).catch(()=>legacyCopy(msg,link));
+    }else legacyCopy(msg,link);
+  }
+  function legacyCopy(msg,link){
+    const ta=document.createElement('textarea');ta.value=msg;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;left:-9999px;top:0;opacity:0';document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,ta.value.length);
+    let ok=false;try{ok=document.execCommand('copy');}catch(e){}ta.remove();
+    if(ok)toast('📋 링크가 복사됐어요. 카톡에 붙여넣으세요');else prompt('아래 링크를 복사하세요',link);
   }
 
   function openRoomMonth(roomId){
@@ -661,7 +696,7 @@ body{display:flex;justify-content:center}
   function rankHTML(map,red,msg){const arr=Object.entries(map).sort((a,b)=>b[1]-a[1]);if(!arr.length)return empty('📊',msg);const max=arr[0][1]||1;return arr.slice(0,6).map(([name,val],i)=>`<div class="rankrow"><div class="ranktop"><b>${i+1}. ${esc(name)}</b><span>${money(val)}</span></div><div class="bar ${red?'red':''}"><span style="width:${val/max*100}%"></span></div></div>`).join('')}
 
   function renderManage(){
-    const rooms=branchFilter(state.rooms),staff=branchFilter(state.staff);$('#roomList').innerHTML=rooms.length?rooms.map(r=>`<div class="entity"><div class="entityico">🏠</div><div class="entitymain"><b>${esc(r.name)}</b><small>${r.branch} · 기본 ${money(r.price)}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join(''):empty('🏠','등록된 객실이 없어요');
+    const rooms=branchFilter(state.rooms),staff=branchFilter(state.staff);$('#roomList').innerHTML=rooms.length?rooms.map(r=>`<div class="entity"><div class="entityico">🏠</div><div class="entitymain"><b>${esc(r.name)}</b><small>${r.branch}${r.hostName?' · 호스트 '+esc(r.hostName):''} · 기본 ${money(r.price)}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join(''):empty('🏠','등록된 객실이 없어요');
     $('#staffList').innerHTML=staff.length?staff.map(s=>`<div class="entity"><div class="entityico">👤</div><div class="entitymain"><b>${esc(s.name)}</b><small>${s.branch} · ${s.payType} ${money(s.rate)}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join(''):empty('👥','등록된 직원이 없어요');
     // 비품 목록 (지점 필터, 구입 필요 강조)
     const sup=(state.supplies||[]).filter(x=>state.branch==='전체'||x.branch===state.branch||x.branch==='공용');
@@ -702,8 +737,8 @@ body{display:flex;justify-content:center}
     if(id){const i=state.transactions.findIndex(x=>x.id===id);state.transactions[i]={...state.transactions[i],...obj}}else state.transactions.push(obj);save();closeModal('txModal');toast('기록을 저장했어요');render();
   }
   function deleteTxForm(){const id=$('#txEditId').value;if(!id)return;if(confirm('이 기록을 삭제할까요?')){state.transactions=state.transactions.filter(x=>x.id!==id);save();closeModal('txModal');render();toast('삭제했어요')}}
-  function openRoom(id=''){const r=state.rooms.find(x=>x.id===id);$('#roomEditId').value=id;$('#roomNameInput').value=r?.name||'';$('#roomBranchInput').value=r?.branch||(state.branch==='전체'?'영종점':state.branch);$('#roomPriceInput').value=r?.price||'';$('#roomTaxInput').value=r?.tax||'';$('#roomBaseGuests').value=r?.baseGuests||'';$('#roomDoorPw').value=r?.doorPw||'';$('#roomSupplyPw').value=r?.supplyPw||'';openModal('roomModal')}
-  function saveRoomForm(){const id=$('#roomEditId').value,name=$('#roomNameInput').value.trim(),branch=$('#roomBranchInput').value,price=Number($('#roomPriceInput').value),tax=Number($('#roomTaxInput').value||0),baseGuests=Number($('#roomBaseGuests').value||0),doorPw=$('#roomDoorPw').value.trim(),supplyPw=$('#roomSupplyPw').value.trim();if(!name||!price)return toast('객실명과 기본 청소비를 입력해주세요');const prev=state.rooms.find(x=>x.id===id)||{};const obj={...prev,id:id||uid('room'),name,branch,price,tax,baseGuests,doorPw,supplyPw};if(id)state.rooms[state.rooms.findIndex(x=>x.id===id)]=obj;else state.rooms.push(obj);save();closeModal('roomModal');render();toast('객실을 저장했어요')}
+  function openRoom(id=''){const r=state.rooms.find(x=>x.id===id);$('#roomEditId').value=id;$('#roomNameInput').value=r?.name||'';$('#roomHostInput').value=r?.hostName||'';$('#roomBranchInput').value=r?.branch||(state.branch==='전체'?'영종점':state.branch);$('#roomPriceInput').value=r?.price||'';$('#roomTaxInput').value=r?.tax||'';$('#roomBaseGuests').value=r?.baseGuests||'';$('#roomDoorPw').value=r?.doorPw||'';$('#roomSupplyPw').value=r?.supplyPw||'';openModal('roomModal')}
+  function saveRoomForm(){const id=$('#roomEditId').value,name=$('#roomNameInput').value.trim(),hostName=$('#roomHostInput').value.trim(),branch=$('#roomBranchInput').value,price=Number($('#roomPriceInput').value),tax=Number($('#roomTaxInput').value||0),baseGuests=Number($('#roomBaseGuests').value||0),doorPw=$('#roomDoorPw').value.trim(),supplyPw=$('#roomSupplyPw').value.trim();if(!name||!price)return toast('객실명과 기본 청소비를 입력해주세요');const prev=state.rooms.find(x=>x.id===id)||{};const obj={...prev,id:id||uid('room'),name,hostName,branch,price,tax,baseGuests,doorPw,supplyPw};if(id)state.rooms[state.rooms.findIndex(x=>x.id===id)]=obj;else state.rooms.push(obj);save();closeModal('roomModal');render();toast('객실을 저장했어요')}
 
   // ── 비품 ──
   let supplyReceiptData='';
@@ -796,7 +831,12 @@ body{display:flex;justify-content:center}
   $('#saveTx').addEventListener('click',saveTxForm);$('#deleteTx').addEventListener('click',deleteTxForm);$('#saveRoom').addEventListener('click',saveRoomForm);$('#saveStaff').addEventListener('click',saveStaffForm);$('#saveSupply').addEventListener('click',saveSupplyForm);$('#deleteSupply').addEventListener('click',deleteSupplyForm);
   $('#supplyReceiptInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{supplyReceiptData=ev.target.result;$('#supplyReceiptPreview').innerHTML=`<img src="${supplyReceiptData}" style="max-width:100%;border-radius:10px;">`;};r.readAsDataURL(f);});
   const mrv=$('#makeRoomview');if(mrv)mrv.addEventListener('click',makeRoomviewLink);
-  const rvm=$('#rvMakeLink');if(rvm)rvm.addEventListener('click',buildRoomviewLink);$('#makeReport').addEventListener('click',makeReport);$('#copyReport').addEventListener('click',copyReport);$('#exportBtn').addEventListener('click',exportData);$('#importBtn').addEventListener('click',()=>$('#importFile').click());$('#importFile').addEventListener('change',e=>e.target.files[0]&&importData(e.target.files[0]));
+  const rvm=$('#rvMakeLink');if(rvm)rvm.addEventListener('click',buildRoomviewLink);
+  $('#rvRoomChecks').addEventListener('change',()=>{
+    if($('#rvHostName').value.trim())return;
+    const names=[...new Set([...document.querySelectorAll('.rv-room-chk:checked')].map(c=>c.dataset.host).filter(Boolean))];
+    if(names.length===1)$('#rvHostName').value=names[0];
+  });$('#makeReport').addEventListener('click',makeReport);$('#copyReport').addEventListener('click',copyReport);$('#exportBtn').addEventListener('click',exportData);$('#importBtn').addEventListener('click',()=>$('#importFile').click());$('#importFile').addEventListener('change',e=>e.target.files[0]&&importData(e.target.files[0]));
   $('#resetDemo').addEventListener('click',()=>{if(confirm('현재 데이터를 데모 데이터로 초기화할까요?')){state=demoState();save();scheduleMonth=currentYM();insightMonth=currentYM();selectedDate=today();setBranch('전체');toast('데모 데이터로 초기화했어요')}});
   $('#todayBtn').addEventListener('click',()=>{scheduleMonth=currentYM();insightMonth=currentYM();selectedDate=today();setView('home')});
   $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id)}));
