@@ -1317,6 +1317,26 @@
         </div>
       </div>
       
+      <!-- ☁️ 클라우드 공유 섹션 -->
+      <div class="section">
+        <div class="section-title">☁️ 호스트 공유 (클라우드)</div>
+        <div class="backup-row">
+          <div class="backup-info">
+            <div class="backup-label">☁️ 클라우드에 올리기</div>
+            <div class="backup-hint">호스트가 볼 수 있게 데이터 업로드</div>
+          </div>
+          <button class="btn-add" id="btnCloudUpload" style="background:#D6EAF8;color:#2471A3">올리기</button>
+        </div>
+        <div class="backup-row">
+          <div class="backup-info">
+            <div class="backup-label">🔗 호스트 링크 복사</div>
+            <div class="backup-hint">호스트에게 카톡으로 보낼 주소</div>
+          </div>
+          <button class="btn-add" id="btnCloudLink" style="background:#D5F5E3;color:#1E8449">링크</button>
+        </div>
+        <div class="backup-hint" id="cloudStatus" style="margin-top:8px;padding:0 4px">아직 업로드 안 함</div>
+      </div>
+
       <!-- 💾 백업/복원 섹션 -->
       <div class="section">
         <div class="section-title">💾 데이터 관리</div>
@@ -6357,6 +6377,99 @@
     }
     
     // ============================================
+    // ☁️ 클라우드 공유 (JSONBin)
+    // ============================================
+    const CLOUD = {
+      MASTER_KEY: '$2a$10$0j0SQzPJDyCB6qaxU/6tj.Sdun6GDxdyiiJXaP84FcBNxRsOSxAa6',
+      BIN_KEY: '룸메이드캐쉬-클라우드빈ID',  // 빈 ID를 localStorage에 저장
+      HOST_BASE: 'https://roompacker.github.io/roompacker/roommade-host.html'
+    };
+
+    // 클라우드에 올릴 데이터 묶기
+    function buildCloudData() {
+      return {
+        app: 'roommade-cloud',
+        version: 1,
+        updatedAt: new Date().toISOString(),
+        staff: safeLoad(STORAGE.STAFF) || [],
+        rooms: safeLoad(STORAGE.ROOM) || [],
+        transactions: safeLoad(STORAGE.TX) || [],
+        branch: localStorage.getItem(STORAGE.BRANCH) || '전체',
+        supplies: (function(){ try { return JSON.parse(localStorage.getItem('roommade-supplies')||'[]'); } catch(e){ return []; } })()
+      };
+    }
+
+    // 클라우드 업로드
+    async function cloudUpload() {
+      const statusEl = document.getElementById('cloudStatus');
+      try {
+        if (statusEl) statusEl.textContent = '⏳ 올리는 중...';
+        const data = buildCloudData();
+        const binId = localStorage.getItem(CLOUD.BIN_KEY);
+
+        let res, result;
+        if (binId) {
+          // 기존 빈 업데이트
+          res = await fetch('https://api.jsonbin.io/v3/b/' + binId, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Master-Key': CLOUD.MASTER_KEY
+            },
+            body: JSON.stringify(data)
+          });
+        } else {
+          // 새 빈 생성
+          res = await fetch('https://api.jsonbin.io/v3/b', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Master-Key': CLOUD.MASTER_KEY,
+              'X-Bin-Name': 'roommade-share',
+              'X-Bin-Private': 'false'
+            },
+            body: JSON.stringify(data)
+          });
+        }
+
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        result = await res.json();
+
+        // 새로 만든 경우 빈 ID 저장
+        if (!binId && result.metadata && result.metadata.id) {
+          localStorage.setItem(CLOUD.BIN_KEY, result.metadata.id);
+        }
+
+        const now = new Date();
+        const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+        if (statusEl) statusEl.textContent = '✅ ' + timeStr + ' 업로드 완료 (방 ' + data.rooms.length + '개, 거래 ' + data.transactions.length + '건)';
+        showToast('☁️ 클라우드 업로드 완료!');
+      } catch (e) {
+        console.error('클라우드 업로드 실패:', e);
+        if (statusEl) statusEl.textContent = '❌ 업로드 실패 (인터넷/키 확인)';
+        showToast('❌ 업로드 실패: ' + e.message);
+      }
+    }
+
+    // 호스트 링크 복사
+    function cloudCopyLink() {
+      const binId = localStorage.getItem(CLOUD.BIN_KEY);
+      if (!binId) {
+        showToast('⚠️ 먼저 "올리기"를 눌러주세요');
+        return;
+      }
+      const link = CLOUD.HOST_BASE + '?id=' + binId;
+      const msg = '🏠 ROOMMADE 객실 현황판\n아래 링크를 눌러 확인하세요:\n' + link;
+      if (navigator.share) {
+        navigator.share({ text: msg }).catch(function(){});
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(msg).then(function(){ showToast('🔗 링크 복사됨!'); });
+      } else {
+        prompt('아래 링크를 복사하세요:', link);
+      }
+    }
+
+    // ============================================
     // 💾 백업/복원/초기화
     // ============================================
     function exportAllData() {
@@ -6620,6 +6733,8 @@
         safeOn('btnRoomSave','click', saveRoom);
         safeOn('btnTxToBookingAll','click', function(){ if(confirm('수입 기록을 예약으로 변환할까요?')) convertTxToBookings(); });
         safeOn('btnExportData','click', exportAllData);
+        safeOn('btnCloudUpload','click', cloudUpload);
+        safeOn('btnCloudLink','click', cloudCopyLink);
         safeOn('btnImportData','click', function(){ var fi=document.getElementById('fileImportData'); if(fi) fi.click(); });
         safeOn('fileImportData','change', function(e){ if(e.target.files[0]) importAllData(e.target.files[0]); e.target.value=''; });
         safeOn('btnResetAll','click', resetAllData);
