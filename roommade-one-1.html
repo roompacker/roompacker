@@ -229,6 +229,7 @@ input,select,textarea{min-height:44px}
       <div class="section">
         <div class="sectitle"><h2>데이터 관리</h2></div>
         <div class="card formcard">
+          <button class="secondary" id="cloudUploadBtn" style="margin-bottom:8px;background:#D6EAF8;color:#2471A3;border-color:#AED6F1">☁️ 클라우드에 올리기 (호스트 공유용)</button>
           <div class="twocol"><button class="secondary" id="exportBtn">백업 내보내기</button><button class="secondary" id="importBtn">백업 가져오기</button></div>
           <input type="file" id="importFile" accept=".json" hidden />
           <button class="secondary danger" id="resetDemo" style="margin-top:8px">데모 데이터로 초기화</button>
@@ -591,7 +592,49 @@ input,select,textarea{min-height:44px}
     openModal('roomviewModal');
   }
 
-  function buildRoomviewLink(){
+  // ☁️ 클라우드 설정
+  const CLOUD = {
+    MASTER_KEY: '$2a$10$0j0SQzPJDyCB6qaxU/6tj.Sdun6GDxdyiiJXaP84FcBNxRsOSxAa6',
+    BIN_KEY: '룸메이드-클라우드빈ID',
+    HOST_BASE: 'https://roompacker.github.io/roompacker/roommade-host.html'
+  };
+
+  // 클라우드에 올릴 전체 데이터
+  function buildCloudData(){
+    return {
+      app:'roommade-cloud', version:2, updatedAt:new Date().toISOString(),
+      rooms: state.rooms||[], staff: state.staff||[],
+      transactions: state.transactions||[],
+      branch: state.branch||'전체',
+      supplies: state.supplies||[]
+    };
+  }
+
+  // 클라우드 업로드 (있으면 갱신, 없으면 새로 만듦)
+  async function cloudUpload(silent){
+    const data=buildCloudData();
+    const binId=localStorage.getItem(CLOUD.BIN_KEY);
+    let res;
+    if(binId){
+      res=await fetch('https://api.jsonbin.io/v3/b/'+binId,{method:'PUT',
+        headers:{'Content-Type':'application/json','X-Master-Key':CLOUD.MASTER_KEY},
+        body:JSON.stringify(data)});
+    }else{
+      res=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',
+        headers:{'Content-Type':'application/json','X-Master-Key':CLOUD.MASTER_KEY,'X-Bin-Name':'roommade-share','X-Bin-Private':'false'},
+        body:JSON.stringify(data)});
+    }
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const result=await res.json();
+    if(!binId && result.metadata && result.metadata.id){
+      localStorage.setItem(CLOUD.BIN_KEY, result.metadata.id);
+    }
+    if(!silent) toast('☁️ 클라우드 업로드 완료');
+    return localStorage.getItem(CLOUD.BIN_KEY);
+  }
+
+  // 선택 객실로 호스트 링크 만들기 (클라우드 방식 → 아이폰 OK)
+  async function buildRoomviewLink(){
     const checked=[...document.querySelectorAll('.rv-room-chk:checked')].map(c=>c.value);
     if(!checked.length){toast('객실을 하나 이상 선택해주세요');return;}
     let host=$('#rvHostName').value.trim();
@@ -599,40 +642,24 @@ input,select,textarea{min-height:44px}
       const names=[...new Set(checked.map(id=>state.rooms.find(r=>r.id===id)?.hostName).filter(Boolean))];
       host=names.length===1?names[0]:'호스트';
     }
-
-    // 호스트에게 필요한 정보만 포함: 금액·비밀번호·직원·내부메모는 제외
-    const payloadRooms=checked.map(roomId=>{
-      const room=state.rooms.find(r=>r.id===roomId)||{};
-      const events=state.transactions
-        .filter(t=>t.type==='income'&&t.targetId===roomId&&t.status!=='cancelled'&&(t.billingMonth||ym(t.date))===boardMonth)
-        .sort((a,b)=>a.date.localeCompare(b.date))
-        .map(t=>({
-          d:t.date,
-          s:t.status||'booked',
-          o:{n:t.outNights||t.nights||'',g:t.outGuests||t.guests||'',t:t.outTime||''},
-          i:{n:t.inNights||'',g:t.inGuests||'',t:t.inTime||''},
-          p:t.inSupplies||''
-        }));
-      return {id:room.id,n:room.name||'',short:(room.name||'').match(/(\d+호)$/)?.[1]||room.name||'',b:room.branch||'',bg:Number(room.baseGuests||0),e:events};
-    });
-
-    const payload={v:2,h:host,m:boardMonth,g:today(),r:payloadRooms};
-    let encoded;
+    const btn=$('#rvMakeLink'); const prev=btn?btn.textContent:'';
     try{
-      const json=JSON.stringify(payload);
-      const bytes=new TextEncoder().encode(json);
-      let bin='';for(let i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);
-      encoded=btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-    }catch(e){alert('링크 생성 실패: '+e.message);return;}
-
-    let link;
-    try{link=new URL('roomview.html',location.href.split('#')[0]).href+'#d='+encoded;}
-    catch(e){link='roomview.html#d='+encoded;}
-    const msg=`${host} 님, ${monthText(boardMonth)} 객실 현황입니다.\n예약·청소·준비사항을 아래 링크에서 확인해주세요.\n${link}`;
-    closeModal('roomviewModal');
-    if(navigator.share){
-      navigator.share({title:'ROOMMADE 객실 현황',text:msg,url:link}).then(()=>toast('✅ 공유 완료')).catch(err=>{if(err&&err.name!=='AbortError')fallbackCopy(msg,link);});
-    }else fallbackCopy(msg,link);
+      if(btn){btn.disabled=true;btn.textContent='⏳ 올리는 중...';}
+      const binId=await cloudUpload(true); // 전체 데이터를 클라우드에 올림
+      // 링크엔 짧은 ID + 선택 객실만 (URL 짧음 → 아이폰 문제 없음)
+      const roomsParam=encodeURIComponent(checked.join(','));
+      const link=CLOUD.HOST_BASE+'?id='+binId+'&rooms='+roomsParam;
+      const msg=`${host} 님, 객실 현황입니다.\n예약·청소·준비사항을 아래 링크에서 확인해주세요.\n${link}`;
+      closeModal('roomviewModal');
+      if(navigator.share){
+        navigator.share({title:'ROOMMADE 객실 현황',text:msg,url:link}).then(()=>toast('✅ 공유 완료')).catch(err=>{if(err&&err.name!=='AbortError')fallbackCopy(msg,link);});
+      }else fallbackCopy(msg,link);
+    }catch(e){
+      console.error(e);
+      toast('❌ 업로드 실패 - 인터넷 확인');
+    }finally{
+      if(btn){btn.disabled=false;btn.textContent=prev;}
+    }
   }
   function fallbackCopy(msg,link){
     const done=()=>toast('📋 링크가 복사됐어요. 카톡에 붙여넣으세요');
@@ -837,6 +864,7 @@ input,select,textarea{min-height:44px}
     const names=[...new Set([...document.querySelectorAll('.rv-room-chk:checked')].map(c=>c.dataset.host).filter(Boolean))];
     if(names.length===1)$('#rvHostName').value=names[0];
   });$('#makeReport').addEventListener('click',makeReport);$('#copyReport').addEventListener('click',copyReport);$('#exportBtn').addEventListener('click',exportData);$('#importBtn').addEventListener('click',()=>$('#importFile').click());$('#importFile').addEventListener('change',e=>e.target.files[0]&&importData(e.target.files[0]));
+  const cub=$('#cloudUploadBtn');if(cub)cub.addEventListener('click',async()=>{const p=cub.textContent;cub.disabled=true;cub.textContent='⏳ 올리는 중...';try{await cloudUpload(false);}catch(e){toast('❌ 업로드 실패 - 인터넷 확인');}finally{cub.disabled=false;cub.textContent=p;}});
   $('#resetDemo').addEventListener('click',()=>{if(confirm('현재 데이터를 데모 데이터로 초기화할까요?')){state=demoState();save();scheduleMonth=currentYM();insightMonth=currentYM();selectedDate=today();setBranch('전체');toast('데모 데이터로 초기화했어요')}});
   $('#todayBtn').addEventListener('click',()=>{scheduleMonth=currentYM();insightMonth=currentYM();selectedDate=today();setView('home')});
   $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id)}));
