@@ -127,7 +127,7 @@ input,select,textarea{min-height:44px}
       </div>
 
       <div class="section">
-        <div class="sectitle"><h2>🏠 다가올 체크인 준비</h2><button data-goto="schedule">일정보기</button></div>
+        <div class="sectitle"><h2>🏠 다가올 체크인 준비</h2><button id="addSetupBtn">+ 셋팅 추가</button></div>
         <div class="card" id="checkinPrep"></div>
       </div>
     </section>
@@ -301,7 +301,26 @@ input,select,textarea{min-height:44px}
     <div class="twocol"><div class="field"><label>세금률 %</label><input type="number" step="0.1" id="roomTaxInput" placeholder="0" /></div><div class="field"><label>기본 인원</label><input type="number" id="roomBaseGuests" placeholder="예: 4" /></div></div>
     <div class="twocol"><div class="field"><label>도어락 비번</label><input id="roomDoorPw" placeholder="예: 37098877*" /></div><div class="field"><label>비품함 비번</label><input id="roomSupplyPw" placeholder="예: 998" /></div></div>
     <div style="font-size:11px;color:var(--muted);margin:-4px 0 8px;">💡 기본 인원보다 많으면 체크인 준비에 '추가 셋팅 필요'로 표시돼요</div>
+    <div class="field"><label>1명 초과당 추가 셋팅 (선택)</label><input id="roomExtraSetup" placeholder="예: 토퍼1, 베개1, 수건2" /></div>
+    <div style="font-size:11px;color:var(--muted);margin:-4px 0 8px;">💡 입실 인원이 기본보다 많으면 초과 인원수만큼 자동 계산돼요 (예: 2명 초과 → 토퍼2, 수건4)</div>
     <button class="primary" id="saveRoom">저장</button>
+  </div>
+</div>
+
+<div class="modal" id="setupModal">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheethead"><h3>🛏️ 셋팅 일정 추가</h3><button class="close" data-close="setupModal">×</button></div>
+    <div style="font-size:11px;color:var(--muted);margin:-2px 0 10px;">청소 없이 침구·수건만 셋팅하는 일정을 기록해요.</div>
+    <input type="hidden" id="setupEditId" />
+    <div class="field"><label>객실</label><select id="setupRoom"></select></div>
+    <div class="twocol">
+      <div class="field"><label>셋팅 날짜</label><input type="date" id="setupDate" /></div>
+      <div class="field"><label>입실 인원 (선택)</label><input type="number" id="setupGuests" placeholder="예: 6" /></div>
+    </div>
+    <div class="field"><label>준비물 / 메모</label><input id="setupMemo" placeholder="예: 토퍼2, 수건4, 베개2" /></div>
+    <button class="primary" id="saveSetup">저장</button>
+    <button class="secondary danger" id="deleteSetup" style="margin-top:8px;display:none;">삭제</button>
   </div>
 </div>
 
@@ -436,6 +455,63 @@ input,select,textarea{min-height:44px}
   function empty(icon,text){return `<div class="empty"><div class="big">${icon}</div>${text}</div>`}
 
   // 청소 예정 자동 계산 — 청소 기록의 체크인(N박)으로 다음 청소일 생성
+  // ── 🛏️ 수동 셋팅 일정 ──
+  function getSetups(){
+    if(!Array.isArray(state.setups)) state.setups=[];
+    return state.setups;
+  }
+  function openSetup(id=''){
+    getSetups();
+    const s=state.setups.find(x=>x.id===id);
+    $('#setupEditId').value=id;
+    // 객실 드롭다운 채우기
+    const rooms=state.rooms.filter(r=>state.branch==='전체'||r.branch===state.branch);
+    $('#setupRoom').innerHTML=rooms.map(r=>`<option value="${r.id}">${esc(r.name)} (${r.branch})</option>`).join('');
+    $('#setupRoom').value=s?.targetId||(rooms[0]?.id||'');
+    $('#setupDate').value=s?.date||today();
+    $('#setupGuests').value=s?.guests||'';
+    $('#setupMemo').value=s?.memo||'';
+    $('#deleteSetup').style.display=id?'block':'none';
+    openModal('setupModal');
+  }
+  function saveSetupForm(){
+    getSetups();
+    const id=$('#setupEditId').value;
+    const targetId=$('#setupRoom').value;
+    const room=state.rooms.find(r=>r.id===targetId)||{};
+    const date=$('#setupDate').value;
+    const guests=$('#setupGuests').value;
+    const memo=$('#setupMemo').value.trim();
+    if(!targetId||!date)return toast('객실과 날짜를 입력해주세요');
+    const obj={id:id||uid('setup'),targetId,targetName:room.name||'',branch:room.branch||'',date,guests,memo};
+    if(id)state.setups[state.setups.findIndex(x=>x.id===id)]=obj;
+    else state.setups.push(obj);
+    save();closeModal('setupModal');render();toast('🛏️ 셋팅 일정을 저장했어요');
+  }
+  function deleteSetupForm(){
+    getSetups();
+    const id=$('#setupEditId').value;
+    state.setups=state.setups.filter(x=>x.id!==id);
+    save();closeModal('setupModal');render();toast('🗑️ 삭제했어요');
+  }
+  // 수동 셋팅 카드
+  function setupHTML(s){
+    const room=state.rooms.find(r=>r.id===s.targetId)||{};
+    const baseG=Number(room.baseGuests||0);
+    const g=Number(s.guests||0);
+    const over=(baseG&&g>baseG)?(g-baseG):0;
+    const d=new Date(s.date+'T00:00:00');const WD=['일','월','화','수','목','금','토'];
+    const dl=(d.getMonth()+1)+'월 '+d.getDate()+'일('+WD[d.getDay()]+')';
+    let setup='';
+    if(s.memo){ setup+=`<small style="color:#4FB0A3;display:block;">🛒 ${esc(s.memo)}</small>`; }
+    if(over>0){
+      const auto=calcExtraSetup(room.extraSetup||'', over);
+      if(auto) setup+=`<small style="color:var(--red);display:block;">➕ 추가셋팅: ${esc(auto)} <span style="color:var(--muted)">(${over}명 초과)</span></small>`;
+    }
+    if(!setup) setup=`<small style="color:var(--muted);">셋팅</small>`;
+    return `<div class="job" data-edit-setup="${s.id}" style="background:linear-gradient(90deg,rgba(229,142,123,.07),transparent);"><div class="jobtime"><b>${dl}</b><small>${(s.branch||'').replace('점','')}</small></div><div class="jobicon">🛏️</div><div class="jobinfo"><b>${esc(s.targetName)}</b><small>셋팅만${g?' · '+g+'명':''}</small>${setup}</div><div style="color:var(--muted);font-size:14px;align-self:center;">✏️</div></div>`;
+  }
+
   function getPlannedCleanings(){
     const planned=[];
     state.transactions.forEach(t=>{
@@ -472,21 +548,43 @@ input,select,textarea{min-height:44px}
     let jobsHtml = jobs.length?jobs.map((t,i)=>jobHTML(t,i)).join(''):'';
     jobsHtml += todayPlanned.map(p=>plannedHTML(p)).join('');
     $('#todayJobs').innerHTML=jobsHtml||empty('☕','오늘 등록된 청소 일정이 없어요');
-    // 다가올 체크인 준비 (오늘 이후 청소 예정, 날짜순)
-    const prep=getPlannedCleanings().filter(p=>p.date>=today()&&(state.branch==='전체'||p.branch===state.branch)).sort((a,b)=>a.date<b.date?-1:1).slice(0,8);
-    $('#checkinPrep').innerHTML=prep.length?prep.map(prepHTML).join(''):empty('🛏️','다가올 체크인 준비가 없어요');
+    // 다가올 체크인 준비 (오늘 이후 청소 예정 + 수동 셋팅, 날짜순)
+    const prep=getPlannedCleanings().filter(p=>p.date>=today()&&(state.branch==='전체'||p.branch===state.branch)).map(p=>({kind:'prep',date:p.date,data:p}));
+    const setups=getSetups().filter(s=>s.date>=today()&&(state.branch==='전체'||s.branch===state.branch)).map(s=>({kind:'setup',date:s.date,data:s}));
+    const merged=prep.concat(setups).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0).slice(0,12);
+    $('#checkinPrep').innerHTML=merged.length?merged.map(m=>m.kind==='setup'?setupHTML(m.data):prepHTML(m.data)).join(''):empty('🛏️','다가올 체크인 준비가 없어요');
   }
+  // 초과 인원에 따라 추가 셋팅 자동 계산
+  // 규칙 "토퍼1, 수건2"  + 초과 2명  →  "토퍼2, 수건4"
+  function calcExtraSetup(rule, over){
+    if(!rule || over<=0) return '';
+    return rule.split(',').map(function(part){
+      part=part.trim(); if(!part) return '';
+      // 맨 끝 숫자를 찾아서 초과인원만큼 곱함
+      var m=part.match(/^(.*?)(\d+)\s*$/);
+      if(m){ var nm=m[1].trim(); var qty=parseInt(m[2],10)*over; return nm+qty; }
+      return part; // 숫자 없으면 그대로
+    }).filter(Boolean).join(', ');
+  }
+
   // 체크인 준비 카드 — 기본 셋팅 + 추가 인원분 표시
   function prepHTML(p){
     const room=state.rooms.find(r=>r.id===p.targetId)||{};
     const baseG=Number(room.baseGuests||room.defaultGuests||0);
     const g=Number(p.guests||0);
+    const over=(baseG&&g>baseG)?(g-baseG):0;
     const d=new Date(p.date+'T00:00:00');const WD=['일','월','화','수','목','금','토'];
     const dl=(d.getMonth()+1)+'월 '+d.getDate()+'일('+WD[d.getDay()]+')';
     let setup='';
-    if(p.supplies){ setup=`<small style="color:#4FB0A3;">🛒 추가준비: ${esc(p.supplies)}</small>`; }
-    else if(baseG&&g>baseG){ setup=`<small style="color:var(--red);">⚠️ 기본 ${baseG}명 → ${g}명 (추가 셋팅 필요)</small>`; }
-    else { setup=`<small style="color:var(--muted);">기본 셋팅</small>`; }
+    // 1) 손님별 직접 입력한 준비물
+    if(p.supplies){ setup+=`<small style="color:#4FB0A3;display:block;">🛒 준비물: ${esc(p.supplies)}</small>`; }
+    // 2) 인원 초과 시 자동 셋팅
+    if(over>0){
+      const auto=calcExtraSetup(room.extraSetup||'', over);
+      if(auto){ setup+=`<small style="color:var(--red);display:block;">➕ 추가셋팅: ${esc(auto)} <span style="color:var(--muted)">(${baseG}→${g}명, ${over}명 초과)</span></small>`; }
+      else { setup+=`<small style="color:var(--red);display:block;">⚠️ 기본 ${baseG}명 → ${g}명 (${over}명 초과, 추가 셋팅 확인)</small>`; }
+    }
+    if(!setup){ setup=`<small style="color:var(--muted);">기본 셋팅</small>`; }
     return `<div class="job" data-plan-clean="${p.fromId}"><div class="jobtime"><b>${dl}</b><small>${p.branch.replace('점','')}</small></div><div class="jobicon">🛏️</div><div class="jobinfo"><b>${esc(p.targetName)}</b><small>체크인 ${p.nights}박${g?' · '+g+'명':''}</small>${setup}</div><div style="display:flex;gap:4px;"><button class="kkbtn worker" data-kakao-worker="${p.fromId}" data-kakao-kind="plan">💬</button><button class="kkbtn host" data-kakao-host="${p.fromId}" data-kakao-kind="plan">📋</button></div></div>`;
   }
   function plannedHTML(p){return `<div class="job" data-plan-clean="${p.fromId}" style="background:linear-gradient(90deg,rgba(108,164,217,.06),transparent);"><div class="jobtime"><b>예정</b><small>${p.branch.replace('점','')}</small></div><div class="jobicon">🧹</div><div class="jobinfo"><b>${esc(p.targetName)}</b><small>체크인 ${p.nights}박${p.guests?' · '+p.guests+'명':''}${p.supplies?' · 🛒'+esc(p.supplies):''}</small></div><div style="display:flex;gap:4px;"><button class="kkbtn worker" data-kakao-worker="${p.fromId}" data-kakao-kind="plan">💬</button><button class="kkbtn host" data-kakao-host="${p.fromId}" data-kakao-kind="plan">📋</button></div></div>`}
@@ -606,7 +704,8 @@ input,select,textarea{min-height:44px}
       rooms: state.rooms||[], staff: state.staff||[],
       transactions: state.transactions||[],
       branch: state.branch||'전체',
-      supplies: state.supplies||[]
+      supplies: state.supplies||[],
+      setups: state.setups||[]
     };
   }
 
@@ -764,8 +863,8 @@ input,select,textarea{min-height:44px}
     if(id){const i=state.transactions.findIndex(x=>x.id===id);state.transactions[i]={...state.transactions[i],...obj}}else state.transactions.push(obj);save();closeModal('txModal');toast('기록을 저장했어요');render();
   }
   function deleteTxForm(){const id=$('#txEditId').value;if(!id)return;if(confirm('이 기록을 삭제할까요?')){state.transactions=state.transactions.filter(x=>x.id!==id);save();closeModal('txModal');render();toast('삭제했어요')}}
-  function openRoom(id=''){const r=state.rooms.find(x=>x.id===id);$('#roomEditId').value=id;$('#roomNameInput').value=r?.name||'';$('#roomHostInput').value=r?.hostName||'';$('#roomBranchInput').value=r?.branch||(state.branch==='전체'?'영종점':state.branch);$('#roomPriceInput').value=r?.price||'';$('#roomTaxInput').value=r?.tax||'';$('#roomBaseGuests').value=r?.baseGuests||'';$('#roomDoorPw').value=r?.doorPw||'';$('#roomSupplyPw').value=r?.supplyPw||'';openModal('roomModal')}
-  function saveRoomForm(){const id=$('#roomEditId').value,name=$('#roomNameInput').value.trim(),hostName=$('#roomHostInput').value.trim(),branch=$('#roomBranchInput').value,price=Number($('#roomPriceInput').value),tax=Number($('#roomTaxInput').value||0),baseGuests=Number($('#roomBaseGuests').value||0),doorPw=$('#roomDoorPw').value.trim(),supplyPw=$('#roomSupplyPw').value.trim();if(!name||!price)return toast('객실명과 기본 청소비를 입력해주세요');const prev=state.rooms.find(x=>x.id===id)||{};const obj={...prev,id:id||uid('room'),name,hostName,branch,price,tax,baseGuests,doorPw,supplyPw};if(id)state.rooms[state.rooms.findIndex(x=>x.id===id)]=obj;else state.rooms.push(obj);save();closeModal('roomModal');render();toast('객실을 저장했어요')}
+  function openRoom(id=''){const r=state.rooms.find(x=>x.id===id);$('#roomEditId').value=id;$('#roomNameInput').value=r?.name||'';$('#roomHostInput').value=r?.hostName||'';$('#roomBranchInput').value=r?.branch||(state.branch==='전체'?'영종점':state.branch);$('#roomPriceInput').value=r?.price||'';$('#roomTaxInput').value=r?.tax||'';$('#roomBaseGuests').value=r?.baseGuests||'';$('#roomExtraSetup').value=r?.extraSetup||'';$('#roomDoorPw').value=r?.doorPw||'';$('#roomSupplyPw').value=r?.supplyPw||'';openModal('roomModal')}
+  function saveRoomForm(){const id=$('#roomEditId').value,name=$('#roomNameInput').value.trim(),hostName=$('#roomHostInput').value.trim(),branch=$('#roomBranchInput').value,price=Number($('#roomPriceInput').value),tax=Number($('#roomTaxInput').value||0),baseGuests=Number($('#roomBaseGuests').value||0),extraSetup=$('#roomExtraSetup').value.trim(),doorPw=$('#roomDoorPw').value.trim(),supplyPw=$('#roomSupplyPw').value.trim();if(!name||!price)return toast('객실명과 기본 청소비를 입력해주세요');const prev=state.rooms.find(x=>x.id===id)||{};const obj={...prev,id:id||uid('room'),name,hostName,branch,price,tax,baseGuests,extraSetup,doorPw,supplyPw};if(id)state.rooms[state.rooms.findIndex(x=>x.id===id)]=obj;else state.rooms.push(obj);save();closeModal('roomModal');render();toast('객실을 저장했어요')}
 
   // ── 비품 ──
   let supplyReceiptData='';
@@ -827,7 +926,7 @@ input,select,textarea{min-height:44px}
   }
 
   document.addEventListener('click',e=>{
-    const b=e.target.closest('button,[data-edit-tx],[data-settle-toggle],[data-room-month],[data-plan-clean],[data-sched-view]');if(!b)return;
+    const b=e.target.closest('button,[data-edit-tx],[data-settle-toggle],[data-room-month],[data-plan-clean],[data-edit-setup],[data-sched-view]');if(!b)return;
     if(b.dataset.nav)return setView(b.dataset.nav);if(b.dataset.goto)return setView(b.dataset.goto);if(b.dataset.branch)return setBranch(b.dataset.branch);
     if(b.dataset.quick){if(b.dataset.quick==='income'||b.dataset.quick==='expense')openTx(b.dataset.quick);if(b.dataset.quick==='room')openRoom();if(b.dataset.quick==='staff')openStaff();if(b.dataset.quick==='supply')openSupply()}
     if(b.id==='fab')openTx('income',activeView==='schedule'?selectedDate:today());if(b.dataset.close)return closeModal(b.dataset.close);
@@ -842,6 +941,9 @@ input,select,textarea{min-height:44px}
     if(b.dataset.date){selectedDate=b.dataset.date;renderSchedule()}
     if(b.id==='addSelectedDate')openTx('income',selectedDate);
     const edit=b.closest('[data-edit-tx]')?.dataset.editTx;if(edit&&!b.dataset.toggleStatus)openTx(state.transactions.find(x=>x.id===edit)?.type||'income',today(),edit);
+    if(b.id==='addSetupBtn'){openSetup();return;}
+    const setupEl=b.closest('[data-edit-setup]');
+    if(setupEl){openSetup(setupEl.dataset.editSetup);return;}
     // 자동 청소 예정 클릭 → 청소 기록 추가
     const planEl=b.closest('[data-plan-clean]');
     if(planEl){const src=state.transactions.find(x=>x.id===planEl.dataset.planClean);if(src){openTx('income',today());setTimeout(function(){$('#txBranchInput').value=src.branch;updateTxType();$('#txTargetInput').value=src.targetId;$('#txOutNights').value=src.inNights||'';$('#txOutGuests').value=src.inGuests||'';var room=state.rooms.find(r=>r.id===src.targetId);if(room)$('#txAmountInput').value=room.price||'';},100);}}
@@ -856,6 +958,7 @@ input,select,textarea{min-height:44px}
   });
   $('#txBranchInput').addEventListener('change',updateTxType);$('#txTargetInput').addEventListener('change',()=>{const id=$('#txTargetInput').value,target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===id);if(target)$('#txAmountInput').value=target.price||target.rate||''});
   $('#saveTx').addEventListener('click',saveTxForm);$('#deleteTx').addEventListener('click',deleteTxForm);$('#saveRoom').addEventListener('click',saveRoomForm);$('#saveStaff').addEventListener('click',saveStaffForm);$('#saveSupply').addEventListener('click',saveSupplyForm);$('#deleteSupply').addEventListener('click',deleteSupplyForm);
+  $('#saveSetup').addEventListener('click',saveSetupForm);$('#deleteSetup').addEventListener('click',deleteSetupForm);
   $('#supplyReceiptInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{supplyReceiptData=ev.target.result;$('#supplyReceiptPreview').innerHTML=`<img src="${supplyReceiptData}" style="max-width:100%;border-radius:10px;">`;};r.readAsDataURL(f);});
   const mrv=$('#makeRoomview');if(mrv)mrv.addEventListener('click',makeRoomviewLink);
   const rvm=$('#rvMakeLink');if(rvm)rvm.addEventListener('click',buildRoomviewLink);
