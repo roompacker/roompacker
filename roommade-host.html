@@ -165,9 +165,11 @@ body{display:flex;justify-content:center}
     return rooms.filter(function(r){ return allowedRoomIds.indexOf(String(r.id)) >= 0; });
   }
 
-  // 거래(TX)에서 체류 정보 뽑기
-  // 구조: date=청소일(=체크아웃일), inNights=다음 손님 N박
-  // 반환 stay: {checkIn, checkOut, nights, guests, inTime, outTime, supplies}
+  // 거래(TX)에서 체류 정보 뽑기 — 캐쉬앱과 동일 방식
+  // 거래 1건 = 청소일 1건 = 그날 '체크아웃'하는 손님
+  //   date    = 청소일 = 체크아웃 날
+  //   nights  = 나가는 손님 박수 → 입실일 = date - nights
+  //   inNights= (있으면) 그날 새로 들어오는 손님 박수 (준비물/시간은 이 손님 기준)
   function staysForRoom(roomId){
     var txs = DATA.transactions || [];
     var stays = [];
@@ -175,23 +177,31 @@ body{display:flex;justify-content:center}
       if (String(tx.targetId) !== String(roomId)) return;
       if (tx.type && tx.type !== 'income' && tx.type !== '수입') return; // 수입(청소)만
       var cleanDate = tx.date; // 청소일 = 체크아웃 날
-      var inN = parseInt(tx.inNights, 10);
-      if (cleanDate && inN > 0){
-        var ci = new Date(cleanDate);
-        var co = new Date(cleanDate); co.setDate(co.getDate() + inN);
-        stays.push({
-          checkIn: dateStr(ci),
-          checkOut: dateStr(co),
-          nights: inN,
-          guests: tx.inGuests || '',
-          inTime: tx.checkinTime || '',
-          outTime: tx.checkoutTime || '',
-          supplies: tx.inSupplies || '',
-          note: tx.memo || ''
-        });
-      }
+      if (!cleanDate) return;
+
+      var outN = parseInt(tx.nights, 10);   // 나가는 손님 박수
+      var inN  = parseInt(tx.inNights, 10); // 새로 들어오는 손님 박수
+
+      // 이 거래의 체류 = 나가는 손님 기준 (입실=date-nights, 퇴실=date)
+      var co = new Date(cleanDate);
+      var ci = new Date(cleanDate);
+      if (outN > 0) ci.setDate(ci.getDate() - outN);
+
+      stays.push({
+        checkIn: dateStr(ci),
+        checkOut: dateStr(co),
+        nights: outN > 0 ? outN : '',
+        guests: tx.guests || '',
+        outTime: tx.checkoutTime || '',
+        // 입실 손님 정보(다음 손님) — 그날 새로 들어오면 준비물/체크인시간 표시
+        inNights: inN > 0 ? inN : '',
+        inGuests: tx.inGuests || '',
+        inTime: tx.checkinTime || '',
+        supplies: tx.inSupplies || '',
+        note: tx.memo || ''
+      });
     });
-    // 날짜 흐름순 (과거→미래)
+    // 날짜 흐름순 (과거→미래) — 입실일 기준
     stays.sort(function(a,b){ return (a.checkIn||'').localeCompare(b.checkIn||''); });
     return stays;
   }
@@ -218,8 +228,17 @@ body{display:flex;justify-content:center}
         var thisOut = new Date(s.checkOut);
         var nextIn = new Date(next.checkIn);
         var gap = Math.round((nextIn - thisOut) / 86400000);
+        // gap>=1 이면 퇴실 후 다음 입실까지 비는 기간
+        // 방식2: 실제 빈 밤 = 퇴실일 ~ 입실 전날
         if (gap >= 1){
-          items.push({ kind:'empty', from:s.checkOut, to:next.checkIn, days:gap });
+          var emptyFrom = new Date(thisOut); // 퇴실일(청소 후 빈 상태 시작)
+          var emptyTo = new Date(nextIn); emptyTo.setDate(emptyTo.getDate() - 1); // 입실 전날
+          items.push({
+            kind:'empty',
+            from: dateStr(emptyFrom),
+            to: dateStr(emptyTo),
+            days: gap   // 비는 일수 (퇴실~입실 사이)
+          });
         }
       }
     }
@@ -267,8 +286,9 @@ body{display:flex;justify-content:center}
           } else {
             var s = it.stay;
             var guestTxt = s.guests ? ' · ' + esc(s.guests) + '명' : '';
+            var nightTxt = s.nights ? ' · ' + s.nights + '박' : '';
             html += '<div class="flowstay">' +
-              '<div class="flowline in">🟦 입실 <b>' + fmtMD(s.checkIn) + '</b>' + (s.inTime ? ' <span class="ftime">'+esc(s.inTime)+'</span>' : '') + ' · ' + s.nights + '박' + guestTxt + '</div>' +
+              '<div class="flowline in">🟦 입실 <b>' + fmtMD(s.checkIn) + '</b>' + (s.inTime ? ' <span class="ftime">'+esc(s.inTime)+'</span>' : '') + nightTxt + guestTxt + '</div>' +
               '<div class="flowline out">🟧 퇴실 <b>' + fmtMD(s.checkOut) + '</b>' + (s.outTime ? ' <span class="ftime">'+esc(s.outTime)+'</span>' : '') + '</div>';
             if (s.supplies){
               html += '<div class="flowsupplies">🛒 준비물: ' + esc(s.supplies) + '</div>';
