@@ -40,6 +40,12 @@ body{display:flex;justify-content:center}
 .staydate{width:96px}.staydate b{font-size:12px;display:block;color:var(--green)}.staydate small{font-size:10px;color:var(--amber)}
 .stayinfo{flex:1;min-width:0}.stayinfo b{font-size:12px;display:block}.stayinfo small{font-size:10px;color:var(--muted)}
 .empty{padding:26px 15px;text-align:center;color:var(--muted);font-size:12px}.empty .big{font-size:30px;margin-bottom:7px}
+.flowstay{padding:12px 14px;border-bottom:1px solid var(--line)}.flowstay:last-child{border-bottom:0}
+.flowline{font-size:13px;margin-bottom:4px;color:var(--ink)}.flowline b{font-weight:800}.flowline.in{color:var(--green)}.flowline.out{color:var(--amber)}
+.ftime{background:#F0EEE9;border-radius:7px;padding:1px 6px;font-size:11px;font-weight:700;color:var(--sub)}
+.flowsupplies{margin-top:6px;background:#FFF3E4;border-radius:10px;padding:8px 11px;font-size:12px;font-weight:700;color:#B5701A;line-height:1.5}
+.flownote{margin-top:5px;background:#F4EFE8;border-radius:10px;padding:7px 11px;font-size:11px;color:var(--sub);line-height:1.5}
+.flowempty{padding:9px 14px;font-size:11px;color:var(--purple);background:#FAFAFA;border-bottom:1px solid var(--line);font-weight:700}
 .loadbox{padding:60px 20px;text-align:center;color:var(--muted)}.loadbox .big{font-size:36px;margin-bottom:12px}
 .calendar{padding:12px}.week,.days{display:grid;grid-template-columns:repeat(7,1fr)}.week div{text-align:center;font-size:10px;color:var(--muted);font-weight:800;padding:5px 0}.days{gap:4px}.day{min-height:50px;background:#FBF8F3;border-radius:13px;padding:5px 2px;position:relative}.day.other{opacity:.28}.day.today{outline:2px solid #B7CFE7}.daynum{font-size:11px;font-weight:800;text-align:center}.dotwrap{display:flex;justify-content:center;gap:3px;margin-top:5px;flex-wrap:wrap}.dot{width:6px;height:6px;border-radius:50%}
 .legend{display:flex;gap:14px;justify-content:center;margin-top:10px;font-size:10px;color:var(--sub)}.legend span{display:flex;align-items:center;gap:4px}.legend i{width:8px;height:8px;border-radius:50%;display:inline-block}
@@ -159,8 +165,9 @@ body{display:flex;justify-content:center}
     return rooms.filter(function(r){ return allowedRoomIds.indexOf(String(r.id)) >= 0; });
   }
 
-  // 거래(TX)에서 체크인/아웃 날짜 계산
+  // 거래(TX)에서 체류 정보 뽑기
   // 구조: date=청소일(=체크아웃일), inNights=다음 손님 N박
+  // 반환 stay: {checkIn, checkOut, nights, guests, inTime, outTime, supplies}
   function staysForRoom(roomId){
     var txs = DATA.transactions || [];
     var stays = [];
@@ -169,29 +176,57 @@ body{display:flex;justify-content:center}
       if (tx.type && tx.type !== 'income' && tx.type !== '수입') return; // 수입(청소)만
       var cleanDate = tx.date; // 청소일 = 체크아웃 날
       var inN = parseInt(tx.inNights, 10);
-      // 체크아웃 이벤트
-      if (cleanDate){
-        stays.push({ type: 'out', date: cleanDate, note: tx.memo || '' });
-      }
-      // 체크인 이벤트 (청소일에 새 손님 들어와서 N박)
       if (cleanDate && inN > 0){
         var ci = new Date(cleanDate);
         var co = new Date(cleanDate); co.setDate(co.getDate() + inN);
         stays.push({
-          type: 'in',
           checkIn: dateStr(ci),
           checkOut: dateStr(co),
           nights: inN,
           guests: tx.inGuests || '',
-          time: tx.checkinTime || '',
+          inTime: tx.checkinTime || '',
+          outTime: tx.checkoutTime || '',
+          supplies: tx.inSupplies || '',
           note: tx.memo || ''
         });
       }
     });
+    // 날짜 흐름순 (과거→미래)
+    stays.sort(function(a,b){ return (a.checkIn||'').localeCompare(b.checkIn||''); });
     return stays;
   }
 
-  // 객실 목록 그리기
+  // 현재 보여줄 달의 범위 안에 걸치는 체류만 + 공실 흐름 만들기
+  function buildTimeline(stays){
+    var monthStart = new Date(calYear, calMonth, 1);
+    var monthEnd = new Date(calYear, calMonth+1, 0); // 말일
+    monthEnd.setHours(23,59,59,999);
+
+    // 이번 달과 조금이라도 겹치는 체류만
+    var inMonth = stays.filter(function(s){
+      var ci = new Date(s.checkIn), co = new Date(s.checkOut);
+      return co >= monthStart && ci <= monthEnd;
+    });
+
+    var items = [];
+    for (var i=0;i<inMonth.length;i++){
+      var s = inMonth[i];
+      items.push({ kind:'stay', stay:s });
+      // 다음 체류와의 사이 공실 계산
+      var next = inMonth[i+1];
+      if (next){
+        var thisOut = new Date(s.checkOut);
+        var nextIn = new Date(next.checkIn);
+        var gap = Math.round((nextIn - thisOut) / 86400000);
+        if (gap >= 1){
+          items.push({ kind:'empty', from:s.checkOut, to:next.checkIn, days:gap });
+        }
+      }
+    }
+    return items;
+  }
+
+  // 객실 목록 그리기 (타임라인 흐름)
   function renderRooms(){
     var list = $('roomList');
     list.innerHTML = '';
@@ -206,10 +241,8 @@ body{display:flex;justify-content:center}
       var name = r.name || '객실';
       var stays = staysForRoom(r.id);
 
-      var checkins = stays.filter(function(s){ return s.type === 'in'; })
-        .sort(function(a,b){ return (a.checkIn||'').localeCompare(b.checkIn||''); });
-
-      var occupied = checkins.some(function(s){
+      // 현재 사용중 판단
+      var occupied = stays.some(function(s){
         var ci = new Date(s.checkIn); ci.setHours(0,0,0,0);
         var co = new Date(s.checkOut); co.setHours(0,0,0,0);
         return ci <= today && co > today;
@@ -219,25 +252,32 @@ body{display:flex;justify-content:center}
       card.className = 'card roomcard';
       var html = '<div class="roomhead">' +
         '<div class="roomico">🛏️</div>' +
-        '<div class="roomname"><b>' + esc(name) + '</b><small>' + esc(r.branch||'') + '</small></div>' +
+        '<div class="roomname"><b>' + esc(name) + '</b><small>' + esc(r.branch||'') + ' · ' + (calMonth+1) + '월 일정</small></div>' +
         '<div class="roombadge ' + (occupied?'in':'empty') + '">' + (occupied?'사용중':'공실') + '</div>' +
         '</div>';
 
-      var upcoming = checkins.filter(function(s){
-        var co = new Date(s.checkOut); co.setHours(0,0,0,0);
-        return co >= today;
-      }).slice(0, 6);
+      var items = buildTimeline(stays);
 
-      if (upcoming.length === 0){
-        html += '<div class="empty" style="padding:18px">예정된 일정 없음</div>';
+      if (items.length === 0){
+        html += '<div class="empty" style="padding:18px">이 달 일정 없음</div>';
       } else {
-        upcoming.forEach(function(s){
-          var info = s.nights + '박' + (s.guests ? ' · ' + esc(s.guests) + '명' : '');
-          html += '<div class="stayrow">' +
-            '<div class="staydate"><b>입실 ' + fmtMD(s.checkIn) + '</b><small>퇴실 ' + fmtMD(s.checkOut) + '</small></div>' +
-            '<div class="stayinfo"><b>' + info + '</b>' +
-            (s.time ? '<small>체크인 ' + esc(s.time) + '</small>' : '') + '</div>' +
-            '</div>';
+        items.forEach(function(it){
+          if (it.kind === 'empty'){
+            html += '<div class="flowempty">⚪ ' + fmtMD(it.from) + ' ~ ' + fmtMD(it.to) + ' 공실 (' + it.days + '일)</div>';
+          } else {
+            var s = it.stay;
+            var guestTxt = s.guests ? ' · ' + esc(s.guests) + '명' : '';
+            html += '<div class="flowstay">' +
+              '<div class="flowline in">🟦 입실 <b>' + fmtMD(s.checkIn) + '</b>' + (s.inTime ? ' <span class="ftime">'+esc(s.inTime)+'</span>' : '') + ' · ' + s.nights + '박' + guestTxt + '</div>' +
+              '<div class="flowline out">🟧 퇴실 <b>' + fmtMD(s.checkOut) + '</b>' + (s.outTime ? ' <span class="ftime">'+esc(s.outTime)+'</span>' : '') + '</div>';
+            if (s.supplies){
+              html += '<div class="flowsupplies">🛒 준비물: ' + esc(s.supplies) + '</div>';
+            }
+            if (s.note){
+              html += '<div class="flownote">📝 ' + esc(s.note) + '</div>';
+            }
+            html += '</div>';
+          }
         });
       }
       card.innerHTML = html;
@@ -260,12 +300,12 @@ body{display:flex;justify-content:center}
     var rooms = myRooms();
     rooms.forEach(function(r){
       staysForRoom(r.id).forEach(function(s){
-        if (s.type === 'in' && s.checkIn){
+        if (s.checkIn){
           var d1 = new Date(s.checkIn);
           if (d1.getFullYear()===calYear && d1.getMonth()===calMonth) ins[d1.getDate()] = (ins[d1.getDate()]||0)+1;
         }
-        if (s.type === 'out' && s.date){
-          var d2 = new Date(s.date);
+        if (s.checkOut){
+          var d2 = new Date(s.checkOut);
           if (d2.getFullYear()===calYear && d2.getMonth()===calMonth) outs[d2.getDate()] = (outs[d2.getDate()]||0)+1;
         }
       });
