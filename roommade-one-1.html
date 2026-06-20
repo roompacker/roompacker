@@ -777,25 +777,62 @@ input,select,textarea{min-height:44px}
     const ho=(room.name||'').match(/(\d+호)$/)?(room.name||'').match(/(\d+호)$/)[1]:room.name;
     $('#rmTitle').textContent=room.name||ho;$('#rmMonth').textContent=monthText(boardMonth);
     const WD=['일','월','화','수','목','금','토'];
-    const events=[];
+
+    // 이 객실의 모든 체류(입실~퇴실) 뽑기
+    // 거래 date=청소일(=퇴실일), outNights=나간 손님 박수 → 입실=date-박수
+    const stays=[];
     state.transactions.forEach(t=>{
       if(t.type!=='income'||t.targetId!==roomId||t.status==='cancelled')return;
-      if((t.billingMonth||ym(t.date))!==boardMonth)return;
-      events.push({date:t.date,kind:'out',t});
-      if(t.inNights&&parseInt(t.inNights)>0)events.push({date:t.date,kind:'in',t});
+      if(!t.date)return;
+      const outN=parseInt(t.outNights||t.nights||0,10);
+      const co=new Date(t.date+'T00:00:00');
+      const ci=new Date(t.date+'T00:00:00');
+      if(outN>0)ci.setDate(ci.getDate()-outN);
+      stays.push({
+        checkIn:ymd(ci), checkOut:ymd(co),
+        nights:outN>0?outN:'',
+        guests:t.outGuests||t.guests||'',
+        outTime:t.outTime||'',
+        inNights:t.inNights||'', inGuests:t.inGuests||'', inTime:t.inTime||'', supplies:t.inSupplies||'',
+        memo:t.memo||''
+      });
     });
-    events.sort((a,b)=>a.date!==b.date?(a.date<b.date?-1:1):(a.kind==='out'?-1:1));
+    stays.sort((a,b)=>a.checkIn<b.checkIn?-1:a.checkIn>b.checkIn?1:0);
+
+    // 이번 달과 겹치는 체류만
+    const ms=boardMonth+'-01';
+    const md=new Date(new Date(boardMonth+'-01T00:00:00').getFullYear(),new Date(boardMonth+'-01T00:00:00').getMonth()+1,0);
+    const me=ymd(md);
+    const inMonth=stays.filter(s=>s.checkOut>=ms&&s.checkIn<=me);
+
     let html='';
-    if(!events.length)html=empty('📭','이 달 체크인·체크아웃 기록이 없어요');
-    else events.forEach(ev=>{
-      const d=new Date(ev.date+'T00:00:00'),dl=d.getDate()+'일 ('+WD[d.getDay()]+')',t=ev.t;
-      let icon,color,text;
-      if(ev.kind==='in'){icon='🏠';color='#4FB0A3';text='체크인 · '+t.inNights+'박'+(t.inGuests?' · '+t.inGuests+'명':'')+(t.inTime?' · '+t.inTime:'')+(t.inSupplies?' · 🛒'+esc(t.inSupplies):'');}
-      else{icon='🚪';color='#E5897B';text='체크아웃'+(t.outNights||t.nights?' · '+(t.outNights||t.nights)+'박':'')+(t.outGuests||t.guests?' · '+(t.outGuests||t.guests)+'명':'')+(t.outTime?' · '+t.outTime:'');}
-      html+=`<div style="display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);"><div style="width:56px;flex-shrink:0;font-size:12px;font-weight:800;color:var(--sub);">${dl}</div><div style="flex:1;font-size:13px;font-weight:700;color:${color};">${icon} ${text}</div></div>`;
-    });
+    if(!inMonth.length){ html=empty('📭','이 달 체크인·체크아웃 기록이 없어요'); }
+    else {
+      for(let i=0;i<inMonth.length;i++){
+        const s=inMonth[i];
+        const ciL=fmtDateK(s.checkIn,WD), coL=fmtDateK(s.checkOut,WD);
+        let block=`<div style="padding:12px 0;border-bottom:1px solid var(--line);">`;
+        block+=`<div style="font-size:13px;font-weight:800;color:#4FB0A3;margin-bottom:4px;">🟦 입실 ${ciL}${s.inTime?' <span style="background:#F0EEE9;border-radius:6px;padding:1px 6px;font-size:11px;">'+esc(s.inTime)+'</span>':''}${s.nights?' · '+s.nights+'박':''}${s.guests?' · '+s.guests+'명':''}</div>`;
+        block+=`<div style="font-size:13px;font-weight:800;color:#E5897B;">🟧 퇴실 ${coL}${s.outTime?' <span style="background:#F0EEE9;border-radius:6px;padding:1px 6px;font-size:11px;">'+esc(s.outTime)+'</span>':''}</div>`;
+        if(s.supplies){ block+=`<div style="margin-top:6px;background:#FFF3E4;border-radius:9px;padding:7px 10px;font-size:12px;font-weight:700;color:#B5701A;">🛒 준비물: ${esc(s.supplies)}</div>`; }
+        if(s.memo){ block+=`<div style="margin-top:5px;background:#F4EFE8;border-radius:9px;padding:6px 10px;font-size:11px;color:var(--sub);">📝 ${esc(s.memo)}</div>`; }
+        block+=`</div>`;
+        html+=block;
+        // 다음 체류와의 공실
+        const next=inMonth[i+1];
+        if(next){
+          const gap=Math.round((new Date(next.checkIn)-new Date(s.checkOut))/86400000);
+          if(gap>=1){
+            html+=`<div style="padding:8px 0;font-size:12px;font-weight:700;color:#7E8896;border-bottom:1px solid var(--line);">⚪ ${fmtDateK(s.checkOut,WD)} ~ ${fmtDateK(ymd(new Date(new Date(next.checkIn)-86400000)),WD)} 공실 (${gap}일)</div>`;
+          }
+        }
+      }
+    }
     $('#rmBody').innerHTML=html;openModal('roomMonthModal');
   }
+  // 날짜 유틸 (openRoomMonth용)
+  function ymd(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function fmtDateK(s,WD){ const d=new Date(s+'T00:00:00'); return (d.getMonth()+1)+'/'+d.getDate()+' ('+WD[d.getDay()]+')'; }
 
   function renderSettlement(){
     $$('.segbtn[data-settle]').forEach(b=>b.classList.toggle('active',b.dataset.settle===settleMode));let list=branchFilter(state.transactions).filter(t=>t.status!=='cancelled');
