@@ -778,24 +778,51 @@ input,select,textarea{min-height:44px}
     $('#rmTitle').textContent=room.name||ho;$('#rmMonth').textContent=monthText(boardMonth);
     const WD=['일','월','화','수','목','금','토'];
 
-    // 이 객실의 모든 체류(입실~퇴실) 뽑기
-    // 거래 date=청소일(=퇴실일), outNights=나간 손님 박수 → 입실=date-박수
+    // 이 객실의 모든 체류(입실~퇴실) 뽑기 — '입실 손님' 기준
+    // 거래 date=청소일=그날 새 손님 입실, inNights=그 손님 박수 → 퇴실=date+inNights
+    //   inSupplies=그 입실 손님을 위한 셋팅 준비물 (입실에 붙음 → 자연스러움)
+    // 입실 정보가 없는 거래(그냥 퇴실만)도 누락 안 되게: outNights로 입실 역산해 보강
     const stays=[];
+    const seen={};
+    state.transactions.forEach(t=>{
+      if(t.type!=='income'||t.targetId!==roomId||t.status==='cancelled')return;
+      if(!t.date)return;
+      const inN=parseInt(t.inNights||0,10);
+      if(inN>0){
+        // 이 거래가 만들어내는 '입실 손님'
+        const ci=new Date(t.date+'T00:00:00');
+        const co=new Date(t.date+'T00:00:00'); co.setDate(co.getDate()+inN);
+        const key=ymd(ci);
+        seen[key]=1;
+        stays.push({
+          checkIn:ymd(ci), checkOut:ymd(co),
+          nights:inN,
+          guests:t.inGuests||'',
+          inTime:t.inTime||'',
+          supplies:t.inSupplies||'',   // 입실 손님 준비물 → 입실에 붙음
+          memo:t.memo||''
+        });
+      }
+    });
+    // 입실 정보 없이 '퇴실'만 있는 손님 보강 (outNights로 입실 역산)
     state.transactions.forEach(t=>{
       if(t.type!=='income'||t.targetId!==roomId||t.status==='cancelled')return;
       if(!t.date)return;
       const outN=parseInt(t.outNights||t.nights||0,10);
-      const co=new Date(t.date+'T00:00:00');
-      const ci=new Date(t.date+'T00:00:00');
-      if(outN>0)ci.setDate(ci.getDate()-outN);
-      stays.push({
-        checkIn:ymd(ci), checkOut:ymd(co),
-        nights:outN>0?outN:'',
-        guests:t.outGuests||t.guests||'',
-        outTime:t.outTime||'',
-        inNights:t.inNights||'', inGuests:t.inGuests||'', inTime:t.inTime||'', supplies:t.inSupplies||'',
-        memo:t.memo||''
-      });
+      if(outN>0){
+        const ci=new Date(t.date+'T00:00:00'); ci.setDate(ci.getDate()-outN);
+        const key=ymd(ci);
+        if(seen[key])return; // 이미 입실 기준으로 잡힌 손님이면 중복 제외
+        seen[key]=1;
+        stays.push({
+          checkIn:ymd(ci), checkOut:t.date,
+          nights:outN,
+          guests:t.outGuests||t.guests||'',
+          inTime:t.outTime||'',  // 시간 정보 없으면 빈값
+          supplies:'',
+          memo:''
+        });
+      }
     });
     stays.sort((a,b)=>a.checkIn<b.checkIn?-1:a.checkIn>b.checkIn?1:0);
 
@@ -813,7 +840,7 @@ input,select,textarea{min-height:44px}
         const ciL=fmtDateK(s.checkIn,WD), coL=fmtDateK(s.checkOut,WD);
         let block=`<div style="padding:12px 0;border-bottom:1px solid var(--line);">`;
         block+=`<div style="font-size:13px;font-weight:800;color:#4FB0A3;margin-bottom:4px;">🟦 입실 ${ciL}${s.inTime?' <span style="background:#F0EEE9;border-radius:6px;padding:1px 6px;font-size:11px;">'+esc(s.inTime)+'</span>':''}${s.nights?' · '+s.nights+'박':''}${s.guests?' · '+s.guests+'명':''}</div>`;
-        block+=`<div style="font-size:13px;font-weight:800;color:#E5897B;">🟧 퇴실 ${coL}${s.outTime?' <span style="background:#F0EEE9;border-radius:6px;padding:1px 6px;font-size:11px;">'+esc(s.outTime)+'</span>':''}</div>`;
+        block+=`<div style="font-size:13px;font-weight:800;color:#E5897B;">🟧 퇴실 ${coL}</div>`;
         if(s.supplies){ block+=`<div style="margin-top:6px;background:#FFF3E4;border-radius:9px;padding:7px 10px;font-size:12px;font-weight:700;color:#B5701A;">🛒 준비물: ${esc(s.supplies)}</div>`; }
         if(s.memo){ block+=`<div style="margin-top:5px;background:#F4EFE8;border-radius:9px;padding:6px 10px;font-size:11px;color:var(--sub);">📝 ${esc(s.memo)}</div>`; }
         block+=`</div>`;
