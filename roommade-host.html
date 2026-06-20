@@ -165,42 +165,60 @@ body{display:flex;justify-content:center}
     return rooms.filter(function(r){ return allowedRoomIds.indexOf(String(r.id)) >= 0; });
   }
 
-  // 거래(TX)에서 체류 정보 뽑기
-  // 거래 1건 = 청소일 1건 = 그날 '체크아웃'하는 손님 + (있으면) 새로 '체크인'하는 손님
-  //   date     = 청소일 = 체크아웃 날
-  //   outNights(또는 nights) = 나가는 손님 박수 → 입실일 = date - 박수
-  //   inNights = 그날 새로 들어오는 손님 박수 (준비물/체크인시간은 이 손님 기준)
+  // 거래(TX)에서 체류 정보 뽑기 — '입실 손님' 기준
+  //   date     = 청소일 = 그날 새 손님 입실
+  //   inNights = 그 손님 박수 → 퇴실 = date + inNights
+  //   inSupplies = 그 입실 손님 셋팅 준비물 (입실에 붙음 → 자연스러움)
+  // 입실 정보 없이 퇴실만 있는 손님은 outNights로 입실 역산해 보강
   function staysForRoom(roomId){
     var txs = DATA.transactions || [];
     var stays = [];
+    var seen = {};
+    // 1) 입실 손님 기준
     txs.forEach(function(tx){
       if (String(tx.targetId) !== String(roomId)) return;
-      if (tx.type && tx.type !== 'income' && tx.type !== '수입') return; // 수입(청소)만
+      if (tx.type && tx.type !== 'income' && tx.type !== '수입') return;
       if (tx.status === 'cancelled') return;
-      var cleanDate = tx.date; // 청소일 = 체크아웃 날
-      if (!cleanDate) return;
-
-      // 나가는 손님 박수 (outNights 우선, 없으면 nights)
+      if (!tx.date) return;
+      var inN = parseInt(tx.inNights, 10);
+      if (inN > 0){
+        var ci = new Date(tx.date);
+        var co = new Date(tx.date); co.setDate(co.getDate() + inN);
+        var key = dateStr(ci);
+        seen[key] = 1;
+        stays.push({
+          checkIn: dateStr(ci),
+          checkOut: dateStr(co),
+          nights: inN,
+          guests: tx.inGuests || '',
+          inTime: tx.inTime || tx.checkinTime || '',
+          supplies: tx.inSupplies || '',   // 입실 손님 준비물
+          note: tx.memo || ''
+        });
+      }
+    });
+    // 2) 퇴실만 있는 손님 보강 (outNights로 입실 역산)
+    txs.forEach(function(tx){
+      if (String(tx.targetId) !== String(roomId)) return;
+      if (tx.type && tx.type !== 'income' && tx.type !== '수입') return;
+      if (tx.status === 'cancelled') return;
+      if (!tx.date) return;
       var outN = parseInt(tx.outNights != null && tx.outNights !== '' ? tx.outNights : tx.nights, 10);
-      var inN  = parseInt(tx.inNights, 10); // 새로 들어오는 손님 박수
-
-      var co = new Date(cleanDate);
-      var ci = new Date(cleanDate);
-      if (outN > 0) ci.setDate(ci.getDate() - outN);
-
-      stays.push({
-        checkIn: dateStr(ci),
-        checkOut: dateStr(co),
-        nights: outN > 0 ? outN : '',
-        guests: (tx.outGuests != null && tx.outGuests !== '') ? tx.outGuests : (tx.guests || ''),
-        outTime: tx.outTime || tx.checkoutTime || '',
-        // 입실 손님 정보(다음 손님)
-        inNights: inN > 0 ? inN : '',
-        inGuests: tx.inGuests || '',
-        inTime: tx.inTime || tx.checkinTime || '',
-        supplies: tx.inSupplies || '',
-        note: tx.memo || ''
-      });
+      if (outN > 0){
+        var ci = new Date(tx.date); ci.setDate(ci.getDate() - outN);
+        var key = dateStr(ci);
+        if (seen[key]) return; // 이미 입실 기준으로 잡힌 손님
+        seen[key] = 1;
+        stays.push({
+          checkIn: dateStr(ci),
+          checkOut: dateStr(new Date(tx.date)),
+          nights: outN,
+          guests: (tx.outGuests != null && tx.outGuests !== '') ? tx.outGuests : (tx.guests || ''),
+          inTime: '',
+          supplies: '',
+          note: ''
+        });
+      }
     });
     // 날짜 흐름순 (과거→미래) — 입실일 기준
     stays.sort(function(a,b){ return (a.checkIn||'').localeCompare(b.checkIn||''); });
@@ -290,7 +308,7 @@ body{display:flex;justify-content:center}
             var nightTxt = s.nights ? ' · ' + s.nights + '박' : '';
             html += '<div class="flowstay">' +
               '<div class="flowline in">🟦 입실 <b>' + fmtMD(s.checkIn) + '</b>' + (s.inTime ? ' <span class="ftime">'+esc(s.inTime)+'</span>' : '') + nightTxt + guestTxt + '</div>' +
-              '<div class="flowline out">🟧 퇴실 <b>' + fmtMD(s.checkOut) + '</b>' + (s.outTime ? ' <span class="ftime">'+esc(s.outTime)+'</span>' : '') + '</div>';
+              '<div class="flowline out">🟧 퇴실 <b>' + fmtMD(s.checkOut) + '</b></div>';
             if (s.supplies){
               html += '<div class="flowsupplies">🛒 준비물: ' + esc(s.supplies) + '</div>';
             }
