@@ -682,7 +682,7 @@ input,select,textarea{min-height:44px}
   function renderSchedule(){
     $('#scheduleMonthTitle').textContent=monthText(scheduleMonth);const [y,m]=scheduleMonth.split('-').map(Number),first=new Date(y,m-1,1),start=new Date(y,m-1,1-first.getDay());let html='';
     for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;const items=branchFilter(state.transactions).filter(t=>t.date===ds&&t.status!=='cancelled');const inc=sum(items,'income'),exp=sum(items,'expense');html+=`<button class="day ${d.getMonth()!==m-1?'other':''} ${ds===today()?'today':''} ${ds===selectedDate?'selected':''}" data-date="${ds}"><div class="daynum">${d.getDate()}</div><div class="dotwrap">${inc?'<i class="dot"></i>':''}${exp?'<i class="dot exp"></i>':''}</div>${inc?`<div class="daymoney">${short(inc)}</div>`:''}</button>`}
-    $('#calendarDays').innerHTML=html;$('#selectedDateTitle').textContent=dateText(selectedDate);const list=branchFilter(state.transactions).filter(t=>t.date===selectedDate&&t.status!=='cancelled').sort((a,b)=>a.type.localeCompare(b.type));$('#selectedDateList').innerHTML=list.length?list.map(txHTML).join(''):empty('📭','이 날짜에는 등록된 내역이 없어요');
+    $('#calendarDays').innerHTML=html;$('#selectedDateTitle').textContent=dateText(selectedDate);const list=branchFilter(state.transactions).filter(t=>t.date===selectedDate&&t.status!=='cancelled').sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));$('#selectedDateList').innerHTML=list.length?list.map((t,idx)=>`<div style="display:flex;align-items:stretch;gap:6px;margin-bottom:8px;"><div style="display:flex;flex-direction:column;justify-content:center;gap:3px;"><button data-tx-up="${t.id}" ${idx===0?'disabled':''} style="border:0;background:#F1EEE8;border-radius:7px;width:30px;height:26px;font-size:12px;color:#2F6FAF;${idx===0?'opacity:.3;':''}">▲</button><button data-tx-down="${t.id}" ${idx===list.length-1?'disabled':''} style="border:0;background:#F1EEE8;border-radius:7px;width:30px;height:26px;font-size:12px;color:#2F6FAF;${idx===list.length-1?'opacity:.3;':''}">▼</button></div><div style="flex:1;min-width:0;">${txHTML(t)}</div></div>`).join('')+'<div style="text-align:center;font-size:11px;color:var(--muted);">💡 ▲▼로 청소 순서를 바꿀 수 있어요</div>':empty('📭','이 날짜에는 등록된 내역이 없어요');
   }
 
   // 객실 현황판 — 객실별 예약·청소·준비상태 요약
@@ -958,8 +958,8 @@ input,select,textarea{min-height:44px}
   function rankHTML(map,red,msg){const arr=Object.entries(map).sort((a,b)=>b[1]-a[1]);if(!arr.length)return empty('📊',msg);const max=arr[0][1]||1;return arr.slice(0,6).map(([name,val],i)=>`<div class="rankrow"><div class="ranktop"><b>${i+1}. ${esc(name)}</b><span>${money(val)}</span></div><div class="bar ${red?'red':''}"><span style="width:${val/max*100}%"></span></div></div>`).join('')}
 
   function renderManage(){
-    const rooms=branchFilter(state.rooms),staff=branchFilter(state.staff);$('#roomList').innerHTML=rooms.length?rooms.map(r=>`<div class="entity" data-room-card="${r.id}"><div class="entityico">🏠</div><div class="entitymain"><b>${esc(r.name)}</b><small>${r.branch}${r.hostName?' · 호스트 '+esc(r.hostName):''} · 기본 ${money(r.price)}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join('')+'<div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px;">💡 객실을 길게 누르면 삭제할 수 있어요</div>':empty('🏠','등록된 객실이 없어요');
-    $('#staffList').innerHTML=staff.length?staff.map(s=>`<div class="entity"><div class="entityico">👤</div><div class="entitymain"><b>${esc(s.name)}</b><small>${s.branch} · ${s.payType} ${money(s.rate)}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join(''):empty('👥','등록된 직원이 없어요');
+    const rooms=branchFilter(state.rooms).slice().sort((a,b)=>(a.order??9999)-(b.order??9999)),staff=branchFilter(state.staff);$('#roomList').innerHTML=rooms.length?rooms.map((r,idx)=>`<div class="entity" data-room-card="${r.id}"><div class="entityico">🏠</div><div class="entitymain"><b>${esc(r.name)}</b><small>${r.branch}${r.hostName?' · 호스트 '+esc(r.hostName):''} · 기본 ${money(r.price)}</small></div><div style="display:flex;flex-direction:column;gap:2px;margin-right:4px;"><button class="ordbtn" data-room-up="${r.id}" ${idx===0?'disabled':''} style="border:0;background:#F1EEE8;border-radius:7px;width:30px;height:22px;font-size:12px;color:#2F6FAF;${idx===0?'opacity:.3;':''}">▲</button><button class="ordbtn" data-room-down="${r.id}" ${idx===rooms.length-1?'disabled':''} style="border:0;background:#F1EEE8;border-radius:7px;width:30px;height:22px;font-size:12px;color:#2F6FAF;${idx===rooms.length-1?'opacity:.3;':''}">▼</button></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join('')+'<div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px;">💡 ▲▼로 순서변경 · 길게 누르면 삭제</div>':empty('🏠','등록된 객실이 없어요');
+    $('#staffList').innerHTML=staff.length?staff.map(s=>`<div class="entity" data-staff-card="${s.id}"><div class="entityico">👤</div><div class="entitymain"><b>${esc(s.name)}</b><small>${s.branch} · ${s.payType} ${money(s.rate)}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join('')+'<div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px;">💡 직원을 길게 누르면 삭제할 수 있어요</div>':empty('👥','등록된 직원이 없어요');
     // 비품 목록 (지점 필터, 구입 필요 강조)
     const sup=(state.supplies||[]).filter(x=>state.branch==='전체'||x.branch===state.branch||x.branch==='공용');
     $('#supplyList').innerHTML=sup.length?sup.map(x=>{
@@ -1045,6 +1045,49 @@ input,select,textarea{min-height:44px}
     state.supplies=(state.supplies||[]).filter(s=>s.id!==id);
     save();closeModal('supplyModal');render();toast('삭제했어요');
   }
+  // 직원 삭제 (길게 누르기)
+  function deleteStaff(id){
+    const s=state.staff.find(x=>x.id===id);
+    if(!s)return;
+    const txCount=state.transactions.filter(t=>t.targetId===id).length;
+    let msg='"'+s.name+'" 직원을 삭제할까요?';
+    if(txCount>0) msg+='\n\n⚠️ 이 직원의 기록 '+txCount+'건도 함께 삭제돼요.';
+    if(!confirm(msg))return;
+    state.staff=state.staff.filter(x=>x.id!==id);
+    state.transactions=state.transactions.filter(t=>t.targetId!==id);
+    save();render();toast('🗑️ "'+s.name+'" 삭제됐어요');
+  }
+  // 객실 순서 이동 (▲▼)
+  function moveRoom(id, dir){
+    // 현재 보이는(지점 필터된) 순서 기준으로 재배치
+    const visible=branchFilter(state.rooms).slice().sort((a,b)=>(a.order??9999)-(b.order??9999));
+    const i=visible.findIndex(r=>r.id===id);
+    if(i<0)return;
+    const j=dir==='up'?i-1:i+1;
+    if(j<0||j>=visible.length)return;
+    // 두 객실의 order를 서로 바꿈
+    const a=visible[i], b=visible[j];
+    const ao=a.order??i, bo=b.order??j;
+    // 전체 rooms에서 해당 객체 찾아 order 부여
+    state.rooms.forEach((r,idx)=>{ if(r.order==null) r.order=idx; });
+    const ra=state.rooms.find(r=>r.id===a.id), rb=state.rooms.find(r=>r.id===b.id);
+    const tmp=ra.order; ra.order=rb.order; rb.order=tmp;
+    save();render();
+  }
+  // 청소(거래) 순서 이동 (▲▼) — 같은 날짜 안에서
+  function moveTx(id, dir){
+    const t=state.transactions.find(x=>x.id===id); if(!t)return;
+    const sameDay=branchFilter(state.transactions).filter(x=>x.date===t.date&&x.status!=='cancelled')
+      .sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
+    const i=sameDay.findIndex(x=>x.id===id);
+    const j=dir==='up'?i-1:i+1;
+    if(j<0||j>=sameDay.length)return;
+    sameDay.forEach((x,idx)=>{ const o=state.transactions.find(tt=>tt.id===x.id); if(o)o.dayOrder=idx; });
+    const a=state.transactions.find(tt=>tt.id===sameDay[i].id);
+    const b=state.transactions.find(tt=>tt.id===sameDay[j].id);
+    const tmp=a.dayOrder; a.dayOrder=b.dayOrder; b.dayOrder=tmp;
+    save();renderSchedule();
+  }
   function openStaff(id=''){const s=state.staff.find(x=>x.id===id);$('#staffEditId').value=id;$('#staffNameInput').value=s?.name||'';$('#staffBranchInput').value=s?.branch||(state.branch==='전체'?'영종점':state.branch);$('#staffPayTypeInput').value=s?.payType||'건당';$('#staffRateInput').value=s?.rate||'';$('#staffTaxInput').value=s?.tax??3.3;openModal('staffModal')}
   function saveStaffForm(){const id=$('#staffEditId').value,name=$('#staffNameInput').value.trim(),branch=$('#staffBranchInput').value,payType=$('#staffPayTypeInput').value,rate=Number($('#staffRateInput').value),tax=Number($('#staffTaxInput').value||0);if(!name||!rate)return toast('이름과 기본 단가를 입력해주세요');const obj={id:id||uid('staff'),name,branch,payType,rate,tax};if(id)state.staff[state.staff.findIndex(x=>x.id===id)]=obj;else state.staff.push(obj);save();closeModal('staffModal');render();toast('직원을 저장했어요')}
 
@@ -1077,12 +1120,18 @@ input,select,textarea{min-height:44px}
   // 객실 길게 누르기 → 삭제 (600ms)
   let _pressTimer=null, _pressTarget=null;
   function startPress(e){
-    const card=e.target.closest('[data-room-card]');
+    const roomCard=e.target.closest('[data-room-card]');
+    const staffCard=e.target.closest('[data-staff-card]');
+    const card=roomCard||staffCard;
     if(!card)return;
     if(e.target.closest('.editbtn'))return; // 수정 버튼은 제외
-    _pressTarget=card.dataset.roomCard;
+    _pressTarget={type:roomCard?'room':'staff', id:roomCard?roomCard.dataset.roomCard:staffCard.dataset.staffCard};
     _pressTimer=setTimeout(function(){
-      if(_pressTarget){ if(navigator.vibrate)navigator.vibrate(50); deleteRoom(_pressTarget); }
+      if(_pressTarget){
+        if(navigator.vibrate)navigator.vibrate(50);
+        if(_pressTarget.type==='room')deleteRoom(_pressTarget.id);
+        else deleteStaff(_pressTarget.id);
+      }
     }, 600);
   }
   function cancelPress(){ if(_pressTimer){clearTimeout(_pressTimer);_pressTimer=null;} _pressTarget=null; }
@@ -1121,6 +1170,10 @@ input,select,textarea{min-height:44px}
     if(b.dataset.settle){settleMode=b.dataset.settle;renderSettlement()}
     if(b.dataset.payGroup){state.transactions.filter(t=>(t.targetId||t.targetName)===b.dataset.payGroup&&!t.paid).forEach(t=>t.paid=true);save();render();toast('정산 완료로 처리했어요')}
     if(b.dataset.editRoom)openRoom(b.dataset.editRoom);if(b.dataset.editStaff)openStaff(b.dataset.editStaff);if(b.dataset.editSupply)openSupply(b.dataset.editSupply);
+    if(b.dataset.roomUp)return moveRoom(b.dataset.roomUp,'up');
+    if(b.dataset.roomDown)return moveRoom(b.dataset.roomDown,'down');
+    if(b.dataset.txUp)return moveTx(b.dataset.txUp,'up');
+    if(b.dataset.txDown)return moveTx(b.dataset.txDown,'down');
     if(b.dataset.report){reportMode=b.dataset.report;renderReportOptions();$('#reportBox').style.display='none';$('#copyReport').style.display='none'}
   });
   $('#txBranchInput').addEventListener('change',updateTxType);$('#txTargetInput').addEventListener('change',()=>{const id=$('#txTargetInput').value,target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===id);if(target)$('#txAmountInput').value=target.price||target.rate||''});
