@@ -684,7 +684,7 @@ input,select,textarea{min-height:44px}
   function renderSchedule(){
     $('#scheduleMonthTitle').textContent=monthText(scheduleMonth);const [y,m]=scheduleMonth.split('-').map(Number),first=new Date(y,m-1,1),start=new Date(y,m-1,1-first.getDay());let html='';
     for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;const items=branchFilter(state.transactions).filter(t=>t.date===ds&&t.status!=='cancelled');const inc=sum(items,'income'),exp=sum(items,'expense');html+=`<button class="day ${d.getMonth()!==m-1?'other':''} ${ds===today()?'today':''} ${ds===selectedDate?'selected':''}" data-date="${ds}"><div class="daynum">${d.getDate()}</div><div class="dotwrap">${inc?'<i class="dot"></i>':''}${exp?'<i class="dot exp"></i>':''}</div>${inc?`<div class="daymoney">${short(inc)}</div>`:''}</button>`}
-    $('#calendarDays').innerHTML=html;$('#selectedDateTitle').textContent=dateText(selectedDate);const list=branchFilter(state.transactions).filter(t=>t.date===selectedDate&&t.status!=='cancelled').sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));$('#selectedDateList').innerHTML=list.length?list.map((t,idx)=>`<div style="display:flex;align-items:stretch;gap:4px;margin-bottom:8px;" class="drag-tx" data-tx-card="${t.id}"><div class="draghandle" data-drag-tx="${t.id}" style="display:flex;align-items:center;cursor:grab;padding:0 4px;color:#B0B0B0;font-size:18px;touch-action:none;">≡</div><div style="flex:1;min-width:0;">${txHTML(t)}</div></div>`).join('')+'<div style="text-align:center;font-size:11px;color:var(--muted);">💡 ≡를 잡고 끌어서 청소 순서를 바꿀 수 있어요</div>':empty('📭','이 날짜에는 등록된 내역이 없어요');
+    $('#calendarDays').innerHTML=html;$('#selectedDateTitle').textContent=dateText(selectedDate);const list=branchFilter(state.transactions).filter(t=>t.date===selectedDate&&t.status!=='cancelled').sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));$('#selectedDateList').innerHTML=list.length?list.map((t,idx)=>`<div class="drag-tx" data-tx-card="${t.id}" style="margin-bottom:8px;touch-action:pan-y;">${txHTML(t)}</div>`).join(''):empty('📭','이 날짜에는 등록된 내역이 없어요');
   }
 
   // 객실 현황판 — 객실별 예약·청소·준비상태 요약
@@ -960,7 +960,7 @@ input,select,textarea{min-height:44px}
   function rankHTML(map,red,msg){const arr=Object.entries(map).sort((a,b)=>b[1]-a[1]);if(!arr.length)return empty('📊',msg);const max=arr[0][1]||1;return arr.slice(0,6).map(([name,val],i)=>`<div class="rankrow"><div class="ranktop"><b>${i+1}. ${esc(name)}</b><span>${money(val)}</span></div><div class="bar ${red?'red':''}"><span style="width:${val/max*100}%"></span></div></div>`).join('')}
 
   function renderManage(){
-    const rooms=branchFilter(state.rooms).slice().sort((a,b)=>(a.order??9999)-(b.order??9999)),staff=branchFilter(state.staff);$('#roomList').innerHTML=rooms.length?rooms.map((r,idx)=>`<div class="entity drag-room" draggable="false" data-room-card="${r.id}"><div class="draghandle" data-drag-room="${r.id}" style="cursor:grab;padding:0 8px 0 2px;color:#B0B0B0;font-size:18px;touch-action:none;">≡</div><div class="entityico">🏠</div><div class="entitymain"><b>${esc(r.name)}</b><small>${r.branch}${r.hostName?' · 호스트 '+esc(r.hostName):''} · 기본 ${money(r.price)}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join('')+'<div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px;">💡 ≡를 길게 잡고 끌어서 순서변경 · 삭제는 수정 화면에서</div>':empty('🏠','등록된 객실이 없어요');
+    const rooms=branchFilter(state.rooms).slice().sort((a,b)=>(a.order??9999)-(b.order??9999)),staff=branchFilter(state.staff);$('#roomList').innerHTML=rooms.length?rooms.map((r,idx)=>`<div class="entity drag-room" data-room-card="${r.id}" style="touch-action:pan-y;"><div class="entityico">🏠</div><div class="entitymain"><b>${esc(r.name)}</b><small>${r.branch}${r.hostName?' · 호스트 '+esc(r.hostName):''} · 기본 ${money(r.price)}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join(''):empty('🏠','등록된 객실이 없어요');
     $('#staffList').innerHTML=staff.length?staff.map(s=>`<div class="entity" data-staff-card="${s.id}"><div class="entityico">👤</div><div class="entitymain"><b>${esc(s.name)}</b><small>${s.branch} · ${s.payType} ${money(s.rate)}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join('')+'<div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px;">💡 직원을 길게 누르면 삭제할 수 있어요</div>':empty('👥','등록된 직원이 없어요');
     // 비품 목록 (지점 필터, 구입 필요 강조)
     const sup=(state.supplies||[]).filter(x=>state.branch==='전체'||x.branch===state.branch||x.branch==='공용');
@@ -1119,20 +1119,33 @@ input,select,textarea{min-height:44px}
     rd.readAsText(file);
   }
 
-  // ≡ 핸들을 잡고 끌어서 순서변경 (객실/청소 공통)
-  let _drag=null;
+  // 카드를 길게 누르면(400ms) 잡혀서 드래그 → 순서변경 (객실/청소 공통)
+  let _drag=null, _dragTimer=null, _dragReady=false, _startY=0;
   function dragStart(e){
-    const handle=e.target.closest('[data-drag-room],[data-drag-tx]');
-    if(!handle)return;
-    e.preventDefault();
-    const isRoom=!!handle.dataset.dragRoom;
-    const card=handle.closest(isRoom?'[data-room-card]':'[data-tx-card]');
+    // 버튼(수정 등)을 누른 경우는 무시
+    if(e.target.closest('button'))return;
+    const roomCard=e.target.closest('[data-room-card]');
+    const txCard=e.target.closest('[data-tx-card]');
+    const card=roomCard||txCard;
     if(!card)return;
-    _drag={ type:isRoom?'room':'tx', el:card, container:card.parentElement };
-    card.style.opacity='0.5';
-    if(navigator.vibrate)navigator.vibrate(30);
+    _startY=(e.touches?e.touches[0].clientY:e.clientY);
+    _dragReady=false;
+    _dragTimer=setTimeout(function(){
+      _dragReady=true;
+      _drag={ type:roomCard?'room':'tx', el:card, container:card.parentElement };
+      card.style.opacity='0.6';
+      card.style.transform='scale(1.02)';
+      card.style.transition='transform .1s';
+      if(navigator.vibrate)navigator.vibrate(40);
+    }, 400);
   }
   function dragMove(e){
+    if(!_dragReady){
+      // 아직 드래그 모드 아님: 살짝만 움직여도 롱프레스 취소 (스크롤로 인정)
+      const y=(e.touches?e.touches[0].clientY:e.clientY);
+      if(Math.abs(y-_startY)>10 && _dragTimer){ clearTimeout(_dragTimer); _dragTimer=null; }
+      return;
+    }
     if(!_drag)return;
     e.preventDefault();
     const y=(e.touches?e.touches[0].clientY:e.clientY);
@@ -1143,15 +1156,12 @@ input,select,textarea{min-height:44px}
       const r=it.getBoundingClientRect();
       if(y < r.top + r.height/2){ _drag.container.insertBefore(_drag.el, it); placed=true; break; }
     }
-    if(!placed){
-      // 맨 끝으로 (안내 문구 div 앞에)
-      const hint=[..._drag.container.children].find(c=>c.tagName==='DIV'&&c.textContent.includes('💡'));
-      if(hint)_drag.container.insertBefore(_drag.el, hint); else _drag.container.appendChild(_drag.el);
-    }
+    if(!placed)_drag.container.appendChild(_drag.el);
   }
   function dragEnd(){
-    if(!_drag)return;
-    _drag.el.style.opacity='';
+    if(_dragTimer){clearTimeout(_dragTimer);_dragTimer=null;}
+    if(!_drag){_dragReady=false;return;}
+    _drag.el.style.opacity=''; _drag.el.style.transform=''; _drag.el.style.transition='';
     const sel=_drag.type==='room'?'[data-room-card]':'[data-tx-card]';
     const ids=[..._drag.container.querySelectorAll(sel)].map(x=>x.dataset.roomCard||x.dataset.txCard);
     if(_drag.type==='room'){
@@ -1159,10 +1169,10 @@ input,select,textarea{min-height:44px}
     }else{
       ids.forEach((id,i)=>{const t=state.transactions.find(x=>x.id===id);if(t)t.dayOrder=i;});
     }
-    _drag=null;
+    _drag=null; _dragReady=false;
     save();
   }
-  document.addEventListener('touchstart',dragStart,{passive:false});
+  document.addEventListener('touchstart',dragStart,{passive:true});
   document.addEventListener('touchmove',dragMove,{passive:false});
   document.addEventListener('touchend',dragEnd);
   document.addEventListener('mousedown',dragStart);
