@@ -92,6 +92,7 @@ input,select,textarea{min-height:44px}
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
       <button class="branchbtn" data-branch="송도점">송도</button>
+      <button class="branchbtn" data-branch="펜트하우스">펜트</button>
     </div>
   </header>
 
@@ -216,6 +217,22 @@ input,select,textarea{min-height:44px}
       <div class="section"><div class="card manageblock"><div class="managehead"><b>👥 직원 관리</b><button class="addmini" data-quick="staff">+ 추가</button></div><div id="staffList"></div></div></div>
       <div class="section"><div class="card manageblock"><div class="managehead"><b>📦 비품 · 소모품</b><button class="addmini" data-quick="supply">+ 추가</button></div><div id="supplyList"></div></div></div>
       <div class="section">
+        <div class="sectitle"><h2>💰 월 고정 관리비 (자동등록)</h2></div>
+        <div class="card formcard">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">매월 1일에 자동으로 수입이 등록돼요. 금액이 바뀌면 여기서 수정하세요.</div>
+          <div class="field"><label>지점</label><select id="mfBranch"><option>펜트하우스</option><option>송도점</option><option>영종점</option></select></div>
+          <div class="field"><label>월 관리비 금액 (원)</label><input type="number" id="mfAmount" placeholder="예: 3000000" /></div>
+          <div class="field"><label>항목 이름</label><input id="mfLabel" placeholder="예: 위탁관리비 (4실 48회 기준)" value="위탁관리비" /></div>
+          <div class="twocol">
+            <div class="field"><label>시작 월</label><input type="month" id="mfStart" /></div>
+            <div class="field"><label>자동등록</label><select id="mfActive"><option value="1">켜기</option><option value="0">끄기</option></select></div>
+          </div>
+          <button class="primary" id="mfSave">저장</button>
+          <div id="mfStatus" style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center;"></div>
+        </div>
+      </div>
+
+      <div class="section">
         <div class="sectitle"><h2>정산 보고서</h2></div>
         <div class="card formcard">
           <div class="segment" id="reportSegment"><button class="segbtn active" data-report="room">객실 정산</button><button class="segbtn" data-report="staff">직원 지급</button></div>
@@ -258,7 +275,7 @@ input,select,textarea{min-height:44px}
     <div class="sheethead"><h3 id="txModalTitle">기록 추가</h3><button class="close" data-close="txModal">×</button></div>
     <input type="hidden" id="txEditId" />
     <div class="typegrid"><button class="typebtn active income" data-type="income">🧹 청소 수입</button><button class="typebtn expense" data-type="expense">👤 직원 지출</button></div>
-    <div class="twocol"><div class="field"><label>날짜</label><input type="date" id="txDateInput" /></div><div class="field"><label>지점</label><select id="txBranchInput"><option>영종점</option><option>송도점</option></select></div></div>
+    <div class="twocol"><div class="field"><label>날짜</label><input type="date" id="txDateInput" /></div><div class="field"><label>지점</label><select id="txBranchInput"><option>영종점</option><option>송도점</option><option>펜트하우스</option></select></div></div>
     <div class="field"><label id="txTargetLabel">객실</label><select id="txTargetInput"></select></div>
     <div class="twocol"><div class="field"><label>금액</label><input type="number" id="txAmountInput" inputmode="numeric" placeholder="0" /></div><div class="field"><label>상태</label><select id="txStatusInput"><option value="booked">예약</option><option value="done">청소완료</option><option value="cancelled">취소</option></select></div></div>
     <div class="field"><label>귀속월</label><input type="month" id="txBillingInput" /></div>
@@ -301,7 +318,7 @@ input,select,textarea{min-height:44px}
     <input type="hidden" id="roomEditId" />
     <div class="field"><label>객실명</label><input id="roomNameInput" placeholder="예: 한라웨스턴파크 1807호" /></div>
     <div class="field"><label>담당 호스트명 <span style="color:var(--muted);font-weight:400;">(호스트 현황판 제목)</span></label><input id="roomHostInput" placeholder="예: 김민수 사장님" /></div>
-    <div class="twocol"><div class="field"><label>지점</label><select id="roomBranchInput"><option>영종점</option><option>송도점</option></select></div><div class="field"><label>기본 청소비</label><input type="number" id="roomPriceInput" placeholder="28000" /></div></div>
+    <div class="twocol"><div class="field"><label>지점</label><select id="roomBranchInput"><option>영종점</option><option>송도점</option><option>펜트하우스</option></select></div><div class="field"><label>기본 청소비</label><input type="number" id="roomPriceInput" placeholder="28000" /></div></div>
     <div class="twocol"><div class="field"><label>세금률 %</label><input type="number" step="0.1" id="roomTaxInput" placeholder="0" /></div><div class="field"><label>기본 인원</label><input type="number" id="roomBaseGuests" placeholder="예: 4" /></div></div>
     <div class="twocol"><div class="field"><label>도어락 비번</label><input id="roomDoorPw" placeholder="예: 37098877*" /></div><div class="field"><label>비품함 비번</label><input id="roomSupplyPw" placeholder="예: 998" /></div></div>
     <div style="font-size:11px;color:var(--muted);margin:-4px 0 8px;">💡 기본 인원보다 많으면 체크인 준비에 '추가 셋팅 필요'로 표시돼요</div>
@@ -334,7 +351,7 @@ input,select,textarea{min-height:44px}
     <div class="grab"></div><div class="sheethead"><h3>직원 등록</h3><button class="close" data-close="staffModal">×</button></div>
     <input type="hidden" id="staffEditId" />
     <div class="field"><label>이름</label><input id="staffNameInput" placeholder="예: 김실장" /></div>
-    <div class="twocol"><div class="field"><label>지점</label><select id="staffBranchInput"><option>영종점</option><option>송도점</option></select></div><div class="field"><label>급여 방식</label><select id="staffPayTypeInput"><option>건당</option><option>시간</option><option>당일</option><option>월급</option></select></div></div>
+    <div class="twocol"><div class="field"><label>지점</label><select id="staffBranchInput"><option>영종점</option><option>송도점</option><option>펜트하우스</option></select></div><div class="field"><label>급여 방식</label><select id="staffPayTypeInput"><option>건당</option><option>시간</option><option>당일</option><option>월급</option></select></div></div>
     <div class="twocol"><div class="field"><label>기본 단가</label><input type="number" id="staffRateInput" placeholder="17000" /></div><div class="field"><label>세금률 %</label><input type="number" step="0.1" id="staffTaxInput" placeholder="3.3" /></div></div>
     <button class="primary" id="saveStaff">저장</button>
     <button class="secondary danger" id="deleteStaffBtn" style="margin-top:8px;display:none;">🗑️ 이 직원 삭제</button>
@@ -346,7 +363,7 @@ input,select,textarea{min-height:44px}
     <div class="grab"></div><div class="sheethead"><h3>비품 · 소모품</h3><button class="close" data-close="supplyModal">×</button></div>
     <input type="hidden" id="supplyEditId" />
     <div class="field"><label>품목명</label><input id="supplyNameInput" placeholder="예: 수건, 토퍼, 휴지" /></div>
-    <div class="twocol"><div class="field"><label>지점</label><select id="supplyBranchInput"><option>영종점</option><option>송도점</option><option>공용</option></select></div><div class="field"><label>현재 수량</label><input type="number" id="supplyQtyInput" placeholder="예: 20" /></div></div>
+    <div class="twocol"><div class="field"><label>지점</label><select id="supplyBranchInput"><option>영종점</option><option>송도점</option><option>펜트하우스</option><option>공용</option></select></div><div class="field"><label>현재 수량</label><input type="number" id="supplyQtyInput" placeholder="예: 20" /></div></div>
     <div class="field"><label>최소 보유 수량 <span style="color:var(--muted);font-weight:400;">(이하면 구입 알림)</span></label><input type="number" id="supplyMinInput" placeholder="예: 10" /></div>
     <div class="field"><label>메모</label><input id="supplyMemoInput" placeholder="예: ○○마트에서 구입, 단가 3000원" /></div>
     <div class="field"><label>영수증 사진 (선택)</label><input type="file" id="supplyReceiptInput" accept="image/*" capture="environment" style="font-size:12px;" /></div>
@@ -692,11 +709,11 @@ input,select,textarea{min-height:44px}
     $('#boardMonthTitle').textContent=monthText(boardMonth);
     const rooms=branchFilter(state.rooms);
     if(!rooms.length){$('#boardList').innerHTML=`<div class="card">${empty('🏠','등록된 객실이 없어요')}</div>`;return;}
-    const branches=state.branch==='전체'?['영종점','송도점']:[state.branch];
+    const branches=state.branch==='전체'?['영종점','송도점','펜트하우스']:[state.branch];
     let html='';
     branches.forEach(brName=>{
       const brRooms=rooms.filter(r=>r.branch===brName);if(!brRooms.length)return;
-      if(state.branch==='전체'){const c=brName==='영종점'?'#6CA4D9':'#4FB0A3';html+=`<div style="display:flex;align-items:center;gap:7px;margin:16px 2px 8px;padding-bottom:6px;border-bottom:2px solid ${c};"><b style="font-size:15px;color:${c};">📍 ${brName}</b><small style="color:var(--muted);">${brRooms.length}개 객실</small></div>`;}
+      if(state.branch==='전체'){const c=brName==='영종점'?'#6CA4D9':brName==='펜트하우스'?'#C0556B':'#4FB0A3';html+=`<div style="display:flex;align-items:center;gap:7px;margin:16px 2px 8px;padding-bottom:6px;border-bottom:2px solid ${c};"><b style="font-size:15px;color:${c};">📍 ${brName}</b><small style="color:var(--muted);">${brRooms.length}개 객실</small></div>`;}
       brRooms.forEach(room=>{
         const cleans=state.transactions.filter(t=>t.type==='income'&&t.targetId===room.id&&(t.billingMonth||ym(t.date))===boardMonth&&t.status!=='cancelled');
         const ho=(room.name||'').match(/(\d+호)$/)?(room.name||'').match(/(\d+호)$/)[1]:room.name;
@@ -1090,6 +1107,76 @@ input,select,textarea{min-height:44px}
     const tmp=a.dayOrder; a.dayOrder=b.dayOrder; b.dayOrder=tmp;
     save();renderSchedule();
   }
+  // 💰 월 고정 관리비 (자동등록)
+  const MF_KEY='roommade-월관리비설정';
+  function loadMF(){ try{return JSON.parse(localStorage.getItem(MF_KEY)||'null');}catch(e){return null;} }
+  function saveMF(cfg){ localStorage.setItem(MF_KEY,JSON.stringify(cfg)); }
+
+  // 설정 화면에 현재 값 채우기
+  function fillMFForm(){
+    const cfg=loadMF();
+    if(cfg){
+      if($('#mfBranch'))$('#mfBranch').value=cfg.branch||'펜트하우스';
+      if($('#mfAmount'))$('#mfAmount').value=cfg.amount||'';
+      if($('#mfLabel'))$('#mfLabel').value=cfg.label||'위탁관리비';
+      if($('#mfStart'))$('#mfStart').value=cfg.start||'';
+      if($('#mfActive'))$('#mfActive').value=cfg.active?'1':'0';
+    }
+    updateMFStatus();
+  }
+  function updateMFStatus(){
+    const cfg=loadMF(); const el=$('#mfStatus'); if(!el)return;
+    if(cfg&&cfg.active){ el.textContent='✅ 자동등록 켜짐 ('+cfg.branch+' 매월 '+Number(cfg.amount).toLocaleString()+'원)'; }
+    else if(cfg){ el.textContent='⏸️ 자동등록 꺼짐'; }
+    else { el.textContent='아직 설정 안 됨'; }
+  }
+  function saveMFForm(){
+    const branch=$('#mfBranch').value;
+    const amount=Number($('#mfAmount').value||0);
+    const label=$('#mfLabel').value.trim()||'위탁관리비';
+    const start=$('#mfStart').value;
+    const active=$('#mfActive').value==='1';
+    if(active&&(!amount||!start)){ toast('금액과 시작월을 입력해주세요'); return; }
+    saveMF({branch,amount,label,start,active});
+    const added=applyMonthlyFee();
+    fillMFForm();
+    toast(added>0?('✅ 저장 + '+added+'개월 관리비 자동등록'):'✅ 저장됐어요');
+    render();
+  }
+
+  // 시작월~이번달까지 빠진 달의 관리비를 자동 등록 (중복 방지)
+  function applyMonthlyFee(){
+    const cfg=loadMF();
+    if(!cfg||!cfg.active||!cfg.amount||!cfg.start)return 0;
+    const room=state.rooms.find(r=>r.branch===cfg.branch);
+    const startD=new Date(cfg.start+'-01T00:00:00');
+    const now=new Date();
+    let added=0, d=new Date(startD);
+    while(d<=now){
+      const mKey=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+      // 이미 그 달에 자동 관리비가 있으면 건너뜀
+      const exists=state.transactions.some(t=>t.autoFee===true && (t.billingMonth===mKey||(t.date||'').slice(0,7)===mKey) && t.branch===cfg.branch);
+      if(!exists){
+        const date=mKey+'-01';
+        state.transactions.push({
+          id:'fee_'+cfg.branch+'_'+mKey,
+          date:date, billingMonth:mKey, type:'income',
+          targetId:room?room.id:'', targetName:cfg.label,
+          branch:cfg.branch, amount:cfg.amount,
+          taxRate:0, taxAmount:0, netAmount:cfg.amount,
+          outNights:'',outGuests:'',outTime:'',inNights:'',inGuests:'',inTime:'',inSupplies:'',
+          memo:'월 고정 관리비 (자동등록)',
+          paid:false, status:'done', autoFee:true,
+          createdAt:Date.now()+added
+        });
+        added++;
+      }
+      d.setMonth(d.getMonth()+1);
+    }
+    if(added>0)save();
+    return added;
+  }
+
   function openStaff(id=''){const s=state.staff.find(x=>x.id===id);$('#staffEditId').value=id;$('#staffNameInput').value=s?.name||'';$('#staffBranchInput').value=s?.branch||(state.branch==='전체'?'영종점':state.branch);$('#staffPayTypeInput').value=s?.payType||'건당';$('#staffRateInput').value=s?.rate||'';$('#staffTaxInput').value=s?.tax??3.3;const dsb=$('#deleteStaffBtn');if(dsb)dsb.style.display=id?'block':'none';openModal('staffModal')}
   function saveStaffForm(){const id=$('#staffEditId').value,name=$('#staffNameInput').value.trim(),branch=$('#staffBranchInput').value,payType=$('#staffPayTypeInput').value,rate=Number($('#staffRateInput').value),tax=Number($('#staffTaxInput').value||0);if(!name||!rate)return toast('이름과 기본 단가를 입력해주세요');const obj={id:id||uid('staff'),name,branch,payType,rate,tax};if(id)state.staff[state.staff.findIndex(x=>x.id===id)]=obj;else state.staff.push(obj);save();closeModal('staffModal');render();toast('직원을 저장했어요')}
 
@@ -1213,6 +1300,7 @@ input,select,textarea{min-height:44px}
   $('#txBranchInput').addEventListener('change',updateTxType);$('#txTargetInput').addEventListener('change',()=>{const id=$('#txTargetInput').value,target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===id);if(target)$('#txAmountInput').value=target.price||target.rate||''});
   $('#saveTx').addEventListener('click',saveTxForm);$('#deleteTx').addEventListener('click',deleteTxForm);$('#saveRoom').addEventListener('click',saveRoomForm);$('#saveStaff').addEventListener('click',saveStaffForm);$('#saveSupply').addEventListener('click',saveSupplyForm);$('#deleteSupply').addEventListener('click',deleteSupplyForm);
   {const drb=$('#deleteRoomBtn');if(drb)drb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)deleteRoom(id);});const dsb=$('#deleteStaffBtn');if(dsb)dsb.addEventListener('click',()=>{const id=$('#staffEditId').value;if(id)deleteStaff(id);});}
+  {const mfb=$('#mfSave');if(mfb)mfb.addEventListener('click',saveMFForm);}
   $('#saveSetup').addEventListener('click',saveSetupForm);$('#deleteSetup').addEventListener('click',deleteSetupForm);
   $('#supplyReceiptInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{supplyReceiptData=ev.target.result;$('#supplyReceiptPreview').innerHTML=`<img src="${supplyReceiptData}" style="max-width:100%;border-radius:10px;">`;};r.readAsDataURL(f);});
   const mrv=$('#makeRoomview');if(mrv)mrv.addEventListener('click',makeRoomviewLink);
@@ -1228,7 +1316,10 @@ input,select,textarea{min-height:44px}
   $('#todayBtn').addEventListener('click',()=>{scheduleMonth=currentYM();insightMonth=currentYM();selectedDate=today();setView('home')});
   $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id)}));
 
-  setBranch(state.branch||'전체');$('#reportMonth').value=currentYM();render();
+  setBranch(state.branch||'전체');$('#reportMonth').value=currentYM();
+  applyMonthlyFee();  // 빠진 달 관리비 자동등록
+  fillMFForm();       // 설정 폼에 현재값 표시
+  render();
 })();
 </script>
 </body>
