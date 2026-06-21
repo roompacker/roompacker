@@ -958,7 +958,7 @@ input,select,textarea{min-height:44px}
   function rankHTML(map,red,msg){const arr=Object.entries(map).sort((a,b)=>b[1]-a[1]);if(!arr.length)return empty('📊',msg);const max=arr[0][1]||1;return arr.slice(0,6).map(([name,val],i)=>`<div class="rankrow"><div class="ranktop"><b>${i+1}. ${esc(name)}</b><span>${money(val)}</span></div><div class="bar ${red?'red':''}"><span style="width:${val/max*100}%"></span></div></div>`).join('')}
 
   function renderManage(){
-    const rooms=branchFilter(state.rooms),staff=branchFilter(state.staff);$('#roomList').innerHTML=rooms.length?rooms.map(r=>`<div class="entity"><div class="entityico">🏠</div><div class="entitymain"><b>${esc(r.name)}</b><small>${r.branch}${r.hostName?' · 호스트 '+esc(r.hostName):''} · 기본 ${money(r.price)}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join(''):empty('🏠','등록된 객실이 없어요');
+    const rooms=branchFilter(state.rooms),staff=branchFilter(state.staff);$('#roomList').innerHTML=rooms.length?rooms.map(r=>`<div class="entity" data-room-card="${r.id}"><div class="entityico">🏠</div><div class="entitymain"><b>${esc(r.name)}</b><small>${r.branch}${r.hostName?' · 호스트 '+esc(r.hostName):''} · 기본 ${money(r.price)}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join('')+'<div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px;">💡 객실을 길게 누르면 삭제할 수 있어요</div>':empty('🏠','등록된 객실이 없어요');
     $('#staffList').innerHTML=staff.length?staff.map(s=>`<div class="entity"><div class="entityico">👤</div><div class="entitymain"><b>${esc(s.name)}</b><small>${s.branch} · ${s.payType} ${money(s.rate)}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join(''):empty('👥','등록된 직원이 없어요');
     // 비품 목록 (지점 필터, 구입 필요 강조)
     const sup=(state.supplies||[]).filter(x=>state.branch==='전체'||x.branch===state.branch||x.branch==='공용');
@@ -1000,6 +1000,19 @@ input,select,textarea{min-height:44px}
   }
   function deleteTxForm(){const id=$('#txEditId').value;if(!id)return;if(confirm('이 기록을 삭제할까요?')){state.transactions=state.transactions.filter(x=>x.id!==id);save();closeModal('txModal');render();toast('삭제했어요')}}
   function openRoom(id=''){const r=state.rooms.find(x=>x.id===id);$('#roomEditId').value=id;$('#roomNameInput').value=r?.name||'';$('#roomHostInput').value=r?.hostName||'';$('#roomBranchInput').value=r?.branch||(state.branch==='전체'?'영종점':state.branch);$('#roomPriceInput').value=r?.price||'';$('#roomTaxInput').value=r?.tax||'';$('#roomBaseGuests').value=r?.baseGuests||'';$('#roomExtraSetup').value=r?.extraSetup||'';$('#roomDoorPw').value=r?.doorPw||'';$('#roomSupplyPw').value=r?.supplyPw||'';openModal('roomModal')}
+  // 객실 삭제 (길게 누르기)
+  function deleteRoom(id){
+    const r=state.rooms.find(x=>x.id===id);
+    if(!r)return;
+    const txCount=state.transactions.filter(t=>t.targetId===id).length;
+    let msg='"'+r.name+'" 객실을 삭제할까요?';
+    if(txCount>0) msg+='\n\n⚠️ 이 객실의 기록 '+txCount+'건도 함께 삭제돼요.';
+    msg+='\n\n(삭제 전 백업을 권장해요)';
+    if(!confirm(msg))return;
+    state.rooms=state.rooms.filter(x=>x.id!==id);
+    state.transactions=state.transactions.filter(t=>t.targetId!==id);
+    save();render();toast('🗑️ "'+r.name+'" 삭제됐어요');
+  }
   function saveRoomForm(){const id=$('#roomEditId').value,name=$('#roomNameInput').value.trim(),hostName=$('#roomHostInput').value.trim(),branch=$('#roomBranchInput').value,price=Number($('#roomPriceInput').value),tax=Number($('#roomTaxInput').value||0),baseGuests=Number($('#roomBaseGuests').value||0),extraSetup=$('#roomExtraSetup').value.trim(),doorPw=$('#roomDoorPw').value.trim(),supplyPw=$('#roomSupplyPw').value.trim();if(!name||!price)return toast('객실명과 기본 청소비를 입력해주세요');const prev=state.rooms.find(x=>x.id===id)||{};const obj={...prev,id:id||uid('room'),name,hostName,branch,price,tax,baseGuests,extraSetup,doorPw,supplyPw};if(id)state.rooms[state.rooms.findIndex(x=>x.id===id)]=obj;else state.rooms.push(obj);save();closeModal('roomModal');render();toast('객실을 저장했어요')}
 
   // ── 비품 ──
@@ -1060,6 +1073,24 @@ input,select,textarea{min-height:44px}
     };
     rd.readAsText(file);
   }
+
+  // 객실 길게 누르기 → 삭제 (600ms)
+  let _pressTimer=null, _pressTarget=null;
+  function startPress(e){
+    const card=e.target.closest('[data-room-card]');
+    if(!card)return;
+    if(e.target.closest('.editbtn'))return; // 수정 버튼은 제외
+    _pressTarget=card.dataset.roomCard;
+    _pressTimer=setTimeout(function(){
+      if(_pressTarget){ if(navigator.vibrate)navigator.vibrate(50); deleteRoom(_pressTarget); }
+    }, 600);
+  }
+  function cancelPress(){ if(_pressTimer){clearTimeout(_pressTimer);_pressTimer=null;} _pressTarget=null; }
+  document.addEventListener('touchstart',startPress,{passive:true});
+  document.addEventListener('touchend',cancelPress);
+  document.addEventListener('touchmove',cancelPress);
+  document.addEventListener('mousedown',startPress);
+  document.addEventListener('mouseup',cancelPress);
 
   document.addEventListener('click',e=>{
     const b=e.target.closest('button,[data-edit-tx],[data-settle-toggle],[data-room-month],[data-plan-clean],[data-edit-setup],[data-sched-view]');if(!b)return;
