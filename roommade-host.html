@@ -44,7 +44,7 @@ body{display:flex;justify-content:center}
 .flowline{font-size:13px;margin-bottom:4px;color:var(--ink)}.flowline b{font-weight:800}.flowline.in{color:var(--green)}.flowline.out{color:var(--amber)}
 .ftime{background:#F0EEE9;border-radius:7px;padding:1px 6px;font-size:11px;font-weight:700;color:var(--sub)}
 .flowsupplies{margin-top:6px;background:#FFF3E4;border-radius:10px;padding:8px 11px;font-size:12px;font-weight:700;color:#B5701A;line-height:1.5}
-.flownote{margin-top:5px;background:#F4EFE8;border-radius:10px;padding:7px 11px;font-size:11px;color:var(--sub);line-height:1.5}
+.flownote{margin-top:5px;background:#FDEEF0;border-radius:10px;padding:7px 11px;font-size:11px;color:#C0556B;font-weight:700;line-height:1.5}
 .flowempty{padding:9px 14px;font-size:11px;color:var(--purple);background:#FAFAFA;border-bottom:1px solid var(--line);font-weight:700}
 .loadbox{padding:60px 20px;text-align:center;color:var(--muted)}.loadbox .big{font-size:36px;margin-bottom:12px}
 .calendar{padding:12px}.week,.days{display:grid;grid-template-columns:repeat(7,1fr)}.week div{text-align:center;font-size:10px;color:var(--muted);font-weight:800;padding:5px 0}.days{gap:4px}.day{min-height:50px;background:#FBF8F3;border-radius:13px;padding:5px 2px;position:relative}.day.other{opacity:.28}.day.today{outline:2px solid #B7CFE7}.daynum{font-size:11px;font-weight:800;text-align:center}.dotwrap{display:flex;justify-content:center;gap:3px;margin-top:5px;flex-wrap:wrap}.dot{width:6px;height:6px;border-radius:50%}
@@ -307,13 +307,13 @@ body{display:flex;justify-content:center}
             var guestTxt = s.guests ? ' · ' + esc(s.guests) + '명' : '';
             var nightTxt = s.nights ? ' · ' + s.nights + '박' : '';
             html += '<div class="flowstay">' +
-              '<div class="flowline in">🟦 입실 <b>' + fmtMD(s.checkIn) + '</b>' + (s.inTime ? ' <span class="ftime">'+esc(s.inTime)+'</span>' : '') + nightTxt + guestTxt + '</div>' +
-              '<div class="flowline out">🟧 퇴실 <b>' + fmtMD(s.checkOut) + '</b></div>';
+              '<div class="flowline in">🟦 입실 <b>' + fmtMD(s.checkIn) + '</b>' + (s.inTime ? ' <span class="ftime">'+esc(s.inTime)+'</span>' : '') + nightTxt + guestTxt + '</div>';
             if (s.supplies){
-              html += '<div class="flowsupplies">🛒 준비물: ' + esc(s.supplies) + '</div>';
+              html += '<div class="flowsupplies">🛒 셋팅준비: ' + esc(s.supplies) + '</div>';
             }
+            html += '<div class="flowline out">🟧 퇴실 <b>' + fmtMD(s.checkOut) + '</b></div>';
             if (s.note){
-              html += '<div class="flownote">📝 ' + esc(s.note) + '</div>';
+              html += '<div class="flownote">💰 추가/메모: ' + esc(s.note) + '</div>';
             }
             html += '</div>';
           }
