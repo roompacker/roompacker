@@ -230,6 +230,10 @@ input,select,textarea{min-height:44px}
         <div class="sectitle"><h2>데이터 관리</h2></div>
         <div class="card formcard">
           <button class="secondary" id="cloudUploadBtn" style="margin-bottom:8px;background:#D6EAF8;color:#2471A3;border-color:#AED6F1">☁️ 클라우드에 올리기 (호스트 공유용)</button>
+          <div style="display:flex;gap:6px;margin-bottom:8px;">
+            <input id="cloudRestoreId" placeholder="복구 ID (호스트 링크의 id=뒤 값)" style="flex:1;min-width:0;padding:10px;border:1px solid #AED6F1;border-radius:10px;font-size:12px;" value="6a34e866f5f4af5e290d565e" />
+            <button class="secondary" id="cloudRestoreBtn" style="background:#D5F5E3;color:#1E8449;border-color:#A9DFBF;white-space:nowrap;">복구</button>
+          </div>
           <div class="twocol"><button class="secondary" id="exportBtn">백업 내보내기</button><button class="secondary" id="importBtn">백업 가져오기</button></div>
           <input type="file" id="importFile" accept=".json" hidden />
           <button class="secondary danger" id="resetDemo" style="margin-top:8px">데모 데이터로 초기화</button>
@@ -418,6 +422,19 @@ input,select,textarea{min-height:44px}
         return normalize({version:1,branch,rooms,staff,transactions});
       }
     }catch(e){}
+    // 🛡️ 공유 데이터가 비었으면 → 데모 깔기 전에 '안전백업' 먼저 확인
+    try{
+      const bk=JSON.parse(localStorage.getItem('roommade-안전백업')||'null');
+      if(bk && ((bk.rooms&&bk.rooms.length)||(bk.transactions&&bk.transactions.length))){
+        // 안전백업을 공유키에 되돌려놓고 사용
+        localStorage.setItem(LEGACY.rooms,JSON.stringify(bk.rooms||[]));
+        localStorage.setItem(LEGACY.staff,JSON.stringify(bk.staff||[]));
+        localStorage.setItem(LEGACY.tx,JSON.stringify(bk.transactions||[]));
+        localStorage.setItem(LEGACY.branch,bk.branch||'전체');
+        setTimeout(function(){ try{ alert('⚠️ 데이터가 비어있어 자동 백업본으로 복구했어요.\n('+(bk.savedAt||'').slice(0,16).replace("T"," ")+' 저장본)'); }catch(e){} }, 500);
+        return normalize({version:1,branch:bk.branch||'전체',rooms:bk.rooms||[],staff:bk.staff||[],transactions:bk.transactions||[]});
+      }
+    }catch(e){}
     // 데이터 없으면 데모
     return demoState();
   }
@@ -439,11 +456,29 @@ input,select,textarea{min-height:44px}
       localStorage.setItem('roommade-supplies',JSON.stringify(state.supplies||[]));
       // 검증
       if(!localStorage.getItem(LEGACY.tx)){toast('⚠️ 저장 실패 - GitHub Pages 주소로 열어주세요');return false;}
+      // 🛡️ 안전 백업: 별도 키에 통째로 한 벌 더 저장 (공유키가 비워져도 복구 가능)
+      try{
+        localStorage.setItem('roommade-안전백업', JSON.stringify({
+          savedAt:new Date().toISOString(),
+          rooms:state.rooms, staff:state.staff, transactions:state.transactions, branch:state.branch
+        }));
+      }catch(e){}
+      // ☁️ 자동 클라우드 백업 (5초 모아서 한 번만 — 과도한 호출 방지)
+      scheduleAutoCloud();
       return true;
     }catch(e){
       toast('⚠️ 저장 안 됨: '+e.message+' (브라우저로 열어주세요)');
       return false;
     }
+  }
+  // 자동 클라우드 백업 스케줄러
+  let _autoCloudTimer=null;
+  function scheduleAutoCloud(){
+    if(localStorage.getItem('roommade-자동백업끄기')==='1')return; // 끌 수 있음
+    if(_autoCloudTimer)clearTimeout(_autoCloudTimer);
+    _autoCloudTimer=setTimeout(function(){
+      try{ if(typeof cloudUpload==='function') cloudUpload(true); }catch(e){}
+    }, 5000);
   }
   function toast(msg){$('.toast')?.remove();const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.append(el);setTimeout(()=>el.remove(),1900)}
   function branchFilter(arr){return state.branch==='전체'?arr:arr.filter(x=>x.branch===state.branch)}
@@ -730,6 +765,43 @@ input,select,textarea{min-height:44px}
     }
     if(!silent) toast('☁️ 클라우드 업로드 완료');
     return localStorage.getItem(CLOUD.BIN_KEY);
+  }
+
+  // ☁️ 클라우드에서 데이터 복구 (호스트 링크 ID로 되살리기)
+  async function cloudRestore(binId){
+    binId=(binId||'').trim();
+    if(!binId){ toast('복구할 ID를 입력해주세요'); return; }
+    try{
+      toast('⏳ 클라우드에서 불러오는 중...');
+      const res=await fetch('https://api.jsonbin.io/v3/b/'+binId+'/latest',{
+        headers:{'X-Master-Key':CLOUD.MASTER_KEY}
+      });
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const json=await res.json();
+      const d=json.record||json;
+      const rooms=d.rooms||[];
+      const staff=d.staff||[];
+      const transactions=d.transactions||[];
+      if(!rooms.length && !transactions.length){ toast('이 ID에는 데이터가 없어요'); return; }
+      if(!confirm('클라우드에서 객실 '+rooms.length+'개, 기록 '+transactions.length+'건을 찾았어요.\n지금 데이터에 합칠까요?\n(같은 기록은 덮어쓰고, 새 기록은 추가돼요)')) return;
+
+      // 기존 데이터와 병합 (id 기준, 클라우드 우선)
+      const roomMap={}; (state.rooms||[]).forEach(r=>roomMap[r.id]=r); rooms.forEach(r=>roomMap[r.id]=r);
+      const staffMap={}; (state.staff||[]).forEach(s=>staffMap[s.id]=s); staff.forEach(s=>staffMap[s.id]=s);
+      const txMap={}; (state.transactions||[]).forEach(t=>txMap[t.id]=t); transactions.forEach(t=>txMap[t.id]=t);
+
+      state=normalize({
+        branch: d.branch||state.branch||'전체',
+        rooms: Object.values(roomMap),
+        staff: Object.values(staffMap),
+        transactions: Object.values(txMap)
+      });
+      save(); setBranch(state.branch); render();
+      toast('✅ 복구 완료! 객실 '+Object.keys(roomMap).length+'개');
+    }catch(e){
+      console.error(e);
+      toast('❌ 복구 실패: '+e.message);
+    }
   }
 
   // 선택 객실로 호스트 링크 만들기 (클라우드 방식 → 아이폰 OK)
@@ -1032,6 +1104,7 @@ input,select,textarea{min-height:44px}
     if(names.length===1)$('#rvHostName').value=names[0];
   });$('#makeReport').addEventListener('click',makeReport);$('#copyReport').addEventListener('click',copyReport);$('#exportBtn').addEventListener('click',exportData);$('#importBtn').addEventListener('click',()=>$('#importFile').click());$('#importFile').addEventListener('change',e=>e.target.files[0]&&importData(e.target.files[0]));
   const cub=$('#cloudUploadBtn');if(cub)cub.addEventListener('click',async()=>{const p=cub.textContent;cub.disabled=true;cub.textContent='⏳ 올리는 중...';try{await cloudUpload(false);}catch(e){toast('❌ 업로드 실패 - 인터넷 확인');}finally{cub.disabled=false;cub.textContent=p;}});
+  const crb=$('#cloudRestoreBtn');if(crb)crb.addEventListener('click',()=>{cloudRestore($('#cloudRestoreId').value);});
   $('#resetDemo').addEventListener('click',()=>{if(confirm('현재 데이터를 데모 데이터로 초기화할까요?')){state=demoState();save();scheduleMonth=currentYM();insightMonth=currentYM();selectedDate=today();setBranch('전체');toast('데모 데이터로 초기화했어요')}});
   $('#todayBtn').addEventListener('click',()=>{scheduleMonth=currentYM();insightMonth=currentYM();selectedDate=today();setView('home')});
   $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id)}));
