@@ -577,7 +577,7 @@ input,select,textarea{min-height:44px}
     const dl=(d.getMonth()+1)+'월 '+d.getDate()+'일('+WD[d.getDay()]+')';
     let setup='';
     // 1) 손님별 직접 입력한 준비물
-    if(p.supplies){ setup+=`<small style="color:#4FB0A3;display:block;">🛒 준비물: ${esc(p.supplies)}</small>`; }
+    if(p.supplies){ setup+=`<small style="color:#4FB0A3;display:block;">🛒 셋팅준비: ${esc(p.supplies)}</small>`; }
     // 2) 인원 초과 시 자동 셋팅
     if(over>0){
       const auto=calcExtraSetup(room.extraSetup||'', over);
@@ -602,7 +602,7 @@ input,select,textarea{min-height:44px}
     if(room.doorPw)L.push('  🔑 도어락: '+room.doorPw);
     if(room.supplyPw)L.push('  📦 비품함: '+room.supplyPw);
     L.push('','🏠 체크인 준비');
-    if(t.inNights){L.push('  '+t.inNights+'박 / '+(t.inGuests||'-')+'명'+(t.inTime?' ('+t.inTime+')':''));if(t.inSupplies)L.push('  🛒 준비물: '+t.inSupplies);}
+    if(t.inNights){L.push('  '+t.inNights+'박 / '+(t.inGuests||'-')+'명'+(t.inTime?' ('+t.inTime+')':''));if(t.inSupplies)L.push('  🛒 셋팅준비: '+t.inSupplies);}
     else L.push('  체크인 예정 없음');
     L.push('','──────────────','룸메이드');
     shareText(L.join('\n'));
@@ -613,7 +613,7 @@ input,select,textarea{min-height:44px}
     L.push('🚪 체크아웃');
     L.push('  '+(t.outNights||t.nights||'-')+'박 / '+(t.outGuests||t.guests||'-')+'명'+(t.outTime?' ('+t.outTime+')':''));
     L.push('','🏠 체크인');
-    if(t.inNights){L.push('  '+t.inNights+'박 / '+(t.inGuests||'-')+'명'+(t.inTime?' ('+t.inTime+')':''));if(t.inSupplies)L.push('  준비물: '+t.inSupplies);}
+    if(t.inNights){L.push('  '+t.inNights+'박 / '+(t.inGuests||'-')+'명'+(t.inTime?' ('+t.inTime+')':''));if(t.inSupplies)L.push('  셋팅준비: '+t.inSupplies);}
     else L.push('  체크인 예정 없음');
     L.push('','──────────────','룸메이드');
     shareText(L.join('\n'));
@@ -635,7 +635,7 @@ input,select,textarea{min-height:44px}
       if(t.outNights||t.nights)out.push((t.outNights||t.nights)+'박');
       if(t.outGuests||t.guests)out.push((t.outGuests||t.guests)+'명');
       if(out.length)detail+=`<small style="color:var(--red);">🚪 체크아웃 ${out.join('/')}</small>`;
-      if(t.inSupplies)detail+=`<small style="color:#4FB0A3;">🏠 준비물: ${esc(t.inSupplies)}</small>`;
+      if(t.inSupplies)detail+=`<small style="color:#4FB0A3;">🛒 셋팅준비: ${esc(t.inSupplies)}</small>`;
       if(t.memo)detail+=`<small style="color:var(--sub);">💰 ${esc(t.memo)}</small>`;
     } else if(t.memo){
       detail+=`<small style="color:var(--sub);">${esc(t.memo)}</small>`;
@@ -840,9 +840,9 @@ input,select,textarea{min-height:44px}
         const ciL=fmtDateK(s.checkIn,WD), coL=fmtDateK(s.checkOut,WD);
         let block=`<div style="padding:12px 0;border-bottom:1px solid var(--line);">`;
         block+=`<div style="font-size:13px;font-weight:800;color:#4FB0A3;margin-bottom:4px;">🟦 입실 ${ciL}${s.inTime?' <span style="background:#F0EEE9;border-radius:6px;padding:1px 6px;font-size:11px;">'+esc(s.inTime)+'</span>':''}${s.nights?' · '+s.nights+'박':''}${s.guests?' · '+s.guests+'명':''}</div>`;
+        if(s.supplies){ block+=`<div style="margin:4px 0 6px;background:#FFF3E4;border-radius:9px;padding:7px 10px;font-size:12px;font-weight:700;color:#B5701A;">🛒 셋팅준비: ${esc(s.supplies)}</div>`; }
         block+=`<div style="font-size:13px;font-weight:800;color:#E5897B;">🟧 퇴실 ${coL}</div>`;
-        if(s.supplies){ block+=`<div style="margin-top:6px;background:#FFF3E4;border-radius:9px;padding:7px 10px;font-size:12px;font-weight:700;color:#B5701A;">🛒 준비물: ${esc(s.supplies)}</div>`; }
-        if(s.memo){ block+=`<div style="margin-top:5px;background:#F4EFE8;border-radius:9px;padding:6px 10px;font-size:11px;color:var(--sub);">📝 ${esc(s.memo)}</div>`; }
+        if(s.memo){ block+=`<div style="margin-top:5px;background:#FDEEF0;border-radius:9px;padding:6px 10px;font-size:11px;color:#C0556B;font-weight:700;">💰 추가/메모: ${esc(s.memo)}</div>`; }
         block+=`</div>`;
         html+=block;
         // 다음 체류와의 공실
