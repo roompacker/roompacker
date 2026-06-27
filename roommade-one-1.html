@@ -991,6 +991,33 @@ input,select,textarea{min-height:44px}
 
   function openModal(id){$('#'+id).classList.add('open')}
   function closeModal(id){$('#'+id).classList.remove('open')}
+  // 🔄 체크아웃 자동 채우기: 선택한 객실의 '직전 체크인'을 찾아 체크아웃 칸에 채움
+  // 거래의 inNights(체크인 N박) → 입실일+N박 = 이 청소일이면, 그 손님이 나가는 것
+  function autoFillCheckout(){
+    if($('#txEditId').value)return; // 수정 중엔 자동채우기 안 함
+    if(txType!=='income')return;
+    const targetId=$('#txTargetInput').value;
+    const date=$('#txDateInput').value;
+    if(!targetId||!date)return;
+    // 이미 체크아웃 칸에 값이 있으면 덮어쓰지 않음
+    if($('#txOutNights').value||$('#txOutGuests').value)return;
+    // 이 객실의 거래 중, '입실일+inNights == 이 청소일' 인 직전 체크인 찾기
+    const cands=state.transactions.filter(t=>t.type==='income'&&t.targetId===targetId&&t.status!=='cancelled'&&t.inNights&&t.date<date);
+    let best=null;
+    cands.forEach(t=>{
+      const n=parseInt(t.inNights,10); if(!n)return;
+      const co=new Date(t.date+'T00:00:00'); co.setDate(co.getDate()+n);
+      const coStr=co.getFullYear()+'-'+String(co.getMonth()+1).padStart(2,'0')+'-'+String(co.getDate()).padStart(2,'0');
+      if(coStr===date){ if(!best||t.date>best.date) best=t; }
+    });
+    if(best){
+      $('#txOutNights').value=best.inNights||'';
+      $('#txOutGuests').value=best.inGuests||'';
+      if(best.inTime&&!$('#txOutTime').value)$('#txOutTime').value=best.inTime;
+      toast('🔄 체크아웃 자동입력 ('+best.inNights+'박·'+(best.inGuests||'?')+'명)');
+    }
+  }
+
   function openTx(type='income',date=today(),editId=''){
     txType=type;$('#txEditId').value=editId;$('#txDateInput').value=date;$('#txBillingInput').value=ym(date);$('#txMemoInput').value='';$('#txPaidInput').checked=false;$('#txStatusInput').value='booked';$('#deleteTx').style.display=editId?'block':'none';
     // 청소 스케줄 필드 초기화
@@ -1297,7 +1324,8 @@ input,select,textarea{min-height:44px}
     if(b.dataset.editRoom)openRoom(b.dataset.editRoom);if(b.dataset.editStaff)openStaff(b.dataset.editStaff);if(b.dataset.editSupply)openSupply(b.dataset.editSupply);
     if(b.dataset.report){reportMode=b.dataset.report;renderReportOptions();$('#reportBox').style.display='none';$('#copyReport').style.display='none'}
   });
-  $('#txBranchInput').addEventListener('change',updateTxType);$('#txTargetInput').addEventListener('change',()=>{const id=$('#txTargetInput').value,target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===id);if(target)$('#txAmountInput').value=target.price||target.rate||''});
+  $('#txBranchInput').addEventListener('change',updateTxType);$('#txTargetInput').addEventListener('change',()=>{const id=$('#txTargetInput').value,target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===id);if(target)$('#txAmountInput').value=target.price||target.rate||'';autoFillCheckout()});
+  $('#txDateInput').addEventListener('change',autoFillCheckout);
   $('#saveTx').addEventListener('click',saveTxForm);$('#deleteTx').addEventListener('click',deleteTxForm);$('#saveRoom').addEventListener('click',saveRoomForm);$('#saveStaff').addEventListener('click',saveStaffForm);$('#saveSupply').addEventListener('click',saveSupplyForm);$('#deleteSupply').addEventListener('click',deleteSupplyForm);
   {const drb=$('#deleteRoomBtn');if(drb)drb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)deleteRoom(id);});const dsb=$('#deleteStaffBtn');if(dsb)dsb.addEventListener('click',()=>{const id=$('#staffEditId').value;if(id)deleteStaff(id);});}
   {const mfb=$('#mfSave');if(mfb)mfb.addEventListener('click',saveMFForm);}
