@@ -175,11 +175,15 @@ body{display:flex;justify-content:center}
     var stays = [];
     var seen = {};
     // 1) 입실 손님 기준
+    var noteByCleanDate = {}; // 청소일(=그날 퇴실) → 메모
+    var suppliesByInDate = {}; // 입실일 → 준비물
     txs.forEach(function(tx){
       if (String(tx.targetId) !== String(roomId)) return;
       if (tx.type && tx.type !== 'income' && tx.type !== '수입') return;
       if (tx.status === 'cancelled') return;
       if (!tx.date) return;
+      // 메모는 '그날 청소(=그날 퇴실)'에 대한 것 → 청소일에 매핑
+      if (tx.memo) noteByCleanDate[dateStr(new Date(tx.date))] = tx.memo;
       var inN = parseInt(tx.inNights, 10);
       if (inN > 0){
         var ci = new Date(tx.date);
@@ -193,7 +197,7 @@ body{display:flex;justify-content:center}
           guests: tx.inGuests || '',
           inTime: tx.inTime || tx.checkinTime || '',
           supplies: tx.inSupplies || '',   // 입실 손님 준비물
-          note: tx.memo || ''
+          note: ''  // 메모는 아래에서 '퇴실일' 기준으로 다시 붙임
         });
       }
     });
@@ -219,6 +223,10 @@ body{display:flex;justify-content:center}
           note: ''
         });
       }
+    });
+    // 메모를 '퇴실일' 기준으로 각 stay에 붙임 (그날 청소=그날 퇴실 메모)
+    stays.forEach(function(s){
+      if (noteByCleanDate[s.checkOut]) s.note = noteByCleanDate[s.checkOut];
     });
     // 날짜 흐름순 (과거→미래) — 입실일 기준
     stays.sort(function(a,b){ return (a.checkIn||'').localeCompare(b.checkIn||''); });
