@@ -887,9 +887,11 @@ input,select,textarea{min-height:44px}
     // 입실 정보가 없는 거래(그냥 퇴실만)도 누락 안 되게: outNights로 입실 역산해 보강
     const stays=[];
     const seen={};
+    const noteByCleanDate={}; // 청소일(=그날 퇴실) → 메모
     state.transactions.forEach(t=>{
       if(t.type!=='income'||t.targetId!==roomId||t.status==='cancelled')return;
       if(!t.date)return;
+      if(t.memo) noteByCleanDate[t.date]=t.memo; // 메모는 청소일에 매핑
       const inN=parseInt(t.inNights||0,10);
       if(inN>0){
         // 이 거래가 만들어내는 '입실 손님'
@@ -903,7 +905,7 @@ input,select,textarea{min-height:44px}
           guests:t.inGuests||'',
           inTime:t.inTime||'',
           supplies:t.inSupplies||'',   // 입실 손님 준비물 → 입실에 붙음
-          memo:t.memo||''
+          memo:''  // 메모는 아래에서 '퇴실일' 기준으로 붙임
         });
       }
     });
@@ -927,6 +929,8 @@ input,select,textarea{min-height:44px}
         });
       }
     });
+    // 메모를 '퇴실일' 기준으로 각 체류에 붙임 (그날 청소=그날 퇴실 메모)
+    stays.forEach(s=>{ if(noteByCleanDate[s.checkOut]) s.memo=noteByCleanDate[s.checkOut]; });
     stays.sort((a,b)=>a.checkIn<b.checkIn?-1:a.checkIn>b.checkIn?1:0);
 
     // 이번 달과 겹치는 체류만
