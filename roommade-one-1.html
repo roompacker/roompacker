@@ -219,9 +219,9 @@ input,select,textarea{min-height:44px}
       <div class="section">
         <div class="sectitle"><h2>💰 월 고정 관리비 (자동등록)</h2></div>
         <div class="card formcard">
-          <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">매월 1일에 자동으로 수입이 등록돼요. 금액이 바뀌면 여기서 수정하세요.</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">펜트하우스 위탁관리비: 50회까지 기본금액, 51회부터 건당 5만원 추가, 350만원 상한. 청소 건수에 따라 매월 자동 계산돼요.</div>
           <div class="field"><label>지점</label><select id="mfBranch"><option>펜트하우스</option><option>송도점</option><option>영종점</option></select></div>
-          <div class="field"><label>월 관리비 금액 (원)</label><input type="number" id="mfAmount" placeholder="예: 3000000" /></div>
+          <div class="field"><label>기본 금액 (50회까지, 원)</label><input type="number" id="mfAmount" placeholder="예: 3200000" /></div>
           <div class="field"><label>항목 이름</label><input id="mfLabel" placeholder="예: 위탁관리비 (4실 48회 기준)" value="위탁관리비" /></div>
           <div class="twocol">
             <div class="field"><label>시작 월</label><input type="month" id="mfStart" /></div>
@@ -1184,29 +1184,47 @@ input,select,textarea{min-height:44px}
     const room=state.rooms.find(r=>r.branch===cfg.branch);
     const startD=new Date(cfg.start+'-01T00:00:00');
     const now=new Date();
-    let added=0, d=new Date(startD);
+    // 펜트하우스 위탁 규칙 설정값 (기본값 + cfg에서 덮어쓰기 가능)
+    const BASE_LIMIT = cfg.baseCount || 50;      // 기본 포함 횟수
+    const BASE_FEE   = cfg.amount   || 3200000;  // 기본 금액(320만)
+    const OVER_FEE   = cfg.overFee  || 50000;    // 초과 1건당(5만)
+    const MAX_FEE    = cfg.maxFee   || 3500000;  // 상한(350만)
+    let added=0, changed=0, d=new Date(startD);
     while(d<=now){
       const mKey=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-      // 이미 그 달에 자동 관리비가 있으면 건너뜀
-      const exists=state.transactions.some(t=>t.autoFee===true && (t.billingMonth===mKey||(t.date||'').slice(0,7)===mKey) && t.branch===cfg.branch);
-      if(!exists){
-        const date=mKey+'-01';
+      // 그달 펜트하우스 '청소 건수' 세기 (자동관리비 자신은 제외, 취소 제외)
+      const cleanCount=state.transactions.filter(t=>
+        t.branch===cfg.branch && t.type==='income' && !t.autoFee &&
+        t.status!=='cancelled' && (t.billingMonth||(t.date||'').slice(0,7))===mKey
+      ).length;
+      // 금액 계산: 50회까지 320만, 51회부터 건당 5만 추가, 350만 상한
+      let fee=BASE_FEE;
+      if(cleanCount>BASE_LIMIT){ fee = BASE_FEE + (cleanCount-BASE_LIMIT)*OVER_FEE; }
+      if(fee>MAX_FEE) fee=MAX_FEE;
+      const overCnt=Math.max(0,cleanCount-BASE_LIMIT);
+      const memo='위탁관리비 ('+cleanCount+'회'+(overCnt>0?(' / 초과 '+overCnt+'건'):'')+(fee>=MAX_FEE&&overCnt>0?' / 상한도달':'')+')';
+      const existing=state.transactions.find(t=>t.autoFee===true && (t.billingMonth===mKey||(t.date||'').slice(0,7)===mKey) && t.branch===cfg.branch);
+      if(!existing){
         state.transactions.push({
           id:'fee_'+cfg.branch+'_'+mKey,
-          date:date, billingMonth:mKey, type:'income',
+          date:mKey+'-01', billingMonth:mKey, type:'income',
           targetId:room?room.id:'', targetName:cfg.label,
-          branch:cfg.branch, amount:cfg.amount,
-          taxRate:0, taxAmount:0, netAmount:cfg.amount,
+          branch:cfg.branch, amount:fee,
+          taxRate:0, taxAmount:0, netAmount:fee,
           outNights:'',outGuests:'',outTime:'',inNights:'',inGuests:'',inTime:'',inSupplies:'',
-          memo:'월 고정 관리비 (자동등록)',
+          memo:memo,
           paid:false, status:'done', autoFee:true,
           createdAt:Date.now()+added
         });
         added++;
+      }else if(existing.amount!==fee && !existing.paid){
+        // 청소건수가 바뀌어 금액이 달라졌으면 갱신 (단, 이미 입금완료면 안 건드림)
+        existing.amount=fee; existing.netAmount=fee; existing.memo=memo;
+        changed++;
       }
       d.setMonth(d.getMonth()+1);
     }
-    if(added>0)save();
+    if(added>0||changed>0)save();
     return added;
   }
 
@@ -1330,7 +1348,7 @@ input,select,textarea{min-height:44px}
     if(b.dataset.editRoom)openRoom(b.dataset.editRoom);if(b.dataset.editStaff)openStaff(b.dataset.editStaff);if(b.dataset.editSupply)openSupply(b.dataset.editSupply);
     if(b.dataset.report){reportMode=b.dataset.report;renderReportOptions();$('#reportBox').style.display='none';$('#copyReport').style.display='none'}
   });
-  $('#txBranchInput').addEventListener('change',updateTxType);$('#txTargetInput').addEventListener('change',()=>{const id=$('#txTargetInput').value,target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===id);if(target)$('#txAmountInput').value=target.price||target.rate||'';autoFillCheckout()});
+  $('#txBranchInput').addEventListener('change',updateTxType);$('#txTargetInput').addEventListener('change',()=>{const id=$('#txTargetInput').value,target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===id);if(target){if(target.branch==='펜트하우스'){$('#txAmountInput').value='0';}else{$('#txAmountInput').value=target.price||target.rate||'';}}autoFillCheckout()});
   $('#txDateInput').addEventListener('change',autoFillCheckout);
   $('#saveTx').addEventListener('click',saveTxForm);$('#deleteTx').addEventListener('click',deleteTxForm);$('#saveRoom').addEventListener('click',saveRoomForm);$('#saveStaff').addEventListener('click',saveStaffForm);$('#saveSupply').addEventListener('click',saveSupplyForm);$('#deleteSupply').addEventListener('click',deleteSupplyForm);
   {const drb=$('#deleteRoomBtn');if(drb)drb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)deleteRoom(id);});const dsb=$('#deleteStaffBtn');if(dsb)dsb.addEventListener('click',()=>{const id=$('#staffEditId').value;if(id)deleteStaff(id);});}
