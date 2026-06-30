@@ -101,7 +101,7 @@ body{display:flex;justify-content:center}
 (function(){
   'use strict';
 
-  var MASTER_KEY = '$2a$10$0j0SQzPJDyCB6qaxU/6tj.Sdun6GDxdyiiJXaP84FcBNxRsOSxAa6';
+  var DB_URL = 'https://roompacker-48249-default-rtdb.asia-southeast1.firebasedatabase.app';
   var DATA = null;
   var allowedRoomIds = null; // 링크로 지정된 객실만 (null이면 전체)
   var calYear = new Date().getFullYear();
@@ -139,15 +139,13 @@ body{display:flex;justify-content:center}
     $('loadingBox').style.display = 'block';
     $('content').style.display = 'none';
 
-    fetch('https://api.jsonbin.io/v3/b/' + binId + '/latest', {
-      headers: { 'X-Master-Key': MASTER_KEY }
-    })
+    fetch(DB_URL + '/shares/' + binId + '.json')
     .then(function(res){
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
     })
     .then(function(json){
-      DATA = json.record || json;
+      DATA = json || {};
       if (!DATA.rooms) DATA.rooms = [];
       if (!DATA.transactions) DATA.transactions = [];
       render();
