@@ -502,14 +502,11 @@ input,select,textarea{min-height:44px}
       return false;
     }
   }
-  // 자동 클라우드 백업 스케줄러
+  // 자동 클라우드 백업 스케줄러 (한도 절약 위해 기본 꺼짐)
+  // 로컬 '안전백업'은 계속 작동하므로 데이터는 안전. 클라우드는 호스트 공유 버튼 누를 때만 호출.
   let _autoCloudTimer=null;
   function scheduleAutoCloud(){
-    if(localStorage.getItem('roommade-자동백업끄기')==='1')return; // 끌 수 있음
-    if(_autoCloudTimer)clearTimeout(_autoCloudTimer);
-    _autoCloudTimer=setTimeout(function(){
-      try{ if(typeof cloudUpload==='function') cloudUpload(true); }catch(e){}
-    }, 5000);
+    return; // 자동 클라우드 업로드 비활성화 (무료 플랜 요청 한도 절약)
   }
   function toast(msg){$('.toast')?.remove();const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.append(el);setTimeout(()=>el.remove(),1900)}
   function branchFilter(arr){return state.branch==='전체'?arr:arr.filter(x=>x.branch===state.branch)}
