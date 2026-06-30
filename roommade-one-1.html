@@ -1042,7 +1042,7 @@ input,select,textarea{min-height:44px}
   }
   function saveTxForm(){
     const id=$('#txEditId').value,date=$('#txDateInput').value,branch=$('#txBranchInput').value,targetId=$('#txTargetInput').value,amount=Number($('#txAmountInput').value),memo=$('#txMemoInput').value.trim(),billingMonth=$('#txBillingInput').value||ym(date),paid=$('#txPaidInput').checked,status=$('#txStatusInput').value;
-    if(!date||!targetId||!amount)return toast('날짜, 대상, 금액을 확인해주세요');const target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===targetId);if(!target)return toast('대상을 찾을 수 없어요');const taxRate=Number(target.tax||0),taxAmount=Math.round(amount*taxRate/100);
+    if(!date||!targetId)return toast('날짜와 대상을 확인해주세요');const target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===targetId);if(!target)return toast('대상을 찾을 수 없어요');const taxRate=Number(target.tax||0),taxAmount=Math.round(amount*taxRate/100);
     const sched = txType==='income' ? {
       outNights:$('#txOutNights').value.trim(), outGuests:$('#txOutGuests').value.trim(), outTime:$('#txOutTime').value,
       inNights:$('#txInNights').value.trim(), inGuests:$('#txInGuests').value.trim(), inTime:$('#txInTime').value, inSupplies:$('#txInSupplies').value.trim()
