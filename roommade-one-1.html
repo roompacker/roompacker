@@ -755,7 +755,7 @@ input,select,textarea{min-height:44px}
 
   // ☁️ 클라우드 설정
   const CLOUD = {
-    MASTER_KEY: '$2a$10$0j0SQzPJDyCB6qaxU/6tj.Sdun6GDxdyiiJXaP84FcBNxRsOSxAa6',
+    DB_URL: 'https://roompacker-48249-default-rtdb.asia-southeast1.firebasedatabase.app',
     BIN_KEY: '룸메이드-클라우드빈ID',
     HOST_BASE: 'https://roompacker.github.io/roompacker/roommade-host.html'
   };
@@ -772,27 +772,22 @@ input,select,textarea{min-height:44px}
     };
   }
 
-  // 클라우드 업로드 (있으면 갱신, 없으면 새로 만듦)
+  function makeShareId(){
+    return 'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  }
+
+  // 클라우드 업로드 (Firebase Realtime DB)
   async function cloudUpload(silent){
     const data=buildCloudData();
-    const binId=localStorage.getItem(CLOUD.BIN_KEY);
-    let res;
-    if(binId){
-      res=await fetch('https://api.jsonbin.io/v3/b/'+binId,{method:'PUT',
-        headers:{'Content-Type':'application/json','X-Master-Key':CLOUD.MASTER_KEY},
-        body:JSON.stringify(data)});
-    }else{
-      res=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',
-        headers:{'Content-Type':'application/json','X-Master-Key':CLOUD.MASTER_KEY,'X-Bin-Name':'roommade-share','X-Bin-Private':'false'},
-        body:JSON.stringify(data)});
-    }
+    let binId=localStorage.getItem(CLOUD.BIN_KEY);
+    if(!binId){ binId=makeShareId(); }
+    const res=await fetch(CLOUD.DB_URL+'/shares/'+binId+'.json',{method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)});
     if(!res.ok) throw new Error('HTTP '+res.status);
-    const result=await res.json();
-    if(!binId && result.metadata && result.metadata.id){
-      localStorage.setItem(CLOUD.BIN_KEY, result.metadata.id);
-    }
+    localStorage.setItem(CLOUD.BIN_KEY, binId);
     if(!silent) toast('☁️ 클라우드 업로드 완료');
-    return localStorage.getItem(CLOUD.BIN_KEY);
+    return binId;
   }
 
   // ☁️ 클라우드에서 데이터 복구 (호스트 링크 ID로 되살리기)
@@ -801,12 +796,10 @@ input,select,textarea{min-height:44px}
     if(!binId){ toast('복구할 ID를 입력해주세요'); return; }
     try{
       toast('⏳ 클라우드에서 불러오는 중...');
-      const res=await fetch('https://api.jsonbin.io/v3/b/'+binId+'/latest',{
-        headers:{'X-Master-Key':CLOUD.MASTER_KEY}
-      });
+      const res=await fetch(CLOUD.DB_URL+'/shares/'+binId+'.json');
       if(!res.ok) throw new Error('HTTP '+res.status);
-      const json=await res.json();
-      const d=json.record||json;
+      const d=await res.json();
+      if(!d){ toast('이 ID에는 데이터가 없어요'); return; }
       const rooms=d.rooms||[];
       const staff=d.staff||[];
       const transactions=d.transactions||[];
