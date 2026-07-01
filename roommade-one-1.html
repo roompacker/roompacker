@@ -53,12 +53,14 @@ body{display:flex;justify-content:center}
 .manageblock{padding:13px 14px}.managehead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.managehead b{font-size:13px}.addmini{border:0;background:linear-gradient(145deg,var(--navy),var(--navy2));color:white;border-radius:10px;padding:7px 10px;font-size:10px;font-weight:800}.entity{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.entity:first-of-type{border-top:0}.entityico{width:34px;height:34px;border-radius:12px;background:linear-gradient(145deg,var(--sky),#FFF8EF);display:grid;place-items:center;color:var(--navy)}.entitymain{flex:1}.entitymain b{display:block;font-size:12px}.entitymain small{font-size:9px;color:var(--muted)}.editbtn{border:0;background:#F0EEE9;border-radius:9px;padding:6px 8px;font-size:10px;color:var(--sub)}
 .formcard{padding:14px}.field{margin-bottom:11px}.field label{display:block;font-size:10px;color:var(--sub);font-weight:800;margin:0 0 5px 2px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:13px;background:#FCFAF6;padding:12px 13px;color:var(--ink);outline:none}.field textarea{min-height:75px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:#86ADD2;background:white}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:8px}.primary{width:100%;border:0;border-radius:14px;background:linear-gradient(145deg,var(--navy),var(--navy2));color:white;padding:13px;font-size:12px;font-weight:900}.secondary{width:100%;border:1px solid var(--line);border-radius:14px;background:white;color:var(--navy);padding:12px;font-size:11px;font-weight:800}.danger{background:#FDEEEE;color:var(--red);border:0}
 .reportbox{display:none;margin-top:10px;background:#FCFAF6;border-radius:15px;padding:12px;border:1px solid var(--line);font-size:10px;white-space:pre-wrap;line-height:1.65;color:var(--ink)}
-.bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:40;width:100%;max-width:560px;background:rgba(255,255,255,.97);backdrop-filter:blur(16px);border-top:1px solid var(--line);display:flex;padding:7px 3px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -8px 24px rgba(101,112,126,.05)}.navbtn{flex:1;border:0;background:transparent;color:var(--muted);font-size:8px;font-weight:800;padding:4px 1px}.navbtn i{display:grid;place-items:center;width:30px;height:26px;border-radius:11px;margin:0 auto 2px;font-style:normal;font-size:15px}.navbtn.active{color:var(--navy)}.navbtn.active i{background:linear-gradient(145deg,var(--sky),#FFF8EF)}
+.bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:40;width:100%;max-width:560px;background:rgba(255,255,255,.97);backdrop-filter:blur(16px);border-top:1px solid var(--line);display:flex;padding:7px 5px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -8px 24px rgba(101,112,126,.05)}.navbtn{flex:1;border:0;background:transparent;color:var(--muted);font-size:9px;font-weight:800;padding:5px 2px}.navbtn i{display:grid;place-items:center;width:34px;height:28px;border-radius:12px;margin:0 auto 2px;font-style:normal;font-size:16px}.navbtn.active{color:var(--navy)}.navbtn.active i{background:linear-gradient(145deg,var(--sky),#FFF8EF)}
 .fab{position:fixed;right:max(18px,calc((100vw - 560px)/2 + 18px));bottom:86px;z-index:35;width:54px;height:54px;border-radius:19px;border:0;background:linear-gradient(145deg,var(--navy),var(--blue));color:white;font-size:27px;box-shadow:0 12px 25px rgba(47,111,175,.30)}
 .modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(36,49,64,.45);align-items:flex-end;justify-content:center}.modal.open{display:flex}.sheet{width:100%;max-width:560px;max-height:91vh;overflow:auto;background:white;border-radius:28px 28px 0 0;padding:10px 16px calc(20px + env(safe-area-inset-bottom));animation:up .22s ease}.grab{width:38px;height:4px;border-radius:99px;background:#D7D0C6;margin:0 auto 12px}.sheethead{display:flex;align-items:center;margin-bottom:13px}.sheethead h3{flex:1;margin:0;font-size:17px}.close{width:34px;height:34px;border:0;border-radius:11px;background:#F4EFE8;font-size:16px;color:var(--navy)}.typegrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.typebtn{border:1px solid var(--line);border-radius:15px;background:#FCFAF6;padding:12px;font-weight:800;color:var(--sub)}.typebtn.active.income{background:var(--sky);border-color:#BDD2E8;color:var(--green)}.typebtn.active.expense{background:#FDEEEE;border-color:#F4C4C4;color:var(--red)}
 .toast{position:fixed;left:50%;bottom:94px;transform:translateX(-50%);z-index:200;background:linear-gradient(145deg,var(--navy),var(--navy2));color:white;padding:11px 16px;border-radius:99px;font-size:11px;font-weight:700;box-shadow:0 8px 25px rgba(47,111,175,.22);white-space:nowrap;animation:toast .2s ease}
 @keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}@keyframes toast{from{transform:translate(-50%,10px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
 @media(min-width:561px){.app{box-shadow:0 0 40px rgba(101,112,126,.12)}.modal{align-items:center}.sheet{border-radius:28px;max-height:88vh}}
+
+/* Galaxy Chrome · iPhone Safari 공통 모바일 최적화 */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;overscroll-behavior-y:none}
 body{min-height:100dvh;overscroll-behavior-y:none}
 .app{min-height:100dvh;padding-bottom:calc(104px + env(safe-area-inset-bottom))}
@@ -76,62 +78,6 @@ input,select,textarea{min-height:44px}
   .modal{height:100dvh}
   .sheet{max-height:88dvh}
 }
-
-/* ── 세무 탭 전용 스타일 ── */
-.taxhero{position:relative;overflow:hidden;border-radius:22px;background:linear-gradient(135deg,#1B4F8A 0%,#2F6FAF 55%,#5A97D0 100%);padding:18px;color:white;box-shadow:0 14px 30px rgba(27,79,138,.22);margin-bottom:4px;}
-.taxhero:after{content:"";position:absolute;width:150px;height:150px;border-radius:50%;right:-55px;top:-65px;background:rgba(255,255,255,.07)}
-.taxhero .th-label{font-size:11px;font-weight:800;opacity:.78;letter-spacing:.4px}
-.taxhero .th-amount{font-size:29px;font-weight:900;letter-spacing:-1px;margin:5px 0 13px}
-.taxmeta{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:relative;z-index:1}
-.taxstat{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:9px 11px}
-.taxstat small{font-size:10px;opacity:.74}
-.taxstat b{display:block;font-size:13px;margin-top:2px}
-/* 원천징수 직원별 행 */
-.whtrow{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
-.whtrow:last-child{border-bottom:0}
-.whtavatar{width:34px;height:34px;border-radius:12px;background:linear-gradient(145deg,#FFF3E4,#FDEBD0);display:grid;place-items:center;font-size:15px;color:var(--amber);flex-shrink:0}
-.whtinfo{flex:1;min-width:0}
-.whtinfo b{font-size:12px;display:block}
-.whtinfo small{font-size:10px;color:var(--muted)}
-.whtright{text-align:right}
-.whtright b{font-size:13px;color:var(--red);display:block}
-.whtright small{font-size:9px;color:var(--muted)}
-/* 세금계산서 행 */
-.invrow{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer}
-.invrow:last-child{border-bottom:0}
-.invrow:active{background:#F8F5F0}
-.invico{width:36px;height:36px;border-radius:13px;background:linear-gradient(145deg,#EAF3FB,#FFF8EF);display:grid;place-items:center;font-size:16px;flex-shrink:0}
-.invmain{flex:1;min-width:0}
-.invmain b{font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.invmain small{font-size:10px;color:var(--muted);display:block;line-height:1.5}
-.invright{text-align:right;flex-shrink:0}
-.invright b{font-size:13px;display:block}
-.invright small{font-size:10px}
-/* 세무 신고 일정 카드 */
-.taxsched{display:flex;gap:11px;align-items:flex-start;padding:13px 14px;border-bottom:1px solid var(--line)}
-.taxsched:last-child{border-bottom:0}
-.taxschedico{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;font-size:17px;flex-shrink:0}
-.taxschedico.red{background:#FDEEEE}
-.taxschedico.blue{background:var(--sky)}
-.taxschedico.amber{background:#FFF3E4}
-.taxschedtxt{flex:1}
-.taxschedtxt b{font-size:12px;display:block;margin-bottom:3px}
-.taxschedtxt small{font-size:10px;color:var(--sub);line-height:1.6}
-/* 세무 요약 배지 */
-.taxbadge{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:99px;font-size:10px;font-weight:800;margin:3px 2px}
-.taxbadge.issued{background:#EAF3FB;color:var(--navy)}
-.taxbadge.pending{background:#FFF3E4;color:var(--amber)}
-/* 세금계산서 합계 박스 */
-.invtotal{padding:14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
-.invtotal small{font-size:10px;color:var(--muted);font-weight:800}
-.invtotal b{font-size:16px;color:var(--navy)}
-/* 자동계산 필드 */
-.readonly-field{background:#F4EFE8 !important;color:var(--sub) !important}
-/* 세무 tip 박스 */
-.taxtip{background:linear-gradient(135deg,#FFF8EF,#EAF3FB);border:1px solid #D9EAF7;border-radius:16px;padding:13px 14px;margin-bottom:10px;display:flex;gap:10px;align-items:flex-start}
-.taxtip .tipico{font-size:20px;flex-shrink:0;margin-top:1px}
-.taxtip .tiptxt b{font-size:12px;color:var(--navy);display:block;margin-bottom:3px}
-.taxtip .tiptxt small{font-size:10px;color:var(--sub);line-height:1.6}
 </style>
 </head>
 <body>
@@ -151,7 +97,6 @@ input,select,textarea{min-height:44px}
   </header>
 
   <main>
-    <!-- ── 홈 ── -->
     <section class="view active" data-view="home">
       <div class="hero">
         <div class="eyebrow" id="homeMonthLabel">이번 달 예상 순익</div>
@@ -166,6 +111,7 @@ input,select,textarea{min-height:44px}
         <div class="metric red"><span>줄 돈</span><b id="homePayable">0원</b></div>
         <div class="metric amber"><span>마진율</span><b id="homeMargin">0%</b></div>
       </div>
+
       <div class="section">
         <div class="sectitle"><h2>빠른 등록</h2></div>
         <div class="card quickgrid">
@@ -175,26 +121,28 @@ input,select,textarea{min-height:44px}
           <button class="quick" data-quick="staff"><span class="qi">＋</span><span>직원 추가</span></button>
         </div>
       </div>
+
       <div class="section">
         <div class="sectitle"><h2>오늘의 운영</h2><button data-goto="schedule">일정보기</button></div>
         <div class="card" id="todayJobs"></div>
       </div>
+
       <div class="section">
         <div class="sectitle"><h2>🏠 다가올 체크인 준비</h2><button id="addSetupBtn">+ 셋팅 추가</button></div>
         <div class="card" id="checkinPrep"></div>
       </div>
     </section>
 
-    <!-- ── 일정 ── -->
     <section class="view" data-view="schedule">
       <div class="segment" style="margin-bottom:12px;">
         <button class="segbtn active" data-sched-view="calendar">📅 월간 달력</button>
         <button class="segbtn" data-sched-view="board">🏢 객실 현황판</button>
       </div>
+
       <div id="schedCalendarWrap">
         <div class="monthnav">
           <button data-month="-1">‹</button>
-          <div><b id="scheduleMonthTitle">2026년 7월</b><small>청소 일정과 금액을 한눈에</small></div>
+          <div><b id="scheduleMonthTitle">2026년 6월</b><small>청소 일정과 금액을 한눈에</small></div>
           <button data-month="1">›</button>
         </div>
         <div class="card calendar">
@@ -206,10 +154,11 @@ input,select,textarea{min-height:44px}
           <div class="card" id="selectedDateList"></div>
         </div>
       </div>
+
       <div id="schedBoardWrap" style="display:none;">
         <div class="monthnav">
           <button data-board-month="-1">‹</button>
-          <div><b id="boardMonthTitle">2026년 7월</b><small>객실 누르면 그 달 체크인·아웃 전체</small></div>
+          <div><b id="boardMonthTitle">2026년 6월</b><small>객실 누르면 그 달 체크인·아웃 전체</small></div>
           <button data-board-month="1">›</button>
         </div>
         <button id="makeRoomview" style="width:100%;background:var(--navy);color:#fff;border:0;border-radius:14px;padding:13px;font-size:13px;font-weight:800;cursor:pointer;font-family:Pretendard,sans-serif;margin-bottom:14px;">📤 호스트에게 룸뷰 링크 보내기</button>
@@ -227,7 +176,6 @@ input,select,textarea{min-height:44px}
       </div>
     </div>
 
-    <!-- ── 정산 ── -->
     <section class="view" data-view="settlement">
       <div class="segment" id="settleSegment">
         <button class="segbtn active" data-settle="receivable">받을 돈</button>
@@ -246,11 +194,10 @@ input,select,textarea{min-height:44px}
       <div id="settlementGroups"></div>
     </section>
 
-    <!-- ── 분석 ── -->
     <section class="view" data-view="insight">
       <div class="monthnav">
         <button data-insight-month="-1">‹</button>
-        <div><b id="insightMonthTitle">2026년 7월</b><small>사업 흐름과 개선 포인트</small></div>
+        <div><b id="insightMonthTitle">2026년 6월</b><small>사업 흐름과 개선 포인트</small></div>
         <button data-insight-month="1">›</button>
       </div>
       <div class="kpigrid">
@@ -265,7 +212,6 @@ input,select,textarea{min-height:44px}
       <div class="section"><div class="sectitle"><h2>경영 알림</h2></div><div class="card advice" id="businessAdvice"></div></div>
     </section>
 
-    <!-- ── 관리 ── -->
     <section class="view" data-view="manage">
       <div class="section" style="margin-top:0"><div class="card manageblock"><div class="managehead"><b>🏠 객실 관리</b><button class="addmini" data-quick="room">+ 추가</button></div><div id="roomList"></div></div></div>
       <div class="section"><div class="card manageblock"><div class="managehead"><b>👥 직원 관리</b><button class="addmini" data-quick="staff">+ 추가</button></div><div id="staffList"></div></div></div>
@@ -285,6 +231,7 @@ input,select,textarea{min-height:44px}
           <div id="mfStatus" style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center;"></div>
         </div>
       </div>
+
       <div class="section">
         <div class="sectitle"><h2>정산 보고서</h2></div>
         <div class="card formcard">
@@ -310,131 +257,6 @@ input,select,textarea{min-height:44px}
         </div>
       </div>
     </section>
-
-    <!-- ── 세무 (신규) ── -->
-    <section class="view" data-view="tax">
-
-      <!-- 세무 초보 가이드 팁 -->
-      <div class="taxtip">
-        <div class="tipico">💡</div>
-        <div class="tiptxt">
-          <b>세무 탭 사용법</b>
-          <small>
-            직원 지출 등록 시 세율(3.3%) 입력하면 원천징수액이 <b>자동 계산</b>돼요.<br>
-            세금계산서는 홈택스에서 발행 후 이 탭에 내역을 기록해두세요.<br>
-            신고는 반드시 <b>홈택스(hometax.go.kr)</b> 또는 세무사를 통해 하세요.
-          </small>
-        </div>
-      </div>
-
-      <!-- 월 네비게이터 -->
-      <div class="monthnav">
-        <button data-tax-month="-1">‹</button>
-        <div><b id="taxMonthTitle">2026년 7월</b><small>세금 현황 한눈에 보기</small></div>
-        <button data-tax-month="1">›</button>
-      </div>
-
-      <!-- 원천징수 히어로 카드 -->
-      <div class="taxhero">
-        <div class="th-label">📊 이번 달 원천징수(3.3%) 합계</div>
-        <div class="th-amount" id="taxWhtTotal">0원</div>
-        <div class="taxmeta">
-          <div class="taxstat"><small>직원 지급 총액</small><b id="taxPayTotal">0원</b></div>
-          <div class="taxstat"><small>실 지급액 (세금 제외)</small><b id="taxNetPay">0원</b></div>
-        </div>
-      </div>
-
-      <!-- 직원별 원천징수 내역 -->
-      <div class="section">
-        <div class="sectitle"><h2>👥 직원별 원천징수 내역</h2></div>
-        <div class="card" id="taxWhtList"></div>
-      </div>
-
-      <!-- 홈택스 신고 안내 배너 -->
-      <div style="background:linear-gradient(135deg,#FDEEEE,#FFF8EF);border:1px solid #F4C4C4;border-radius:16px;padding:13px 14px;margin-top:10px;display:flex;gap:10px;align-items:center;">
-        <div style="font-size:22px;">📌</div>
-        <div>
-          <b style="font-size:12px;color:var(--red);">원천세 신고·납부 마감: 매월 10일</b><br>
-          <small style="font-size:10px;color:var(--sub);">전달에 직원에게 지급한 금액의 3.3%를 홈택스(hometax.go.kr)에서 신고·납부해요. 신고 안 하면 가산세가 붙어요!</small>
-        </div>
-      </div>
-
-      <!-- 세금계산서 발행 내역 -->
-      <div class="section">
-        <div class="sectitle"><h2>🧾 세금계산서 발행 내역</h2><button id="addInvoiceBtn">+ 추가</button></div>
-        <div class="card" id="invoiceList"></div>
-      </div>
-
-      <!-- 세금계산서 발행 방법 안내 -->
-      <div class="taxtip" style="margin-top:10px;">
-        <div class="tipico">🧾</div>
-        <div class="tiptxt">
-          <b>세금계산서 발행 방법 (홈택스)</b>
-          <small>
-            1. hometax.go.kr 접속 → 로그인<br>
-            2. 상단 메뉴 <b>"조회/발급"</b> 클릭<br>
-            3. <b>"전자세금계산서"</b> → <b>"발급"</b> 클릭<br>
-            4. 상대방 사업자번호·금액 입력 후 발급<br>
-            ※ 호스트가 사업자일 때만 발행해요
-          </small>
-        </div>
-      </div>
-
-      <!-- 세무 신고 일정 안내 -->
-      <div class="section">
-        <div class="sectitle"><h2>📅 세무 신고 일정 안내</h2></div>
-        <div class="card">
-          <div class="taxsched">
-            <div class="taxschedico red">⚠️</div>
-            <div class="taxschedtxt">
-              <b>원천세 신고·납부</b>
-              <small>
-                📅 <b>매월 10일까지</b> (홈택스에서 직접 신고)<br>
-                직원에게 지급한 금액의 3.3%를 나라에 납부해요.<br>
-                이 탭의 "원천징수 합계" 금액을 그대로 납부하면 돼요.
-              </small>
-            </div>
-          </div>
-          <div class="taxsched">
-            <div class="taxschedico blue">📋</div>
-            <div class="taxschedtxt">
-              <b>부가가치세(VAT) 신고</b>
-              <small>
-                📅 <b>1월 25일 / 7월 25일까지</b> (6개월치 한 번에)<br>
-                세금계산서를 발행한 금액의 10%를 신고해요.<br>
-                세금계산서 발행 내역을 이 탭에 기록해두면 편해요.
-              </small>
-            </div>
-          </div>
-          <div class="taxsched">
-            <div class="taxschedico amber">💼</div>
-            <div class="taxschedtxt">
-              <b>종합소득세 신고</b>
-              <small>
-                📅 <b>매년 5월 31일까지</b> (1년치 수입 전체)<br>
-                개인사업자는 1년 동안 번 모든 수입을 신고해요.<br>
-                처음엔 세무사 도움을 받는 것을 강력히 권장해요.
-              </small>
-            </div>
-          </div>
-          <div class="taxsched">
-            <div class="taxschedico blue">📑</div>
-            <div class="taxschedtxt">
-              <b>직원 지급명세서 제출</b>
-              <small>
-                📅 <b>매년 3월 10일까지</b><br>
-                3.3% 원천징수한 직원의 연간 지급 내역을 홈택스에 제출해요.<br>
-                (근로소득 vs 사업소득 구분 중요 → 세무사 확인 권장)
-              </small>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 하단 여백 -->
-      <div style="height:20px;"></div>
-    </section>
-
   </main>
 
   <button class="fab" id="fab">＋</button>
@@ -443,12 +265,10 @@ input,select,textarea{min-height:44px}
     <button class="navbtn" data-nav="schedule"><i>▦</i>일정</button>
     <button class="navbtn" data-nav="settlement"><i>₩</i>정산</button>
     <button class="navbtn" data-nav="insight"><i>↗</i>분석</button>
-    <button class="navbtn" data-nav="tax"><i>📋</i>세무</button>
     <button class="navbtn" data-nav="manage"><i>☰</i>관리</button>
   </nav>
 </div>
 
-<!-- ── 거래 등록 모달 ── -->
 <div class="modal" id="txModal">
   <div class="sheet">
     <div class="grab"></div>
@@ -459,8 +279,11 @@ input,select,textarea{min-height:44px}
     <div class="field"><label id="txTargetLabel">객실</label><select id="txTargetInput"></select></div>
     <div class="twocol"><div class="field"><label>금액</label><input type="number" id="txAmountInput" inputmode="numeric" placeholder="0" /></div><div class="field"><label>상태</label><select id="txStatusInput"><option value="booked">예약</option><option value="done">청소완료</option><option value="cancelled">취소</option></select></div></div>
     <div class="field"><label>귀속월</label><input type="month" id="txBillingInput" /></div>
+
+    <!-- 청소 스케줄 정보 (수입일 때만) -->
     <div id="txScheduleBox" style="border:1px solid var(--line);border-radius:15px;padding:12px;margin-bottom:11px;background:#FCFAF6;">
       <div style="font-size:11px;font-weight:800;color:var(--sub);margin-bottom:9px;">🗓 청소 스케줄 (선택)</div>
+      <!-- 체크아웃 -->
       <div style="background:#FDEEEE;border-radius:12px;padding:10px;margin-bottom:8px;">
         <div style="font-size:10px;font-weight:800;color:var(--red);margin-bottom:7px;">🚪 체크아웃 (나가는 손님)</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;">
@@ -469,6 +292,7 @@ input,select,textarea{min-height:44px}
           <div><label style="font-size:9px;color:var(--sub);font-weight:800;">시간</label><input type="time" id="txOutTime" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;"></div>
         </div>
       </div>
+      <!-- 체크인 -->
       <div style="background:var(--sky);border-radius:12px;padding:10px;">
         <div style="font-size:10px;font-weight:800;color:var(--navy);margin-bottom:3px;">🏠 체크인 (들어오는 손님)</div>
         <div style="font-size:9px;color:var(--muted);margin-bottom:7px;">💡 박수 입력 시 N박 뒤 청소 예정이 자동 등록돼요</div>
@@ -481,13 +305,13 @@ input,select,textarea{min-height:44px}
         <input type="text" id="txInSupplies" placeholder="예: 토퍼1, 수건3세트" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;">
       </div>
     </div>
+
     <div class="field"><label>메모 <span style="color:var(--muted);font-weight:400;">(추가비용 등 — 작업자/호스트에겐 안 보임)</span></label><input type="text" id="txMemoInput" placeholder="예: 쇼파베드 2개(추가 5000원)" /></div>
     <div class="field"><label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="txPaidInput" style="width:18px;height:18px" /> <span id="txPaidText">입금 완료</span></label></div>
     <div class="twocol"><button class="secondary danger" id="deleteTx" style="display:none">삭제</button><button class="primary" id="saveTx">저장</button></div>
   </div>
 </div>
 
-<!-- ── 객실 등록 모달 ── -->
 <div class="modal" id="roomModal">
   <div class="sheet">
     <div class="grab"></div><div class="sheethead"><h3>객실 등록</h3><button class="close" data-close="roomModal">×</button></div>
@@ -499,13 +323,13 @@ input,select,textarea{min-height:44px}
     <div class="twocol"><div class="field"><label>도어락 비번</label><input id="roomDoorPw" placeholder="예: 37098877*" /></div><div class="field"><label>비품함 비번</label><input id="roomSupplyPw" placeholder="예: 998" /></div></div>
     <div style="font-size:11px;color:var(--muted);margin:-4px 0 8px;">💡 기본 인원보다 많으면 체크인 준비에 '추가 셋팅 필요'로 표시돼요</div>
     <div class="field"><label>1명 초과당 추가 셋팅 (선택)</label><input id="roomExtraSetup" placeholder="예: 토퍼1, 베개1, 수건2" /></div>
-    <div style="font-size:11px;color:var(--muted);margin:-4px 0 8px;">💡 입실 인원이 기본보다 많으면 초과 인원수만큼 자동 계산돼요</div>
+    <div style="font-size:11px;color:var(--muted);margin:-4px 0 8px;">💡 입실 인원이 기본보다 많으면 초과 인원수만큼 자동 계산돼요 (예: 2명 초과 → 토퍼2, 수건4)</div>
     <button class="primary" id="saveRoom">저장</button>
+    <button class="secondary" id="archiveRoomBtn" style="margin-top:8px;display:none;background:#FDF0D5;color:#B8860B;border-color:#F0D890;">📦 이 객실 보관 (메뉴에서 숨김)</button>
     <button class="secondary danger" id="deleteRoomBtn" style="margin-top:8px;display:none;">🗑️ 이 객실 삭제</button>
   </div>
 </div>
 
-<!-- ── 셋팅 일정 모달 ── -->
 <div class="modal" id="setupModal">
   <div class="sheet">
     <div class="grab"></div>
@@ -523,21 +347,18 @@ input,select,textarea{min-height:44px}
   </div>
 </div>
 
-<!-- ── 직원 등록 모달 ── -->
 <div class="modal" id="staffModal">
   <div class="sheet">
     <div class="grab"></div><div class="sheethead"><h3>직원 등록</h3><button class="close" data-close="staffModal">×</button></div>
     <input type="hidden" id="staffEditId" />
     <div class="field"><label>이름</label><input id="staffNameInput" placeholder="예: 김실장" /></div>
     <div class="twocol"><div class="field"><label>지점</label><select id="staffBranchInput"><option>영종점</option><option>송도점</option><option>펜트하우스</option></select></div><div class="field"><label>급여 방식</label><select id="staffPayTypeInput"><option>건당</option><option>시간</option><option>당일</option><option>월급</option></select></div></div>
-    <div class="twocol"><div class="field"><label>기본 단가</label><input type="number" id="staffRateInput" placeholder="17000" /></div><div class="field"><label>세금률 % <span style="color:var(--amber);font-size:9px;">(3.3% = 원천징수)</span></label><input type="number" step="0.1" id="staffTaxInput" placeholder="3.3" /></div></div>
-    <div style="font-size:11px;color:var(--muted);margin:-4px 0 10px;">💡 세금률 3.3% 입력 시 세무 탭에서 원천징수액을 자동으로 집계해드려요</div>
+    <div class="twocol"><div class="field"><label>기본 단가</label><input type="number" id="staffRateInput" placeholder="17000" /></div><div class="field"><label>세금률 %</label><input type="number" step="0.1" id="staffTaxInput" placeholder="3.3" /></div></div>
     <button class="primary" id="saveStaff">저장</button>
     <button class="secondary danger" id="deleteStaffBtn" style="margin-top:8px;display:none;">🗑️ 이 직원 삭제</button>
   </div>
 </div>
 
-<!-- ── 비품 모달 ── -->
 <div class="modal" id="supplyModal">
   <div class="sheet">
     <div class="grab"></div><div class="sheethead"><h3>비품 · 소모품</h3><button class="close" data-close="supplyModal">×</button></div>
@@ -552,7 +373,6 @@ input,select,textarea{min-height:44px}
   </div>
 </div>
 
-<!-- ── 룸뷰 모달 ── -->
 <div class="modal" id="roomviewModal">
   <div class="sheet">
     <div class="grab"></div><div class="sheethead"><h3>호스트에게 보낼 객실 선택</h3><button class="close" data-close="roomviewModal">×</button></div>
@@ -563,38 +383,11 @@ input,select,textarea{min-height:44px}
   </div>
 </div>
 
-<!-- ── 세금계산서 등록 모달 (신규) ── -->
-<div class="modal" id="invoiceModal">
-  <div class="sheet">
-    <div class="grab"></div>
-    <div class="sheethead"><h3 id="invoiceModalTitle">세금계산서 내역 등록</h3><button class="close" data-close="invoiceModal">×</button></div>
-    <div style="font-size:11px;color:var(--muted);margin:-4px 0 12px;background:#FFF8EF;border-radius:12px;padding:10px 12px;line-height:1.6;">
-      💡 홈택스에서 세금계산서를 발행한 후, 이 화면에 내역을 기록해두세요.<br>부가세 신고 시 이 목록을 참고하면 편해요.
-    </div>
-    <input type="hidden" id="invEditId" />
-    <div class="field"><label>발행일자</label><input type="date" id="invDate" /></div>
-    <div class="field"><label>거래처명 (호스트 이름 또는 회사명)</label><input id="invName" placeholder="예: 김민수 (한라웨스턴파크 1807호)" /></div>
-    <div class="field"><label>공급가액 (부가세 제외 금액)</label><input type="number" id="invAmount" inputmode="numeric" placeholder="예: 280000" /></div>
-    <div class="twocol">
-      <div class="field"><label>부가세 (자동계산 10%)</label><input type="number" id="invVat" class="readonly-field" readonly placeholder="자동계산" /></div>
-      <div class="field"><label>합계금액</label><input type="number" id="invTotal" class="readonly-field" readonly placeholder="자동계산" /></div>
-    </div>
-    <div class="field"><label>지점</label><select id="invBranch"><option>영종점</option><option>송도점</option><option>펜트하우스</option></select></div>
-    <div class="field"><label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="invIssued" style="width:18px;height:18px" /> <span>홈택스에서 발행 완료</span></label></div>
-    <div class="field"><label>메모</label><input id="invMemo" placeholder="예: 4월분 청소 정산, 6건 합산" /></div>
-    <div class="twocol">
-      <button class="secondary danger" id="deleteInvoice" style="display:none">삭제</button>
-      <button class="primary" id="saveInvoice">저장</button>
-    </div>
-  </div>
-</div>
-
 <script>
 (() => {
   'use strict';
   const STORE='roommade-one-state-v1';
   const LEGACY={staff:'룸메이드캐쉬-직원',rooms:'룸메이드캐쉬-객실',tx:'룸메이드캐쉬-거래내역',branch:'룸메이드캐쉬-현재지점'};
-  const INV_KEY='roommade-세금계산서';
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
   const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10);};
   const ym=d=>d.slice(0,7);
@@ -605,12 +398,9 @@ input,select,textarea{min-height:44px}
   const monthText=v=>{const [y,m]=v.split('-');return `${y}년 ${Number(m)}월`};
   const dateText=v=>{const d=new Date(v+'T00:00:00');return `${d.getMonth()+1}월 ${d.getDate()}일 (${['일','월','화','수','목','금','토'][d.getDay()]})`};
   const currentYM=()=>today().slice(0,7);
-
   let activeView='home', settleMode='receivable', reportMode='room';
   let scheduleMonth=currentYM(), insightMonth=currentYM(), selectedDate=today(), txType='income';
   let boardMonth=currentYM(), schedView='calendar', settleOpen={}, settlePeriod='month';
-  // ▶ 세무 탭 월
-  let taxMonth=currentYM();
 
   function demoState(){
     const base=new Date();
@@ -634,15 +424,15 @@ input,select,textarea{min-height:44px}
       [dt(2),'expense','s2',18000,false,'예정']
     ];
     const tx=raw.map((x,i)=>{
-      const [date,type,targetId,amount,paid,memo]=x;
-      const target=(type==='income'?rooms:staff).find(v=>v.id===targetId);
+      const [date,type,targetId,amount,paid,memo]=x; const target=(type==='income'?rooms:staff).find(v=>v.id===targetId);
       const taxRate=Number(target.tax||0),taxAmount=Math.round(amount*taxRate/100);
       return {id:'t'+i,date,billingMonth:date.slice(0,7),type,targetId,targetName:target.name,branch:target.branch,amount,taxRate,taxAmount,netAmount:amount-taxAmount,paid,memo,status:date<today()?'done':date===today()?'booked':'booked',createdAt:Date.now()+i};
     });
-    return {version:1,branch:'전체',rooms,staff,transactions:tx,invoices:[]};
+    return {version:1,branch:'전체',rooms,staff,transactions:tx};
   }
 
   function loadState(){
+    // 캐쉬 앱과 같은 저장공간을 직접 사용 (완전 공유)
     try{
       const rooms=JSON.parse(localStorage.getItem(LEGACY.rooms)||'[]');
       const staff=JSON.parse(localStorage.getItem(LEGACY.staff)||'[]');
@@ -652,9 +442,11 @@ input,select,textarea{min-height:44px}
         return normalize({version:1,branch,rooms,staff,transactions});
       }
     }catch(e){}
+    // 🛡️ 공유 데이터가 비었으면 → 데모 깔기 전에 '안전백업' 먼저 확인
     try{
       const bk=JSON.parse(localStorage.getItem('roommade-안전백업')||'null');
       if(bk && ((bk.rooms&&bk.rooms.length)||(bk.transactions&&bk.transactions.length))){
+        // 안전백업을 공유키에 되돌려놓고 사용
         localStorage.setItem(LEGACY.rooms,JSON.stringify(bk.rooms||[]));
         localStorage.setItem(LEGACY.staff,JSON.stringify(bk.staff||[]));
         localStorage.setItem(LEGACY.tx,JSON.stringify(bk.transactions||[]));
@@ -663,48 +455,47 @@ input,select,textarea{min-height:44px}
         return normalize({version:1,branch:bk.branch||'전체',rooms:bk.rooms||[],staff:bk.staff||[],transactions:bk.transactions||[]});
       }
     }catch(e){}
+    // 데이터 없으면 데모
     return demoState();
   }
-
   function normalize(s){
-    s.rooms=Array.isArray(s.rooms)?s.rooms:[];
-    s.staff=Array.isArray(s.staff)?s.staff:[];
-    s.transactions=Array.isArray(s.transactions)?s.transactions:[];
-    s.branch=s.branch||'전체';
-    // 비품
+    s.rooms=Array.isArray(s.rooms)?s.rooms:[];s.staff=Array.isArray(s.staff)?s.staff:[];s.transactions=Array.isArray(s.transactions)?s.transactions:[];s.branch=s.branch||'전체';
+    // 비품은 별도 키에서 (캐쉬앱과 분리)
     try{s.supplies=JSON.parse(localStorage.getItem('roommade-supplies')||'[]');}catch(e){s.supplies=[];}
     if(!Array.isArray(s.supplies))s.supplies=[];
-    // ▶ 세금계산서
-    try{s.invoices=JSON.parse(localStorage.getItem(INV_KEY)||'[]');}catch(e){s.invoices=[];}
-    if(!Array.isArray(s.invoices))s.invoices=[];
     s.transactions=s.transactions.filter(t=>t&&t.date).map(t=>({...t,billingMonth:t.billingMonth||ym(t.date),netAmount:Number(t.netAmount??t.amount??0),amount:Number(t.amount||0),status:t.status||((t.date<=today())?'done':'booked')}));
+    // 🔗 복구 데이터 보정: 거래의 targetId가 현재 객실/직원에 없으면 '이름'으로 다시 연결
     const roomById={},roomByName={},staffById={},staffByName={};
     s.rooms.forEach(r=>{roomById[r.id]=r;roomByName[r.name]=r;});
     s.staff.forEach(p=>{staffById[p.id]=p;staffByName[p.name]=p;});
     s.transactions.forEach(t=>{
-      if(t.type==='income'){if(!roomById[t.targetId]&&t.targetName&&roomByName[t.targetName])t.targetId=roomByName[t.targetName].id;}
-      else if(t.type==='expense'){if(!staffById[t.targetId]&&t.targetName&&staffByName[t.targetName])t.targetId=staffByName[t.targetName].id;}
+      if(t.type==='income'){
+        if(!roomById[t.targetId] && t.targetName && roomByName[t.targetName]) t.targetId=roomByName[t.targetName].id;
+      }else if(t.type==='expense'){
+        if(!staffById[t.targetId] && t.targetName && staffByName[t.targetName]) t.targetId=staffByName[t.targetName].id;
+      }
     });
     return s;
   }
-
   let state=loadState();
-
   function save(){
     try{
+      // 캐쉬 앱과 같은 키에 직접 저장 → 두 앱이 데이터 공유
       localStorage.setItem(LEGACY.rooms,JSON.stringify(state.rooms));
       localStorage.setItem(LEGACY.staff,JSON.stringify(state.staff));
       localStorage.setItem(LEGACY.tx,JSON.stringify(state.transactions));
       localStorage.setItem(LEGACY.branch,state.branch);
       localStorage.setItem('roommade-supplies',JSON.stringify(state.supplies||[]));
-      localStorage.setItem(INV_KEY,JSON.stringify(state.invoices||[]));
+      // 검증
       if(!localStorage.getItem(LEGACY.tx)){toast('⚠️ 저장 실패 - GitHub Pages 주소로 열어주세요');return false;}
+      // 🛡️ 안전 백업: 별도 키에 통째로 한 벌 더 저장 (공유키가 비워져도 복구 가능)
       try{
-        localStorage.setItem('roommade-안전백업',JSON.stringify({
+        localStorage.setItem('roommade-안전백업', JSON.stringify({
           savedAt:new Date().toISOString(),
-          rooms:state.rooms,staff:state.staff,transactions:state.transactions,branch:state.branch
+          rooms:state.rooms, staff:state.staff, transactions:state.transactions, branch:state.branch
         }));
       }catch(e){}
+      // ☁️ 자동 클라우드 백업 (5초 모아서 한 번만 — 과도한 호출 방지)
       scheduleAutoCloud();
       return true;
     }catch(e){
@@ -712,25 +503,32 @@ input,select,textarea{min-height:44px}
       return false;
     }
   }
-
+  // 자동 클라우드 백업 스케줄러 (한도 절약 위해 기본 꺼짐)
+  // 로컬 '안전백업'은 계속 작동하므로 데이터는 안전. 클라우드는 호스트 공유 버튼 누를 때만 호출.
   let _autoCloudTimer=null;
-  function scheduleAutoCloud(){ return; }
-
+  function scheduleAutoCloud(){
+    return; // 자동 클라우드 업로드 비활성화 (무료 플랜 요청 한도 절약)
+  }
   function toast(msg){$('.toast')?.remove();const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.append(el);setTimeout(()=>el.remove(),1900)}
   function branchFilter(arr){return state.branch==='전체'?arr:arr.filter(x=>x.branch===state.branch)}
-  function monthTx(month=currentYM()){return branchFilter(state.transactions).filter(t=>(t.billingMonth||ym(t.date))===month&&t.status!=='cancelled')}
+  function monthTx(month= currentYM()){return branchFilter(state.transactions).filter(t=>(t.billingMonth||ym(t.date))===month&&t.status!=='cancelled')}
   function sum(arr,type,paid=null){return arr.filter(t=>(!type||t.type===type)&&(paid===null||!!t.paid===paid)).reduce((a,t)=>a+Number(t.netAmount??t.amount),0)}
   function roomName(id){return state.rooms.find(r=>r.id===id)?.name||'삭제된 객실'}
   function staffName(id){return state.staff.find(r=>r.id===id)?.name||'삭제된 직원'}
   function esc(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
   function empty(icon,text){return `<div class="empty"><div class="big">${icon}</div>${text}</div>`}
 
-  // ── 셋팅 ──
-  function getSetups(){if(!Array.isArray(state.setups))state.setups=[];return state.setups;}
+  // 청소 예정 자동 계산 — 청소 기록의 체크인(N박)으로 다음 청소일 생성
+  // ── 🛏️ 수동 셋팅 일정 ──
+  function getSetups(){
+    if(!Array.isArray(state.setups)) state.setups=[];
+    return state.setups;
+  }
   function openSetup(id=''){
     getSetups();
     const s=state.setups.find(x=>x.id===id);
     $('#setupEditId').value=id;
+    // 객실 드롭다운 채우기
     const rooms=state.rooms.filter(r=>state.branch==='전체'||r.branch===state.branch);
     $('#setupRoom').innerHTML=rooms.map(r=>`<option value="${r.id}">${esc(r.name)} (${r.branch})</option>`).join('');
     $('#setupRoom').value=s?.targetId||(rooms[0]?.id||'');
@@ -760,15 +558,21 @@ input,select,textarea{min-height:44px}
     state.setups=state.setups.filter(x=>x.id!==id);
     save();closeModal('setupModal');render();toast('🗑️ 삭제했어요');
   }
+  // 수동 셋팅 카드
   function setupHTML(s){
     const room=state.rooms.find(r=>r.id===s.targetId)||{};
-    const baseG=Number(room.baseGuests||0),g=Number(s.guests||0),over=(baseG&&g>baseG)?(g-baseG):0;
+    const baseG=Number(room.baseGuests||0);
+    const g=Number(s.guests||0);
+    const over=(baseG&&g>baseG)?(g-baseG):0;
     const d=new Date(s.date+'T00:00:00');const WD=['일','월','화','수','목','금','토'];
     const dl=(d.getMonth()+1)+'월 '+d.getDate()+'일('+WD[d.getDay()]+')';
     let setup='';
-    if(s.memo)setup+=`<small style="color:#4FB0A3;display:block;">🛒 ${esc(s.memo)}</small>`;
-    if(over>0){const auto=calcExtraSetup(room.extraSetup||'',over);if(auto)setup+=`<small style="color:var(--red);display:block;">➕ 추가셋팅: ${esc(auto)} <span style="color:var(--muted)">(${over}명 초과)</span></small>`;}
-    if(!setup)setup=`<small style="color:var(--muted);">셋팅</small>`;
+    if(s.memo){ setup+=`<small style="color:#4FB0A3;display:block;">🛒 ${esc(s.memo)}</small>`; }
+    if(over>0){
+      const auto=calcExtraSetup(room.extraSetup||'', over);
+      if(auto) setup+=`<small style="color:var(--red);display:block;">➕ 추가셋팅: ${esc(auto)} <span style="color:var(--muted)">(${over}명 초과)</span></small>`;
+    }
+    if(!setup) setup=`<small style="color:var(--muted);">셋팅</small>`;
     return `<div class="job" data-edit-setup="${s.id}" style="background:linear-gradient(90deg,rgba(229,142,123,.07),transparent);"><div class="jobtime"><b>${dl}</b><small>${(s.branch||'').replace('점','')}</small></div><div class="jobicon">🛏️</div><div class="jobinfo"><b>${esc(s.targetName)}</b><small>셋팅만${g?' · '+g+'명':''}</small>${setup}</div><div style="color:var(--muted);font-size:14px;align-self:center;">✏️</div></div>`;
   }
 
@@ -776,9 +580,10 @@ input,select,textarea{min-height:44px}
     const planned=[];
     state.transactions.forEach(t=>{
       if(t.type!=='income'||!t.inNights||t.status==='cancelled')return;
-      const n=parseInt(t.inNights);if(!n||n<=0)return;
-      const d=new Date(t.date+'T00:00:00');d.setDate(d.getDate()+n);
+      const n=parseInt(t.inNights); if(!n||n<=0)return;
+      const d=new Date(t.date+'T00:00:00'); d.setDate(d.getDate()+n);
       const pd=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+      // 그날 실제 청소 기록 있으면 제외
       const done=state.transactions.find(x=>x.type==='income'&&x.targetId===t.targetId&&x.date===pd&&x.status!=='cancelled');
       if(done)return;
       planned.push({date:pd,targetId:t.targetId,targetName:t.targetName,branch:t.branch,nights:t.inNights,guests:t.inGuests||'',supplies:t.inSupplies||'',inTime:t.inTime||'',fromId:t.id});
@@ -791,52 +596,64 @@ input,select,textarea{min-height:44px}
   function setBranch(branch){state.branch=branch;save();$$('.branchbtn').forEach(b=>b.classList.toggle('active',b.dataset.branch===branch));render();}
 
   function render(){
-    try{renderHome();}catch(e){console.error('home',e);}
-    try{renderSchedule();}catch(e){console.error('schedule',e);}
-    try{renderBoard();}catch(e){console.error('board',e);}
-    try{renderSettlement();}catch(e){console.error('settlement',e);}
-    try{renderInsight();}catch(e){console.error('insight',e);}
-    try{renderManage();}catch(e){console.error('manage',e);}
-    try{renderTax();}catch(e){console.error('tax',e);}
+    try{ renderHome(); }catch(e){ console.error('home',e); }
+    try{ renderSchedule(); }catch(e){ console.error('schedule',e); }
+    try{ renderBoard(); }catch(e){ console.error('board',e); }
+    try{ renderSettlement(); }catch(e){ console.error('settlement',e); }
+    try{ renderInsight(); }catch(e){ console.error('insight',e); }
+    try{ renderManage(); }catch(e){ console.error('manage',e); }
   }
-
   function renderHome(){
-    const tx=monthTx(currentYM()),income=sum(tx,'income'),expense=sum(tx,'expense'),net=income-expense,recv=sum(tx,'income',false),pay=sum(tx,'expense',false),margin=income?Math.round(net/income*100):0;
+    const tx=monthTx(currentYM()), income=sum(tx,'income'),expense=sum(tx,'expense'),net=income-expense,recv=sum(tx,'income',false),pay=sum(tx,'expense',false),margin=income?Math.round(net/income*100):0;
     $('#homeMonthLabel').textContent=monthText(currentYM())+' 예상 순익';$('#homeNet').textContent=money(net);$('#homeIncome').textContent=money(income);$('#homeExpense').textContent=money(expense);$('#homeReceivable').textContent=short(recv)+'원';$('#homePayable').textContent=short(pay)+'원';$('#homeMargin').textContent=margin+'%';
     const jobs=branchFilter(state.transactions).filter(t=>t.type==='income'&&t.date===today()&&t.status!=='cancelled').sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+    // 오늘 자동 청소 예정 (아직 기록 안 한 것)
     const todayPlanned=getPlannedCleanings().filter(p=>p.date===today()&&(state.branch==='전체'||p.branch===state.branch));
-    let jobsHtml=jobs.length?jobs.map((t,i)=>jobHTML(t,i)).join(''):'';
-    jobsHtml+=todayPlanned.map(p=>plannedHTML(p)).join('');
+    let jobsHtml = jobs.length?jobs.map((t,i)=>jobHTML(t,i)).join(''):'';
+    jobsHtml += todayPlanned.map(p=>plannedHTML(p)).join('');
     $('#todayJobs').innerHTML=jobsHtml||empty('☕','오늘 등록된 청소 일정이 없어요');
+    // 다가올 체크인 준비 (오늘 이후 청소 예정 + 수동 셋팅, 날짜순)
     const prep=getPlannedCleanings().filter(p=>p.date>=today()&&(state.branch==='전체'||p.branch===state.branch)).map(p=>({kind:'prep',date:p.date,data:p}));
     const setups=getSetups().filter(s=>s.date>=today()&&(state.branch==='전체'||s.branch===state.branch)).map(s=>({kind:'setup',date:s.date,data:s}));
     const merged=prep.concat(setups).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0).slice(0,12);
     $('#checkinPrep').innerHTML=merged.length?merged.map(m=>m.kind==='setup'?setupHTML(m.data):prepHTML(m.data)).join(''):empty('🛏️','다가올 체크인 준비가 없어요');
   }
-
-  function calcExtraSetup(rule,over){
-    if(!rule||over<=0)return '';
+  // 초과 인원에 따라 추가 셋팅 자동 계산
+  // 규칙 "토퍼1, 수건2"  + 초과 2명  →  "토퍼2, 수건4"
+  function calcExtraSetup(rule, over){
+    if(!rule || over<=0) return '';
     return rule.split(',').map(function(part){
-      part=part.trim();if(!part)return '';
+      part=part.trim(); if(!part) return '';
+      // 맨 끝 숫자를 찾아서 초과인원만큼 곱함
       var m=part.match(/^(.*?)(\d+)\s*$/);
-      if(m){var nm=m[1].trim();var qty=parseInt(m[2],10)*over;return nm+qty;}
-      return part;
+      if(m){ var nm=m[1].trim(); var qty=parseInt(m[2],10)*over; return nm+qty; }
+      return part; // 숫자 없으면 그대로
     }).filter(Boolean).join(', ');
   }
 
+  // 체크인 준비 카드 — 기본 셋팅 + 추가 인원분 표시
   function prepHTML(p){
     const room=state.rooms.find(r=>r.id===p.targetId)||{};
-    const baseG=Number(room.baseGuests||room.defaultGuests||0),g=Number(p.guests||0),over=(baseG&&g>baseG)?(g-baseG):0;
+    const baseG=Number(room.baseGuests||room.defaultGuests||0);
+    const g=Number(p.guests||0);
+    const over=(baseG&&g>baseG)?(g-baseG):0;
     const d=new Date(p.date+'T00:00:00');const WD=['일','월','화','수','목','금','토'];
     const dl=(d.getMonth()+1)+'월 '+d.getDate()+'일('+WD[d.getDay()]+')';
     let setup='';
-    if(p.supplies)setup+=`<small style="color:#4FB0A3;display:block;">🛒 셋팅준비: ${esc(p.supplies)}</small>`;
-    if(over>0){const auto=calcExtraSetup(room.extraSetup||'',over);if(auto)setup+=`<small style="color:var(--red);display:block;">➕ 추가셋팅: ${esc(auto)} <span style="color:var(--muted)">(${baseG}→${g}명, ${over}명 초과)</span></small>`;else setup+=`<small style="color:var(--red);display:block;">⚠️ 기본 ${baseG}명 → ${g}명 (${over}명 초과, 추가 셋팅 확인)</small>`;}
-    if(!setup)setup=`<small style="color:var(--muted);">기본 셋팅</small>`;
+    // 1) 손님별 직접 입력한 준비물
+    if(p.supplies){ setup+=`<small style="color:#4FB0A3;display:block;">🛒 셋팅준비: ${esc(p.supplies)}</small>`; }
+    // 2) 인원 초과 시 자동 셋팅
+    if(over>0){
+      const auto=calcExtraSetup(room.extraSetup||'', over);
+      if(auto){ setup+=`<small style="color:var(--red);display:block;">➕ 추가셋팅: ${esc(auto)} <span style="color:var(--muted)">(${baseG}→${g}명, ${over}명 초과)</span></small>`; }
+      else { setup+=`<small style="color:var(--red);display:block;">⚠️ 기본 ${baseG}명 → ${g}명 (${over}명 초과, 추가 셋팅 확인)</small>`; }
+    }
+    if(!setup){ setup=`<small style="color:var(--muted);">기본 셋팅</small>`; }
     return `<div class="job" data-plan-clean="${p.fromId}"><div class="jobtime"><b>${dl}</b><small>${p.branch.replace('점','')}</small></div><div class="jobicon">🛏️</div><div class="jobinfo"><b>${esc(p.targetName)}</b><small>체크인 ${p.nights}박${g?' · '+g+'명':''}</small>${setup}</div><div style="display:flex;gap:4px;"><button class="kkbtn worker" data-kakao-worker="${p.fromId}" data-kakao-kind="plan">💬</button><button class="kkbtn host" data-kakao-host="${p.fromId}" data-kakao-kind="plan">📋</button></div></div>`;
   }
   function plannedHTML(p){return `<div class="job" data-plan-clean="${p.fromId}" style="background:linear-gradient(90deg,rgba(108,164,217,.06),transparent);"><div class="jobtime"><b>예정</b><small>${p.branch.replace('점','')}</small></div><div class="jobicon">🧹</div><div class="jobinfo"><b>${esc(p.targetName)}</b><small>체크인 ${p.nights}박${p.guests?' · '+p.guests+'명':''}${p.supplies?' · 🛒'+esc(p.supplies):''}</small></div><div style="display:flex;gap:4px;"><button class="kkbtn worker" data-kakao-worker="${p.fromId}" data-kakao-kind="plan">💬</button><button class="kkbtn host" data-kakao-host="${p.fromId}" data-kakao-kind="plan">📋</button></div></div>`}
 
+  // ── 카톡 메시지 ──
   function shareText(text){
     if(navigator.share){navigator.share({text}).catch(()=>{});}
     else if(navigator.clipboard){navigator.clipboard.writeText(text).then(()=>toast('📋 복사됐어요')).catch(()=>toast('복사 실패'));}
@@ -844,54 +661,63 @@ input,select,textarea{min-height:44px}
   function txWorkerMsg(t){
     const room=state.rooms.find(r=>r.id===t.targetId)||{};
     const L=['🧹 청소 안내 — '+dateText(t.date),'──────────────','📌 '+(t.targetName||room.name),''];
-    L.push('🚪 체크아웃');L.push('  '+(t.outNights||t.nights||'-')+'박 / '+(t.outGuests||t.guests||'-')+'명'+(t.outTime?' ('+t.outTime+')':''));
-    if(room.doorPw)L.push('  🔑 도어락: '+room.doorPw);if(room.supplyPw)L.push('  📦 비품함: '+room.supplyPw);
+    L.push('🚪 체크아웃');
+    L.push('  '+(t.outNights||t.nights||'-')+'박 / '+(t.outGuests||t.guests||'-')+'명'+(t.outTime?' ('+t.outTime+')':''));
+    if(room.doorPw)L.push('  🔑 도어락: '+room.doorPw);
+    if(room.supplyPw)L.push('  📦 비품함: '+room.supplyPw);
     L.push('','🏠 체크인 준비');
     if(t.inNights){L.push('  '+t.inNights+'박 / '+(t.inGuests||'-')+'명'+(t.inTime?' ('+t.inTime+')':''));if(t.inSupplies)L.push('  🛒 셋팅준비: '+t.inSupplies);}
     else L.push('  체크인 예정 없음');
-    L.push('','──────────────','룸메이드');shareText(L.join('\n'));
+    L.push('','──────────────','룸메이드');
+    shareText(L.join('\n'));
   }
   function txHostMsg(t){
     const room=state.rooms.find(r=>r.id===t.targetId)||{};
     const L=['📋 청소 예정 확인 — '+dateText(t.date),'──────────────','🏠 '+(t.targetName||room.name),''];
-    L.push('🚪 체크아웃');L.push('  '+(t.outNights||t.nights||'-')+'박 / '+(t.outGuests||t.guests||'-')+'명'+(t.outTime?' ('+t.outTime+')':''));
+    L.push('🚪 체크아웃');
+    L.push('  '+(t.outNights||t.nights||'-')+'박 / '+(t.outGuests||t.guests||'-')+'명'+(t.outTime?' ('+t.outTime+')':''));
     L.push('','🏠 체크인');
     if(t.inNights){L.push('  '+t.inNights+'박 / '+(t.inGuests||'-')+'명'+(t.inTime?' ('+t.inTime+')':''));if(t.inSupplies)L.push('  셋팅준비: '+t.inSupplies);}
     else L.push('  체크인 예정 없음');
-    L.push('','──────────────','룸메이드');shareText(L.join('\n'));
+    L.push('','──────────────','룸메이드');
+    shareText(L.join('\n'));
   }
+  // 자동 예정 → 임시 객체로 변환해 카톡
   function planToTx(fromId){
     const src=state.transactions.find(x=>x.id===fromId);if(!src)return null;
     return {date:getPlannedCleanings().find(p=>p.fromId===fromId)?.date||today(),targetId:src.targetId,targetName:src.targetName,outNights:src.inNights,outGuests:src.inGuests,outTime:src.inTime,inSupplies:src.inSupplies};
   }
-  function jobHTML(t,i){return `<div class="job"><div class="jobtime" data-edit-tx="${t.id}"><b>${i===0?'11:00':`${11+i}:20`}</b><small>${t.branch.replace('점','')}</small></div><div class="jobicon" data-edit-tx="${t.id}">🧹</div><div class="jobinfo" data-edit-tx="${t.id}"><b>${esc(t.targetName||roomName(t.targetId))}</b><small>${esc(t.memo||'청소 일정')} · ${money(t.netAmount||t.amount)}</small></div><div style="display:flex;gap:4px;"><button class="kkbtn worker" data-kakao-worker="${t.id}">💬</button><button class="kkbtn host" data-kakao-host="${t.id}">📋</button></div></div>`}
+  function jobHTML(t,i){const st=t.status==='done'?['완료','done']:['대기','wait'];return `<div class="job"><div class="jobtime" data-edit-tx="${t.id}"><b>${i===0?'11:00':`${11+i}:20`}</b><small>${t.branch.replace('점','')}</small></div><div class="jobicon" data-edit-tx="${t.id}">🧹</div><div class="jobinfo" data-edit-tx="${t.id}"><b>${esc(t.targetName||roomName(t.targetId))}</b><small>${esc(t.memo||'청소 일정')} · ${money(t.netAmount||t.amount)}</small></div><div style="display:flex;gap:4px;"><button class="kkbtn worker" data-kakao-worker="${t.id}">💬</button><button class="kkbtn host" data-kakao-host="${t.id}">📋</button></div></div>`}
   function txHTML(t){
     const isIn=t.type==='income';
     const kakao=isIn?`<div style="display:flex;gap:4px;margin-left:6px;"><button class="kkbtn worker" data-kakao-worker="${t.id}">💬</button><button class="kkbtn host" data-kakao-host="${t.id}">📋</button></div>`:'';
     const name=esc(t.targetName||(isIn?roomName(t.targetId):staffName(t.targetId)));
+    // 상세 줄: 체크아웃(박/명) + 체크인(준비물) + 메모(추가요금)
     let detail='';
     if(isIn){
-      const out=[];if(t.outNights||t.nights)out.push((t.outNights||t.nights)+'박');if(t.outGuests||t.guests)out.push((t.outGuests||t.guests)+'명');
+      const out=[];
+      if(t.outNights||t.nights)out.push((t.outNights||t.nights)+'박');
+      if(t.outGuests||t.guests)out.push((t.outGuests||t.guests)+'명');
       if(out.length)detail+=`<small style="color:var(--red);">🚪 체크아웃 ${out.join('/')}</small>`;
       if(t.inSupplies)detail+=`<small style="color:#4FB0A3;">🛒 셋팅준비: ${esc(t.inSupplies)}</small>`;
       if(t.memo)detail+=`<small style="color:var(--sub);">💰 ${esc(t.memo)}</small>`;
-    }else if(t.memo){detail+=`<small style="color:var(--sub);">${esc(t.memo)}</small>`;}
+    } else if(t.memo){
+      detail+=`<small style="color:var(--sub);">${esc(t.memo)}</small>`;
+    }
     return `<div class="txrow"><div class="txico ${t.type}" data-edit-tx="${t.id}">${isIn?'＋':'−'}</div><div class="txmain" data-edit-tx="${t.id}"><b>${name}</b><small>${dateText(t.date)}</small>${detail}</div><div class="txamt" data-edit-tx="${t.id}"><b class="${t.type}">${isIn?'+':'-'}${money(t.netAmount||t.amount)}</b><small>${t.paid?(isIn?'입금완료':'지급완료'):(isIn?'미수금':'미지급')}</small></div>${kakao}</div>`;
   }
 
   function shiftMonth(v,delta){const [y,m]=v.split('-').map(Number),d=new Date(y,m-1+delta,1);return `${d.getFullYear()}-${pad(d.getMonth()+1)}`}
-
   function renderSchedule(){
     $('#scheduleMonthTitle').textContent=monthText(scheduleMonth);const [y,m]=scheduleMonth.split('-').map(Number),first=new Date(y,m-1,1),start=new Date(y,m-1,1-first.getDay());let html='';
     for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;const items=branchFilter(state.transactions).filter(t=>t.date===ds&&t.status!=='cancelled');const inc=sum(items,'income'),exp=sum(items,'expense');const incCnt=items.filter(t=>t.type==='income').length;const moneyLabel=inc?short(inc):(incCnt?'청소':'');html+=`<button class="day ${d.getMonth()!==m-1?'other':''} ${ds===today()?'today':''} ${ds===selectedDate?'selected':''}" data-date="${ds}"><div class="daynum">${d.getDate()}</div><div class="dotwrap">${incCnt?'<i class="dot"></i>':''}${exp?'<i class="dot exp"></i>':''}</div>${moneyLabel?`<div class="daymoney">${moneyLabel}</div>`:''}</button>`}
-    $('#calendarDays').innerHTML=html;$('#selectedDateTitle').textContent=dateText(selectedDate);
-    const list=branchFilter(state.transactions).filter(t=>t.date===selectedDate&&t.status!=='cancelled').sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
-    $('#selectedDateList').innerHTML=list.length?list.map((t,idx)=>`<div class="drag-tx" data-tx-card="${t.id}" style="margin-bottom:8px;touch-action:pan-y;">${txHTML(t)}</div>`).join(''):empty('📭','이 날짜에는 등록된 내역이 없어요');
+    $('#calendarDays').innerHTML=html;$('#selectedDateTitle').textContent=dateText(selectedDate);const list=branchFilter(state.transactions).filter(t=>t.date===selectedDate&&t.status!=='cancelled').sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));$('#selectedDateList').innerHTML=list.length?list.map((t,idx)=>`<div class="drag-tx" data-tx-card="${t.id}" style="margin-bottom:8px;touch-action:pan-y;">${txHTML(t)}</div>`).join(''):empty('📭','이 날짜에는 등록된 내역이 없어요');
   }
 
+  // 객실 현황판 — 객실별 예약·청소·준비상태 요약
   function renderBoard(){
     $('#boardMonthTitle').textContent=monthText(boardMonth);
-    const rooms=branchFilter(state.rooms);
+    const rooms=branchFilter(state.rooms).filter(r=>!r.archived);
     if(!rooms.length){$('#boardList').innerHTML=`<div class="card">${empty('🏠','등록된 객실이 없어요')}</div>`;return;}
     const branches=state.branch==='전체'?['영종점','송도점','펜트하우스']:[state.branch];
     let html='';
@@ -903,7 +729,10 @@ input,select,textarea{min-height:44px}
         const ho=(room.name||'').match(/(\d+호)$/)?(room.name||'').match(/(\d+호)$/)[1]:room.name;
         const reservations=cleans.filter(t=>Number(t.inNights)>0).length;
         const done=cleans.filter(t=>t.status==='done').length;
-        const prep=cleans.filter(t=>{const guests=Number(t.inGuests||0),base=Number(room.baseGuests||0);return !!t.inSupplies||(base>0&&guests>base);}).length;
+        const prep=cleans.filter(t=>{
+          const guests=Number(t.inGuests||0),base=Number(room.baseGuests||0);
+          return !!t.inSupplies||(base>0&&guests>base);
+        }).length;
         const hostLabel=room.hostName?`<small style="display:block;color:var(--navy);font-size:10px;margin-bottom:3px;">👤 ${esc(room.hostName)}</small>`:'';
         html+=`<button class="card group" data-room-month="${room.id}" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;border:1px solid var(--line);padding:14px 16px;"><div style="display:flex;align-items:center;gap:11px;min-width:0;"><div style="width:42px;height:42px;border-radius:14px;background:var(--sky);display:grid;place-items:center;font-size:18px;flex-shrink:0;">🏠</div><div style="min-width:0;">${hostLabel}<b style="font-size:15px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(ho)}</b><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;"><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#EEF4FA;color:var(--navy);">예약 ${reservations}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#EDF7F4;color:#358879;">청소완료 ${done}/${cleans.length}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:${prep?'#FFF1E5':'#F2F3F5'};color:${prep?'var(--amber)':'var(--muted)'};">준비 ${prep}</span></div></div></div><span style="color:var(--muted);font-size:16px;flex-shrink:0;">›</span></button>`;
       });
@@ -911,411 +740,585 @@ input,select,textarea{min-height:44px}
     $('#boardList').innerHTML=html;
   }
 
+  // 호스트용 룸뷰 링크 생성 + 공유
   function makeRoomviewLink(){
-    const rooms=branchFilter(state.rooms);
+    const rooms=branchFilter(state.rooms).filter(r=>!r.archived);
     if(!rooms.length){toast('표시할 객실이 없어요');return;}
+    // 객실 체크박스 목록 생성
     const html=rooms.map(r=>{
       const ho=(r.name||'').match(/(\d+호)$/)?(r.name||'').match(/(\d+호)$/)[1]:r.name;
       return `<label style="display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;margin-bottom:7px;cursor:pointer;min-height:54px;"><input type="checkbox" class="rv-room-chk" value="${r.id}" data-host="${esc(r.hostName||'')}" style="width:22px;height:22px;flex-shrink:0;"><div><b style="font-size:13px;">${esc(ho)}</b>${r.hostName?` <span style="font-size:9px;color:var(--navy);background:var(--sky);padding:3px 6px;border-radius:99px;">${esc(r.hostName)}</span>`:''}<br><small style="color:var(--muted);font-size:11px;">${esc(r.name)} · ${r.branch}</small></div></label>`;
     }).join('');
-    $('#rvRoomChecks').innerHTML=html;$('#rvHostName').value='';openModal('roomviewModal');
+    $('#rvRoomChecks').innerHTML=html;
+    $('#rvHostName').value='';
+    openModal('roomviewModal');
   }
 
-  const CLOUD={DB_URL:'https://roompacker-48249-default-rtdb.asia-southeast1.firebasedatabase.app',BIN_KEY:'룸메이드-클라우드빈ID',HOST_BASE:'https://roompacker.github.io/roompacker/roommade-host.html'};
-  function buildCloudData(){return {app:'roommade-cloud',version:2,updatedAt:new Date().toISOString(),rooms:state.rooms||[],staff:state.staff||[],transactions:state.transactions||[],branch:state.branch||'전체',supplies:state.supplies||[],setups:state.setups||[]};}
-  function makeShareId(){return 'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
-  async function cloudUpload(silent){
-    const data=buildCloudData();let binId=localStorage.getItem(CLOUD.BIN_KEY);
-    if(!binId)binId=makeShareId();
-    const res=await fetch(CLOUD.DB_URL+'/shares/'+binId+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    localStorage.setItem(CLOUD.BIN_KEY,binId);if(!silent)toast('☁️ 클라우드 업로드 완료');return binId;
+  // ☁️ 클라우드 설정
+  const CLOUD = {
+    DB_URL: 'https://roompacker-48249-default-rtdb.asia-southeast1.firebasedatabase.app',
+    BIN_KEY: '룸메이드-클라우드빈ID',
+    HOST_BASE: 'https://roompacker.github.io/roompacker/roommade-host.html'
+  };
+
+  // 클라우드에 올릴 전체 데이터
+  function buildCloudData(){
+    return {
+      app:'roommade-cloud', version:2, updatedAt:new Date().toISOString(),
+      rooms: state.rooms||[], staff: state.staff||[],
+      transactions: state.transactions||[],
+      branch: state.branch||'전체',
+      supplies: state.supplies||[],
+      setups: state.setups||[]
+    };
   }
+
+  function makeShareId(){
+    return 'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  }
+
+  // 클라우드 업로드 (Firebase Realtime DB)
+  async function cloudUpload(silent){
+    const data=buildCloudData();
+    let binId=localStorage.getItem(CLOUD.BIN_KEY);
+    if(!binId){ binId=makeShareId(); }
+    const res=await fetch(CLOUD.DB_URL+'/shares/'+binId+'.json',{method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    localStorage.setItem(CLOUD.BIN_KEY, binId);
+    if(!silent) toast('☁️ 클라우드 업로드 완료');
+    return binId;
+  }
+
+  // ☁️ 클라우드에서 데이터 복구 (호스트 링크 ID로 되살리기)
   async function cloudRestore(binId){
-    binId=(binId||'').trim();if(!binId){toast('복구할 ID를 입력해주세요');return;}
+    binId=(binId||'').trim();
+    if(!binId){ toast('복구할 ID를 입력해주세요'); return; }
     try{
       toast('⏳ 클라우드에서 불러오는 중...');
-      const res=await fetch(CLOUD.DB_URL+'/shares/'+binId+'.json');if(!res.ok)throw new Error('HTTP '+res.status);
-      const d=await res.json();if(!d){toast('이 ID에는 데이터가 없어요');return;}
-      const rooms=d.rooms||[],staff=d.staff||[],transactions=d.transactions||[];
-      if(!rooms.length&&!transactions.length){toast('이 ID에는 데이터가 없어요');return;}
-      if(!confirm('클라우드에서 객실 '+rooms.length+'개, 기록 '+transactions.length+'건을 찾았어요.\n지금 데이터에 합칠까요?'))return;
-      const roomMap={};(state.rooms||[]).forEach(r=>roomMap[r.id]=r);rooms.forEach(r=>roomMap[r.id]=r);
-      const staffMap={};(state.staff||[]).forEach(s=>staffMap[s.id]=s);staff.forEach(s=>staffMap[s.id]=s);
-      const txMap={};(state.transactions||[]).forEach(t=>txMap[t.id]=t);transactions.forEach(t=>txMap[t.id]=t);
-      state=normalize({branch:d.branch||state.branch||'전체',rooms:Object.values(roomMap),staff:Object.values(staffMap),transactions:Object.values(txMap)});
-      save();setBranch(state.branch);render();toast('✅ 복구 완료! 객실 '+Object.keys(roomMap).length+'개');
-    }catch(e){console.error(e);toast('❌ 복구 실패: '+e.message);}
+      const res=await fetch(CLOUD.DB_URL+'/shares/'+binId+'.json');
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const d=await res.json();
+      if(!d){ toast('이 ID에는 데이터가 없어요'); return; }
+      const rooms=d.rooms||[];
+      const staff=d.staff||[];
+      const transactions=d.transactions||[];
+      if(!rooms.length && !transactions.length){ toast('이 ID에는 데이터가 없어요'); return; }
+      if(!confirm('클라우드에서 객실 '+rooms.length+'개, 기록 '+transactions.length+'건을 찾았어요.\n지금 데이터에 합칠까요?\n(같은 기록은 덮어쓰고, 새 기록은 추가돼요)')) return;
+
+      // 기존 데이터와 병합 (id 기준, 클라우드 우선)
+      const roomMap={}; (state.rooms||[]).forEach(r=>roomMap[r.id]=r); rooms.forEach(r=>roomMap[r.id]=r);
+      const staffMap={}; (state.staff||[]).forEach(s=>staffMap[s.id]=s); staff.forEach(s=>staffMap[s.id]=s);
+      const txMap={}; (state.transactions||[]).forEach(t=>txMap[t.id]=t); transactions.forEach(t=>txMap[t.id]=t);
+
+      state=normalize({
+        branch: d.branch||state.branch||'전체',
+        rooms: Object.values(roomMap),
+        staff: Object.values(staffMap),
+        transactions: Object.values(txMap)
+      });
+      save(); setBranch(state.branch); render();
+      toast('✅ 복구 완료! 객실 '+Object.keys(roomMap).length+'개');
+    }catch(e){
+      console.error(e);
+      toast('❌ 복구 실패: '+e.message);
+    }
   }
 
+  // 선택 객실로 호스트 링크 만들기 (클라우드 방식 → 아이폰 OK)
   async function buildRoomviewLink(){
     const checked=[...document.querySelectorAll('.rv-room-chk:checked')].map(c=>c.value);
     if(!checked.length){toast('객실을 하나 이상 선택해주세요');return;}
     let host=$('#rvHostName').value.trim();
-    if(!host){const names=[...new Set(checked.map(id=>state.rooms.find(r=>r.id===id)?.hostName).filter(Boolean))];host=names.length===1?names[0]:'호스트';}
-    const btn=$('#rvMakeLink');const prev=btn?btn.textContent:'';
+    if(!host){
+      const names=[...new Set(checked.map(id=>state.rooms.find(r=>r.id===id)?.hostName).filter(Boolean))];
+      host=names.length===1?names[0]:'호스트';
+    }
+    const btn=$('#rvMakeLink'); const prev=btn?btn.textContent:'';
     try{
       if(btn){btn.disabled=true;btn.textContent='⏳ 올리는 중...';}
-      const binId=await cloudUpload(true);
+      const binId=await cloudUpload(true); // 전체 데이터를 클라우드에 올림
+      // 링크엔 짧은 ID + 선택 객실만 (URL 짧음 → 아이폰 문제 없음)
       const roomsParam=encodeURIComponent(checked.join(','));
       const link=CLOUD.HOST_BASE+'?id='+binId+'&rooms='+roomsParam;
       const msg=`${host} 님, 객실 현황입니다.\n예약·청소·준비사항을 아래 링크에서 확인해주세요.\n${link}`;
       closeModal('roomviewModal');
-      if(navigator.share){navigator.share({title:'ROOMMADE 객실 현황',text:msg,url:link}).then(()=>toast('✅ 공유 완료')).catch(err=>{if(err&&err.name!=='AbortError')fallbackCopy(msg,link);});}
-      else fallbackCopy(msg,link);
-    }catch(e){console.error(e);toast('❌ 업로드 실패: '+(e&&e.message?e.message:'알 수 없음'));}
-    finally{if(btn){btn.disabled=false;btn.textContent=prev;}}
+      if(navigator.share){
+        navigator.share({title:'ROOMMADE 객실 현황',text:msg,url:link}).then(()=>toast('✅ 공유 완료')).catch(err=>{if(err&&err.name!=='AbortError')fallbackCopy(msg,link);});
+      }else fallbackCopy(msg,link);
+    }catch(e){
+      console.error(e);
+      toast('❌ 업로드 실패: '+(e&&e.message?e.message:'알 수 없음'));
+    }finally{
+      if(btn){btn.disabled=false;btn.textContent=prev;}
+    }
   }
-  function fallbackCopy(msg,link){const done=()=>toast('📋 링크가 복사됐어요. 카톡에 붙여넣으세요');if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(msg).then(done).catch(()=>legacyCopy(msg,link));}else legacyCopy(msg,link);}
-  function legacyCopy(msg,link){const ta=document.createElement('textarea');ta.value=msg;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;left:-9999px;top:0;opacity:0';document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,ta.value.length);let ok=false;try{ok=document.execCommand('copy');}catch(e){}ta.remove();if(ok)toast('📋 링크가 복사됐어요. 카톡에 붙여넣으세요');else prompt('아래 링크를 복사하세요',link);}
+  function fallbackCopy(msg,link){
+    const done=()=>toast('📋 링크가 복사됐어요. 카톡에 붙여넣으세요');
+    if(navigator.clipboard&&window.isSecureContext){
+      navigator.clipboard.writeText(msg).then(done).catch(()=>legacyCopy(msg,link));
+    }else legacyCopy(msg,link);
+  }
+  function legacyCopy(msg,link){
+    const ta=document.createElement('textarea');ta.value=msg;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;left:-9999px;top:0;opacity:0';document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,ta.value.length);
+    let ok=false;try{ok=document.execCommand('copy');}catch(e){}ta.remove();
+    if(ok)toast('📋 링크가 복사됐어요. 카톡에 붙여넣으세요');else prompt('아래 링크를 복사하세요',link);
+  }
 
   function openRoomMonth(roomId){
     const room=state.rooms.find(r=>r.id===roomId)||{};
     const ho=(room.name||'').match(/(\d+호)$/)?(room.name||'').match(/(\d+호)$/)[1]:room.name;
     $('#rmTitle').textContent=room.name||ho;$('#rmMonth').textContent=monthText(boardMonth);
     const WD=['일','월','화','수','목','금','토'];
-    const stays=[];const seen={};const noteByCleanDate={};
+
+    // 이 객실의 모든 체류(입실~퇴실) 뽑기 — '입실 손님' 기준
+    // 거래 date=청소일=그날 새 손님 입실, inNights=그 손님 박수 → 퇴실=date+inNights
+    //   inSupplies=그 입실 손님을 위한 셋팅 준비물 (입실에 붙음 → 자연스러움)
+    // 입실 정보가 없는 거래(그냥 퇴실만)도 누락 안 되게: outNights로 입실 역산해 보강
+    const stays=[];
+    const seen={};
+    const noteByCleanDate={}; // 청소일(=그날 퇴실) → 메모
     state.transactions.forEach(t=>{
-      if(t.type!=='income'||t.targetId!==roomId||t.status==='cancelled')return;if(!t.date)return;
-      if(t.memo)noteByCleanDate[t.date]=t.memo;
+      if(t.type!=='income'||t.targetId!==roomId||t.status==='cancelled')return;
+      if(!t.date)return;
+      if(t.memo) noteByCleanDate[t.date]=t.memo; // 메모는 청소일에 매핑
       const inN=parseInt(t.inNights||0,10);
-      if(inN>0){const ci=new Date(t.date+'T00:00:00');const co=new Date(t.date+'T00:00:00');co.setDate(co.getDate()+inN);const key=ymd(ci);seen[key]=1;stays.push({checkIn:ymd(ci),checkOut:ymd(co),nights:inN,guests:t.inGuests||'',inTime:t.inTime||'',supplies:t.inSupplies||'',memo:''});}
+      if(inN>0){
+        // 이 거래가 만들어내는 '입실 손님'
+        const ci=new Date(t.date+'T00:00:00');
+        const co=new Date(t.date+'T00:00:00'); co.setDate(co.getDate()+inN);
+        const key=ymd(ci);
+        seen[key]=1;
+        stays.push({
+          checkIn:ymd(ci), checkOut:ymd(co),
+          nights:inN,
+          guests:t.inGuests||'',
+          inTime:t.inTime||'',
+          supplies:t.inSupplies||'',   // 입실 손님 준비물 → 입실에 붙음
+          memo:''  // 메모는 아래에서 '퇴실일' 기준으로 붙임
+        });
+      }
     });
+    // 입실 정보 없이 '퇴실'만 있는 손님 보강 (outNights로 입실 역산)
     state.transactions.forEach(t=>{
-      if(t.type!=='income'||t.targetId!==roomId||t.status==='cancelled')return;if(!t.date)return;
+      if(t.type!=='income'||t.targetId!==roomId||t.status==='cancelled')return;
+      if(!t.date)return;
       const outN=parseInt(t.outNights||t.nights||0,10);
-      if(outN>0){const ci=new Date(t.date+'T00:00:00');ci.setDate(ci.getDate()-outN);const key=ymd(ci);if(seen[key])return;seen[key]=1;stays.push({checkIn:ymd(ci),checkOut:t.date,nights:outN,guests:t.outGuests||t.guests||'',inTime:t.outTime||'',supplies:'',memo:''});}
+      if(outN>0){
+        const ci=new Date(t.date+'T00:00:00'); ci.setDate(ci.getDate()-outN);
+        const key=ymd(ci);
+        if(seen[key])return; // 이미 입실 기준으로 잡힌 손님이면 중복 제외
+        seen[key]=1;
+        stays.push({
+          checkIn:ymd(ci), checkOut:t.date,
+          nights:outN,
+          guests:t.outGuests||t.guests||'',
+          inTime:t.outTime||'',  // 시간 정보 없으면 빈값
+          supplies:'',
+          memo:''
+        });
+      }
     });
-    stays.forEach(s=>{if(noteByCleanDate[s.checkOut])s.memo=noteByCleanDate[s.checkOut];});
+    // 메모를 '퇴실일' 기준으로 각 체류에 붙임 (그날 청소=그날 퇴실 메모)
+    stays.forEach(s=>{ if(noteByCleanDate[s.checkOut]) s.memo=noteByCleanDate[s.checkOut]; });
     stays.sort((a,b)=>a.checkIn<b.checkIn?-1:a.checkIn>b.checkIn?1:0);
-    const ms=boardMonth+'-01';const md=new Date(new Date(boardMonth+'-01T00:00:00').getFullYear(),new Date(boardMonth+'-01T00:00:00').getMonth()+1,0);const me=ymd(md);
+
+    // 이번 달과 겹치는 체류만
+    const ms=boardMonth+'-01';
+    const md=new Date(new Date(boardMonth+'-01T00:00:00').getFullYear(),new Date(boardMonth+'-01T00:00:00').getMonth()+1,0);
+    const me=ymd(md);
     const inMonth=stays.filter(s=>s.checkOut>=ms&&s.checkIn<=me);
+
     let html='';
-    if(!inMonth.length){html=empty('📭','이 달 체크인·체크아웃 기록이 없어요');}
-    else{
+    if(!inMonth.length){ html=empty('📭','이 달 체크인·체크아웃 기록이 없어요'); }
+    else {
       for(let i=0;i<inMonth.length;i++){
-        const s=inMonth[i];const ciL=fmtDateK(s.checkIn,WD),coL=fmtDateK(s.checkOut,WD);
+        const s=inMonth[i];
+        const ciL=fmtDateK(s.checkIn,WD), coL=fmtDateK(s.checkOut,WD);
         let block=`<div style="padding:12px 0;border-bottom:1px solid var(--line);">`;
         block+=`<div style="font-size:13px;font-weight:800;color:#4FB0A3;margin-bottom:4px;">🟦 입실 ${ciL}${s.inTime?' <span style="background:#F0EEE9;border-radius:6px;padding:1px 6px;font-size:11px;">'+esc(s.inTime)+'</span>':''}${s.nights?' · '+s.nights+'박':''}${s.guests?' · '+s.guests+'명':''}</div>`;
-        if(s.supplies)block+=`<div style="margin:4px 0 6px;background:#FFF3E4;border-radius:9px;padding:7px 10px;font-size:12px;font-weight:700;color:#B5701A;">🛒 셋팅준비: ${esc(s.supplies)}</div>`;
+        if(s.supplies){ block+=`<div style="margin:4px 0 6px;background:#FFF3E4;border-radius:9px;padding:7px 10px;font-size:12px;font-weight:700;color:#B5701A;">🛒 셋팅준비: ${esc(s.supplies)}</div>`; }
         block+=`<div style="font-size:13px;font-weight:800;color:#E5897B;">🟧 퇴실 ${coL}</div>`;
-        if(s.memo)block+=`<div style="margin-top:5px;background:#FDEEF0;border-radius:9px;padding:6px 10px;font-size:11px;color:#C0556B;font-weight:700;">💰 추가/메모: ${esc(s.memo)}</div>`;
-        block+=`</div>`;html+=block;
+        if(s.memo){ block+=`<div style="margin-top:5px;background:#FDEEF0;border-radius:9px;padding:6px 10px;font-size:11px;color:#C0556B;font-weight:700;">💰 추가/메모: ${esc(s.memo)}</div>`; }
+        block+=`</div>`;
+        html+=block;
+        // 다음 체류와의 공실
         const next=inMonth[i+1];
-        if(next){const gap=Math.round((new Date(next.checkIn)-new Date(s.checkOut))/86400000);if(gap>=1)html+=`<div style="padding:8px 0;font-size:12px;font-weight:700;color:#7E8896;border-bottom:1px solid var(--line);">⚪ ${fmtDateK(s.checkOut,WD)} ~ ${fmtDateK(ymd(new Date(new Date(next.checkIn)-86400000)),WD)} 공실 (${gap}일)</div>`;}
+        if(next){
+          const gap=Math.round((new Date(next.checkIn)-new Date(s.checkOut))/86400000);
+          if(gap>=1){
+            html+=`<div style="padding:8px 0;font-size:12px;font-weight:700;color:#7E8896;border-bottom:1px solid var(--line);">⚪ ${fmtDateK(s.checkOut,WD)} ~ ${fmtDateK(ymd(new Date(new Date(next.checkIn)-86400000)),WD)} 공실 (${gap}일)</div>`;
+          }
+        }
       }
     }
     $('#rmBody').innerHTML=html;openModal('roomMonthModal');
   }
-  function ymd(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
-  function fmtDateK(s,WD){const d=new Date(s+'T00:00:00');return (d.getMonth()+1)+'/'+d.getDate()+' ('+WD[d.getDay()]+')';}
+  // 날짜 유틸 (openRoomMonth용)
+  function ymd(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function fmtDateK(s,WD){ const d=new Date(s+'T00:00:00'); return (d.getMonth()+1)+'/'+d.getDate()+' ('+WD[d.getDay()]+')'; }
 
   function renderSettlement(){
-    $$('.segbtn[data-settle]').forEach(b=>b.classList.toggle('active',b.dataset.settle===settleMode));
-    let list=branchFilter(state.transactions).filter(t=>t.status!=='cancelled');
-    let type,paid,label,desc;
-    if(settleMode==='receivable'){type='income';paid=false;label='현재 받을 돈';desc='미수금은 객실별로 묶어서 보여드려요.';}
-    else if(settleMode==='payable'){type='expense';paid=false;label='현재 줄 돈';desc='직원별 미지급 금액을 바로 처리할 수 있어요.';}
-    else{type=null;paid=true;label='완료된 정산';desc='입금·지급이 끝난 내역입니다.';}
+    $$('.segbtn[data-settle]').forEach(b=>b.classList.toggle('active',b.dataset.settle===settleMode));let list=branchFilter(state.transactions).filter(t=>t.status!=='cancelled');
+    let type,paid,label,desc;if(settleMode==='receivable'){type='income';paid=false;label='현재 받을 돈';desc='미수금은 객실별로 묶어서 보여드려요.'}else if(settleMode==='payable'){type='expense';paid=false;label='현재 줄 돈';desc='직원별 미지급 금액을 바로 처리할 수 있어요.'}else{type=null;paid=true;label='완료된 정산';desc='입금·지급이 끝난 내역입니다.'}
     list=list.filter(t=>(!type||t.type===type)&&!!t.paid===paid);
+    // 기간 필터 (이번 달 / 전체)
     if(settlePeriod==='month'){const cm=currentYM();list=list.filter(t=>(t.billingMonth||ym(t.date))===cm);}
     $('#settleLabel').textContent=label+(settlePeriod==='month'?' (이번 달)':'');$('#settleTotal').textContent=money(sum(list));$('#settleDesc').textContent=desc;
-    const groups={};list.forEach(t=>{const key=t.targetId||t.targetName;(groups[key]||(groups[key]=[])).push(t)});
+    const groups={};list.forEach(t=>{const key=t.targetId||t.targetName;(groups[key] ||= []).push(t)});
     Object.values(groups).forEach(arr=>arr.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0));
-    const html=Object.entries(groups).sort((a,b)=>sum(b[1])-sum(a[1])).map(([key,arr])=>{
-      const first=arr[0],amt=sum(arr),name=first.targetName||(first.type==='income'?roomName(key):staffName(key));
-      const open=settleOpen[key];const shown=open?arr:arr.slice(0,4);
-      return `<div class="card group"><div class="grouphead" data-settle-toggle="${key}" style="cursor:pointer;"><div class="avatar">${first.type==='income'?'🏠':'👤'}</div><div class="groupname"><b>${esc(name)}</b><small>${arr.length}건 · ${first.branch} · ${open?'접기 ▲':'전체보기 ▼'}</small></div><div class="groupamt"><b>${money(amt)}</b><small>${paid?'완료':'정산 필요'}</small></div></div>${shown.map(txHTML).join('')}${!paid?`<button class="paybtn" data-pay-group="${key}">${first.type==='income'?'입금 완료 처리':'지급 완료 처리'}</button>`:''}</div>`;
-    }).join('');
+    const html=Object.entries(groups).sort((a,b)=>sum(b[1])-sum(a[1])).map(([key,arr])=>{const first=arr[0],amt=sum(arr),name=first.targetName||(first.type==='income'?roomName(key):staffName(key));const open=settleOpen[key];const shown=open?arr:arr.slice(0,4);return `<div class="card group"><div class="grouphead" data-settle-toggle="${key}" style="cursor:pointer;"><div class="avatar">${first.type==='income'?'🏠':'👤'}</div><div class="groupname"><b>${esc(name)}</b><small>${arr.length}건 · ${first.branch} · ${open?'접기 ▲':'전체보기 ▼'}</small></div><div class="groupamt"><b>${money(amt)}</b><small>${paid?'완료':'정산 필요'}</small></div></div>${shown.map(txHTML).join('')}${!paid?`<button class="paybtn" data-pay-group="${key}">${first.type==='income'?'입금 완료 처리':'지급 완료 처리'}</button>`:''}</div>`}).join('');
     $('#settlementGroups').innerHTML=html||`<div class="card" style="margin-top:10px">${empty('✨',settleMode==='paid'?'완료 내역이 없어요':'정산할 내역이 없어요')}</div>`;
   }
 
   function renderInsight(){
-    $('#insightMonthTitle').textContent=monthText(insightMonth);
-    const tx=monthTx(insightMonth),inc=sum(tx,'income'),exp=sum(tx,'expense'),net=inc-exp,jobs=tx.filter(t=>t.type==='income').length,margin=inc?Math.round(net/inc*100):0,avg=jobs?Math.round(inc/jobs):0;
+    $('#insightMonthTitle').textContent=monthText(insightMonth);const tx=monthTx(insightMonth),inc=sum(tx,'income'),exp=sum(tx,'expense'),net=inc-exp,jobs=tx.filter(t=>t.type==='income').length,margin=inc?Math.round(net/inc*100):0,avg=jobs?Math.round(inc/jobs):0;
     $('#kpiNet').textContent=money(net);$('#kpiMargin').textContent=margin+'%';$('#kpiJobs').textContent=jobs+'건';$('#kpiAvg').textContent=money(avg);
-    const roomMap={};tx.filter(t=>t.type==='income').forEach(t=>roomMap[t.targetName||roomName(t.targetId)]=(roomMap[t.targetName||roomName(t.targetId)]||0)+Number(t.netAmount||t.amount));
-    $('#roomRanking').innerHTML=rankHTML(roomMap,false,'등록된 수입이 없어요');
-    const staffMap={};tx.filter(t=>t.type==='expense').forEach(t=>staffMap[t.targetName||staffName(t.targetId)]=(staffMap[t.targetName||staffName(t.targetId)]||0)+Number(t.netAmount||t.amount));
-    $('#staffRanking').innerHTML=rankHTML(staffMap,true,'등록된 지출이 없어요');
-    const months=[];for(let i=5;i>=0;i--)months.push(shiftMonth(insightMonth,-i));
-    const values=months.map(m=>{const a=monthTx(m);return{m,inc:sum(a,'income'),exp:sum(a,'expense')}}),max=Math.max(1,...values.flatMap(v=>[v.inc,v.exp]));
-    $('#trendBars').innerHTML=values.map(v=>`<div class="barcol"><i class="barv" style="height:${Math.max(2,v.inc/max*100)}%"></i><i class="barv exp" style="height:${Math.max(2,v.exp/max*100)}%"></i></div>`).join('');
-    $('#trendLabels').innerHTML=values.map(v=>`<span>${Number(v.m.slice(5))}월</span>`).join('');
-    let icon='💡',title='데이터를 더 쌓아보세요',text='청소와 지출 기록이 늘어나면 객실별 수익성을 더 정확히 비교할 수 있어요.';
-    if(inc){if(margin<30){icon='⚠️';title='마진 점검이 필요해요';text=`현재 마진율은 ${margin}%입니다.`;}else if(sum(tx,'income',false)>inc*.25){icon='📥';title='미수금 회수가 중요해요';text='이번 달 수입 중 미수금 비중이 높습니다.';}else{icon='👍';title='운영 흐름이 안정적이에요';text=`이번 달 순익은 ${money(net)}, 마진율은 ${margin}%입니다.`;}}
+    const roomMap={};tx.filter(t=>t.type==='income').forEach(t=>roomMap[t.targetName||roomName(t.targetId)]=(roomMap[t.targetName||roomName(t.targetId)]||0)+Number(t.netAmount||t.amount));$('#roomRanking').innerHTML=rankHTML(roomMap,false,'등록된 수입이 없어요');
+    const staffMap={};tx.filter(t=>t.type==='expense').forEach(t=>staffMap[t.targetName||staffName(t.targetId)]=(staffMap[t.targetName||staffName(t.targetId)]||0)+Number(t.netAmount||t.amount));$('#staffRanking').innerHTML=rankHTML(staffMap,true,'등록된 지출이 없어요');
+    const months=[];for(let i=5;i>=0;i--)months.push(shiftMonth(insightMonth,-i));const values=months.map(m=>{const a=monthTx(m);return{m,inc:sum(a,'income'),exp:sum(a,'expense')}}),max=Math.max(1,...values.flatMap(v=>[v.inc,v.exp]));$('#trendBars').innerHTML=values.map(v=>`<div class="barcol"><i class="barv" style="height:${Math.max(2,v.inc/max*100)}%"></i><i class="barv exp" style="height:${Math.max(2,v.exp/max*100)}%"></i></div>`).join('');$('#trendLabels').innerHTML=values.map(v=>`<span>${Number(v.m.slice(5))}월</span>`).join('');
+    let icon='💡',title='데이터를 더 쌓아보세요',text='청소와 지출 기록이 늘어나면 객실별 수익성을 더 정확히 비교할 수 있어요.';if(inc){if(margin<30){icon='⚠️';title='마진 점검이 필요해요';text=`현재 마진율은 ${margin}%입니다. 객실 단가와 직원 지급액을 함께 검토해보세요.`}else if(sum(tx,'income',false)>inc*.25){icon='📥';title='미수금 회수가 중요해요';text='이번 달 수입 중 미수금 비중이 높습니다. 정산 탭에서 호스트별로 확인해보세요.'}else{icon='👍';title='운영 흐름이 안정적이에요';text=`이번 달 순익은 ${money(net)}, 마진율은 ${margin}%입니다.`}}
     $('#businessAdvice').innerHTML=`<div class="adviceicon">${icon}</div><div class="advicetxt"><b>${title}</b><p>${text}</p></div>`;
   }
   function rankHTML(map,red,msg){const arr=Object.entries(map).sort((a,b)=>b[1]-a[1]);if(!arr.length)return empty('📊',msg);const max=arr[0][1]||1;return arr.slice(0,6).map(([name,val],i)=>`<div class="rankrow"><div class="ranktop"><b>${i+1}. ${esc(name)}</b><span>${money(val)}</span></div><div class="bar ${red?'red':''}"><span style="width:${val/max*100}%"></span></div></div>`).join('')}
 
   function renderManage(){
-    const rooms=branchFilter(state.rooms).slice().sort((a,b)=>(a.order??9999)-(b.order??9999)),staff=branchFilter(state.staff);
-    $('#roomList').innerHTML=rooms.length?rooms.map(r=>`<div class="entity drag-room" data-room-card="${r.id}" style="touch-action:pan-y;"><div class="entityico">🏠</div><div class="entitymain"><b>${esc(r.name)}</b><small>${r.branch}${r.hostName?' · 호스트 '+esc(r.hostName):''} · 기본 ${money(r.price)}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join(''):empty('🏠','등록된 객실이 없어요');
-    $('#staffList').innerHTML=staff.length?staff.map(s=>`<div class="entity" data-staff-card="${s.id}"><div class="entityico">👤</div><div class="entitymain"><b>${esc(s.name)}</b><small>${s.branch} · ${s.payType} ${money(s.rate)} · 세금 ${s.tax||0}%</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join('')+'<div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px;">💡 직원을 길게 누르면 삭제할 수 있어요</div>':empty('👥','등록된 직원이 없어요');
+    const allRooms=branchFilter(state.rooms).slice().sort((a,b)=>(a.order??9999)-(b.order??9999)),staff=branchFilter(state.staff);const rooms=allRooms.filter(r=>!r.archived);const archivedRooms=allRooms.filter(r=>r.archived);let roomHtml=rooms.length?rooms.map((r,idx)=>`<div class="entity drag-room" data-room-card="${r.id}" style="touch-action:pan-y;"><div class="entityico">🏠</div><div class="entitymain"><b>${esc(r.name)}</b><small>${r.branch}${r.hostName?' · 호스트 '+esc(r.hostName):''} · 기본 ${money(r.price)}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join(''):empty('🏠','등록된 객실이 없어요');if(archivedRooms.length){roomHtml+=`<button id="toggleArchived" style="width:100%;margin-top:10px;padding:10px;border:1px dashed #D0C8B8;border-radius:12px;background:#FBF8F3;color:var(--muted);font-size:12px;font-weight:700;">📦 보관된 객실 ${archivedRooms.length}개 ${state._showArchived?'숨기기 ▲':'보기 ▼'}</button>`;if(state._showArchived){roomHtml+='<div style="margin-top:8px;">'+archivedRooms.map(r=>`<div class="entity" style="opacity:.6;"><div class="entityico">📦</div><div class="entitymain"><b>${esc(r.name)}</b><small>보관됨 · ${r.branch}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join('')+'</div>';}}$('#roomList').innerHTML=roomHtml;
+    $('#staffList').innerHTML=staff.length?staff.map(s=>`<div class="entity" data-staff-card="${s.id}"><div class="entityico">👤</div><div class="entitymain"><b>${esc(s.name)}</b><small>${s.branch} · ${s.payType} ${money(s.rate)}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join('')+'<div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px;">💡 직원을 길게 누르면 삭제할 수 있어요</div>':empty('👥','등록된 직원이 없어요');
+    // 비품 목록 (지점 필터, 구입 필요 강조)
     const sup=(state.supplies||[]).filter(x=>state.branch==='전체'||x.branch===state.branch||x.branch==='공용');
-    $('#supplyList').innerHTML=sup.length?sup.map(x=>{const low=Number(x.qty||0)<=Number(x.min||0);return `<div class="entity" style="${low?'background:#FFF6F6;':''}"><div class="entityico">${low?'🔴':'📦'}</div><div class="entitymain"><b>${esc(x.name)}${low?' <span style="color:var(--red);font-size:10px;font-weight:800;">구입필요</span>':''}</b><small>${x.branch} · 보유 ${x.qty||0}개${x.min?' (최소 '+x.min+')':''}${x.memo?' · '+esc(x.memo):''}${x.receipt?' · 🧾':''}</small></div><button class="editbtn" data-edit-supply="${x.id}">수정</button></div>`;}).join(''):empty('📦','등록된 비품이 없어요');
+    $('#supplyList').innerHTML=sup.length?sup.map(x=>{
+      const low=Number(x.qty||0)<=Number(x.min||0);
+      return `<div class="entity" style="${low?'background:#FFF6F6;':''}"><div class="entityico">${low?'🔴':'📦'}</div><div class="entitymain"><b>${esc(x.name)}${low?' <span style="color:var(--red);font-size:10px;font-weight:800;">구입필요</span>':''}</b><small>${x.branch} · 보유 ${x.qty||0}개${x.min?' (최소 '+x.min+')':''}${x.memo?' · '+esc(x.memo):''}${x.receipt?' · 🧾':''}</small></div><button class="editbtn" data-edit-supply="${x.id}">수정</button></div>`;
+    }).join(''):empty('📦','등록된 비품이 없어요');
     renderReportOptions();
   }
-  function renderReportOptions(){
-    const list=branchFilter(reportMode==='room'?state.rooms:state.staff);
-    $('#reportTarget').innerHTML='<option value="">선택하세요</option>'+list.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
-    $('#reportMonth').value=$('#reportMonth').value||currentYM();
-    $$('[data-report]').forEach(b=>b.classList.toggle('active',b.dataset.report===reportMode));
-  }
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // ▶ 세무 탭 렌더링 (신규)
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  function renderTax(){
-    $('#taxMonthTitle').textContent=monthText(taxMonth);
-
-    // 이번 달 직원 지출 전체
-    const expTx=branchFilter(state.transactions).filter(t=>
-      t.type==='expense'&&
-      (t.billingMonth||ym(t.date))===taxMonth&&
-      t.status!=='cancelled'
-    );
-
-    // 총합
-    const payTotal=expTx.reduce((a,t)=>a+Number(t.amount||0),0);
-    const whtTotal=expTx.reduce((a,t)=>a+Number(t.taxAmount||0),0);
-    const netPay=expTx.reduce((a,t)=>a+Number(t.netAmount||t.amount||0),0);
-
-    $('#taxWhtTotal').textContent=money(whtTotal);
-    $('#taxPayTotal').textContent=money(payTotal);
-    $('#taxNetPay').textContent=money(netPay);
-
-    // 직원별 그룹화
-    const staffMap={};
-    expTx.forEach(t=>{
-      const key=t.targetId||t.targetName;
-      if(!staffMap[key]) staffMap[key]={name:t.targetName||staffName(t.targetId),branch:t.branch,pay:0,wht:0,net:0,count:0,taxRate:Number(t.taxRate||0)};
-      staffMap[key].pay+=Number(t.amount||0);
-      staffMap[key].wht+=Number(t.taxAmount||0);
-      staffMap[key].net+=Number(t.netAmount||t.amount||0);
-      staffMap[key].count++;
-    });
-
-    const rows=Object.values(staffMap).sort((a,b)=>b.pay-a.pay);
-    if(rows.length){
-      $('#taxWhtList').innerHTML=
-        // 합계 행
-        `<div class="invtotal">
-          <div><small>이번 달 직원 합계</small><br><b>${rows.length}명</b></div>
-          <div style="text-align:right;"><small>홈택스 납부 금액</small><br><b style="color:var(--red);">${money(whtTotal)}</b></div>
-        </div>`+
-        rows.map(s=>`
-          <div class="whtrow">
-            <div class="whtavatar">👤</div>
-            <div class="whtinfo">
-              <b>${esc(s.name)}</b>
-              <small>${s.branch} · ${s.count}건 · 세율 ${s.taxRate}%</small>
-            </div>
-            <div class="whtright">
-              <b>원천징수 -${money(s.wht)}</b>
-              <small>지급 ${money(s.pay)} → 실지급 ${money(s.net)}</small>
-            </div>
-          </div>
-        `).join('');
-    } else {
-      $('#taxWhtList').innerHTML=empty('👥','이번 달 직원 지출 내역이 없어요<br><small style="font-size:10px;">직원 지출 등록 시 세금률 3.3%를 입력해주세요</small>');
-    }
-
-    // ── 세금계산서 목록 ──
-    const invs=(state.invoices||[])
-      .filter(v=>ym(v.date)===taxMonth&&(state.branch==='전체'||v.branch===state.branch))
-      .sort((a,b)=>b.date.localeCompare(a.date));
-
-    if(invs.length){
-      const invTotal=invs.reduce((a,v)=>a+Number(v.total||v.amount||0),0);
-      const issuedTotal=invs.filter(v=>v.issued).reduce((a,v)=>a+Number(v.total||v.amount||0),0);
-      const pendingTotal=invs.filter(v=>!v.issued).reduce((a,v)=>a+Number(v.total||v.amount||0),0);
-      $('#invoiceList').innerHTML=
-        `<div class="invtotal">
-          <div>
-            <small>이번 달 세금계산서</small><br>
-            <b>${money(invTotal)}</b>
-          </div>
-          <div style="text-align:right;">
-            <span class="taxbadge issued">✅ 발행 ${money(issuedTotal)}</span>
-            ${pendingTotal?`<span class="taxbadge pending">⏳ 미발행 ${money(pendingTotal)}</span>`:''}
-          </div>
-        </div>`+
-        invs.map(v=>`
-          <div class="invrow" data-edit-inv="${v.id}">
-            <div class="invico">🧾</div>
-            <div class="invmain">
-              <b>${esc(v.name)}</b>
-              <small>${dateText(v.date)} · ${v.branch}</small>
-              ${v.memo?`<small style="color:var(--sub);">${esc(v.memo)}</small>`:''}
-            </div>
-            <div class="invright">
-              <b>${money(v.total||v.amount)}</b>
-              <small style="color:${v.issued?'var(--green)':'var(--amber)'};">${v.issued?'✅ 발행완료':'⏳ 미발행'}</small>
-            </div>
-          </div>
-        `).join('');
-    } else {
-      $('#invoiceList').innerHTML=empty('🧾','이번 달 세금계산서 내역이 없어요<br><small style="font-size:10px;">홈택스에서 발행 후 여기에 기록해두세요</small>');
-    }
-  }
-
-  // ── 세금계산서 모달 ──
-  function openInvoice(id=''){
-    const v=(state.invoices||[]).find(x=>x.id===id);
-    $('#invEditId').value=id;
-    $('#invDate').value=v?.date||today();
-    $('#invName').value=v?.name||'';
-    $('#invAmount').value=v?.amount||'';
-    $('#invVat').value=v?.vat||'';
-    $('#invTotal').value=v?.total||'';
-    $('#invBranch').value=v?.branch||(state.branch==='전체'?'영종점':state.branch);
-    $('#invIssued').checked=!!v?.issued;
-    $('#invMemo').value=v?.memo||'';
-    $('#deleteInvoice').style.display=id?'block':'none';
-    $('#invoiceModalTitle').textContent=id?'세금계산서 수정':'세금계산서 등록';
-    openModal('invoiceModal');
-  }
-
-  function calcInvVat(){
-    const amt=Number($('#invAmount').value||0);
-    const vat=Math.round(amt*0.1);
-    const total=amt+vat;
-    $('#invVat').value=vat||'';
-    $('#invTotal').value=total||'';
-  }
-
-  function saveInvoiceForm(){
-    const id=$('#invEditId').value;
-    const date=$('#invDate').value;
-    const name=$('#invName').value.trim();
-    const amount=Number($('#invAmount').value||0);
-    if(!date||!name||!amount)return toast('날짜, 거래처명, 공급가액을 입력해주세요');
-    const vat=Math.round(amount*0.1);
-    const total=amount+vat;
-    const obj={
-      id:id||uid('inv'),date,name,
-      branch:$('#invBranch').value,
-      amount,vat,total,
-      issued:$('#invIssued').checked,
-      memo:$('#invMemo').value.trim()
-    };
-    state.invoices=state.invoices||[];
-    if(id) state.invoices[state.invoices.findIndex(x=>x.id===id)]=obj;
-    else state.invoices.push(obj);
-    save();closeModal('invoiceModal');renderTax();
-    toast('🧾 세금계산서 내역을 저장했어요');
-  }
-
-  function deleteInvoiceForm(){
-    const id=$('#invEditId').value;if(!id)return;
-    if(!confirm('이 세금계산서 내역을 삭제할까요?'))return;
-    state.invoices=(state.invoices||[]).filter(x=>x.id!==id);
-    save();closeModal('invoiceModal');renderTax();toast('🗑️ 삭제했어요');
-  }
+  function renderReportOptions(){const list=branchFilter(reportMode==='room'?state.rooms:state.staff);$('#reportTarget').innerHTML='<option value="">선택하세요</option>'+list.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');$('#reportMonth').value=$('#reportMonth').value||currentYM();$$('[data-report]').forEach(b=>b.classList.toggle('active',b.dataset.report===reportMode))}
 
   function openModal(id){$('#'+id).classList.add('open')}
   function closeModal(id){$('#'+id).classList.remove('open')}
-
+  // 🔄 체크아웃 자동 채우기: 선택한 객실의 '직전 체크인'을 찾아 체크아웃 칸에 채움
+  // 거래의 inNights(체크인 N박) → 입실일+N박 = 이 청소일이면, 그 손님이 나가는 것
   function autoFillCheckout(){
-    if($('#txEditId').value)return;if(txType!=='income')return;
-    const targetId=$('#txTargetInput').value;const date=$('#txDateInput').value;
-    if(!targetId||!date)return;if($('#txOutNights').value||$('#txOutGuests').value)return;
+    if($('#txEditId').value)return; // 수정 중엔 자동채우기 안 함
+    if(txType!=='income')return;
+    const targetId=$('#txTargetInput').value;
+    const date=$('#txDateInput').value;
+    if(!targetId||!date)return;
+    // 이미 체크아웃 칸에 값이 있으면 덮어쓰지 않음
+    if($('#txOutNights').value||$('#txOutGuests').value)return;
+    // 이 객실의 거래 중, '입실일+inNights == 이 청소일' 인 직전 체크인 찾기
     const cands=state.transactions.filter(t=>t.type==='income'&&t.targetId===targetId&&t.status!=='cancelled'&&t.inNights&&t.date<date);
     let best=null;
-    cands.forEach(t=>{const n=parseInt(t.inNights,10);if(!n)return;const co=new Date(t.date+'T00:00:00');co.setDate(co.getDate()+n);const coStr=co.getFullYear()+'-'+String(co.getMonth()+1).padStart(2,'0')+'-'+String(co.getDate()).padStart(2,'0');if(coStr===date){if(!best||t.date>best.date)best=t;}});
-    if(best){$('#txOutNights').value=best.inNights||'';$('#txOutGuests').value=best.inGuests||'';if(best.inTime&&!$('#txOutTime').value)$('#txOutTime').value=best.inTime;toast('🔄 체크아웃 자동입력 ('+best.inNights+'박·'+(best.inGuests||'?')+'명)');}
+    cands.forEach(t=>{
+      const n=parseInt(t.inNights,10); if(!n)return;
+      const co=new Date(t.date+'T00:00:00'); co.setDate(co.getDate()+n);
+      const coStr=co.getFullYear()+'-'+String(co.getMonth()+1).padStart(2,'0')+'-'+String(co.getDate()).padStart(2,'0');
+      if(coStr===date){ if(!best||t.date>best.date) best=t; }
+    });
+    if(best){
+      $('#txOutNights').value=best.inNights||'';
+      $('#txOutGuests').value=best.inGuests||'';
+      if(best.inTime&&!$('#txOutTime').value)$('#txOutTime').value=best.inTime;
+      toast('🔄 체크아웃 자동입력 ('+best.inNights+'박·'+(best.inGuests||'?')+'명)');
+    }
   }
 
   function openTx(type='income',date=today(),editId=''){
     txType=type;$('#txEditId').value=editId;$('#txDateInput').value=date;$('#txBillingInput').value=ym(date);$('#txMemoInput').value='';$('#txPaidInput').checked=false;$('#txStatusInput').value='booked';$('#deleteTx').style.display=editId?'block':'none';
-    ['txOutNights','txOutGuests','txOutTime','txInNights','txInGuests','txInTime','txInSupplies'].forEach(function(fid){var el=$('#'+fid);if(el)el.value='';});
+    // 청소 스케줄 필드 초기화
+    ['txOutNights','txOutGuests','txOutTime','txInNights','txInGuests','txInTime','txInSupplies'].forEach(function(fid){ var el=$('#'+fid); if(el) el.value=''; });
     const prefBranch=state.branch==='전체'?'영종점':state.branch;$('#txBranchInput').value=prefBranch;$('#txAmountInput').value='';
-    if(editId){const t=state.transactions.find(x=>x.id===editId);if(t){txType=t.type;$('#txDateInput').value=t.date;$('#txBillingInput').value=t.billingMonth||ym(t.date);$('#txBranchInput').value=t.branch;$('#txAmountInput').value=t.amount;$('#txMemoInput').value=t.memo||'';$('#txPaidInput').checked=!!t.paid;$('#txStatusInput').value=t.status||'done';$('#txOutNights').value=t.outNights||t.nights||'';$('#txOutGuests').value=t.outGuests||t.guests||'';$('#txOutTime').value=t.outTime||'';$('#txInNights').value=t.inNights||'';$('#txInGuests').value=t.inGuests||'';$('#txInTime').value=t.inTime||'';$('#txInSupplies').value=t.inSupplies||'';}}
-    updateTxType();if(editId){const t=state.transactions.find(x=>x.id===editId);$('#txTargetInput').value=t.targetId}openModal('txModal');
+    if(editId){const t=state.transactions.find(x=>x.id===editId);if(t){txType=t.type;$('#txDateInput').value=t.date;$('#txBillingInput').value=t.billingMonth||ym(t.date);$('#txBranchInput').value=t.branch;$('#txAmountInput').value=t.amount;$('#txMemoInput').value=t.memo||'';$('#txPaidInput').checked=!!t.paid;$('#txStatusInput').value=t.status||'done';
+      $('#txOutNights').value=t.outNights||t.nights||'';$('#txOutGuests').value=t.outGuests||t.guests||'';$('#txOutTime').value=t.outTime||'';
+      $('#txInNights').value=t.inNights||'';$('#txInGuests').value=t.inGuests||'';$('#txInTime').value=t.inTime||'';$('#txInSupplies').value=t.inSupplies||'';
+    }}
+    updateTxType();if(editId){const t=state.transactions.find(x=>x.id===editId);$('#txTargetInput').value=t.targetId}openModal('txModal')
   }
   function updateTxType(){
     $$('.typebtn').forEach(b=>b.classList.toggle('active',b.dataset.type===txType));$('#txTargetLabel').textContent=txType==='income'?'객실':'직원';$('#txPaidText').textContent=txType==='income'?'입금 완료':'지급 완료';$('#txModalTitle').textContent=txType==='income'?'청소 수입 등록':'직원 지출 등록';
-    var schedBox=$('#txScheduleBox');if(schedBox)schedBox.style.display=txType==='income'?'block':'none';
-    const branch=$('#txBranchInput').value,list=(txType==='income'?state.rooms:state.staff).filter(x=>x.branch===branch);
-    $('#txTargetInput').innerHTML='<option value="">선택하세요</option>'+list.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
+    var schedBox=$('#txScheduleBox'); if(schedBox) schedBox.style.display = txType==='income' ? 'block' : 'none';
+    const branch=$('#txBranchInput').value,list=(txType==='income'?state.rooms:state.staff).filter(x=>x.branch===branch&&!x.archived);$('#txTargetInput').innerHTML='<option value="">선택하세요</option>'+list.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
   }
   function saveTxForm(){
     const id=$('#txEditId').value,date=$('#txDateInput').value,branch=$('#txBranchInput').value,targetId=$('#txTargetInput').value,amount=Number($('#txAmountInput').value),memo=$('#txMemoInput').value.trim(),billingMonth=$('#txBillingInput').value||ym(date),paid=$('#txPaidInput').checked,status=$('#txStatusInput').value;
-    if(!date||!targetId)return toast('날짜와 대상을 확인해주세요');
-    const target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===targetId);if(!target)return toast('대상을 찾을 수 없어요');
-    const taxRate=Number(target.tax||0),taxAmount=Math.round(amount*taxRate/100);
-    const sched=txType==='income'?{outNights:$('#txOutNights').value.trim(),outGuests:$('#txOutGuests').value.trim(),outTime:$('#txOutTime').value,inNights:$('#txInNights').value.trim(),inGuests:$('#txInGuests').value.trim(),inTime:$('#txInTime').value,inSupplies:$('#txInSupplies').value.trim()}:{};
+    if(!date||!targetId)return toast('날짜와 대상을 확인해주세요');const target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===targetId);if(!target)return toast('대상을 찾을 수 없어요');const taxRate=Number(target.tax||0),taxAmount=Math.round(amount*taxRate/100);
+    const sched = txType==='income' ? {
+      outNights:$('#txOutNights').value.trim(), outGuests:$('#txOutGuests').value.trim(), outTime:$('#txOutTime').value,
+      inNights:$('#txInNights').value.trim(), inGuests:$('#txInGuests').value.trim(), inTime:$('#txInTime').value, inSupplies:$('#txInSupplies').value.trim()
+    } : {};
     const obj={id:id||uid('tx'),date,billingMonth,type:txType,targetId,targetName:target.name,branch,amount,taxRate,taxAmount,netAmount:amount-taxAmount,paid,memo,status,createdAt:Date.now(),...sched};
-    if(id){const i=state.transactions.findIndex(x=>x.id===id);state.transactions[i]={...state.transactions[i],...obj};}else state.transactions.push(obj);
-    save();closeModal('txModal');toast('기록을 저장했어요');render();
+    if(id){const i=state.transactions.findIndex(x=>x.id===id);state.transactions[i]={...state.transactions[i],...obj}}else state.transactions.push(obj);save();closeModal('txModal');toast('기록을 저장했어요');render();
   }
-  function deleteTxForm(){const id=$('#txEditId').value;if(!id)return;if(confirm('이 기록을 삭제할까요?')){state.transactions=state.transactions.filter(x=>x.id!==id);save();closeModal('txModal');render();toast('삭제했어요');}}
-  function openRoom(id=''){const r=state.rooms.find(x=>x.id===id);$('#roomEditId').value=id;$('#roomNameInput').value=r?.name||'';$('#roomHostInput').value=r?.hostName||'';$('#roomBranchInput').value=r?.branch||(state.branch==='전체'?'영종점':state.branch);$('#roomPriceInput').value=r?.price||'';$('#roomTaxInput').value=r?.tax||'';$('#roomBaseGuests').value=r?.baseGuests||'';$('#roomExtraSetup').value=r?.extraSetup||'';$('#roomDoorPw').value=r?.doorPw||'';$('#roomSupplyPw').value=r?.supplyPw||'';const drb=$('#deleteRoomBtn');if(drb)drb.style.display=id?'block':'none';openModal('roomModal');}
-  function deleteRoom(id){const r=state.rooms.find(x=>x.id===id);if(!r)return;const txCount=state.transactions.filter(t=>t.targetId===id).length;let msg='"'+r.name+'" 객실을 삭제할까요?';if(txCount>0)msg+='\n\n⚠️ 이 객실의 기록 '+txCount+'건도 함께 삭제돼요.';if(!confirm(msg))return;state.rooms=state.rooms.filter(x=>x.id!==id);state.transactions=state.transactions.filter(t=>t.targetId!==id);closeModal('roomModal');save();render();toast('🗑️ "'+r.name+'" 삭제됐어요');}
-  function saveRoomForm(){const id=$('#roomEditId').value,name=$('#roomNameInput').value.trim(),hostName=$('#roomHostInput').value.trim(),branch=$('#roomBranchInput').value,price=Number($('#roomPriceInput').value),tax=Number($('#roomTaxInput').value||0),baseGuests=Number($('#roomBaseGuests').value||0),extraSetup=$('#roomExtraSetup').value.trim(),doorPw=$('#roomDoorPw').value.trim(),supplyPw=$('#roomSupplyPw').value.trim();if(!name||!price)return toast('객실명과 기본 청소비를 입력해주세요');const prev=state.rooms.find(x=>x.id===id)||{};const obj={...prev,id:id||uid('room'),name,hostName,branch,price,tax,baseGuests,extraSetup,doorPw,supplyPw};if(id)state.rooms[state.rooms.findIndex(x=>x.id===id)]=obj;else state.rooms.push(obj);save();closeModal('roomModal');render();toast('객실을 저장했어요');}
+  function deleteTxForm(){const id=$('#txEditId').value;if(!id)return;if(confirm('이 기록을 삭제할까요?')){state.transactions=state.transactions.filter(x=>x.id!==id);save();closeModal('txModal');render();toast('삭제했어요')}}
+  function openRoom(id=''){const r=state.rooms.find(x=>x.id===id);$('#roomEditId').value=id;$('#roomNameInput').value=r?.name||'';$('#roomHostInput').value=r?.hostName||'';$('#roomBranchInput').value=r?.branch||(state.branch==='전체'?'영종점':state.branch);$('#roomPriceInput').value=r?.price||'';$('#roomTaxInput').value=r?.tax||'';$('#roomBaseGuests').value=r?.baseGuests||'';$('#roomExtraSetup').value=r?.extraSetup||'';$('#roomDoorPw').value=r?.doorPw||'';$('#roomSupplyPw').value=r?.supplyPw||'';const drb=$('#deleteRoomBtn');if(drb)drb.style.display=id?'block':'none';const arb=$('#archiveRoomBtn');if(arb){arb.style.display=id?'block':'none';if(r&&r.archived){arb.textContent='📤 보관 해제 (메뉴에 다시 표시)';arb.style.background='#D5F5E3';arb.style.color='#1E8449';arb.style.borderColor='#A9DFBF';}else{arb.textContent='📦 이 객실 보관 (메뉴에서 숨김)';arb.style.background='#FDF0D5';arb.style.color='#B8860B';arb.style.borderColor='#F0D890';}}openModal('roomModal')}
+  // 객실 삭제 (길게 누르기)
+  function deleteRoom(id){
+    const r=state.rooms.find(x=>x.id===id);
+    if(!r)return;
+    const txCount=state.transactions.filter(t=>t.targetId===id).length;
+    let msg='"'+r.name+'" 객실을 삭제할까요?';
+    if(txCount>0) msg+='\n\n⚠️ 이 객실의 기록 '+txCount+'건도 함께 삭제돼요.';
+    msg+='\n\n(삭제 전 백업을 권장해요)';
+    if(!confirm(msg))return;
+    state.rooms=state.rooms.filter(x=>x.id!==id);
+    state.transactions=state.transactions.filter(t=>t.targetId!==id);
+    closeModal('roomModal');save();render();toast('🗑️ "'+r.name+'" 삭제됐어요');
+  }
+  function saveRoomForm(){const id=$('#roomEditId').value,name=$('#roomNameInput').value.trim(),hostName=$('#roomHostInput').value.trim(),branch=$('#roomBranchInput').value,price=Number($('#roomPriceInput').value),tax=Number($('#roomTaxInput').value||0),baseGuests=Number($('#roomBaseGuests').value||0),extraSetup=$('#roomExtraSetup').value.trim(),doorPw=$('#roomDoorPw').value.trim(),supplyPw=$('#roomSupplyPw').value.trim();if(!name||!price)return toast('객실명과 기본 청소비를 입력해주세요');const prev=state.rooms.find(x=>x.id===id)||{};const obj={...prev,id:id||uid('room'),name,hostName,branch,price,tax,baseGuests,extraSetup,doorPw,supplyPw};if(id)state.rooms[state.rooms.findIndex(x=>x.id===id)]=obj;else state.rooms.push(obj);save();closeModal('roomModal');render();toast('객실을 저장했어요')}
 
+  // ── 비품 ──
   let supplyReceiptData='';
-  function openSupply(id=''){const x=(state.supplies||[]).find(s=>s.id===id);$('#supplyEditId').value=id;$('#supplyNameInput').value=x?.name||'';$('#supplyBranchInput').value=x?.branch||(state.branch==='전체'?'영종점':state.branch);$('#supplyQtyInput').value=x?.qty||'';$('#supplyMinInput').value=x?.min||'';$('#supplyMemoInput').value=x?.memo||'';supplyReceiptData=x?.receipt||'';$('#supplyReceiptInput').value='';$('#supplyReceiptPreview').innerHTML=supplyReceiptData?`<img src="${supplyReceiptData}" style="max-width:100%;border-radius:10px;">`:'';$('#deleteSupply').style.display=id?'block':'none';openModal('supplyModal');}
-  function saveSupplyForm(){const id=$('#supplyEditId').value,name=$('#supplyNameInput').value.trim();if(!name)return toast('품목명을 입력해주세요');const obj={id:id||uid('sup'),name,branch:$('#supplyBranchInput').value,qty:Number($('#supplyQtyInput').value||0),min:Number($('#supplyMinInput').value||0),memo:$('#supplyMemoInput').value.trim(),receipt:supplyReceiptData||''};state.supplies=state.supplies||[];if(id)state.supplies[state.supplies.findIndex(s=>s.id===id)]=obj;else state.supplies.push(obj);save();closeModal('supplyModal');render();toast('비품을 저장했어요');}
-  function deleteSupplyForm(){const id=$('#supplyEditId').value;if(!id)return;if(!confirm('이 비품을 삭제할까요?'))return;state.supplies=(state.supplies||[]).filter(s=>s.id!==id);save();closeModal('supplyModal');render();toast('삭제했어요');}
-
-  function deleteStaff(id){const s=state.staff.find(x=>x.id===id);if(!s)return;const txCount=state.transactions.filter(t=>t.targetId===id).length;let msg='"'+s.name+'" 직원을 삭제할까요?';if(txCount>0)msg+='\n\n⚠️ 이 직원의 기록 '+txCount+'건도 함께 삭제돼요.';if(!confirm(msg))return;state.staff=state.staff.filter(x=>x.id!==id);state.transactions=state.transactions.filter(t=>t.targetId!==id);closeModal('staffModal');save();render();toast('🗑️ "'+s.name+'" 삭제됐어요');}
-
-  // 월 고정 관리비
+  function openSupply(id=''){
+    const x=(state.supplies||[]).find(s=>s.id===id);
+    $('#supplyEditId').value=id;
+    $('#supplyNameInput').value=x?.name||'';
+    $('#supplyBranchInput').value=x?.branch||(state.branch==='전체'?'영종점':state.branch);
+    $('#supplyQtyInput').value=x?.qty||'';
+    $('#supplyMinInput').value=x?.min||'';
+    $('#supplyMemoInput').value=x?.memo||'';
+    supplyReceiptData=x?.receipt||'';
+    $('#supplyReceiptInput').value='';
+    $('#supplyReceiptPreview').innerHTML=supplyReceiptData?`<img src="${supplyReceiptData}" style="max-width:100%;border-radius:10px;">`:'';
+    $('#deleteSupply').style.display=id?'block':'none';
+    openModal('supplyModal');
+  }
+  function saveSupplyForm(){
+    const id=$('#supplyEditId').value,name=$('#supplyNameInput').value.trim();
+    if(!name)return toast('품목명을 입력해주세요');
+    const obj={id:id||uid('sup'),name,branch:$('#supplyBranchInput').value,qty:Number($('#supplyQtyInput').value||0),min:Number($('#supplyMinInput').value||0),memo:$('#supplyMemoInput').value.trim(),receipt:supplyReceiptData||''};
+    state.supplies=state.supplies||[];
+    if(id)state.supplies[state.supplies.findIndex(s=>s.id===id)]=obj;else state.supplies.push(obj);
+    save();closeModal('supplyModal');render();toast('비품을 저장했어요');
+  }
+  function deleteSupplyForm(){
+    const id=$('#supplyEditId').value;if(!id)return;
+    if(!confirm('이 비품을 삭제할까요?'))return;
+    state.supplies=(state.supplies||[]).filter(s=>s.id!==id);
+    save();closeModal('supplyModal');render();toast('삭제했어요');
+  }
+  // 직원 삭제 (길게 누르기)
+  function deleteStaff(id){
+    const s=state.staff.find(x=>x.id===id);
+    if(!s)return;
+    const txCount=state.transactions.filter(t=>t.targetId===id).length;
+    let msg='"'+s.name+'" 직원을 삭제할까요?';
+    if(txCount>0) msg+='\n\n⚠️ 이 직원의 기록 '+txCount+'건도 함께 삭제돼요.';
+    if(!confirm(msg))return;
+    state.staff=state.staff.filter(x=>x.id!==id);
+    state.transactions=state.transactions.filter(t=>t.targetId!==id);
+    closeModal('staffModal');save();render();toast('🗑️ "'+s.name+'" 삭제됐어요');
+  }
+  // 객실 순서 이동 (▲▼)
+  function moveRoom(id, dir){
+    // 현재 보이는(지점 필터된) 순서 기준으로 재배치
+    const visible=branchFilter(state.rooms).slice().sort((a,b)=>(a.order??9999)-(b.order??9999));
+    const i=visible.findIndex(r=>r.id===id);
+    if(i<0)return;
+    const j=dir==='up'?i-1:i+1;
+    if(j<0||j>=visible.length)return;
+    // 두 객실의 order를 서로 바꿈
+    const a=visible[i], b=visible[j];
+    const ao=a.order??i, bo=b.order??j;
+    // 전체 rooms에서 해당 객체 찾아 order 부여
+    state.rooms.forEach((r,idx)=>{ if(r.order==null) r.order=idx; });
+    const ra=state.rooms.find(r=>r.id===a.id), rb=state.rooms.find(r=>r.id===b.id);
+    const tmp=ra.order; ra.order=rb.order; rb.order=tmp;
+    save();render();
+  }
+  // 청소(거래) 순서 이동 (▲▼) — 같은 날짜 안에서
+  function moveTx(id, dir){
+    const t=state.transactions.find(x=>x.id===id); if(!t)return;
+    const sameDay=branchFilter(state.transactions).filter(x=>x.date===t.date&&x.status!=='cancelled')
+      .sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
+    const i=sameDay.findIndex(x=>x.id===id);
+    const j=dir==='up'?i-1:i+1;
+    if(j<0||j>=sameDay.length)return;
+    sameDay.forEach((x,idx)=>{ const o=state.transactions.find(tt=>tt.id===x.id); if(o)o.dayOrder=idx; });
+    const a=state.transactions.find(tt=>tt.id===sameDay[i].id);
+    const b=state.transactions.find(tt=>tt.id===sameDay[j].id);
+    const tmp=a.dayOrder; a.dayOrder=b.dayOrder; b.dayOrder=tmp;
+    save();renderSchedule();
+  }
+  // 💰 월 고정 관리비 (자동등록)
   const MF_KEY='roommade-월관리비설정';
-  function loadMF(){try{return JSON.parse(localStorage.getItem(MF_KEY)||'null');}catch(e){return null;}}
-  function saveMF(cfg){localStorage.setItem(MF_KEY,JSON.stringify(cfg));}
-  function fillMFForm(){const cfg=loadMF();if(cfg){if($('#mfBranch'))$('#mfBranch').value=cfg.branch||'펜트하우스';if($('#mfAmount'))$('#mfAmount').value=cfg.amount||'';if($('#mfLabel'))$('#mfLabel').value=cfg.label||'위탁관리비';if($('#mfStart'))$('#mfStart').value=cfg.start||'';if($('#mfActive'))$('#mfActive').value=cfg.active?'1':'0';}updateMFStatus();}
-  function updateMFStatus(){const cfg=loadMF();const el=$('#mfStatus');if(!el)return;if(cfg&&cfg.active){el.textContent='✅ 자동등록 켜짐 ('+cfg.branch+' 매월 '+Number(cfg.amount).toLocaleString()+'원)';}else if(cfg){el.textContent='⏸️ 자동등록 꺼짐';}else{el.textContent='아직 설정 안 됨';}}
-  function saveMFForm(){const branch=$('#mfBranch').value;const amount=Number($('#mfAmount').value||0);const label=$('#mfLabel').value.trim()||'위탁관리비';const start=$('#mfStart').value;const active=$('#mfActive').value==='1';if(active&&(!amount||!start)){toast('금액과 시작월을 입력해주세요');return;}saveMF({branch,amount,label,start,active});const added=applyMonthlyFee();fillMFForm();toast(added>0?('✅ 저장 + '+added+'개월 관리비 자동등록'):'✅ 저장됐어요');render();}
+  function loadMF(){ try{return JSON.parse(localStorage.getItem(MF_KEY)||'null');}catch(e){return null;} }
+  function saveMF(cfg){ localStorage.setItem(MF_KEY,JSON.stringify(cfg)); }
+
+  // 설정 화면에 현재 값 채우기
+  function fillMFForm(){
+    const cfg=loadMF();
+    if(cfg){
+      if($('#mfBranch'))$('#mfBranch').value=cfg.branch||'펜트하우스';
+      if($('#mfAmount'))$('#mfAmount').value=cfg.amount||'';
+      if($('#mfLabel'))$('#mfLabel').value=cfg.label||'위탁관리비';
+      if($('#mfStart'))$('#mfStart').value=cfg.start||'';
+      if($('#mfActive'))$('#mfActive').value=cfg.active?'1':'0';
+    }
+    updateMFStatus();
+  }
+  function updateMFStatus(){
+    const cfg=loadMF(); const el=$('#mfStatus'); if(!el)return;
+    if(cfg&&cfg.active){ el.textContent='✅ 자동등록 켜짐 ('+cfg.branch+' 매월 '+Number(cfg.amount).toLocaleString()+'원)'; }
+    else if(cfg){ el.textContent='⏸️ 자동등록 꺼짐'; }
+    else { el.textContent='아직 설정 안 됨'; }
+  }
+  function saveMFForm(){
+    const branch=$('#mfBranch').value;
+    const amount=Number($('#mfAmount').value||0);
+    const label=$('#mfLabel').value.trim()||'위탁관리비';
+    const start=$('#mfStart').value;
+    const active=$('#mfActive').value==='1';
+    if(active&&(!amount||!start)){ toast('금액과 시작월을 입력해주세요'); return; }
+    saveMF({branch,amount,label,start,active});
+    const added=applyMonthlyFee();
+    fillMFForm();
+    toast(added>0?('✅ 저장 + '+added+'개월 관리비 자동등록'):'✅ 저장됐어요');
+    render();
+  }
+
+  // 시작월~이번달까지 빠진 달의 관리비를 자동 등록 (중복 방지)
   function applyMonthlyFee(){
-    const cfg=loadMF();if(!cfg||!cfg.active||!cfg.amount||!cfg.start)return 0;
+    const cfg=loadMF();
+    if(!cfg||!cfg.active||!cfg.amount||!cfg.start)return 0;
     const room=state.rooms.find(r=>r.branch===cfg.branch);
-    const startD=new Date(cfg.start+'-01T00:00:00');const now=new Date();
-    const BASE_LIMIT=cfg.baseCount||50,BASE_FEE=cfg.amount||3200000,OVER_FEE=cfg.overFee||50000,MAX_FEE=cfg.maxFee||3500000;
-    let added=0,changed=0,d=new Date(startD);
+    const startD=new Date(cfg.start+'-01T00:00:00');
+    const now=new Date();
+    // 펜트하우스 위탁 규칙 설정값 (기본값 + cfg에서 덮어쓰기 가능)
+    const BASE_LIMIT = cfg.baseCount || 50;      // 기본 포함 횟수
+    const BASE_FEE   = cfg.amount   || 3200000;  // 기본 금액(320만)
+    const OVER_FEE   = cfg.overFee  || 50000;    // 초과 1건당(5만)
+    const MAX_FEE    = cfg.maxFee   || 3500000;  // 상한(350만)
+    let added=0, changed=0, d=new Date(startD);
     while(d<=now){
       const mKey=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-      const cleanCount=state.transactions.filter(t=>t.branch===cfg.branch&&t.type==='income'&&!t.autoFee&&t.status!=='cancelled'&&(t.billingMonth||(t.date||'').slice(0,7))===mKey).length;
-      let fee=BASE_FEE;if(cleanCount>BASE_LIMIT)fee=BASE_FEE+(cleanCount-BASE_LIMIT)*OVER_FEE;if(fee>MAX_FEE)fee=MAX_FEE;
+      // 그달 펜트하우스 '청소 건수' 세기 (자동관리비 자신은 제외, 취소 제외)
+      const cleanCount=state.transactions.filter(t=>
+        t.branch===cfg.branch && t.type==='income' && !t.autoFee &&
+        t.status!=='cancelled' && (t.billingMonth||(t.date||'').slice(0,7))===mKey
+      ).length;
+      // 금액 계산: 50회까지 320만, 51회부터 건당 5만 추가, 350만 상한
+      let fee=BASE_FEE;
+      if(cleanCount>BASE_LIMIT){ fee = BASE_FEE + (cleanCount-BASE_LIMIT)*OVER_FEE; }
+      if(fee>MAX_FEE) fee=MAX_FEE;
       const overCnt=Math.max(0,cleanCount-BASE_LIMIT);
       const memo='위탁관리비 ('+cleanCount+'회'+(overCnt>0?(' / 초과 '+overCnt+'건'):'')+(fee>=MAX_FEE&&overCnt>0?' / 상한도달':'')+')';
-      const existing=state.transactions.find(t=>t.autoFee===true&&(t.billingMonth===mKey||(t.date||'').slice(0,7)===mKey)&&t.branch===cfg.branch);
-      if(!existing){state.transactions.push({id:'fee_'+cfg.branch+'_'+mKey,date:mKey+'-01',billingMonth:mKey,type:'income',targetId:room?room.id:'',targetName:cfg.label,branch:cfg.branch,amount:fee,taxRate:0,taxAmount:0,netAmount:fee,outNights:'',outGuests:'',outTime:'',inNights:'',inGuests:'',inTime:'',inSupplies:'',memo,paid:false,status:'done',autoFee:true,createdAt:Date.now()+added});added++;}
-      else if(existing.amount!==fee&&!existing.paid){existing.amount=fee;existing.netAmount=fee;existing.memo=memo;changed++;}
+      const existing=state.transactions.find(t=>t.autoFee===true && (t.billingMonth===mKey||(t.date||'').slice(0,7)===mKey) && t.branch===cfg.branch);
+      if(!existing){
+        state.transactions.push({
+          id:'fee_'+cfg.branch+'_'+mKey,
+          date:mKey+'-01', billingMonth:mKey, type:'income',
+          targetId:room?room.id:'', targetName:cfg.label,
+          branch:cfg.branch, amount:fee,
+          taxRate:0, taxAmount:0, netAmount:fee,
+          outNights:'',outGuests:'',outTime:'',inNights:'',inGuests:'',inTime:'',inSupplies:'',
+          memo:memo,
+          paid:false, status:'done', autoFee:true,
+          createdAt:Date.now()+added
+        });
+        added++;
+      }else if(existing.amount!==fee && !existing.paid){
+        // 청소건수가 바뀌어 금액이 달라졌으면 갱신 (단, 이미 입금완료면 안 건드림)
+        existing.amount=fee; existing.netAmount=fee; existing.memo=memo;
+        changed++;
+      }
       d.setMonth(d.getMonth()+1);
     }
-    if(added>0||changed>0)save();return added;
+    if(added>0||changed>0)save();
+    return added;
   }
 
-  function openStaff(id=''){const s=state.staff.find(x=>x.id===id);$('#staffEditId').value=id;$('#staffNameInput').value=s?.name||'';$('#staffBranchInput').value=s?.branch||(state.branch==='전체'?'영종점':state.branch);$('#staffPayTypeInput').value=s?.payType||'건당';$('#staffRateInput').value=s?.rate||'';$('#staffTaxInput').value=s?.tax??3.3;const dsb=$('#deleteStaffBtn');if(dsb)dsb.style.display=id?'block':'none';openModal('staffModal');}
-  function saveStaffForm(){const id=$('#staffEditId').value,name=$('#staffNameInput').value.trim(),branch=$('#staffBranchInput').value,payType=$('#staffPayTypeInput').value,rate=Number($('#staffRateInput').value),tax=Number($('#staffTaxInput').value||0);if(!name||!rate)return toast('이름과 기본 단가를 입력해주세요');const obj={id:id||uid('staff'),name,branch,payType,rate,tax};if(id)state.staff[state.staff.findIndex(x=>x.id===id)]=obj;else state.staff.push(obj);save();closeModal('staffModal');render();toast('직원을 저장했어요');}
+  // 객실 보관/해제 토글
+  function toggleArchiveRoom(id){
+    const r=state.rooms.find(x=>x.id===id);
+    if(!r)return;
+    r.archived=!r.archived;
+    save();closeModal('roomModal');render();
+    toast(r.archived?('📦 "'+r.name+'" 보관됨 (메뉴에서 숨김)'):('📤 "'+r.name+'" 다시 표시됨'));
+  }
+  function openStaff(id=''){const s=state.staff.find(x=>x.id===id);$('#staffEditId').value=id;$('#staffNameInput').value=s?.name||'';$('#staffBranchInput').value=s?.branch||(state.branch==='전체'?'영종점':state.branch);$('#staffPayTypeInput').value=s?.payType||'건당';$('#staffRateInput').value=s?.rate||'';$('#staffTaxInput').value=s?.tax??3.3;const dsb=$('#deleteStaffBtn');if(dsb)dsb.style.display=id?'block':'none';openModal('staffModal')}
+  function saveStaffForm(){const id=$('#staffEditId').value,name=$('#staffNameInput').value.trim(),branch=$('#staffBranchInput').value,payType=$('#staffPayTypeInput').value,rate=Number($('#staffRateInput').value),tax=Number($('#staffTaxInput').value||0);if(!name||!rate)return toast('이름과 기본 단가를 입력해주세요');const obj={id:id||uid('staff'),name,branch,payType,rate,tax};if(id)state.staff[state.staff.findIndex(x=>x.id===id)]=obj;else state.staff.push(obj);save();closeModal('staffModal');render();toast('직원을 저장했어요')}
 
-  function makeReport(){const targetId=$('#reportTarget').value,month=$('#reportMonth').value;if(!targetId||!month)return toast('대상과 정산 월을 선택해주세요');const type=reportMode==='room'?'income':'expense',entity=(reportMode==='room'?state.rooms:state.staff).find(x=>x.id===targetId),items=state.transactions.filter(t=>t.type===type&&(t.targetId===targetId||(entity&&t.targetName===entity.name))&&(t.billingMonth||ym(t.date))===month&&t.status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date));const total=sum(items),paid=sum(items,null,true),pending=sum(items,null,false);let lines=[`──────────────`,`📋 ${entity.name} ${reportMode==='room'?'청소 정산':'지급 내역'}`,monthText(month),`──────────────`,``];items.forEach((t,i)=>lines.push(`${i+1}. ${dateText(t.date)}  ${money(t.netAmount||t.amount)}${t.memo?' / '+t.memo:''}${!t.paid?' ('+(type==='income'?'미수금':'미지급')+')':''}`));lines.push('',`총 ${items.length}건  ${money(total)}`,`${reportMode==='room'?'입금':'지급'} 완료  ${money(paid)}`,`${reportMode==='room'?'미수금':'미지급'}  ${money(pending)}`,'──────────────');$('#reportBox').textContent=lines.join('\n');$('#reportBox').style.display='block';$('#copyReport').style.display='block';}
-  function copyReport(){navigator.clipboard?.writeText($('#reportBox').textContent).then(()=>toast('보고서 문구를 복사했어요')).catch(()=>toast('복사에 실패했어요'));}
-  function exportData(){const data={app:'roommade-one',version:1,exportedAt:new Date().toISOString(),currentBranch:state.branch,rooms:state.rooms,staff:state.staff,transactions:state.transactions,invoices:state.invoices||[]};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`roommade-one-${today()}.json`;a.click();URL.revokeObjectURL(a.href);toast('백업 파일을 만들었어요');}
+  function makeReport(){const targetId=$('#reportTarget').value,month=$('#reportMonth').value;if(!targetId||!month)return toast('대상과 정산 월을 선택해주세요');const type=reportMode==='room'?'income':'expense',entity=(reportMode==='room'?state.rooms:state.staff).find(x=>x.id===targetId),items=state.transactions.filter(t=>t.type===type&&(t.targetId===targetId||(entity&&t.targetName===entity.name))&&(t.billingMonth||ym(t.date))===month&&t.status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date));const total=sum(items),paid=sum(items,null,true),pending=sum(items,null,false);let lines=[`──────────────`,`📋 ${entity.name} ${reportMode==='room'?'청소 정산':'지급 내역'}`,monthText(month),`──────────────`,``];items.forEach((t,i)=>lines.push(`${i+1}. ${dateText(t.date)}  ${money(t.netAmount||t.amount)}${t.memo?' / '+t.memo:''}${!t.paid?' ('+(type==='income'?'미수금':'미지급')+')':''}`));lines.push('',`총 ${items.length}건  ${money(total)}`,`${reportMode==='room'?'입금':'지급'} 완료  ${money(paid)}`,`${reportMode==='room'?'미수금':'미지급'}  ${money(pending)}`,'──────────────');$('#reportBox').textContent=lines.join('\n');$('#reportBox').style.display='block';$('#copyReport').style.display='block'}
+  function copyReport(){navigator.clipboard?.writeText($('#reportBox').textContent).then(()=>toast('보고서 문구를 복사했어요')).catch(()=>toast('복사에 실패했어요'))}
+  function exportData(){const data={app:'roommade-one',version:1,exportedAt:new Date().toISOString(),currentBranch:state.branch,rooms:state.rooms,staff:state.staff,transactions:state.transactions};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`roommade-one-${today()}.json`;a.click();URL.revokeObjectURL(a.href);toast('백업 파일을 만들었어요')}
   function importData(file){
     const rd=new FileReader();
     rd.onload=e=>{
-      let d;try{d=JSON.parse(e.target.result);}catch(err){toast('파일을 읽을 수 없어요');return;}
+      let d;
+      try{ d=JSON.parse(e.target.result); }
+      catch(err){ toast('파일을 읽을 수 없어요 (JSON 형식 아님)'); return; }
       try{
-        const rooms=d.rooms||[];const staff=d.staff||[];const transactions=d.transactions||d.tx||[];
-        if(!Array.isArray(rooms)||!Array.isArray(transactions)){toast('백업 형식이 올바르지 않아요');return;}
-        if(rooms.length===0&&staff.length===0&&transactions.length===0){toast('백업에 데이터가 없어요');return;}
-        const next=normalize({branch:d.currentBranch||d.branch||'전체',rooms,staff,transactions});
-        if(d.invoices)next.invoices=d.invoices;
-        if(confirm(`객실 ${next.rooms.length}개, 직원 ${next.staff.length}명, 기록 ${next.transactions.length}건을 가져올까요?`)){state=next;save();setBranch(state.branch);render();toast('✅ 데이터를 가져왔어요');}
-      }catch(err){toast('가져오기 실패: '+err.message);}
+        // moneymade 백업: {rooms, staff, transactions, currentBranch}
+        // roommade-one 백업: {branch, rooms, staff, transactions}
+        const rooms = d.rooms || [];
+        const staff = d.staff || [];
+        const transactions = d.transactions || d.tx || [];
+        if(!Array.isArray(rooms) || !Array.isArray(transactions)){ toast('백업 형식이 올바르지 않아요'); return; }
+        if(rooms.length===0 && staff.length===0 && transactions.length===0){ toast('백업에 데이터가 없어요'); return; }
+        const next = normalize({ branch: d.currentBranch||d.branch||'전체', rooms, staff, transactions });
+        if(confirm(`객실 ${next.rooms.length}개, 직원 ${next.staff.length}명, 기록 ${next.transactions.length}건을 가져올까요?\n(현재 데이터는 덮어써져요)`)){
+          state=next; save(); setBranch(state.branch); render(); toast('✅ 데이터를 가져왔어요');
+        }
+      }catch(err){ toast('가져오기 실패: '+err.message); }
     };
     rd.readAsText(file);
   }
 
-  // 드래그 순서 변경
-  let _drag=null,_dragTimer=null,_dragReady=false,_startY=0;
-  function dragStart(e){if(e.target.closest('button'))return;const roomCard=e.target.closest('[data-room-card]');const txCard=e.target.closest('[data-tx-card]');const card=roomCard||txCard;if(!card)return;_startY=(e.touches?e.touches[0].clientY:e.clientY);_dragReady=false;_dragTimer=setTimeout(function(){_dragReady=true;_drag={type:roomCard?'room':'tx',el:card,container:card.parentElement};card.style.opacity='0.6';card.style.transform='scale(1.02)';card.style.transition='transform .1s';if(navigator.vibrate)navigator.vibrate(40);},400);}
-  function dragMove(e){if(!_dragReady){const y=(e.touches?e.touches[0].clientY:e.clientY);if(Math.abs(y-_startY)>10&&_dragTimer){clearTimeout(_dragTimer);_dragTimer=null;}return;}if(!_drag)return;e.preventDefault();const y=(e.touches?e.touches[0].clientY:e.clientY);const sel=_drag.type==='room'?'[data-room-card]':'[data-tx-card]';const items=[..._drag.container.querySelectorAll(sel)].filter(x=>x!==_drag.el);let placed=false;for(const it of items){const r=it.getBoundingClientRect();if(y<r.top+r.height/2){_drag.container.insertBefore(_drag.el,it);placed=true;break;}}if(!placed)_drag.container.appendChild(_drag.el);}
-  function dragEnd(){if(_dragTimer){clearTimeout(_dragTimer);_dragTimer=null;}if(!_drag){_dragReady=false;return;}_drag.el.style.opacity='';_drag.el.style.transform='';_drag.el.style.transition='';const sel=_drag.type==='room'?'[data-room-card]':'[data-tx-card]';const ids=[..._drag.container.querySelectorAll(sel)].map(x=>x.dataset.roomCard||x.dataset.txCard);if(_drag.type==='room'){ids.forEach((id,i)=>{const r=state.rooms.find(x=>x.id===id);if(r)r.order=i;});}else{ids.forEach((id,i)=>{const t=state.transactions.find(x=>x.id===id);if(t)t.dayOrder=i;});}_drag=null;_dragReady=false;save();}
+  // 카드를 길게 누르면(400ms) 잡혀서 드래그 → 순서변경 (객실/청소 공통)
+  let _drag=null, _dragTimer=null, _dragReady=false, _startY=0;
+  function dragStart(e){
+    // 버튼(수정 등)을 누른 경우는 무시
+    if(e.target.closest('button'))return;
+    const roomCard=e.target.closest('[data-room-card]');
+    const txCard=e.target.closest('[data-tx-card]');
+    const card=roomCard||txCard;
+    if(!card)return;
+    _startY=(e.touches?e.touches[0].clientY:e.clientY);
+    _dragReady=false;
+    _dragTimer=setTimeout(function(){
+      _dragReady=true;
+      _drag={ type:roomCard?'room':'tx', el:card, container:card.parentElement };
+      card.style.opacity='0.6';
+      card.style.transform='scale(1.02)';
+      card.style.transition='transform .1s';
+      if(navigator.vibrate)navigator.vibrate(40);
+    }, 400);
+  }
+  function dragMove(e){
+    if(!_dragReady){
+      // 아직 드래그 모드 아님: 살짝만 움직여도 롱프레스 취소 (스크롤로 인정)
+      const y=(e.touches?e.touches[0].clientY:e.clientY);
+      if(Math.abs(y-_startY)>10 && _dragTimer){ clearTimeout(_dragTimer); _dragTimer=null; }
+      return;
+    }
+    if(!_drag)return;
+    e.preventDefault();
+    const y=(e.touches?e.touches[0].clientY:e.clientY);
+    const sel=_drag.type==='room'?'[data-room-card]':'[data-tx-card]';
+    const items=[..._drag.container.querySelectorAll(sel)].filter(x=>x!==_drag.el);
+    let placed=false;
+    for(const it of items){
+      const r=it.getBoundingClientRect();
+      if(y < r.top + r.height/2){ _drag.container.insertBefore(_drag.el, it); placed=true; break; }
+    }
+    if(!placed)_drag.container.appendChild(_drag.el);
+  }
+  function dragEnd(){
+    if(_dragTimer){clearTimeout(_dragTimer);_dragTimer=null;}
+    if(!_drag){_dragReady=false;return;}
+    _drag.el.style.opacity=''; _drag.el.style.transform=''; _drag.el.style.transition='';
+    const sel=_drag.type==='room'?'[data-room-card]':'[data-tx-card]';
+    const ids=[..._drag.container.querySelectorAll(sel)].map(x=>x.dataset.roomCard||x.dataset.txCard);
+    if(_drag.type==='room'){
+      ids.forEach((id,i)=>{const r=state.rooms.find(x=>x.id===id);if(r)r.order=i;});
+    }else{
+      ids.forEach((id,i)=>{const t=state.transactions.find(x=>x.id===id);if(t)t.dayOrder=i;});
+    }
+    _drag=null; _dragReady=false;
+    save();
+  }
   document.addEventListener('touchstart',dragStart,{passive:true});
   document.addEventListener('touchmove',dragMove,{passive:false});
   document.addEventListener('touchend',dragEnd);
@@ -1323,80 +1326,61 @@ input,select,textarea{min-height:44px}
   document.addEventListener('mousemove',dragMove);
   document.addEventListener('mouseup',dragEnd);
 
-  // ── 이벤트 클릭 핸들러 ──
   document.addEventListener('click',e=>{
-    const b=e.target.closest('button,[data-edit-tx],[data-settle-toggle],[data-room-month],[data-plan-clean],[data-edit-setup],[data-sched-view],[data-edit-inv]');if(!b)return;
-    if(b.dataset.nav)return setView(b.dataset.nav);
-    if(b.dataset.goto)return setView(b.dataset.goto);
-    if(b.dataset.branch)return setBranch(b.dataset.branch);
-    if(b.dataset.quick){if(b.dataset.quick==='income'||b.dataset.quick==='expense')openTx(b.dataset.quick);if(b.dataset.quick==='room')openRoom();if(b.dataset.quick==='staff')openStaff();if(b.dataset.quick==='supply')openSupply();}
-    if(b.id==='fab')openTx('income',activeView==='schedule'?selectedDate:today());
-    if(b.dataset.close)return closeModal(b.dataset.close);
-    if(b.dataset.type){txType=b.dataset.type;updateTxType();}
-    if(b.dataset.month){scheduleMonth=shiftMonth(scheduleMonth,Number(b.dataset.month));renderSchedule();}
-    if(b.dataset.boardMonth){boardMonth=shiftMonth(boardMonth,Number(b.dataset.boardMonth));renderBoard();}
-    // ▶ 세무 탭 월 이동
-    if(b.dataset.taxMonth){taxMonth=shiftMonth(taxMonth,Number(b.dataset.taxMonth));renderTax();return;}
+    const b=e.target.closest('button,[data-edit-tx],[data-settle-toggle],[data-room-month],[data-plan-clean],[data-edit-setup],[data-sched-view]');if(!b)return;
+    if(b.dataset.nav)return setView(b.dataset.nav);if(b.dataset.goto)return setView(b.dataset.goto);if(b.dataset.branch)return setBranch(b.dataset.branch);
+    if(b.dataset.quick){if(b.dataset.quick==='income'||b.dataset.quick==='expense')openTx(b.dataset.quick);if(b.dataset.quick==='room')openRoom();if(b.dataset.quick==='staff')openStaff();if(b.dataset.quick==='supply')openSupply()}
+    if(b.id==='fab')openTx('income',activeView==='schedule'?selectedDate:today());if(b.dataset.close)return closeModal(b.dataset.close);
+    if(b.dataset.type){txType=b.dataset.type;updateTxType()}
+    if(b.dataset.month){scheduleMonth=shiftMonth(scheduleMonth,Number(b.dataset.month));renderSchedule()}
+    if(b.dataset.boardMonth){boardMonth=shiftMonth(boardMonth,Number(b.dataset.boardMonth));renderBoard()}
     if(b.dataset.schedView){schedView=b.dataset.schedView;$$('[data-sched-view]').forEach(x=>x.classList.toggle('active',x.dataset.schedView===schedView));$('#schedCalendarWrap').style.display=schedView==='calendar'?'block':'none';$('#schedBoardWrap').style.display=schedView==='board'?'block':'none';if(schedView==='board')renderBoard();}
     if(b.dataset.settlePeriod){settlePeriod=b.dataset.settlePeriod;$$('[data-settle-period]').forEach(x=>x.classList.toggle('active',x.dataset.settlePeriod===settlePeriod));renderSettlement();return;}
     if(b.dataset.settleToggle){const k=b.dataset.settleToggle;settleOpen[k]=!settleOpen[k];renderSettlement();return;}
     if(b.dataset.roomMonth){openRoomMonth(b.dataset.roomMonth);return;}
-    if(b.dataset.insightMonth){insightMonth=shiftMonth(insightMonth,Number(b.dataset.insightMonth));renderInsight();}
-    if(b.dataset.date){selectedDate=b.dataset.date;renderSchedule();}
+    if(b.dataset.insightMonth){insightMonth=shiftMonth(insightMonth,Number(b.dataset.insightMonth));renderInsight()}
+    if(b.dataset.date){selectedDate=b.dataset.date;renderSchedule()}
     if(b.id==='addSelectedDate')openTx('income',selectedDate);
-    // ▶ 세금계산서 추가/수정
-    if(b.id==='addInvoiceBtn'){openInvoice();return;}
-    const invEl=b.closest('[data-edit-inv]');if(invEl){openInvoice(invEl.dataset.editInv);return;}
     const edit=b.closest('[data-edit-tx]')?.dataset.editTx;if(edit&&!b.dataset.toggleStatus)openTx(state.transactions.find(x=>x.id===edit)?.type||'income',today(),edit);
     if(b.id==='addSetupBtn'){openSetup();return;}
-    const setupEl=b.closest('[data-edit-setup]');if(setupEl){openSetup(setupEl.dataset.editSetup);return;}
-    const planEl=b.closest('[data-plan-clean]');if(planEl){const src=state.transactions.find(x=>x.id===planEl.dataset.planClean);if(src){openTx('income',today());setTimeout(function(){$('#txBranchInput').value=src.branch;updateTxType();$('#txTargetInput').value=src.targetId;$('#txOutNights').value=src.inNights||'';$('#txOutGuests').value=src.inGuests||'';var room=state.rooms.find(r=>r.id===src.targetId);if(room)$('#txAmountInput').value=room.price||'';},100);}}
-    if(b.dataset.toggleStatus){e.stopPropagation();const t=state.transactions.find(x=>x.id===b.dataset.toggleStatus);if(t){t.status=t.status==='done'?'booked':'done';save();render();toast(t.status==='done'?'청소 완료로 변경했어요':'대기 상태로 되돌렸어요');}}
+    const setupEl=b.closest('[data-edit-setup]');
+    if(setupEl){openSetup(setupEl.dataset.editSetup);return;}
+    // 자동 청소 예정 클릭 → 청소 기록 추가
+    const planEl=b.closest('[data-plan-clean]');
+    if(planEl){const src=state.transactions.find(x=>x.id===planEl.dataset.planClean);if(src){openTx('income',today());setTimeout(function(){$('#txBranchInput').value=src.branch;updateTxType();$('#txTargetInput').value=src.targetId;$('#txOutNights').value=src.inNights||'';$('#txOutGuests').value=src.inGuests||'';var room=state.rooms.find(r=>r.id===src.targetId);if(room)$('#txAmountInput').value=room.price||'';},100);}}
+    if(b.dataset.toggleStatus){e.stopPropagation();const t=state.transactions.find(x=>x.id===b.dataset.toggleStatus);if(t){t.status=t.status==='done'?'booked':'done';save();render();toast(t.status==='done'?'청소 완료로 변경했어요':'대기 상태로 되돌렸어요')}}
+    // 카톡 버튼
     if(b.dataset.kakaoWorker){e.stopPropagation();const t=b.dataset.kakaoKind==='plan'?planToTx(b.dataset.kakaoWorker):state.transactions.find(x=>x.id===b.dataset.kakaoWorker);if(t)txWorkerMsg(t);return;}
     if(b.dataset.kakaoHost){e.stopPropagation();const t=b.dataset.kakaoKind==='plan'?planToTx(b.dataset.kakaoHost):state.transactions.find(x=>x.id===b.dataset.kakaoHost);if(t)txHostMsg(t);return;}
-    if(b.dataset.settle){settleMode=b.dataset.settle;renderSettlement();}
-    if(b.dataset.payGroup){state.transactions.filter(t=>(t.targetId||t.targetName)===b.dataset.payGroup&&!t.paid).forEach(t=>t.paid=true);save();render();toast('정산 완료로 처리했어요');}
+    if(b.dataset.settle){settleMode=b.dataset.settle;renderSettlement()}
+    if(b.dataset.payGroup){state.transactions.filter(t=>(t.targetId||t.targetName)===b.dataset.payGroup&&!t.paid).forEach(t=>t.paid=true);save();render();toast('정산 완료로 처리했어요')}
     if(b.dataset.editRoom)openRoom(b.dataset.editRoom);if(b.dataset.editStaff)openStaff(b.dataset.editStaff);if(b.dataset.editSupply)openSupply(b.dataset.editSupply);
-    if(b.dataset.report){reportMode=b.dataset.report;renderReportOptions();$('#reportBox').style.display='none';$('#copyReport').style.display='none';}
+    if(b.id==='toggleArchived'){state._showArchived=!state._showArchived;render();return;}
+    if(b.dataset.report){reportMode=b.dataset.report;renderReportOptions();$('#reportBox').style.display='none';$('#copyReport').style.display='none'}
   });
-
-  $('#txBranchInput').addEventListener('change',updateTxType);
-  $('#txTargetInput').addEventListener('change',()=>{const id=$('#txTargetInput').value,target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===id);if(target){if(target.branch==='펜트하우스'){$('#txAmountInput').value='0';}else{$('#txAmountInput').value=target.price||target.rate||'';}}autoFillCheckout();});
+  $('#txBranchInput').addEventListener('change',updateTxType);$('#txTargetInput').addEventListener('change',()=>{const id=$('#txTargetInput').value,target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===id);if(target){if(target.branch==='펜트하우스'){$('#txAmountInput').value='0';}else{$('#txAmountInput').value=target.price||target.rate||'';}}autoFillCheckout()});
   $('#txDateInput').addEventListener('change',autoFillCheckout);
-  $('#saveTx').addEventListener('click',saveTxForm);
-  $('#deleteTx').addEventListener('click',deleteTxForm);
-  $('#saveRoom').addEventListener('click',saveRoomForm);
-  $('#saveStaff').addEventListener('click',saveStaffForm);
-  $('#saveSupply').addEventListener('click',saveSupplyForm);
-  $('#deleteSupply').addEventListener('click',deleteSupplyForm);
-  {const drb=$('#deleteRoomBtn');if(drb)drb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)deleteRoom(id);});}
-  {const dsb=$('#deleteStaffBtn');if(dsb)dsb.addEventListener('click',()=>{const id=$('#staffEditId').value;if(id)deleteStaff(id);});}
+  $('#saveTx').addEventListener('click',saveTxForm);$('#deleteTx').addEventListener('click',deleteTxForm);$('#saveRoom').addEventListener('click',saveRoomForm);$('#saveStaff').addEventListener('click',saveStaffForm);$('#saveSupply').addEventListener('click',saveSupplyForm);$('#deleteSupply').addEventListener('click',deleteSupplyForm);
+  {const drb=$('#deleteRoomBtn');if(drb)drb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)deleteRoom(id);});const dsb=$('#deleteStaffBtn');if(dsb)dsb.addEventListener('click',()=>{const id=$('#staffEditId').value;if(id)deleteStaff(id);});const arb=$('#archiveRoomBtn');if(arb)arb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)toggleArchiveRoom(id);});}
   {const mfb=$('#mfSave');if(mfb)mfb.addEventListener('click',saveMFForm);}
-  $('#saveSetup').addEventListener('click',saveSetupForm);
-  $('#deleteSetup').addEventListener('click',deleteSetupForm);
-  // ▶ 세금계산서 이벤트
-  $('#invAmount').addEventListener('input',calcInvVat);
-  $('#saveInvoice').addEventListener('click',saveInvoiceForm);
-  $('#deleteInvoice').addEventListener('click',deleteInvoiceForm);
+  $('#saveSetup').addEventListener('click',saveSetupForm);$('#deleteSetup').addEventListener('click',deleteSetupForm);
   $('#supplyReceiptInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{supplyReceiptData=ev.target.result;$('#supplyReceiptPreview').innerHTML=`<img src="${supplyReceiptData}" style="max-width:100%;border-radius:10px;">`;};r.readAsDataURL(f);});
   const mrv=$('#makeRoomview');if(mrv)mrv.addEventListener('click',makeRoomviewLink);
   const rvm=$('#rvMakeLink');if(rvm)rvm.addEventListener('click',buildRoomviewLink);
-  $('#rvRoomChecks').addEventListener('change',()=>{if($('#rvHostName').value.trim())return;const names=[...new Set([...document.querySelectorAll('.rv-room-chk:checked')].map(c=>c.dataset.host).filter(Boolean))];if(names.length===1)$('#rvHostName').value=names[0];});
-  $('#makeReport').addEventListener('click',makeReport);
-  $('#copyReport').addEventListener('click',copyReport);
-  $('#exportBtn').addEventListener('click',exportData);
-  $('#importBtn').addEventListener('click',()=>$('#importFile').click());
-  $('#importFile').addEventListener('change',e=>e.target.files[0]&&importData(e.target.files[0]));
+  $('#rvRoomChecks').addEventListener('change',()=>{
+    if($('#rvHostName').value.trim())return;
+    const names=[...new Set([...document.querySelectorAll('.rv-room-chk:checked')].map(c=>c.dataset.host).filter(Boolean))];
+    if(names.length===1)$('#rvHostName').value=names[0];
+  });$('#makeReport').addEventListener('click',makeReport);$('#copyReport').addEventListener('click',copyReport);$('#exportBtn').addEventListener('click',exportData);$('#importBtn').addEventListener('click',()=>$('#importFile').click());$('#importFile').addEventListener('change',e=>e.target.files[0]&&importData(e.target.files[0]));
   const cub=$('#cloudUploadBtn');if(cub)cub.addEventListener('click',async()=>{const p=cub.textContent;cub.disabled=true;cub.textContent='⏳ 올리는 중...';try{await cloudUpload(false);}catch(e){toast('❌ 업로드 실패: '+(e&&e.message?e.message:'알 수 없음'));}finally{cub.disabled=false;cub.textContent=p;}});
   const crb=$('#cloudRestoreBtn');if(crb)crb.addEventListener('click',()=>{cloudRestore($('#cloudRestoreId').value);});
-  $('#resetDemo').addEventListener('click',()=>{if(confirm('현재 데이터를 데모 데이터로 초기화할까요?')){state=demoState();save();scheduleMonth=currentYM();insightMonth=currentYM();taxMonth=currentYM();selectedDate=today();setBranch('전체');toast('데모 데이터로 초기화했어요');}});
-  $('#todayBtn').addEventListener('click',()=>{scheduleMonth=currentYM();insightMonth=currentYM();taxMonth=currentYM();selectedDate=today();setView('home');});
-  $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);}));
+  $('#resetDemo').addEventListener('click',()=>{if(confirm('현재 데이터를 데모 데이터로 초기화할까요?')){state=demoState();save();scheduleMonth=currentYM();insightMonth=currentYM();selectedDate=today();setBranch('전체');toast('데모 데이터로 초기화했어요')}});
+  $('#todayBtn').addEventListener('click',()=>{scheduleMonth=currentYM();insightMonth=currentYM();selectedDate=today();setView('home')});
+  $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id)}));
 
-  setBranch(state.branch||'전체');
-  $('#reportMonth').value=currentYM();
-  applyMonthlyFee();
-  fillMFForm();
+  setBranch(state.branch||'전체');$('#reportMonth').value=currentYM();
+  applyMonthlyFee();  // 빠진 달 관리비 자동등록
+  fillMFForm();       // 설정 폼에 현재값 표시
   render();
 })();
 </script>
