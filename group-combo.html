@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>그룹 조합 생성기</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    background: #f4f6f8;
+    color: #222;
+    padding: 16px;
+  }
+  h1 {
+    font-size: 20px;
+    text-align: center;
+    margin: 8px 0 4px;
+  }
+  p.sub {
+    text-align: center;
+    color: #777;
+    font-size: 13px;
+    margin: 0 0 16px;
+  }
+  .groups {
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .group-row {
+    margin-bottom: 12px;
+  }
+  .group-row:last-child { margin-bottom: 0; }
+  .group-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 4px;
+  }
+  .group-input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fafbfc;
+  }
+  .group-input:focus {
+    outline: none;
+    border-color: #2b6cb0;
+    background: #fff;
+  }
+  .hint {
+    text-align: center;
+    color: #999;
+    font-size: 12px;
+    margin: -8px 0 14px;
+  }
+  button#genBtn {
+    width: 100%;
+    padding: 14px;
+    background: #2b6cb0;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  button#genBtn:active { background: #1e4e80; }
+  .error-box {
+    background: #fdecec;
+    color: #c0392b;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 13px;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .result-summary {
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    font-size: 14px;
+    display: none;
+  }
+  .result-summary b { color: #2b6cb0; font-size: 16px; }
+  .result-list {
+    background: #fff;
+    border-radius: 12px;
+    padding: 10px;
+    max-height: 50vh;
+    overflow-y: auto;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .combo-item {
+    padding: 8px 10px;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+    font-family: monospace;
+  }
+  .combo-item:last-child { border-bottom: none; }
+  .combo-index { color: #aaa; margin-right: 8px; }
+  .empty-msg {
+    text-align: center;
+    color: #999;
+    font-size: 13px;
+    padding: 20px 0;
+  }
+</style>
+</head>
+<body>
+
+  <h1>🔢 그룹 조합 생성기</h1>
+  <p class="sub">그룹별로 원하는 숫자를 직접 입력하면, 그룹당 1개씩 뽑은 모든 조합을 보여줍니다</p>
+
+  <!-- 그룹 숫자 직접 입력 -->
+  <div class="groups">
+    <div class="group-row">
+      <label class="group-label" for="g1">그룹1 숫자 (쉼표로 구분)</label>
+      <input type="text" id="g1" class="group-input" placeholder="예: 1,2,3" value="1,2,3">
+    </div>
+    <div class="group-row">
+      <label class="group-label" for="g2">그룹2 숫자</label>
+      <input type="text" id="g2" class="group-input" placeholder="예: 4,5,6" value="4,5,6">
+    </div>
+    <div class="group-row">
+      <label class="group-label" for="g3">그룹3 숫자</label>
+      <input type="text" id="g3" class="group-input" placeholder="예: 7,8,9" value="7,8,9">
+    </div>
+    <div class="group-row">
+      <label class="group-label" for="g4">그룹4 숫자</label>
+      <input type="text" id="g4" class="group-input" placeholder="예: 10,11,12" value="10,11,12">
+    </div>
+    <div class="group-row">
+      <label class="group-label" for="g5">그룹5 숫자</label>
+      <input type="text" id="g5" class="group-input" placeholder="예: 13,14,15" value="13,14,15">
+    </div>
+  </div>
+  <p class="hint">각 칸에 숫자를 쉼표(,)로 구분해서 원하는 만큼 입력하세요</p>
+
+  <button id="genBtn">조합 생성하기</button>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <div class="result-summary" id="summaryBox">
+    총 <b id="totalCount">0</b>가지 조합이 나왔습니다 (경우의 수)
+  </div>
+
+  <div class="result-list" id="resultList">
+    <div class="empty-msg">그룹별 숫자를 입력하고 버튼을 눌러보세요</div>
+  </div>
+
+<script>
+const genBtn = document.getElementById('genBtn');
+const summaryBox = document.getElementById('summaryBox');
+const totalCountEl = document.getElementById('totalCount');
+const resultList = document.getElementById('resultList');
+const errorBox = document.getElementById('errorBox');
+const groupInputIds = ['g1', 'g2', 'g3', 'g4', 'g5'];
+
+// 입력창의 텍스트("1,2,3")를 숫자 배열([1,2,3])로 변환
+function parseGroupInput(text) {
+  return text
+    .split(',')
+    .map(s => s.trim())
+    .filter(s => s.length > 0)
+    .map(s => Number(s))
+    .filter(n => !isNaN(n));
+}
+
+// 조합 생성 함수 (재귀 방식으로 각 그룹의 선택지를 곱해나감)
+// 각 그룹에서 반드시 1개씩만 선택
+function generateCombos(groups) {
+  let results = [[]];
+
+  groups.forEach(group => {
+    const newResults = [];
+    results.forEach(prevCombo => {
+      group.forEach(num => {
+        newResults.push([...prevCombo, num]);
+      });
+    });
+    results = newResults;
+  });
+
+  return results;
+}
+
+function showError(msg) {
+  errorBox.textContent = msg;
+  errorBox.style.display = 'block';
+  summaryBox.style.display = 'none';
+  resultList.innerHTML = '';
+}
+
+genBtn.addEventListener('click', () => {
+  try {
+    errorBox.style.display = 'none';
+
+    // 1) 각 입력창에서 그룹 숫자 읽어오기
+    const groups = groupInputIds.map(id => {
+      const el = document.getElementById(id);
+      return parseGroupInput(el.value);
+    });
+
+    // 2) 유효성 검사: 비어있는 그룹이 있는지 확인
+    const emptyIndex = groups.findIndex(g => g.length === 0);
+    if (emptyIndex !== -1) {
+      showError(`그룹${emptyIndex + 1}에 입력된 숫자가 없어요. 숫자를 쉼표로 구분해서 최소 1개 이상 입력해주세요. (예: 1,2,3)`);
+      return;
+    }
+
+    // 3) 조합 생성
+    const combos = generateCombos(groups);
+
+    // 4) 결과 요약 표시
+    totalCountEl.textContent = combos.length.toLocaleString('ko-KR');
+    summaryBox.style.display = 'block';
+
+    // 5) 결과 목록 표시 (최대 2000개까지만 화면에 렌더링, 속도 보호)
+    const MAX_RENDER = 2000;
+    const renderCombos = combos.slice(0, MAX_RENDER);
+
+    let html = '';
+    renderCombos.forEach((combo, idx) => {
+      html += `<div class="combo-item"><span class="combo-index">${idx + 1}.</span>${combo.join(' , ')}</div>`;
+    });
+
+    if (combos.length > MAX_RENDER) {
+      html += `<div class="empty-msg">전체 ${combos.length.toLocaleString('ko-KR')}개 중 상위 ${MAX_RENDER.toLocaleString('ko-KR')}개만 표시했습니다 (화면 속도 보호)</div>`;
+    }
+
+    resultList.innerHTML = html;
+  } catch (err) {
+    showError('오류가 발생했습니다: ' + err.message);
+  }
+});
+</script>
+
+</body>
+</html>
