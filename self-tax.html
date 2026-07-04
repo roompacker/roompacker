@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>셀프택스 | ROOMMADE 세무 도우미</title>
+<style>
+/* ===== 기본 리셋 & 변수 ===== */
+:root{
+  --navy:#152A4A;
+  --navy-2:#1E3A63;
+  --gold:#B8860B;
+  --gold-2:#D4A72C;
+  --bg:#F5F6F8;
+  --card:#FFFFFF;
+  --line:#E4E7EC;
+  --text:#1B2431;
+  --sub:#5B6472;
+  --muted:#8B93A1;
+  --red:#D64545;
+  --red-bg:#FDECEC;
+  --green:#2F9E64;
+  --green-bg:#E9F7EF;
+  --amber-bg:#FFF6E3;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Malgun Gothic",sans-serif;
+  background:var(--bg);color:var(--text);
+  padding-bottom:78px;
+  font-size:15px;line-height:1.5;
+}
+button{font-family:inherit;border:none;cursor:pointer;background:none;color:inherit;}
+input,select,textarea{font-family:inherit;font-size:15px;}
+
+/* ===== 상단 헤더 ===== */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  background:linear-gradient(135deg,var(--navy),var(--navy-2));
+  color:#fff;padding:16px 16px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.topbar .brand{display:flex;align-items:center;gap:8px;}
+.topbar .brand .stamp{
+  width:30px;height:30px;border-radius:50%;
+  border:2px solid var(--gold-2);display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;color:var(--gold-2);
+}
+.topbar .brand-text{display:flex;flex-direction:column;line-height:1.25;}
+.topbar .brand-text .t1{font-size:16px;font-weight:800;letter-spacing:.5px;}
+.topbar .brand-text .t2{font-size:11px;color:#C7D0E0;}
+.topbar .gear{font-size:20px;padding:6px;opacity:.9;}
+
+/* ===== 탭 컨텐츠 공통 ===== */
+.view{display:none;padding:14px 14px 20px;}
+.view.active{display:block;}
+.section-title{
+  font-size:13px;font-weight:800;color:var(--navy);
+  margin:18px 2px 8px;display:flex;align-items:center;gap:6px;
+}
+.section-title:first-child{margin-top:2px;}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:14px;margin-bottom:10px;
+}
+.hint{
+  font-size:11.5px;color:var(--sub);background:var(--amber-bg);
+  border-radius:10px;padding:10px 12px;line-height:1.6;margin-bottom:12px;
+}
+.hint b{color:#8a5a00;}
+
+/* ===== 홈 대시보드 ===== */
+.dday-card{
+  background:linear-gradient(135deg,var(--navy),var(--navy-2));
+  color:#fff;border-radius:16px;padding:18px;margin-bottom:12px;
+}
+.dday-card .label{font-size:12px;color:#C7D0E0;margin-bottom:4px;}
+.dday-card .big{font-size:26px;font-weight:800;}
+.dday-card .sub{font-size:12px;color:#C7D0E0;margin-top:6px;}
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.stat-box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px;}
+.stat-box .k{font-size:11.5px;color:var(--sub);margin-bottom:4px;}
+.stat-box .v{font-size:18px;font-weight:800;color:var(--navy);}
+.stat-box .v.red{color:var(--red);}
+.stat-box .v.green{color:var(--green);}
+.mini-list{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+.mini-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);font-size:13.5px;}
+.mini-item:last-child{border-bottom:none;}
+.mini-item .badge{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:700;}
+.badge.urgent{background:var(--red-bg);color:var(--red);}
+.badge.ok{background:var(--green-bg);color:var(--green);}
+
+/* ===== 폼 공통 ===== */
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:12.5px;font-weight:700;color:var(--sub);margin-bottom:5px;}
+.field input,.field select,.field textarea{
+  width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;
+  background:#fbfbfc;color:var(--text);
+}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--navy-2);}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.threecol{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+
+/* ===== 버튼 ===== */
+.btn{
+  display:block;width:100%;text-align:center;padding:13px;border-radius:12px;
+  font-weight:800;font-size:14.5px;
+}
+.btn.primary{background:var(--navy);color:#fff;}
+.btn.gold{background:var(--gold-2);color:#3a2a00;}
+.btn.secondary{background:#EEF1F5;color:var(--navy);}
+.btn.danger{background:var(--red-bg);color:var(--red);}
+.btn.small{padding:9px;font-size:13px;border-radius:10px;}
+.pill-toggle{display:flex;background:#EEF1F5;border-radius:12px;padding:3px;margin-bottom:12px;}
+.pill-toggle button{flex:1;padding:9px;border-radius:10px;font-size:12.5px;font-weight:700;color:var(--sub);}
+.pill-toggle button.active{background:var(--navy);color:#fff;}
+
+/* ===== 기간 네비게이터 ===== */
+.period-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 6px;}
+.period-nav button{padding:8px 14px;font-size:16px;color:var(--navy);font-weight:800;}
+.period-nav .plabel{font-size:14.5px;font-weight:800;color:var(--text);}
+
+/* ===== 리스트 아이템 (매출/매입/지급내역) ===== */
+.tx-item{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:12px 13px;margin-bottom:8px;
+}
+.tx-item .l{flex:1;}
+.tx-item .name{font-size:14px;font-weight:700;}
+.tx-item .meta{font-size:11.5px;color:var(--muted);margin-top:2px;}
+.tx-item .amt{font-size:14.5px;font-weight:800;color:var(--navy);margin-right:8px;text-align:right;}
+.tx-item .amt.minus{color:var(--red);}
+.tx-item .del{font-size:18px;color:var(--muted);padding:4px 6px;}
+.empty{text-align:center;color:var(--muted);font-size:13px;padding:26px 10px;}
+
+/* ===== 결과 요약 카드 ===== */
+.result-card{
+  background:var(--navy);color:#fff;border-radius:16px;padding:18px;margin:4px 0 14px;
+}
+.result-card .row{display:flex;justify-content:space-between;font-size:13px;color:#C7D0E0;padding:6px 0;}
+.result-card .row b{color:#fff;font-weight:700;}
+.result-card .divider{border-top:1px dashed rgba(255,255,255,.25);margin:8px 0;}
+.result-card .final{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;}
+.result-card .final .lb{font-size:13px;color:var(--gold-2);font-weight:700;}
+.result-card .final .num{font-size:24px;font-weight:800;}
+
+/* ===== 체크리스트(공제팁) ===== */
+.acc{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden;}
+.acc-head{display:flex;justify-content:space-between;align-items:center;padding:14px;font-weight:800;font-size:14px;color:var(--navy);}
+.acc-body{display:none;padding:0 14px 14px;}
+.acc.open .acc-body{display:block;}
+.acc-head .chev{transition:transform .2s;color:var(--muted);}
+.acc.open .acc-head .chev{transform:rotate(180deg);}
+.chk-item{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line);}
+.chk-item:first-child{border-top:none;}
+.chk-item input{width:19px;height:19px;margin-top:1px;flex-shrink:0;accent-color:var(--navy);}
+.chk-item .txt{font-size:13px;line-height:1.55;color:var(--text);}
+.chk-item .txt .tip{display:block;font-size:11.5px;color:var(--sub);margin-top:3px;}
+.chk-item.done .txt{color:var(--muted);text-decoration:line-through;}
+
+/* ===== 달력(신고일정) ===== */
+.cal-item{display:flex;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:9px;}
+.cal-item .dbox{width:52px;text-align:center;flex-shrink:0;}
+.cal-item .dbox .mm{font-size:11px;color:var(--muted);font-weight:700;}
+.cal-item .dbox .dd{font-size:20px;font-weight:800;color:var(--navy);}
+.cal-item .body{flex:1;}
+.cal-item .ttl{font-size:14px;font-weight:800;}
+.cal-item .desc{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.5;}
+.cal-item .dday{font-size:11px;font-weight:800;padding:3px 8px;border-radius:20px;align-self:flex-start;margin-top:2px;}
+
+/* ===== 하단 네비 ===== */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:60;
+  background:#fff;border-top:1px solid var(--line);
+  display:flex;padding:6px 2px calc(6px + env(safe-area-inset-bottom));
+  box-shadow:0 -2px 10px rgba(0,0,0,.04);
+}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;color:var(--muted);}
+.nav-btn .ic{font-size:19px;}
+.nav-btn .lb{font-size:10.5px;font-weight:700;}
+.nav-btn.active{color:var(--navy);}
+
+/* ===== 모달(바텀시트) ===== */
+.modal{position:fixed;inset:0;background:rgba(15,20,30,.5);z-index:100;display:none;align-items:flex-end;}
+.modal.open{display:flex;}
+.sheet{background:#fff;width:100%;max-height:88vh;overflow-y:auto;border-radius:20px 20px 0 0;padding:10px 18px 24px;animation:up .22s ease;}
+@keyframes up{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.grab{width:38px;height:4px;background:var(--line);border-radius:4px;margin:6px auto 12px;}
+.sheethead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.sheethead h3{font-size:16px;color:var(--navy);}
+.sheethead .close{font-size:22px;color:var(--muted);padding:4px 8px;}
+
+/* 토스트 */
+.toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);background:#1B2431;color:#fff;padding:11px 18px;border-radius:24px;font-size:13px;z-index:200;opacity:0;transition:opacity .25s;pointer-events:none;max-width:88%;text-align:center;}
+.toast.show{opacity:1;}
+
+/* 뱃지 유형 선택 */
+.type-badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--amber-bg);color:#8a5a00;margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ 상단바 ══════════════ -->
+<div class="topbar">
+  <div class="brand">
+    <div class="stamp">稅</div>
+    <div class="brand-text">
+      <div class="t1">셀프택스</div>
+      <div class="t2" id="bizNameTag">ROOMMADE 전용 세무 도우미</div>
+    </div>
+  </div>
+  <button class="gear" id="openSettings">⚙️</button>
+</div>
+
+<!-- ══════════════ 홈 ══════════════ -->
+<div class="view active" id="view-home">
+  <div class="dday-card">
+    <div class="label" id="homeDdayLabel">다음 신고 마감까지</div>
+    <div class="big" id="homeDdayBig">-</div>
+    <div class="sub" id="homeDdaySub">-</div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-box">
+      <div class="k">이번 기 부가세 예상 납부액</div>
+      <div class="v" id="homeVatEst">0원</div>
+    </div>
+    <div class="stat-box">
+      <div class="k">놓친 공제 체크 남음</div>
+      <div class="v red" id="homeChkLeft">0개</div>
+    </div>
+  </div>
+  <div class="section-title">📌 신고 일정 미리보기</div>
+  <div class="mini-list" id="homeUpcoming"></div>
+  <div class="section-title">💡 오늘의 절세 팁</div>
+  <div class="card" id="homeTipCard" style="font-size:13px;line-height:1.6;"></div>
+</div>
+
+<!-- ══════════════ 부가세 ══════════════ -->
+<div class="view" id="view-vat">
+  <div class="type-badge" id="vatTypeBadge">일반과세자</div>
+  <div class="hint"><b>부가세 신고란?</b> 사업하며 받은 매출세액(10%)에서 사업에 쓴 매입세액(10%)을 뺀 금액을 나라에 내는 거예요. 개인사업자는 보통 <b>1년에 2번(7/25, 익년 1/25)</b> 확정신고하고, 4월·10월은 예정고지 세액만 납부하면 됩니다.</div>
+
+  <div class="period-nav">
+    <button id="vatPrev">‹</button>
+    <div class="plabel" id="vatPeriodLabel">2026년 1기 확정</div>
+    <button id="vatNext">›</button>
+  </div>
+
+  <div class="section-title">🧾 매출 (받은 돈)</div>
+  <div class="card">
+    <div class="field"><label>과세 매출 합계 (부가세 포함 전, 공급가액)</label><input type="number" id="vatSalesInput" placeholder="예: 30000000"></div>
+    <div class="hint" style="margin-bottom:0;">카드매출·현금영수증·세금계산서매출·기타 현금매출을 <b>모두 합친 공급가액</b>을 입력하세요. 부가세(10%)는 자동으로 더해집니다.</div>
+  </div>
+
+  <div class="section-title">🧾 매입 (쓴 돈, 세금계산서/카드/현금영수증 수취분)</div>
+  <div class="card">
+    <div class="field"><label>공제 가능 매입 합계 (공급가액)</label><input type="number" id="vatPurchaseInput" placeholder="예: 8000000"></div>
+    <div class="hint" style="margin-bottom:0;">⚠️ <b>접대비, 비영업용 승용차 관련 비용, 세금계산서 없이 현금으로만 지출한 건</b>은 매입세액공제가 안 돼요. 공제팁 탭에서 자세히 확인하세요.</div>
+  </div>
+
+  <div class="section-title">💳 신용카드매출전표 발행세액공제</div>
+  <div class="card">
+    <div class="field"><label>연매출 (직전연도 기준, 10억원 이하만 해당)</label><input type="number" id="vatCardSalesInput" placeholder="예: 80000000"></div>
+    <div class="hint" style="margin-bottom:0;">개인사업자가 카드·현금영수증 매출이 있으면 <b>발행금액의 1.3%</b>(연 500만원 한도)를 추가로 공제받을 수 있어요. 위 매출 합계 중 카드/현금영수증 매출만 입력하세요.</div>
+  </div>
+
+  <button class="btn primary" id="vatCalcBtn">부가세 계산하기</button>
+
+  <div class="result-card" id="vatResultCard" style="display:none;">
+    <div class="row"><span>매출세액</span><b id="vatOutSales">0원</b></div>
+    <div class="row"><span>매입세액</span><b id="vatOutPurchase">0원</b></div>
+    <div class="row"><span>신용카드 발행세액공제</span><b id="vatOutCardDeduct">0원</b></div>
+    <div class="divider"></div>
+    <div class="final"><span class="lb">예상 납부세액</span><span class="num" id="vatOutFinal">0원</span></div>
+  </div>
+
+  <div class="section-title">📋 이 기간 저장된 신고 내역</div>
+  <div id="vatHistList"></div>
+  <button class="btn gold" id="vatSaveBtn" style="margin-top:6px;">이 기간 계산 결과 저장</button>
+</div>
+
+<!-- ══════════════ 종합소득세 ══════════════ -->
+<div class="view" id="view-income">
+  <div class="hint"><b>종합소득세란?</b> 1년(1~12월) 동안 사업으로 번 소득 전체에 매기는 세금이에요. 매년 <b>5월 1일~31일</b>에 전년도 소득을 신고합니다.</div>
+
+  <div class="period-nav">
+    <button id="incPrev">‹</button>
+    <div class="plabel" id="incYearLabel">2025년 귀속</div>
+    <button id="incNext">›</button>
+  </div>
+
+  <div class="section-title">💰 연간 총수입금액</div>
+  <div class="card">
+    <div class="field"><label>1년 총 매출 (부가세 제외, 공급가액 기준)</label><input type="number" id="incRevenueInput" placeholder="예: 120000000"></div>
+  </div>
+
+  <div class="section-title">📉 필요경비</div>
+  <div class="card">
+    <div class="pill-toggle" id="incExpenseMode">
+      <button data-mode="actual" class="active">실제 경비 입력</button>
+      <button data-mode="rate">경비율로 자동계산</button>
+    </div>
+    <div id="incExpenseActualBox">
+      <div class="field"><label>1년 총 필요경비 (인건비, 임차료, 소모품비 등)</label><input type="number" id="incExpenseInput" placeholder="예: 70000000"></div>
+    </div>
+    <div id="incExpenseRateBox" style="display:none;">
+      <div class="field"><label>단순경비율 (%) — 청소·숙박관리업은 업종코드마다 달라요</label><input type="number" id="incRateInput" placeholder="예: 74.6" step="0.1"></div>
+      <div class="hint" style="margin-bottom:0;">정확한 경비율은 홈택스 &gt; 조회/발급 &gt; 기준·단순경비율에서 업종코드로 검색하세요.</div>
+    </div>
+  </div>
+
+  <div class="section-title">✅ 소득공제 (과세표준을 줄여줘요)</div>
+  <div class="card">
+    <div class="field"><label>인적공제 (본인 150만원 + 부양가족 1인당 150만원)</label><input type="number" id="incPersonalCntInput" placeholder="공제 인원 수, 예: 2"></div>
+    <div class="field"><label>국민연금 등 공적연금 납입액</label><input type="number" id="incPensionInput" placeholder="예: 3600000"></div>
+    <div class="field"><label>노란우산공제 납입액 (연 최대 500만원 소득공제)</label><input type="number" id="incNoranInput" placeholder="예: 3000000"></div>
+  </div>
+
+  <div class="section-title">🎯 세액공제 (계산된 세금에서 직접 빼줘요)</div>
+  <div class="card">
+    <div class="field"><label>연금저축·IRP 납입액 (세액공제율 약 13.2~16.5%)</label><input type="number" id="incPensionSavingInput" placeholder="예: 6000000"></div>
+    <div class="field"><label>기장세액공제 대상 여부 (간편장부 대상자가 복식부기로 신고 시 20%)</label>
+      <select id="incBookkeepInput"><option value="0">해당 없음</option><option value="1">복식부기 기장세액공제 적용</option></select>
+    </div>
+  </div>
+
+  <button class="btn primary" id="incCalcBtn">종합소득세 계산하기</button>
+
+  <div class="result-card" id="incResultCard" style="display:none;">
+    <div class="row"><span>소득금액 (수입-경비)</span><b id="incOutIncome">0원</b></div>
+    <div class="row"><span>과세표준</span><b id="incOutBase">0원</b></div>
+    <div class="row"><span>적용세율</span><b id="incOutRate">-</b></div>
+    <div class="row"><span>산출세액</span><b id="incOutCalc">0원</b></div>
+    <div class="row"><span>세액공제 합계</span><b id="incOutDeduct">0원</b></div>
+    <div class="divider"></div>
+    <div class="final"><span class="lb">예상 종합소득세</span><span class="num" id="incOutFinal">0원</span></div>
+    <div class="row" style="margin-top:2px;"><span>+ 지방소득세 (10%, 별도 납부)</span><b id="incOutLocal">0원</b></div>
+  </div>
+</div>
+
+<!-- ══════════════ 원천세 ══════════════ -->
+<div class="view" id="view-with">
+  <div class="hint"><b>원천세란?</b> 직원이나 프리랜서에게 돈을 줄 때 세금을 미리 떼서(원천징수) 대신 신고·납부하는 거예요. 매월 10일까지 지난달분을 신고합니다. (상시 인원 20인 이하면 반기별 납부로 6개월에 한 번 신고 가능)</div>
+
+  <div class="period-nav">
+    <button id="witPrev">‹</button>
+    <div class="plabel" id="witMonthLabel">2026년 7월</div>
+    <button id="witNext">›</button>
+  </div>
+
+  <button class="btn secondary" id="witAddBtn" style="margin-bottom:12px;">+ 지급 내역 추가</button>
+
+  <div class="section-title">👥 이번 달 지급 내역</div>
+  <div id="witList"></div>
+
+  <div class="result-card">
+    <div class="row"><span>총 지급액</span><b id="witOutGross">0원</b></div>
+    <div class="row"><span>원천징수세액 (3.3%)</span><b id="witOutTax">0원</b></div>
+    <div class="divider"></div>
+    <div class="final"><span class="lb">실지급 합계</span><span class="num" id="witOutNet">0원</span></div>
+  </div>
+</div>
+
+<!-- ══════════════ 공제팁 체크리스트 ══════════════ -->
+<div class="view" id="view-tips">
+  <div class="hint"><b>세액공제 놓치지 않기</b> 체크박스를 눌러 확인한 항목을 표시해두세요. 신고 전에 한 번씩 쭉 훑어보면 실수를 줄일 수 있어요.</div>
+  <div id="tipsAccWrap"></div>
+</div>
+
+<!-- ══════════════ 신고 달력 ══════════════ -->
+<div class="view" id="view-cal">
+  <div class="section-title">📅 2026년 세무 신고 일정</div>
+  <div id="calList"></div>
+</div>
+
+<!-- ══════════════ 하단 네비 ══════════════ -->
+<div class="bottom-nav">
+  <button class="nav-btn active" data-view="home"><span class="ic">🏠</span><span class="lb">홈</span></button>
+  <button class="nav-btn" data-view="vat"><span class="ic">🧾</span><span class="lb">부가세</span></button>
+  <button class="nav-btn" data-view="income"><span class="ic">📊</span><span class="lb">종소세</span></button>
+  <button class="nav-btn" data-view="with"><span class="ic">👥</span><span class="lb">원천세</span></button>
+  <button class="nav-btn" data-view="tips"><span class="ic">✅</span><span class="lb">공제팁</span></button>
+  <button class="nav-btn" data-view="cal"><span class="ic">📆</span><span class="lb">달력</span></button>
+</div>
+
+<!-- ══════════════ 설정 모달 ══════════════ -->
+<div class="modal" id="settingsModal">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheethead"><h3>🏢 사업자 정보</h3><button class="close" data-close="settingsModal">×</button></div>
+    <div class="field"><label>상호명</label><input id="setBizName" placeholder="예: ROOMMADE"></div>
+    <div class="field"><label>과세유형</label>
+      <select id="setTaxType"><option value="general">일반과세자</option><option value="simple">간이과세자</option></select>
+    </div>
+    <div class="field"><label>업태 / 종목</label><input id="setBizKind" placeholder="예: 서비스업 / 건물관리 및 청소"></div>
+    <div class="field"><label>개업일</label><input type="date" id="setOpenDate"></div>
+    <button class="btn primary" id="setSaveBtn">저장</button>
+  </div>
+</div>
+
+<!-- ══════════════ 원천세 입력 모달 ══════════════ -->
+<div class="modal" id="witModal">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheethead"><h3>지급 내역 추가</h3><button class="close" data-close="witModal">×</button></div>
+    <div class="field"><label>받는 사람 이름</label><input id="witNameInput" placeholder="예: 김미화"></div>
+    <div class="field"><label>지급액 (세전 총액)</label><input type="number" id="witAmtInput" placeholder="예: 1500000"></div>
+    <div class="field"><label>메모 (선택)</label><input id="witMemoInput" placeholder="예: 6월 청소 용역비"></div>
+    <button class="btn primary" id="witSaveBtn">저장</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ===== 유틸 ===== */
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+const won=n=>(Math.round(n||0)).toLocaleString('ko-KR')+'원';
+const num=v=>{const n=Number(v);return isNaN(n)?0:n;};
+function toast(msg){
+  const t=$('#toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toast._tm);toast._tm=setTimeout(()=>t.classList.remove('show'),1800);
+}
+function todayDate(){return new Date();}
+function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+/* ===== 데이터 저장/불러오기 (localStorage) ===== */
+const STORE_KEY='selftax-data';
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){console.error('불러오기 오류',e);}
+  return {
+    settings:{bizName:'ROOMMADE',taxType:'general',bizKind:'',openDate:''},
+    vatRecords:{},      // key: "2026-1기확정" -> {sales,purchase,cardSales,result}
+    incomeRecords:{},   // key: "2025" -> {...}
+    withRecords:{},     // key: "2026-07" -> [{name,amt,memo,id}]
+    checklist:{}        // key: 항목id -> true/false
+  };
+}
+let state=loadState();
+function save(){
+  try{
+    localStorage.setItem(STORE_KEY,JSON.stringify(state));
+  }catch(e){
+    console.error('저장 오류',e);
+    toast('❌ 저장에 실패했어요. 저장공간을 확인해주세요.');
+  }
+}
+
+/* ===== 화면 전환 ===== */
+function setView(name){
+  $$('.view').forEach(v=>v.classList.remove('active'));
+  $('#view-'+name).classList.add('active');
+  $$('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
+  if(name==='home') renderHome();
+  if(name==='cal') renderCalendar();
+}
+$$('.nav-btn').forEach(b=>b.addEventListener('click',()=>{try{setView(b.dataset.view);}catch(e){console.error(e);}}));
+
+/* ===== 모달 공통 ===== */
+function openModal(id){$('#'+id).classList.add('open');}
+function closeModal(id){$('#'+id).classList.remove('open');}
+$$('.modal .close').forEach(b=>b.addEventListener('click',()=>closeModal(b.dataset.close)));
+$$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);}));
+
+/* ===== 아코디언(공제팁) 열고닫기 ===== */
+function toggleAcc(el){el.classList.toggle('open');}
+
+/* ══════════════════════════════════════════
+   설정 (사업자 정보)
+   ══════════════════════════════════════════ */
+$('#openSettings').addEventListener('click',()=>{
+  const s=state.settings;
+  $('#setBizName').value=s.bizName||'';
+  $('#setTaxType').value=s.taxType||'general';
+  $('#setBizKind').value=s.bizKind||'';
+  $('#setOpenDate').value=s.openDate||'';
+  openModal('settingsModal');
+});
+$('#setSaveBtn').addEventListener('click',()=>{
+  try{
+    state.settings={
+      bizName:$('#setBizName').value.trim()||'ROOMMADE',
+      taxType:$('#setTaxType').value,
+      bizKind:$('#setBizKind').value.trim(),
+      openDate:$('#setOpenDate').value
+    };
+    save();
+    $('#bizNameTag').textContent=state.settings.bizName+' 전용 세무 도우미';
+    $('#vatTypeBadge').textContent=state.settings.taxType==='simple'?'간이과세자':'일반과세자';
+    closeModal('settingsModal');
+    toast('✅ 사업자 정보를 저장했어요');
+    renderHome();
+  }catch(e){console.error(e);toast('❌ 저장 중 오류가 발생했어요');}
+});
+
+/* ══════════════════════════════════════════
+   부가세 탭
+   ══════════════════════════════════════════ */
+// 과세기간 목록: [연도, 기수(1|2), 예정/확정] - 개인사업자는 보통 확정 2회만 신고
+const VAT_PERIODS=[]; // {year, half, label, dueDate}
+(function buildVatPeriods(){
+  for(let y=2025;y<=2027;y++){
+    VAT_PERIODS.push({year:y,half:1,label:y+'년 1기 확정',dueDate:y+'-07-25'});
+    VAT_PERIODS.push({year:y,half:2,label:y+'년 2기 확정',dueDate:(y+1)+'-01-25'});
+  }
+})();
+let vatIdx=(function(){
+  const now=todayDate();const y=now.getFullYear();const m=now.getMonth()+1;
+  const half=m<=6?1:2;
+  const idx=VAT_PERIODS.findIndex(p=>p.year===y&&p.half===half);
+  return idx>=0?idx:0;
+})();
+
+function vatKey(){const p=VAT_PERIODS[vatIdx];return p.year+'-'+p.half;}
+function renderVatPeriod(){
+  const p=VAT_PERIODS[vatIdx];
+  $('#vatPeriodLabel').textContent=p.label;
+  const rec=state.vatRecords[vatKey()];
+  $('#vatSalesInput').value=rec?rec.sales||'':'';
+  $('#vatPurchaseInput').value=rec?rec.purchase||'':'';
+  $('#vatCardSalesInput').value=rec?rec.cardSales||'':'';
+  $('#vatResultCard').style.display='none';
+  renderVatHist();
+}
+$('#vatPrev').addEventListener('click',()=>{if(vatIdx>0){vatIdx--;renderVatPeriod();}});
+$('#vatNext').addEventListener('click',()=>{if(vatIdx<VAT_PERIODS.length-1){vatIdx++;renderVatPeriod();}});
+
+function calcVat(){
+  try{
+    const sales=num($('#vatSalesInput').value);
+    const purchase=num($('#vatPurchaseInput').value);
+    const cardSales=num($('#vatCardSalesInput').value);
+
+    const salesTax=sales*0.1;
+    const purchaseTax=purchase*0.1;
+    let cardDeduct=0;
+    if(cardSales>0 && cardSales<=1000000000){ // 연매출 10억 이하만 대상
+      cardDeduct=Math.min(cardSales*0.013,5000000);
+    }
+    const final=Math.max(0,salesTax-purchaseTax-cardDeduct);
+
+    $('#vatOutSales').textContent=won(salesTax);
+    $('#vatOutPurchase').textContent=won(purchaseTax);
+    $('#vatOutCardDeduct').textContent='-'+won(cardDeduct);
+    $('#vatOutFinal').textContent=won(final);
+    $('#vatResultCard').style.display='block';
+
+    return {sales,purchase,cardSales,salesTax,purchaseTax,cardDeduct,final};
+  }catch(e){console.error(e);toast('❌ 계산 중 오류가 발생했어요');return null;}
+}
+$('#vatCalcBtn').addEventListener('click',calcVat);
+
+$('#vatSaveBtn').addEventListener('click',()=>{
+  const r=calcVat();
+  if(!r) return;
+  state.vatRecords[vatKey()]=r;
+  save();
+  toast('✅ 이번 기 계산 결과를 저장했어요');
+  renderVatHist();
+  renderHome();
+});
+function renderVatHist(){
+  const rec=state.vatRecords[vatKey()];
+  const wrap=$('#vatHistList');
+  if(!rec){wrap.innerHTML='<div class="empty">아직 저장된 계산 결과가 없어요</div>';return;}
+  wrap.innerHTML=`<div class="tx-item"><div class="l"><div class="name">예상 납부세액</div><div class="meta">매출세액 ${won(rec.salesTax)} · 매입세액 ${won(rec.purchaseTax)}</div></div><div class="amt">${won(rec.final)}</div></div>`;
+}
+
+/* ══════════════════════════════════════════
+   종합소득세 탭
+   ══════════════════════════════════════════ */
+let incYear=todayDate().getFullYear()-1; // 기본은 작년 귀속분(올해 5월에 신고하는 대상)
+function renderIncomeYear(){
+  $('#incYearLabel').textContent=incYear+'년 귀속';
+  const rec=state.incomeRecords[incYear];
+  $('#incRevenueInput').value=rec?rec.revenue||'':'';
+  $('#incExpenseInput').value=rec?rec.expense||'':'';
+  $('#incRateInput').value=rec?rec.rate||'':'';
+  $('#incPersonalCntInput').value=rec?rec.personalCnt||'1':'1';
+  $('#incPensionInput').value=rec?rec.pension||'':'';
+  $('#incNoranInput').value=rec?rec.noran||'':'';
+  $('#incPensionSavingInput').value=rec?rec.pensionSaving||'':'';
+  $('#incBookkeepInput').value=rec?rec.bookkeep||'0':'0';
+  $('#incResultCard').style.display='none';
+}
+$('#incPrev').addEventListener('click',()=>{incYear--;renderIncomeYear();});
+$('#incNext').addEventListener('click',()=>{incYear++;renderIncomeYear();});
+
+$$('#incExpenseMode button').forEach(b=>b.addEventListener('click',()=>{
+  $$('#incExpenseMode button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  const isRate=b.dataset.mode==='rate';
+  $('#incExpenseActualBox').style.display=isRate?'none':'block';
+  $('#incExpenseRateBox').style.display=isRate?'block':'none';
+}));
+
+// 2026년 기준 종합소득세 누진세율표 (과세표준 구간, 세율, 누진공제)
+const TAX_BRACKETS=[
+  {max:14000000,rate:0.06,deduct:0},
+  {max:50000000,rate:0.15,deduct:1260000},
+  {max:88000000,rate:0.24,deduct:5760000},
+  {max:150000000,rate:0.35,deduct:15440000},
+  {max:300000000,rate:0.38,deduct:19940000},
+  {max:500000000,rate:0.40,deduct:25940000},
+  {max:1000000000,rate:0.42,deduct:35940000},
+  {max:Infinity,rate:0.45,deduct:65940000}
+];
+function getBracket(base){
+  for(const b of TAX_BRACKETS){ if(base<=b.max) return b; }
+  return TAX_BRACKETS[TAX_BRACKETS.length-1];
+}
+
+function calcIncome(){
+  try{
+    const revenue=num($('#incRevenueInput').value);
+    const useRate=$('#incExpenseMode button.active').dataset.mode==='rate';
+    let expense=0;
+    if(useRate){
+      const rate=num($('#incRateInput').value);
+      expense=revenue*(rate/100);
+    }else{
+      expense=num($('#incExpenseInput').value);
+    }
+    const incomeAmt=Math.max(0,revenue-expense);
+
+    const personalCnt=Math.max(1,num($('#incPersonalCntInput').value)||1);
+    const personalDeduct=personalCnt*1500000;
+    const pension=num($('#incPensionInput').value);
+    const noran=Math.min(num($('#incNoranInput').value),5000000);
+    const totalDeduct=personalDeduct+pension+noran;
+
+    const base=Math.max(0,incomeAmt-totalDeduct);
+    const bracket=getBracket(base);
+    const calcTax=Math.max(0,base*bracket.rate-bracket.deduct);
+
+    const pensionSaving=num($('#incPensionSavingInput').value);
+    const pensionSavingCap=Math.min(pensionSaving,6000000);
+    const pensionSavingRate=incomeAmt<=45000000?0.165:0.132; // 간이 기준(총급여 등 상세기준은 실제와 다를 수 있음)
+    const pensionCredit=pensionSavingCap*pensionSavingRate;
+
+    const bookkeepCredit=$('#incBookkeepInput').value==='1'?Math.min(calcTax*0.2,1000000):0;
+
+    const totalCredit=pensionCredit+bookkeepCredit;
+    const finalTax=Math.max(0,calcTax-totalCredit);
+    const localTax=finalTax*0.1;
+
+    $('#incOutIncome').textContent=won(incomeAmt);
+    $('#incOutBase').textContent=won(base);
+    $('#incOutRate').textContent=(bracket.rate*100)+'%';
+    $('#incOutCalc').textContent=won(calcTax);
+    $('#incOutDeduct').textContent='-'+won(totalCredit);
+    $('#incOutFinal').textContent=won(finalTax);
+    $('#incOutLocal').textContent=won(localTax);
+    $('#incResultCard').style.display='block';
+
+    return {revenue,expense,personalCnt,pension,noran,pensionSaving,bookkeep:$('#incBookkeepInput').value,
+      rate:$('#incRateInput').value,incomeAmt,base,finalTax,localTax};
+  }catch(e){console.error(e);toast('❌ 계산 중 오류가 발생했어요');return null;}
+}
+$('#incCalcBtn').addEventListener('click',()=>{
+  const r=calcIncome();
+  if(r){ state.incomeRecords[incYear]=r; save(); }
+});
+
+/* ══════════════════════════════════════════
+   원천세 탭
+   ══════════════════════════════════════════ */
+let witY=todayDate().getFullYear(), witM=todayDate().getMonth()+1;
+function witKey(){return witY+'-'+String(witM).padStart(2,'0');}
+function renderWit(){
+  $('#witMonthLabel').textContent=witY+'년 '+witM+'월';
+  const list=state.withRecords[witKey()]||[];
+  const wrap=$('#witList');
+  if(list.length===0){
+    wrap.innerHTML='<div class="empty">이번 달 등록된 지급 내역이 없어요</div>';
+  }else{
+    wrap.innerHTML=list.map(item=>{
+      const tax=Math.round(item.amt*0.033);
+      const net=item.amt-tax;
+      return `<div class="tx-item">
+        <div class="l"><div class="name">${item.name}</div><div class="meta">세전 ${won(item.amt)} · 원천세 ${won(tax)}${item.memo?' · '+item.memo:''}</div></div>
+        <div class="amt">${won(net)}</div>
+        <button class="del" data-id="${item.id}">🗑️</button>
+      </div>`;
+    }).join('');
+    wrap.querySelectorAll('.del').forEach(b=>b.addEventListener('click',()=>{
+      const arr=state.withRecords[witKey()]||[];
+      state.withRecords[witKey()]=arr.filter(x=>x.id!==b.dataset.id);
+      save();renderWit();
+    }));
+  }
+  const gross=list.reduce((s,x)=>s+x.amt,0);
+  const tax=Math.round(gross*0.033);
+  $('#witOutGross').textContent=won(gross);
+  $('#witOutTax').textContent=won(tax);
+  $('#witOutNet').textContent=won(gross-tax);
+}
+$('#witPrev').addEventListener('click',()=>{witM--;if(witM<1){witM=12;witY--;}renderWit();});
+$('#witNext').addEventListener('click',()=>{witM++;if(witM>12){witM=1;witY++;}renderWit();});
+$('#witAddBtn').addEventListener('click',()=>{
+  $('#witNameInput').value='';$('#witAmtInput').value='';$('#witMemoInput').value='';
+  openModal('witModal');
+});
+$('#witSaveBtn').addEventListener('click',()=>{
+  try{
+    const name=$('#witNameInput').value.trim();
+    const amt=num($('#witAmtInput').value);
+    if(!name||amt<=0){toast('이름과 금액을 입력해주세요');return;}
+    const memo=$('#witMemoInput').value.trim();
+    const arr=state.withRecords[witKey()]||[];
+    arr.push({id:Date.now().toString(36),name,amt,memo});
+    state.withRecords[witKey()]=arr;
+    save();
+    closeModal('witModal');
+    renderWit();
+    toast('✅ 지급 내역을 저장했어요');
+  }catch(e){console.error(e);toast('❌ 저장 중 오류가 발생했어요');}
+});
+
+/* ══════════════════════════════════════════
+   공제팁 체크리스트
+   ══════════════════════════════════════════ */
+const TIPS=[
+  {group:'🧾 부가세에서 자주 놓치는 것', items:[
+    {id:'vat1',t:'세금계산서를 못 받은 매입이 없는지 확인',tip:'거래처에 요청해서 과세기간 마감 전에 꼭 받아두세요. 늦게 받으면 공제가 안 될 수 있어요.'},
+    {id:'vat2',t:'접대비(거래처 식사·선물 등) 매입세액은 공제 불가',tip:'세금계산서를 받아도 매입세액공제가 안 되니 별도로 구분해두세요.'},
+    {id:'vat3',t:'비영업용 소형승용차 관련 비용(유류비·수리비 등)도 공제 불가',tip:'개인 차량을 업무에 써도 부가세는 공제 안 돼요(경차·화물차 등은 예외).'},
+    {id:'vat4',t:'신용카드매출전표 수취명세서 제출 확인',tip:'카드로 매입한 내역도 홈택스에 자동 반영되지만, 사업용 카드로 등록해두면 훨씬 편해요.'},
+    {id:'vat5',t:'전자세금계산서는 발급 다음날까지 국세청에 전송',tip:'지연전송/미전송 시 가산세(0.3~0.5%)가 붙어요. 발급 즉시 전송하는 습관을 들이세요.'},
+    {id:'vat6',t:'신용카드매출전표 발행세액공제(1.3%) 빠뜨리지 않기',tip:'개인사업자면 자동으로 챙겨지지 않으니 신고 시 직접 반영해야 해요.'}
+  ]},
+  {group:'📊 종합소득세에서 자주 놓치는 것', items:[
+    {id:'inc1',t:'노란우산공제 가입 여부 확인 (연 최대 500만원 소득공제)',tip:'소기업·소상공인 공제로, 폐업 시 목돈도 받을 수 있어 절세+저축 효과가 커요.'},
+    {id:'inc2',t:'국민연금 납입액은 전액 소득공제',tip:'납입확인서는 국민연금공단 홈페이지에서 바로 출력 가능해요.'},
+    {id:'inc3',t:'간편장부 대상자가 복식부기로 기장하면 20% 세액공제',tip:'세무대리인 기장료보다 절세액이 더 클 수 있으니 비교해보세요.'},
+    {id:'inc4',t:'직원을 새로 채용했다면 고용증대세액공제 검토',tip:'상시근로자 수가 늘면 1인당 최대 수백만원 세액공제가 가능해요. 요건이 까다로우니 세무사 상담 추천.'},
+    {id:'inc5',t:'성실신고확인 대상 여부 확인 (서비스업 기준 수입금액 초과 시)',tip:'대상이면 5월이 아니라 6월 30일까지 신고기한이 늘어나요.'},
+    {id:'inc6',t:'연금저축·IRP 납입 여부 확인 (세액공제 13.2~16.5%)',tip:'노후 대비와 절세를 동시에 할 수 있는 대표적인 방법이에요.'}
+  ]},
+  {group:'👥 원천세에서 자주 놓치는 것', items:[
+    {id:'wit1',t:'반기별 납부 승인 신청 여부 확인 (상시 인원 20인 이하)',tip:'승인받으면 매달이 아니라 1월·7월, 1년에 2번만 신고하면 돼요.'},
+    {id:'wit2',t:'지급명세서 제출 기한 놓치지 않기',tip:'사업소득(3.3%)은 다음해 2월 말, 근로소득은 다음해 3월 10일까지 제출해야 해요.'},
+    {id:'wit3',t:'프리랜서 vs 직원 여부를 명확히 구분',tip:'실질적으로 근로자처럼 일하면 나중에 4대보험·퇴직금 문제가 생길 수 있어요.'}
+  ]},
+  {group:'📁 공통 서류 챙기기', items:[
+    {id:'com1',t:'사업용 계좌·카드를 개인용과 분리해서 사용',tip:'복식부기 의무자는 사업용 계좌 미신고 시 가산세가 있어요.'},
+    {id:'com2',t:'경비 영수증은 최소 5년간 보관',tip:'세무조사 시 소명자료로 필요할 수 있어요. 사진으로 찍어 클라우드에도 백업해두세요.'}
+  ]}
+];
+function renderTips(){
+  const wrap=$('#tipsAccWrap');
+  wrap.innerHTML=TIPS.map((g,gi)=>{
+    const items=g.items.map(it=>{
+      const done=!!state.checklist[it.id];
+      return `<label class="chk-item ${done?'done':''}">
+        <input type="checkbox" data-id="${it.id}" ${done?'checked':''}>
+        <span class="txt">${it.t}<span class="tip">${it.tip}</span></span>
+      </label>`;
+    }).join('');
+    return `<div class="acc" id="acc-${gi}">
+      <div class="acc-head" data-idx="${gi}"><span>${g.group}</span><span class="chev">⌄</span></div>
+      <div class="acc-body">${items}</div>
+    </div>`;
+  }).join('');
+  wrap.querySelectorAll('.acc-head').forEach(h=>h.addEventListener('click',()=>toggleAcc(h.parentElement)));
+  wrap.querySelectorAll('.chk-item input').forEach(cb=>cb.addEventListener('change',()=>{
+    state.checklist[cb.dataset.id]=cb.checked;
+    save();
+    cb.closest('.chk-item').classList.toggle('done',cb.checked);
+    renderHome();
+  }));
+  if(wrap.firstElementChild) wrap.firstElementChild.classList.add('open');
+}
+
+/* ══════════════════════════════════════════
+   신고 달력
+   ══════════════════════════════════════════ */
+function calcDday(dateStr){
+  const target=new Date(dateStr+'T00:00:00');
+  const now=new Date();now.setHours(0,0,0,0);
+  const diff=Math.round((target-now)/86400000);
+  return diff;
+}
+function buildDeadlines(year){
+  return [
+    {mm:'1월',dd:'25',date:year+'-01-25',ttl:'부가세 2기 확정신고 (전년도분)',desc:'작년 하반기 부가세를 신고·납부해요.'},
+    {mm:'2월',dd:'말일',date:year+'-02-28',ttl:'사업소득 지급명세서 제출',desc:'프리랜서 등에게 지급한 3.3% 원천징수분 지급명세서 제출 마감.'},
+    {mm:'4월',dd:'25',date:year+'-04-25',ttl:'부가세 1기 예정고지 납부',desc:'직전 확정신고 기준으로 고지된 금액을 납부만 하면 돼요.'},
+    {mm:'5월',dd:'31',date:year+'-05-31',ttl:'종합소득세 확정신고',desc:'작년 1년치 소득을 신고·납부해요.'},
+    {mm:'7월',dd:'10',date:year+'-07-10',ttl:'원천세 반기 신고 (상반기분)',desc:'반기별 납부 승인 사업자만 해당.'},
+    {mm:'7월',dd:'25',date:year+'-07-25',ttl:'부가세 1기 확정신고',desc:'상반기(1~6월) 매출·매입을 신고·납부해요.'},
+    {mm:'10월',dd:'25',date:year+'-10-25',ttl:'부가세 2기 예정고지 납부',desc:'직전 확정신고 기준으로 고지된 금액을 납부만 하면 돼요.'},
+    {mm:'익년',dd:'1/10',date:(year+1)+'-01-10',ttl:'원천세 반기 신고 (하반기분)',desc:'반기별 납부 승인 사업자만 해당.'}
+  ];
+}
+function renderCalendar(){
+  const year=todayDate().getFullYear();
+  let items=buildDeadlines(year);
+  items=items.concat(buildDeadlines(year+1).filter(x=>new Date(x.date)>new Date(year+'-12-31')));
+  items.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const wrap=$('#calList');
+  wrap.innerHTML=items.map(it=>{
+    const d=calcDday(it.date);
+    let ddayTxt,ddayCls;
+    if(d<0){ddayTxt='지남';ddayCls='badge ok';}
+    else if(d===0){ddayTxt='오늘';ddayCls='badge urgent';}
+    else{ddayTxt='D-'+d;ddayCls=d<=14?'badge urgent':'badge ok';}
+    return `<div class="cal-item">
+      <div class="dbox"><div class="mm">${it.mm}</div><div class="dd">${it.dd}</div></div>
+      <div class="body"><div class="ttl">${it.ttl}</div><div class="desc">${it.desc}</div></div>
+      <div class="dday ${ddayCls}">${ddayTxt}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════
+   홈 대시보드
+   ══════════════════════════════════════════ */
+const DAILY_TIPS=[
+  '세금계산서는 거래 다음날까지 전자로 발급하면 가산세를 피할 수 있어요.',
+  '사업용 계좌와 카드를 개인용과 분리하면 매입 내역 정리가 훨씬 쉬워져요.',
+  '노란우산공제는 절세와 목돈 마련을 동시에 할 수 있는 대표적인 제도예요.',
+  '접대비는 매입세액공제가 안 되니, 처음부터 별도 계정으로 관리하세요.',
+  '경비 영수증은 사진을 찍어 클라우드에도 백업해두면 분실 걱정이 없어요.'
+];
+function renderHome(){
+  try{
+    const year=todayDate().getFullYear();
+    const items=buildDeadlines(year).concat(buildDeadlines(year+1));
+    const future=items.filter(x=>calcDday(x.date)>=0).sort((a,b)=>new Date(a.date)-new Date(b.date));
+    const next=future[0];
+    if(next){
+      const d=calcDday(next.date);
+      $('#homeDdayLabel').textContent=next.ttl;
+      $('#homeDdayBig').textContent=d===0?'오늘 마감!':('D-'+d);
+      $('#homeDdaySub').textContent=next.date+' 까지';
+    }
+    // 이번 기 부가세 예상액
+    const rec=state.vatRecords[vatKey()];
+    $('#homeVatEst').textContent=rec?won(rec.final):'미계산';
+
+    // 체크리스트 남은 개수
+    const allIds=TIPS.flatMap(g=>g.items.map(i=>i.id));
+    const left=allIds.filter(id=>!state.checklist[id]).length;
+    $('#homeChkLeft').textContent=left+'개';
+
+    // 다가오는 일정 3개
+    const wrap=$('#homeUpcoming');
+    wrap.innerHTML=future.slice(0,3).map(it=>{
+      const d=calcDday(it.date);
+      const cls=d<=14?'urgent':'ok';
+      return `<div class="mini-item"><span>${it.ttl}</span><span class="badge ${cls}">D-${d}</span></div>`;
+    }).join('') || '<div class="mini-item">예정된 일정이 없어요</div>';
+
+    // 오늘의 팁
+    const dayIdx=todayDate().getDate()%DAILY_TIPS.length;
+    $('#homeTipCard').textContent='💬 '+DAILY_TIPS[dayIdx];
+  }catch(e){console.error(e);}
+}
+
+/* ══════════════════════════════════════════
+   초기화
+   ══════════════════════════════════════════ */
+function init(){
+  try{
+    const s=state.settings;
+    $('#bizNameTag').textContent=(s.bizName||'ROOMMADE')+' 전용 세무 도우미';
+    $('#vatTypeBadge').textContent=s.taxType==='simple'?'간이과세자':'일반과세자';
+
+    renderVatPeriod();
+    renderIncomeYear();
+    renderWit();
+    renderTips();
+    renderCalendar();
+    renderHome();
+  }catch(e){console.error('초기화 오류',e);toast('❌ 초기 로딩 중 오류가 발생했어요');}
+}
+init();
+
+/* ══════════════════════════════════════════
+   서비스워커 등록 (오프라인 캐시, 버전 v1)
+   ══════════════════════════════════════════ */
+if('serviceWorker' in navigator){
+  try{
+    const swCode = `
+      const CACHE_NAME='selftax-cache-v1';
+      self.addEventListener('install',e=>{self.skipWaiting();});
+      self.addEventListener('activate',e=>{
+        e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))));
+      });
+      self.addEventListener('fetch',e=>{
+        e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));
+      });
+    `;
+    const blob=new Blob([swCode],{type:'application/javascript'});
+    const swUrl=URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swUrl).catch(err=>console.log('SW 등록 스킵:',err));
+  }catch(e){console.log('SW 미지원 환경');}
+}
+
+})();
+</script>
+</body>
+</html>
