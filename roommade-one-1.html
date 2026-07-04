@@ -355,6 +355,7 @@ input,select,textarea{min-height:44px}
     <div class="twocol"><div class="field"><label>지점</label><select id="staffBranchInput"><option>영종점</option><option>송도점</option><option>펜트하우스</option></select></div><div class="field"><label>급여 방식</label><select id="staffPayTypeInput"><option>건당</option><option>시간</option><option>당일</option><option>월급</option></select></div></div>
     <div class="twocol"><div class="field"><label>기본 단가</label><input type="number" id="staffRateInput" placeholder="17000" /></div><div class="field"><label>세금률 %</label><input type="number" step="0.1" id="staffTaxInput" placeholder="3.3" /></div></div>
     <button class="primary" id="saveStaff">저장</button>
+    <button class="secondary" id="archiveStaffBtn" style="margin-top:8px;display:none;background:#FDF0D5;color:#B8860B;border-color:#F0D890;">📦 이 직원 보관 (메뉴에서 숨김)</button>
     <button class="secondary danger" id="deleteStaffBtn" style="margin-top:8px;display:none;">🗑️ 이 직원 삭제</button>
   </div>
 </div>
@@ -985,7 +986,7 @@ input,select,textarea{min-height:44px}
 
   function renderManage(){
     const allRooms=branchFilter(state.rooms).slice().sort((a,b)=>(a.order??9999)-(b.order??9999)),staff=branchFilter(state.staff);const rooms=allRooms.filter(r=>!r.archived);const archivedRooms=allRooms.filter(r=>r.archived);let roomHtml=rooms.length?rooms.map((r,idx)=>`<div class="entity drag-room" data-room-card="${r.id}" style="touch-action:pan-y;"><div class="entityico">🏠</div><div class="entitymain"><b>${esc(r.name)}</b><small>${r.branch}${r.hostName?' · 호스트 '+esc(r.hostName):''} · 기본 ${money(r.price)}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join(''):empty('🏠','등록된 객실이 없어요');if(archivedRooms.length){roomHtml+=`<button id="toggleArchived" style="width:100%;margin-top:10px;padding:10px;border:1px dashed #D0C8B8;border-radius:12px;background:#FBF8F3;color:var(--muted);font-size:12px;font-weight:700;">📦 보관된 객실 ${archivedRooms.length}개 ${state._showArchived?'숨기기 ▲':'보기 ▼'}</button>`;if(state._showArchived){roomHtml+='<div style="margin-top:8px;">'+archivedRooms.map(r=>`<div class="entity" style="opacity:.6;"><div class="entityico">📦</div><div class="entitymain"><b>${esc(r.name)}</b><small>보관됨 · ${r.branch}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join('')+'</div>';}}$('#roomList').innerHTML=roomHtml;
-    $('#staffList').innerHTML=staff.length?staff.map(s=>`<div class="entity" data-staff-card="${s.id}"><div class="entityico">👤</div><div class="entitymain"><b>${esc(s.name)}</b><small>${s.branch} · ${s.payType} ${money(s.rate)}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join('')+'<div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px;">💡 직원을 길게 누르면 삭제할 수 있어요</div>':empty('👥','등록된 직원이 없어요');
+    const actStaff=staff.filter(s=>!s.archived);const arcStaff=staff.filter(s=>s.archived);let staffHtml=actStaff.length?actStaff.map(s=>`<div class="entity" data-staff-card="${s.id}"><div class="entityico">👤</div><div class="entitymain"><b>${esc(s.name)}</b><small>${s.branch} · ${s.payType} ${money(s.rate)}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join(''):empty('👥','등록된 직원이 없어요');if(arcStaff.length){staffHtml+=`<button id="toggleArchivedStaff" style="width:100%;margin-top:10px;padding:10px;border:1px dashed #D0C8B8;border-radius:12px;background:#FBF8F3;color:var(--muted);font-size:12px;font-weight:700;">📦 보관된 직원 ${arcStaff.length}명 ${state._showArchivedStaff?'숨기기 ▲':'보기 ▼'}</button>`;if(state._showArchivedStaff){staffHtml+='<div style="margin-top:8px;">'+arcStaff.map(s=>`<div class="entity" style="opacity:.6;"><div class="entityico">📦</div><div class="entitymain"><b>${esc(s.name)}</b><small>보관됨 · ${s.branch}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join('')+'</div>';}}$('#staffList').innerHTML=staffHtml;
     // 비품 목록 (지점 필터, 구입 필요 강조)
     const sup=(state.supplies||[]).filter(x=>state.branch==='전체'||x.branch===state.branch||x.branch==='공용');
     $('#supplyList').innerHTML=sup.length?sup.map(x=>{
@@ -1230,6 +1231,14 @@ input,select,textarea{min-height:44px}
   }
 
   // 객실 보관/해제 토글
+  // 직원 보관/해제 토글
+  function toggleArchiveStaff(id){
+    const s=state.staff.find(x=>x.id===id);
+    if(!s)return;
+    s.archived=!s.archived;
+    save();closeModal('staffModal');render();
+    toast(s.archived?('📦 "'+s.name+'" 보관됨 (메뉴에서 숨김)'):('📤 "'+s.name+'" 다시 표시됨'));
+  }
   function toggleArchiveRoom(id){
     const r=state.rooms.find(x=>x.id===id);
     if(!r)return;
@@ -1237,7 +1246,7 @@ input,select,textarea{min-height:44px}
     save();closeModal('roomModal');render();
     toast(r.archived?('📦 "'+r.name+'" 보관됨 (메뉴에서 숨김)'):('📤 "'+r.name+'" 다시 표시됨'));
   }
-  function openStaff(id=''){const s=state.staff.find(x=>x.id===id);$('#staffEditId').value=id;$('#staffNameInput').value=s?.name||'';$('#staffBranchInput').value=s?.branch||(state.branch==='전체'?'영종점':state.branch);$('#staffPayTypeInput').value=s?.payType||'건당';$('#staffRateInput').value=s?.rate||'';$('#staffTaxInput').value=s?.tax??3.3;const dsb=$('#deleteStaffBtn');if(dsb)dsb.style.display=id?'block':'none';openModal('staffModal')}
+  function openStaff(id=''){const s=state.staff.find(x=>x.id===id);$('#staffEditId').value=id;$('#staffNameInput').value=s?.name||'';$('#staffBranchInput').value=s?.branch||(state.branch==='전체'?'영종점':state.branch);$('#staffPayTypeInput').value=s?.payType||'건당';$('#staffRateInput').value=s?.rate||'';$('#staffTaxInput').value=s?.tax??3.3;const dsb=$('#deleteStaffBtn');if(dsb)dsb.style.display=id?'block':'none';const asb=$('#archiveStaffBtn');if(asb){asb.style.display=id?'block':'none';if(s&&s.archived){asb.textContent='📤 보관 해제 (메뉴에 다시 표시)';asb.style.background='#D5F5E3';asb.style.color='#1E8449';asb.style.borderColor='#A9DFBF';}else{asb.textContent='📦 이 직원 보관 (메뉴에서 숨김)';asb.style.background='#FDF0D5';asb.style.color='#B8860B';asb.style.borderColor='#F0D890';}}openModal('staffModal')}
   function saveStaffForm(){const id=$('#staffEditId').value,name=$('#staffNameInput').value.trim(),branch=$('#staffBranchInput').value,payType=$('#staffPayTypeInput').value,rate=Number($('#staffRateInput').value),tax=Number($('#staffTaxInput').value||0);if(!name||!rate)return toast('이름과 기본 단가를 입력해주세요');const obj={id:id||uid('staff'),name,branch,payType,rate,tax};if(id)state.staff[state.staff.findIndex(x=>x.id===id)]=obj;else state.staff.push(obj);save();closeModal('staffModal');render();toast('직원을 저장했어요')}
 
   function makeReport(){const targetId=$('#reportTarget').value,month=$('#reportMonth').value;if(!targetId||!month)return toast('대상과 정산 월을 선택해주세요');const type=reportMode==='room'?'income':'expense',entity=(reportMode==='room'?state.rooms:state.staff).find(x=>x.id===targetId),items=state.transactions.filter(t=>t.type===type&&(t.targetId===targetId||(entity&&t.targetName===entity.name))&&(t.billingMonth||ym(t.date))===month&&t.status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date));const total=sum(items),paid=sum(items,null,true),pending=sum(items,null,false);let lines=[`──────────────`,`📋 ${entity.name} ${reportMode==='room'?'청소 정산':'지급 내역'}`,monthText(month),`──────────────`,``];items.forEach((t,i)=>lines.push(`${i+1}. ${dateText(t.date)}  ${money(t.netAmount||t.amount)}${t.memo?' / '+t.memo:''}${!t.paid?' ('+(type==='income'?'미수금':'미지급')+')':''}`));lines.push('',`총 ${items.length}건  ${money(total)}`,`${reportMode==='room'?'입금':'지급'} 완료  ${money(paid)}`,`${reportMode==='room'?'미수금':'미지급'}  ${money(pending)}`,'──────────────');$('#reportBox').textContent=lines.join('\n');$('#reportBox').style.display='block';$('#copyReport').style.display='block'}
@@ -1356,12 +1365,13 @@ input,select,textarea{min-height:44px}
     if(b.dataset.payGroup){state.transactions.filter(t=>(t.targetId||t.targetName)===b.dataset.payGroup&&!t.paid).forEach(t=>t.paid=true);save();render();toast('정산 완료로 처리했어요')}
     if(b.dataset.editRoom)openRoom(b.dataset.editRoom);if(b.dataset.editStaff)openStaff(b.dataset.editStaff);if(b.dataset.editSupply)openSupply(b.dataset.editSupply);
     if(b.id==='toggleArchived'){state._showArchived=!state._showArchived;render();return;}
+    if(b.id==='toggleArchivedStaff'){state._showArchivedStaff=!state._showArchivedStaff;render();return;}
     if(b.dataset.report){reportMode=b.dataset.report;renderReportOptions();$('#reportBox').style.display='none';$('#copyReport').style.display='none'}
   });
   $('#txBranchInput').addEventListener('change',updateTxType);$('#txTargetInput').addEventListener('change',()=>{const id=$('#txTargetInput').value,target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===id);if(target){if(target.branch==='펜트하우스'){$('#txAmountInput').value='0';}else{$('#txAmountInput').value=target.price||target.rate||'';}}autoFillCheckout()});
   $('#txDateInput').addEventListener('change',autoFillCheckout);
   $('#saveTx').addEventListener('click',saveTxForm);$('#deleteTx').addEventListener('click',deleteTxForm);$('#saveRoom').addEventListener('click',saveRoomForm);$('#saveStaff').addEventListener('click',saveStaffForm);$('#saveSupply').addEventListener('click',saveSupplyForm);$('#deleteSupply').addEventListener('click',deleteSupplyForm);
-  {const drb=$('#deleteRoomBtn');if(drb)drb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)deleteRoom(id);});const dsb=$('#deleteStaffBtn');if(dsb)dsb.addEventListener('click',()=>{const id=$('#staffEditId').value;if(id)deleteStaff(id);});const arb=$('#archiveRoomBtn');if(arb)arb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)toggleArchiveRoom(id);});}
+  {const drb=$('#deleteRoomBtn');if(drb)drb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)deleteRoom(id);});const dsb=$('#deleteStaffBtn');if(dsb)dsb.addEventListener('click',()=>{const id=$('#staffEditId').value;if(id)deleteStaff(id);});const arb=$('#archiveRoomBtn');if(arb)arb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)toggleArchiveRoom(id);});const asb=$('#archiveStaffBtn');if(asb)asb.addEventListener('click',()=>{const id=$('#staffEditId').value;if(id)toggleArchiveStaff(id);});}
   {const mfb=$('#mfSave');if(mfb)mfb.addEventListener('click',saveMFForm);}
   $('#saveSetup').addEventListener('click',saveSetupForm);$('#deleteSetup').addEventListener('click',deleteSetupForm);
   $('#supplyReceiptInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{supplyReceiptData=ev.target.result;$('#supplyReceiptPreview').innerHTML=`<img src="${supplyReceiptData}" style="max-width:100%;border-radius:10px;">`;};r.readAsDataURL(f);});
