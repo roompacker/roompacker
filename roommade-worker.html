@@ -155,12 +155,15 @@ h1,h2,h3{letter-spacing:-.6px}.login h1{margin:0;font-size:25px}.login p{margin:
       <section id="rooms" class="screen admin">
         <div class="title"><h2>객실 관리</h2><small>호수별 비밀번호</small></div>
         <div class="panel">
+          <input type="hidden" id="rEditId" value="">
+          <div id="rEditBanner" style="display:none;background:#FFF3E4;border:1px solid #F3D9AE;border-radius:16px;padding:10px 12px;margin-bottom:12px;font-size:12.5px;font-weight:850;color:#B75F17;">✏️ 지금 <span id="rEditBannerName"></span> 객실을 수정하는 중이에요</div>
           <div class="grid2"><div class="field"><label>지역</label><select id="rArea"><option>송도</option><option>영종도</option></select></div><div class="field"><label>객실 타입</label><select id="rType"><option>원룸형</option><option>복층형</option><option>투룸형</option><option>장박 퇴실</option></select></div></div>
           <div class="field"><label>건물명</label><input id="rBld" value="한라웨스턴파크"></div>
           <div class="grid2"><div class="field"><label>호수</label><input id="rNo" value="1807호"></div><div class="field"><label>호스트 비밀번호</label><input id="rHostPw" value="1807"></div></div>
           <div class="grid2"><div class="field"><label>도어락</label><input id="rDoor" value="1234*"></div><div class="field"><label>주차</label><input id="rPark" value="가능"></div></div>
           <div class="field"><label>체크포인트</label><textarea id="rCheck">침구 각 잡기, 화장실 물기 제거, 창틀 먼지 확인, 냉장고 음식물 확인</textarea></div>
-          <button class="btn blue full" onclick="addRoom()">객실 추가 / 저장</button>
+          <button class="btn blue full" id="rSaveBtn" onclick="saveRoomForm()">객실 추가 / 저장</button>
+          <button class="btn light full" id="rCancelBtn" style="margin-top:8px;display:none" onclick="cancelRoomEdit()">✕ 수정 취소하고 새 객실 등록으로 돌아가기</button>
         </div>
         <div id="roomCards"></div>
       </section>
@@ -284,8 +287,52 @@ function renderAssigned(){let ok=state.apps.filter(a=>a.status=='승인');assign
 function renderReportSelect(){let ok=state.apps.filter(a=>a.status=='승인');reportJob.innerHTML=ok.map(a=>{let j=job(a.jobId),r=jr(j);return `<option value="${a.jobId}">${r.area} · ${r.building} ${r.roomNo}</option>`}).join('')}
 function renderAdmin(){sJobs.textContent=state.jobs.length;sApps.textContent=state.apps.filter(a=>a.status=='검토중').length;sOk.textContent=state.apps.filter(a=>a.status=='승인').length;sRep.textContent=state.reports.length;adminApps.innerHTML=state.apps.map(a=>{let j=job(a.jobId),r=jr(j);return `<div class="card"><h3 style="margin:0 0 8px">${r.area} · ${r.building} ${r.roomNo}</h3><div class="person"><div class="avatar">${a.name.slice(0,1)}</div><div class="mid"><strong>${a.name}</strong><span>${a.time} · ${a.memo}</span></div><span class="state ${cls(a.status)}">${a.status}</span></div><div class="actions" style="margin-top:10px"><button class="btn blue" onclick="setApp(${a.id},'승인')">승인</button><button class="btn light" onclick="setApp(${a.id},'보류')">보류</button><button class="btn red" onclick="setApp(${a.id},'거절')">거절</button></div></div>`}).join('')||'<div class="empty">아직 지원자가 없습니다.</div>';newRoom.innerHTML=state.rooms.map(r=>`<option value="${r.id}">${r.area} · ${r.building} ${r.roomNo} / ${r.type}</option>`).join('')}
 function setApp(id,status){let a=state.apps.find(x=>x.id==id);if(a)a.status=status;save();render();toast(`지원 상태를 '${status}'로 변경했습니다.`)}
-function renderRooms(){roomCards.innerHTML=state.rooms.map(r=>`<div class="card"><h3 style="margin:0 0 8px">${r.area} · ${r.building} ${r.roomNo}</h3><div class="info"><div class="row"><span>객실 타입</span><span>${r.type}</span></div><div class="row"><span>호스트 비번</span><span>${r.hostPw}</span></div><div class="row"><span>도어락</span><span>${r.doorPw}</span></div><div class="row"><span>체크포인트</span><span>${r.checklist}</span></div></div></div>`).join('')}
-function addRoom(){state.rooms.unshift({id:Date.now(),area:rArea.value,building:rBld.value.trim()||'새 건물',roomNo:rNo.value.trim()||'000호',type:rType.value,hostPw:rHostPw.value.trim()||'0000',doorPw:rDoor.value.trim()||'0000*',parking:rPark.value.trim()||'확인필요',checklist:rCheck.value.trim(),tone:['t1','t2','t3','t4','t5'][state.rooms.length%5]});save();fillHostRooms();render();toast('객실이 추가되었습니다.')}
+function renderRooms(){roomCards.innerHTML=state.rooms.map(r=>`<div class="card"><h3 style="margin:0 0 8px">${r.area} · ${r.building} ${r.roomNo}</h3><div class="info"><div class="row"><span>객실 타입</span><span>${r.type}</span></div><div class="row"><span>호스트 비번</span><span>${r.hostPw}</span></div><div class="row"><span>도어락</span><span>${r.doorPw}</span></div><div class="row"><span>주차</span><span>${r.parking||'-'}</span></div><div class="row"><span>체크포인트</span><span>${r.checklist||'-'}</span></div></div><div class="actions" style="margin-top:10px"><button class="btn light" onclick="editRoom(${r.id})">✏️ 수정</button><button class="btn red" onclick="deleteRoom(${r.id})">🗑️ 삭제</button></div></div>`).join('')||'<div class="empty">등록된 객실이 없습니다.</div>'}
+function saveRoomForm(){
+  const id=rEditId.value;
+  const data={area:rArea.value,building:rBld.value.trim()||'새 건물',roomNo:rNo.value.trim()||'000호',type:rType.value,hostPw:rHostPw.value.trim()||'0000',doorPw:rDoor.value.trim()||'0000*',parking:rPark.value.trim()||'확인필요',checklist:rCheck.value.trim()};
+  if(id){
+    // 수정 모드: 기존 객실 정보를 덮어씀 (id, tone은 그대로 유지)
+    const idx=state.rooms.findIndex(x=>x.id==id);
+    if(idx>-1){ state.rooms[idx]=Object.assign({}, state.rooms[idx], data); }
+    save();fillHostRooms();render();cancelRoomEdit();toast('객실 정보를 수정했습니다.');
+  }else{
+    // 추가 모드: 새 객실 생성
+    state.rooms.unshift(Object.assign({id:Date.now(),tone:['t1','t2','t3','t4','t5'][state.rooms.length%5]},data));
+    save();fillHostRooms();render();toast('객실이 추가되었습니다.');
+  }
+}
+function editRoom(id){
+  const r=room(id); if(!r.id){toast('객실을 찾을 수 없습니다.');return}
+  rEditId.value=r.id;
+  rArea.value=r.area; rType.value=r.type; rBld.value=r.building; rNo.value=r.roomNo;
+  rHostPw.value=r.hostPw; rDoor.value=r.doorPw; rPark.value=r.parking; rCheck.value=r.checklist||'';
+  rSaveBtn.textContent='✔ 수정 완료 저장하기';
+  rCancelBtn.style.display='block';
+  rEditBanner.style.display='block';
+  rEditBannerName.textContent=r.building+' '+r.roomNo;
+  go('rooms');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function cancelRoomEdit(){
+  rEditId.value='';
+  rArea.value='송도'; rType.value='원룸형'; rBld.value=''; rNo.value=''; rHostPw.value=''; rDoor.value=''; rPark.value=''; rCheck.value='';
+  rSaveBtn.textContent='객실 추가 / 저장';
+  rCancelBtn.style.display='none';
+  rEditBanner.style.display='none';
+}
+function deleteRoom(id){
+  const r=room(id); if(!r.id)return;
+  const relatedJobs=state.jobs.filter(j=>j.roomId==id).length;
+  let msg='"'+r.building+' '+r.roomNo+'" 객실을 삭제할까요?';
+  if(relatedJobs>0) msg+='\n\n⚠️ 이 객실과 연결된 공고 '+relatedJobs+'개도 함께 삭제돼요.';
+  if(!confirm(msg))return;
+  state.rooms=state.rooms.filter(x=>x.id!=id);
+  state.jobs=state.jobs.filter(j=>j.roomId!=id);
+  if(rEditId.value==id) cancelRoomEdit();
+  save();fillHostRooms();render();
+  toast('객실을 삭제했습니다.');
+}
 function addJob(){let price=newPrice.value.trim()||'0원',tags=[newLaundry.value,newLevel.value,money(price)>=45000?'고단가':''].filter(Boolean);state.jobs.unshift({id:Date.now(),roomId:Number(newRoom.value),work:newWork.value.trim(),price,minutes:newMin.value.trim()||'60분',laundry:newLaundry.value,level:newLevel.value,tags});save();render();toast('새 청소 공고가 등록되었습니다.');go('adminHome')}
 function saveProfile(){state.profile={name:pname.value,phone:pphone.value,area:parea.value,exp:pexp.value,intro:pintro.value};save();toast('구직자 프로필이 저장되었습니다.')}
 function showDetail(id){selectedJob=id;let j=job(id),r=jr(j);dTitle.textContent=`${r.area} · ${r.building}`;dSub.textContent=`${r.type} · ${j.work}`;dInfo.innerHTML=`<div class="row"><span>지급 금액</span><span>${j.price}</span></div><div class="row"><span>예상 시간</span><span>${j.minutes}</span></div><div class="row"><span>세탁</span><span>${j.laundry}</span></div><div class="row"><span>난이도</span><span>${j.level}</span></div><div class="row"><span>정확한 호수</span><span>승인 후 공개</span></div>`;dTags.innerHTML=['침구 교체','화장실 청소','주방 정리','수건 세팅','쓰레기 처리','청소 후 사진 보고'].map(t=>`<span class="tag">${t}</span>`).join('');dApply.onclick=()=>openApply(id);detail.classList.add('active')}
