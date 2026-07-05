@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ROOMMADE WORKER v3</title>
+<style>
+:root{--cream:#F6F1E8;--paper:#FFFDF8;--navy:#123E66;--blue:#2F6FA3;--sky:#EAF5FF;--orange:#F28C38;--red:#E15349;--green:#1E8B57;--gray:#737A82;--ink:#18222C;--line:#E7E9EC;--shadow:0 18px 44px rgba(18,62,102,.12)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:linear-gradient(180deg,var(--cream),#fff 48%,var(--sky));font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR",Segoe UI,sans-serif;color:var(--ink)}
+button,input,select,textarea{font-family:inherit}button{cursor:pointer}
+.app{max-width:445px;min-height:100vh;margin:0 auto;background:radial-gradient(circle at top right,rgba(242,140,56,.14),transparent 32%),linear-gradient(180deg,#F7F1E7,#FFFDF8 42%,#F2F8FF);position:relative;box-shadow:0 0 0 1px rgba(0,0,0,.04)}
+.status{height:28px;padding:8px 18px 0;display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:rgba(24,34,44,.68)}
+.login{min-height:calc(100vh - 28px);padding:22px 20px 34px;display:flex;flex-direction:column;justify-content:center}
+.login-logo{text-align:center;margin-bottom:22px}.login-mark{width:70px;height:70px;border-radius:27px;background:linear-gradient(135deg,var(--navy),var(--blue));color:white;display:grid;place-items:center;margin:0 auto 12px;font-size:23px;font-weight:1000;box-shadow:0 20px 42px rgba(18,62,102,.24)}
+h1,h2,h3{letter-spacing:-.6px}.login h1{margin:0;font-size:25px}.login p{margin:8px 0 0;color:var(--gray);font-weight:760;line-height:1.55;font-size:13.5px}
+.panel,.card{background:rgba(255,255,255,.94);border:1px solid rgba(18,62,102,.08);border-radius:28px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;background:rgba(255,255,255,.76);border:1px solid rgba(18,62,102,.08);border-radius:999px;padding:5px;margin-bottom:14px}
+.tabs button{border:0;border-radius:999px;background:transparent;padding:10px 4px;font-size:12px;font-weight:1000;color:var(--gray)}
+.tabs button.active{background:var(--navy);color:white}
+.field{margin-bottom:12px}.field label{display:block;font-size:12px;font-weight:950;color:var(--gray);margin:0 0 6px}.field input,.field select,.field textarea{width:100%;border:1px solid #E5E9EF;background:#FAFBFD;border-radius:16px;padding:12px;font-size:14px;outline:none}.field textarea{min-height:82px;resize:vertical}
+.btn{border:0;border-radius:15px;padding:10px 12px;font-weight:1000;font-size:13px}.btn.full{width:100%;padding:14px 16px;border-radius:18px;font-size:15px}.btn.primary{background:var(--orange);color:white;box-shadow:0 10px 20px rgba(242,140,56,.24)}.btn.blue{background:var(--navy);color:white}.btn.light{background:#F2F6FA;color:var(--navy)}.btn.green{background:#EAF8EF;color:var(--green)}.btn.red{background:#FFE9E6;color:var(--red)}
+.hint,.notice{background:#F7FAFE;border:1px dashed rgba(18,62,102,.15);border-radius:20px;padding:12px;color:var(--gray);font-size:12.5px;line-height:1.55;font-weight:760;margin-top:12px}
+.shell{display:none}.header{padding:14px 18px 12px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px}.logo{display:flex;align-items:center;gap:10px;min-width:0}.mark{width:44px;height:44px;border-radius:17px;background:linear-gradient(135deg,var(--navy),var(--blue));color:white;display:grid;place-items:center;font-weight:1000;box-shadow:0 12px 28px rgba(18,62,102,.25)}
+.logo strong{display:block;font-size:16px;white-space:nowrap}.logo span{display:block;color:var(--gray);font-size:11px;margin-top:2px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.icon{border:0;background:white;color:var(--navy);border-radius:15px;width:42px;height:42px;box-shadow:0 8px 22px rgba(18,62,102,.08);font-size:18px}
+.hero{margin-top:14px;border-radius:32px;padding:22px 18px;background:linear-gradient(135deg,#fff,#EAF5FF);box-shadow:var(--shadow);border:1px solid rgba(18,62,102,.07);position:relative;overflow:hidden}.hero:after{content:"";position:absolute;right:-50px;top:-52px;width:150px;height:150px;border-radius:50%;background:rgba(242,140,56,.15)}.hero h1{position:relative;z-index:1;margin:0;font-size:26px;line-height:1.13}.hero p{position:relative;z-index:1;margin:12px 0 0;color:var(--gray);font-size:13.5px;line-height:1.58;font-weight:760}.quick{position:relative;z-index:1;margin-top:15px;display:flex;gap:8px;flex-wrap:wrap}.pill{border:0;border-radius:999px;background:var(--navy);color:white;padding:11px 14px;font-size:12.5px;font-weight:1000}.pill.white{background:white;color:var(--navy);border:1px solid rgba(18,62,102,.12)}
+.content{padding:0 18px 106px}.screen{display:none}.screen.active{display:block}.title{display:flex;justify-content:space-between;align-items:end;gap:10px;margin:18px 0 10px}.title h2{margin:0;font-size:18px}.title small{color:var(--gray);font-size:12px;font-weight:850;text-align:right}
+.filters{margin:16px -18px 10px;padding:0 18px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}.filters::-webkit-scrollbar{display:none}.chip{flex:0 0 auto;border:1px solid rgba(18,62,102,.08);background:white;color:var(--gray);border-radius:999px;padding:9px 13px;font-size:12.5px;font-weight:1000;box-shadow:0 7px 16px rgba(18,62,102,.05)}.chip.active{background:var(--navy);color:white}
+.job{display:grid;grid-template-columns:108px 1fr;gap:14px}.photo{min-height:136px;border-radius:22px;overflow:hidden;position:relative;display:grid;place-items:center;color:white;font-weight:1000;text-shadow:0 2px 10px rgba(18,62,102,.22)}.photo:after{content:"";position:absolute;left:17px;bottom:18px;width:68px;height:46px;border-radius:15px;background:rgba(255,255,255,.43);box-shadow:40px -30px 0 rgba(255,255,255,.25),54px 10px 0 rgba(18,62,102,.14)}.photo span{z-index:1}.t1{background:linear-gradient(145deg,#BFD9EA,#F7EEE4)}.t2{background:linear-gradient(145deg,#BCD2C4,#E9F5FF)}.t3{background:linear-gradient(145deg,#E7C7B2,#F8F1EA)}.t4{background:linear-gradient(145deg,#BBCBE3,#FFF1D8)}.t5{background:linear-gradient(145deg,#D4E2F1,#F7E8E0)}
+.meta{color:var(--gray);font-size:12.5px;line-height:1.45;font-weight:780}.price{font-size:20px;color:var(--navy);font-weight:1000}.badges,.actions,.tags{display:flex;gap:6px;flex-wrap:wrap}.tags{margin:7px 0 11px}.tag,.badge,.state{font-size:11px;font-weight:1000;border-radius:999px;padding:5px 8px}.tag{color:var(--gray);background:#F4F6F8}.badge{background:#FFF0E3;color:#B75F17}.badge.red{background:#FFE9E6;color:var(--red)}.state{background:var(--sky);color:var(--navy)}.state.wait{background:#FFF0E3;color:#B75F17}.state.done{background:#EAF8EF;color:var(--green)}.state.reject{background:#FFE9E6;color:var(--red)}.state.gray{background:#F1F2F4;color:var(--gray)}
+.info{background:white;border:1px solid rgba(18,62,102,.07);border-radius:24px;padding:12px 14px;margin-top:12px}.row{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-top:1px solid #F1F2F4;font-size:14px}.row:first-child{border-top:0}.row span:first-child{color:var(--gray);font-weight:850}.row span:last-child{font-weight:1000;text-align:right}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid4{display:grid;grid-template-columns:1fr 1fr;gap:12px}.tile{background:white;border-radius:24px;padding:17px 15px;box-shadow:var(--shadow);border:1px solid rgba(18,62,102,.07);min-height:112px}.tile strong{display:block;font-size:24px;color:var(--navy)}.tile span{display:block;margin-top:8px;color:var(--gray);font-size:13px;font-weight:850;line-height:1.35}
+.person{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid #F0F1F3}.person:first-child{border-top:0}.avatar{width:42px;height:42px;border-radius:15px;background:var(--sky);display:grid;place-items:center;font-weight:1000;color:var(--navy);flex:none}.person .mid{flex:1;min-width:0}.person strong{display:block;font-size:14px}.person span{display:block;font-size:12px;color:var(--gray);font-weight:780;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.uploads{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}.upload{border:1.6px dashed rgba(18,62,102,.22);background:#F7FAFE;border-radius:20px;min-height:94px;display:grid;place-items:center;text-align:center;color:var(--navy);font-weight:1000;font-size:12.5px;padding:10px;position:relative;overflow:hidden}.upload input{position:absolute;inset:0;opacity:0}.upload img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.progress{height:10px;background:#EEF3F7;border-radius:999px;overflow:hidden;margin-top:12px}.progress span{display:block;height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,var(--blue),var(--orange))}
+.check{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #F0F1F3;font-size:14px;font-weight:850;color:#4C5661}.check:first-of-type{border-top:0}.check input{width:20px;height:20px;accent-color:var(--navy)}
+.report{white-space:pre-wrap;background:#F7FAFE;border:1px solid #E5EDF5;border-radius:22px;padding:14px;font-size:12.5px;line-height:1.55;color:#2F3A44;font-weight:720;margin-top:12px}
+.nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:445px;padding:10px 10px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.9);backdrop-filter:blur(18px);border-top:1px solid rgba(18,62,102,.08);display:flex;z-index:40}.nav button{flex:1;border:0;background:transparent;color:#87909A;font-weight:1000;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:4px}.nav i{width:26px;height:26px;border-radius:10px;display:grid;place-items:center;font-style:normal;font-size:16px}.nav button.active{color:var(--navy)}.nav button.active i{background:var(--sky)}
+.modal{position:fixed;inset:0;background:rgba(13,25,35,.46);display:none;align-items:flex-end;justify-content:center;z-index:90}.modal.active{display:flex}.sheet{width:100%;max-width:445px;max-height:90vh;overflow:auto;background:var(--paper);border-radius:32px 32px 0 0;padding:16px 18px calc(24px + env(safe-area-inset-bottom));box-shadow:0 -22px 60px rgba(0,0,0,.22)}.sheet-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px}.sheet strong{font-size:20px}.close{width:38px;height:38px;border:0;border-radius:14px;background:#EEF2F6;color:var(--gray);font-size:22px}.gallery{display:grid;grid-template-columns:1.35fr 1fr;gap:8px;height:184px;margin-bottom:14px}.gallery .photo{height:100%;min-height:auto}.gallery-right{display:grid;gap:8px}
+.toast{position:fixed;bottom:94px;left:50%;transform:translateX(-50%) translateY(18px);width:calc(100% - 38px);max-width:405px;background:var(--navy);color:white;border-radius:18px;padding:14px 16px;opacity:0;pointer-events:none;transition:.25s;z-index:140;font-weight:1000;text-align:center;box-shadow:0 18px 36px rgba(18,62,102,.26)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.empty{padding:28px 18px;text-align:center;color:var(--gray);font-weight:850}
+@media(max-width:365px){.job{grid-template-columns:94px 1fr}.photo{min-height:132px}.hero h1{font-size:24px}.header,.content{padding-left:15px;padding-right:15px}.filters{margin-left:-15px;margin-right:-15px;padding-left:15px;padding-right:15px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="cloudBoot" style="position:fixed;inset:0;z-index:999;background:linear-gradient(180deg,#F7F1E7,#FFFDF8 42%,#F2F8FF);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;max-width:445px;left:50%;transform:translateX(-50%);">
+    <div style="font-size:38px;">☁️</div>
+    <div style="font-weight:1000;color:#123E66;font-size:14px;">최신 정보를 불러오는 중...</div>
+  </div>
+  <div class="status"><span>9:41</span><span>ROOMMADE v3</span></div>
+
+  <section id="login" class="login">
+    <div class="login-logo">
+      <div class="login-mark">RM</div>
+      <h1>ROOMMADE WORKER</h1>
+      <p>객실 사진을 보고 지원하고,<br>승인 후에만 상세 정보가 열리는 청소 매칭앱</p>
+    </div>
+    <div class="panel">
+      <div class="tabs">
+        <button id="tw" class="active" onclick="selectRole('worker')">구직자</button>
+        <button id="ta" onclick="selectRole('admin')">관리자</button>
+        <button id="th" onclick="selectRole('host')">호스트</button>
+      </div>
+      <div id="normal">
+        <div class="field"><label>아이디</label><input id="lid" value="worker"></div>
+        <div class="field"><label>비밀번호</label><input id="lpw" type="password" value="1111"></div>
+      </div>
+      <div id="hostLogin" style="display:none">
+        <div class="field"><label>지역</label><select id="hostArea"><option>송도</option><option>영종도</option></select></div>
+        <div class="field"><label>건물 / 호수</label><select id="hostRoom"></select></div>
+        <div class="field"><label>호스트 객실 비밀번호</label><input id="hostPw" type="password" placeholder="예: 1807"></div>
+      </div>
+      <button class="btn primary full" onclick="doLogin()">로그인</button>
+      <div class="hint">데모 계정<br>구직자: worker / 1111<br>관리자: admin / 0000<br>호스트: 객실 선택 후 해당 호수 비밀번호 입력</div>
+    </div>
+  </section>
+
+  <section id="shell" class="shell">
+    <header class="header">
+      <div class="top">
+        <div class="logo"><div class="mark">RM</div><div><strong id="appTitle">ROOMMADE WORKER</strong><span id="sub">객실 사진 보고 지원하는 청소앱</span> <span id="cloudDot" title="실시간 동기화 상태" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1E8B57;vertical-align:middle;margin-left:4px;"></span></div></div>
+        <button class="icon" onclick="logout()">↩</button>
+      </div>
+      <div class="hero">
+        <h1 id="heroTitle">사진 보고<br>가능한 객실만 지원하세요</h1>
+        <p id="heroText">송도 · 영종도 에어비앤비 객실청소를 타입, 금액, 사진, 난이도별로 확인하고 지원합니다.</p>
+        <div id="quick" class="quick"></div>
+      </div>
+    </header>
+
+    <main class="content">
+      <section id="jobs" class="screen worker active">
+        <div class="filters">
+          <button class="chip active" onclick="filterJobs('전체',this)">전체</button><button class="chip" onclick="filterJobs('송도',this)">송도</button><button class="chip" onclick="filterJobs('영종도',this)">영종도</button><button class="chip" onclick="filterJobs('세탁포함',this)">세탁포함</button><button class="chip" onclick="filterJobs('초보가능',this)">초보가능</button><button class="chip" onclick="filterJobs('고단가',this)">고단가</button>
+        </div>
+        <div class="title"><h2>오늘 올라온 객실</h2><small id="jobCount">0개</small></div>
+        <div id="jobList"></div>
+      </section>
+
+      <section id="apps" class="screen worker"><div class="title"><h2>내 지원 현황</h2><small>승인 전 정보 제한</small></div><div id="appList"></div></section>
+      <section id="assigned" class="screen worker"><div class="title"><h2>배정된 청소</h2><small>승인된 객실만 상세공개</small></div><div id="assignedList"></div></section>
+
+      <section id="report" class="screen worker">
+        <div class="title"><h2>청소 보고</h2><small>카톡 복사 가능</small></div>
+        <div class="card"><strong>보고 진행률</strong><div class="meta">사진 업로드와 체크리스트 완료 후 보고</div><div class="progress"><span id="bar"></span></div></div>
+        <div class="field"><label>보고할 배정 객실</label><select id="reportJob"></select></div>
+        <div class="card">
+          <h3>1단계 · 청소 전 사진</h3>
+          <div class="uploads"><label class="upload">+ 현관<input type="file" accept="image/*" onchange="preview(this)"></label><label class="upload">+ 침대 전<input type="file" accept="image/*" onchange="preview(this)"></label><label class="upload">+ 욕실 전<input type="file" accept="image/*" onchange="preview(this)"></label><label class="upload">+ 주방 전<input type="file" accept="image/*" onchange="preview(this)"></label></div>
+        </div>
+        <div class="card">
+          <h3>2단계 · 체크리스트</h3>
+          <label class="check"><input type="checkbox" onchange="updateBar()"> 침구 교체 완료</label>
+          <label class="check"><input type="checkbox" onchange="updateBar()"> 화장실 물기 제거 완료</label>
+          <label class="check"><input type="checkbox" onchange="updateBar()"> 수건 세팅 완료</label>
+          <label class="check"><input type="checkbox" onchange="updateBar()"> 쓰레기 처리 완료</label>
+          <label class="check"><input type="checkbox" onchange="updateBar()"> 냉장고 확인 완료</label>
+          <label class="check"><input type="checkbox" onchange="updateBar()"> 창틀 / 먼지 확인 완료</label>
+        </div>
+        <div class="card">
+          <h3>3단계 · 청소 후 사진</h3>
+          <div class="uploads"><label class="upload">+ 침대 후<input type="file" accept="image/*" onchange="preview(this)"></label><label class="upload">+ 욕실 후<input type="file" accept="image/*" onchange="preview(this)"></label><label class="upload">+ 주방 후<input type="file" accept="image/*" onchange="preview(this)"></label><label class="upload">+ 전체 사진<input type="file" accept="image/*" onchange="preview(this)"></label></div>
+          <button class="btn primary full" style="margin-top:14px" onclick="submitReport()">관리자에게 완료 보고</button>
+        </div>
+      </section>
+
+      <section id="profile" class="screen worker">
+        <div class="title"><h2>구직자 프로필</h2><small>지원 시 전달</small></div>
+        <div class="panel">
+          <div class="field"><label>이름</label><input id="pname" value="최OO"></div><div class="field"><label>연락처</label><input id="pphone" value="010-0000-0000"></div>
+          <div class="grid2"><div class="field"><label>가능 지역</label><select id="parea"><option>송도·영종도</option><option>송도</option><option>영종도</option></select></div><div class="field"><label>경험</label><select id="pexp"><option>경험 있음</option><option>초보</option></select></div></div>
+          <div class="field"><label>자기소개</label><textarea id="pintro">원룸 객실청소 가능하며, 침구교체와 화장실 물기 제거 꼼꼼히 할 수 있습니다.</textarea></div>
+          <button class="btn blue full" onclick="saveProfile()">프로필 저장</button>
+        </div>
+      </section>
+
+      <section id="adminHome" class="screen admin">
+        <div class="title"><h2>관리 현황</h2><small>오늘 기준</small></div>
+        <div class="grid4"><div class="tile"><strong id="sJobs">0</strong><span>청소 공고</span></div><div class="tile"><strong id="sApps">0</strong><span>신규 지원자</span></div><div class="tile"><strong id="sOk">0</strong><span>승인 완료</span></div><div class="tile"><strong id="sRep">0</strong><span>완료 보고</span></div></div>
+        <div class="title"><h2>지원자 승인</h2><small>승인 후 상세정보 공개</small></div><div id="adminApps"></div>
+      </section>
+
+      <section id="postJob" class="screen admin">
+        <div class="title"><h2>일감 공고 등록</h2><small>객실 선택 기반</small></div>
+        <div class="panel">
+          <div class="field"><label>등록된 객실 선택</label><select id="newRoom"></select></div>
+          <div class="grid2"><div class="field"><label>지급 금액</label><input id="newPrice" value="28,000원"></div><div class="field"><label>예상 시간</label><input id="newMin" value="80분"></div></div>
+          <div class="grid2"><div class="field"><label>세탁</label><select id="newLaundry"><option>세탁포함</option><option>세탁없음</option><option>세탁별도</option></select></div><div class="field"><label>난이도</label><select id="newLevel"><option>초보가능</option><option>보통</option><option>경험자추천</option></select></div></div>
+          <div class="field"><label>청소 조건</label><textarea id="newWork">청소 + 세탁 + 침구교체 / 수건 4장 / 화장실 물기 제거 필수</textarea></div>
+          <button class="btn primary full" onclick="addJob()">공고 등록하기</button>
+        </div>
+      </section>
+
+      <section id="rooms" class="screen admin">
+        <div class="title"><h2>객실 관리</h2><small>호수별 비밀번호</small></div>
+        <div class="panel">
+          <div class="grid2"><div class="field"><label>지역</label><select id="rArea"><option>송도</option><option>영종도</option></select></div><div class="field"><label>객실 타입</label><select id="rType"><option>원룸형</option><option>복층형</option><option>투룸형</option><option>장박 퇴실</option></select></div></div>
+          <div class="field"><label>건물명</label><input id="rBld" value="한라웨스턴파크"></div>
+          <div class="grid2"><div class="field"><label>호수</label><input id="rNo" value="1807호"></div><div class="field"><label>호스트 비밀번호</label><input id="rHostPw" value="1807"></div></div>
+          <div class="grid2"><div class="field"><label>도어락</label><input id="rDoor" value="1234*"></div><div class="field"><label>주차</label><input id="rPark" value="가능"></div></div>
+          <div class="field"><label>체크포인트</label><textarea id="rCheck">침구 각 잡기, 화장실 물기 제거, 창틀 먼지 확인, 냉장고 음식물 확인</textarea></div>
+          <button class="btn blue full" onclick="addRoom()">객실 추가 / 저장</button>
+        </div>
+        <div id="roomCards"></div>
+      </section>
+
+      <section id="adminReports" class="screen admin"><div class="title"><h2>완료 보고 확인</h2><small>카톡 보고 복사</small></div><div id="reportList"></div></section>
+      <section id="settings" class="screen admin"><div class="title"><h2>데이터 관리</h2><small>데모용</small></div><div class="notice">이 시안은 브라우저 안에 임시 저장됩니다. 실제 앱에서는 서버/DB, 사용자 로그인, 사진 저장소, 알림 기능을 연결해야 합니다.</div><button class="btn red full" onclick="resetData()">샘플 데이터 초기화</button></section>
+
+      <section id="hostHome" class="screen host"><div class="title"><h2>내 객실</h2><small>호스트 전용</small></div><div id="hostCard"></div></section>
+      <section id="hostReports" class="screen host"><div class="title"><h2>완료 보고서</h2><small>내 객실만 표시</small></div><div id="hostReportsList"></div></section>
+    </main>
+
+    <nav id="navW" class="nav"><button class="active" onclick="go('jobs',this)"><i>🔎</i>일감</button><button onclick="go('apps',this)"><i>📝</i>지원</button><button onclick="go('assigned',this)"><i>🧹</i>배정</button><button onclick="go('report',this)"><i>📸</i>보고</button><button onclick="go('profile',this)"><i>👤</i>프로필</button></nav>
+    <nav id="navA" class="nav" style="display:none"><button class="active" onclick="go('adminHome',this)"><i>📊</i>현황</button><button onclick="go('postJob',this)"><i>➕</i>공고</button><button onclick="go('rooms',this)"><i>🏢</i>객실</button><button onclick="go('adminReports',this)"><i>✅</i>보고</button><button onclick="go('settings',this)"><i>⚙️</i>설정</button></nav>
+    <nav id="navH" class="nav" style="display:none"><button class="active" onclick="go('hostHome',this)"><i>🏠</i>내객실</button><button onclick="go('hostReports',this)"><i>📄</i>보고서</button></nav>
+  </section>
+
+  <div id="detail" class="modal" onclick="if(event.target.id==='detail')hideDetail()"><div class="sheet"><div class="sheet-head"><div><strong id="dTitle"></strong><div id="dSub" class="meta"></div></div><button class="close" onclick="hideDetail()">×</button></div><div class="gallery"><div class="photo t1"><span>침실</span></div><div class="gallery-right"><div class="photo t2"><span>욕실</span></div><div class="photo t3"><span>주방</span></div></div></div><div id="dInfo" class="info"></div><div class="title" style="margin-top:18px"><h2>지원 전 확인</h2><small>사진·조건 확인</small></div><div id="dTags" class="tags"></div><div class="notice">지원 후 관리자가 승인하면 정확한 주소, 호수, 도어락 비밀번호, 상세 체크리스트가 공개됩니다.</div><button id="dApply" class="btn primary full">이 객실 지원하기</button></div></div>
+  <div id="apply" class="modal" onclick="if(event.target.id==='apply')hideApply()"><div class="sheet"><div class="sheet-head"><div><strong>지원서 작성</strong><div id="aSub" class="meta"></div></div><button class="close" onclick="hideApply()">×</button></div><div class="panel" style="box-shadow:none;margin-bottom:0"><div class="grid2"><div class="field"><label>가능 날짜</label><input id="aDate" type="date"></div><div class="field"><label>가능 시간</label><select id="aTime"><option>오전 11시 이후</option><option>오후 1시 이후</option><option>오후 3시 이전 가능</option><option>시간 협의 가능</option></select></div></div><div class="field"><label>지원 한마디</label><textarea id="aMemo">해당 지역 가능하고, 사진 보고 꼼꼼히 청소하겠습니다.</textarea></div><button class="btn primary full" onclick="completeApply()">지원 완료하기</button></div></div></div>
+  <div id="toast" class="toast"></div>
+</div>
+
+<script>
+const KEY='roommade-v3-state',today=new Date().toISOString().slice(0,10);
+let role='worker',loginRole='worker',selectedJob=null,hostRoomId=null;
+const sample={rooms:[
+{id:1,area:'송도',building:'한라웨스턴파크',roomNo:'1807호',type:'원룸형',hostPw:'1807',doorPw:'1234*',parking:'가능',checklist:'침구 각 잡기, 화장실 물기 제거, 창틀 먼지 확인, 냉장고 음식물 확인',tone:'t2'},
+{id:2,area:'영종도',building:'오션쏠레뷰',roomNo:'1203호',type:'원룸형',hostPw:'1203',doorPw:'2580*',parking:'가능',checklist:'세탁 포함, 수건 4장 세팅, 침구 교체, 욕실 물기 제거',tone:'t1'},
+{id:3,area:'영종도',building:'파크나인',roomNo:'905호',type:'원룸형',hostPw:'0905',doorPw:'0905*',parking:'가능',checklist:'비품장 확인, 세탁물 분리, 침구 각 잡기',tone:'t4'},
+{id:4,area:'영종도',building:'센트럴시티',roomNo:'장박객실',type:'장박 퇴실',hostPw:'7777',doorPw:'7777*',parking:'가능',checklist:'쓰레기 정리, 냉장고 비우기, 욕실 집중청소, 바닥 오염 제거',tone:'t3'}],
+jobs:[
+{id:11,roomId:2,work:'청소 + 세탁 + 침구교체',price:'28,000원',minutes:'80분',laundry:'세탁포함',level:'초보가능',tags:['세탁포함','초보가능','침구1세트','수건4장']},
+{id:12,roomId:1,work:'청소만 / 세탁 없음',price:'20,000원',minutes:'60분',laundry:'세탁없음',level:'초보가능',tags:['초보가능','세탁없음','기본셋팅']},
+{id:13,roomId:4,work:'꼼꼼청소 + 쓰레기 정리',price:'55,000원',minutes:'120분',laundry:'세탁별도',level:'경험자추천',tags:['고단가','장박청소','꼼꼼필요']},
+{id:14,roomId:3,work:'청소 + 세탁',price:'26,600원',minutes:'75분',laundry:'세탁포함',level:'보통',tags:['세탁포함','수건4장','침구교체']}],
+apps:[{id:101,jobId:12,name:'최OO',phone:'010-0000-0000',memo:'송도 가능합니다.',time:'오전 11시 이후',status:'승인',created:today},{id:102,jobId:11,name:'최OO',phone:'010-0000-0000',memo:'영종도 가능합니다.',time:'오후 1시 이후',status:'검토중',created:today}],
+reports:[],profile:{name:'최OO',phone:'010-0000-0000',area:'송도·영종도',exp:'경험 있음',intro:'원룸 객실청소 가능하며, 침구교체와 화장실 물기 제거 꼼꼼히 할 수 있습니다.'}};
+let state=load();
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||structuredClone(sample)}catch(e){return JSON.parse(JSON.stringify(sample))}}
+function save(){localStorage.setItem(KEY,JSON.stringify(state));scheduleCloudPush()}
+
+// ─────────────────────────────────────────────
+// ☁️ 실시간 클라우드 동기화
+// 공고/지원/보고서/객실 정보는 모두 공유되고,
+// '프로필(이름·연락처)'만 이 기기에만 저장돼요.
+// (여러 구직자가 같은 계정을 써도 서로 이름이 안 덮어써지게)
+// ─────────────────────────────────────────────
+const CLOUD={
+  DB_URL:'https://roompacker-48249-default-rtdb.asia-southeast1.firebasedatabase.app',
+  PATH:'/worker-app/state.json'
+};
+let _cloudPushTimer=null, _lastCloudAt=null, _pollTimer=null;
+
+function scheduleCloudPush(){
+  if(_cloudPushTimer) clearTimeout(_cloudPushTimer);
+  _cloudPushTimer=setTimeout(cloudPush, 2500); // 2.5초 모아서 한 번만 전송
+}
+function buildCloudPayload(){
+  return {rooms:state.rooms, jobs:state.jobs, apps:state.apps, reports:state.reports, updatedAt:new Date().toISOString()};
+}
+async function cloudPush(){
+  try{
+    const payload=buildCloudPayload();
+    const res=await fetch(CLOUD.DB_URL+CLOUD.PATH,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    _lastCloudAt=payload.updatedAt;
+    setCloudStatus(true);
+  }catch(e){ console.error('클라우드 업로드 실패',e); setCloudStatus(false); }
+}
+async function cloudPull(silent){
+  try{
+    const res=await fetch(CLOUD.DB_URL+CLOUD.PATH+'?_='+Date.now(),{cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const d=await res.json();
+    if(d && d.updatedAt && d.updatedAt!==_lastCloudAt){
+      _lastCloudAt=d.updatedAt;
+      state.rooms=d.rooms||state.rooms||[];
+      state.jobs=d.jobs||state.jobs||[];
+      state.apps=d.apps||state.apps||[];
+      state.reports=d.reports||state.reports||[];
+      localStorage.setItem(KEY,JSON.stringify(state));
+      fillHostRooms();
+      render();
+    }
+    setCloudStatus(true);
+  }catch(e){
+    console.error('클라우드 불러오기 실패',e);
+    if(!silent) setCloudStatus(false);
+    else setCloudStatus(false);
+  }
+}
+function setCloudStatus(ok){
+  const dot=document.getElementById('cloudDot');
+  if(dot) dot.style.background = ok? '#1E8B57' : '#E15349';
+}
+function startPolling(){
+  if(_pollTimer) clearInterval(_pollTimer);
+  _pollTimer=setInterval(function(){ cloudPull(true); }, 6000); // 6초마다 새 정보 확인
+}
+document.addEventListener('visibilitychange', function(){
+  if(!document.hidden) cloudPull(true);
+});
+function resetData(){state=JSON.parse(JSON.stringify(sample));save();fillHostRooms();render();toast('샘플 데이터로 초기화했습니다.')}
+function room(id){return state.rooms.find(x=>x.id==id)||{}}function job(id){return state.jobs.find(x=>x.id==id)||{}}function jr(j){return room(j.roomId)}function money(p){return Number(String(p).replace(/[^0-9]/g,''))||0}
+function selectRole(r){loginRole=r;['w','a','h'].forEach(x=>document.getElementById('t'+x).classList.remove('active'));document.getElementById(r=='worker'?'tw':r=='admin'?'ta':'th').classList.add('active');document.getElementById('normal').style.display=r=='host'?'none':'block';document.getElementById('hostLogin').style.display=r=='host'?'block':'none';if(r=='worker'){lid.value='worker';lpw.value='1111'}if(r=='admin'){lid.value='admin';lpw.value='0000'}}
+function fillHostRooms(){let a=hostArea.value, list=state.rooms.filter(r=>r.area==a);hostRoom.innerHTML=list.map(r=>`<option value="${r.id}">${r.building} ${r.roomNo}</option>`).join('')}
+hostArea.onchange=fillHostRooms;
+function doLogin(){if(loginRole=='worker'){if(lid.value=='worker'&&lpw.value=='1111')openApp('worker');else toast('구직자 계정은 worker / 1111 입니다.')}if(loginRole=='admin'){if(lid.value=='admin'&&lpw.value=='0000')openApp('admin');else toast('관리자 계정은 admin / 0000 입니다.')}if(loginRole=='host'){let r=room(hostRoom.value);if(r.hostPw==hostPw.value){hostRoomId=r.id;openApp('host')}else toast('객실 비밀번호가 맞지 않습니다.')}}
+function openApp(r){role=r;login.style.display='none';shell.style.display='block';setup(r);render()}
+function logout(){login.style.display='flex';shell.style.display='none'}
+function setup(r){document.querySelectorAll('.worker,.admin,.host').forEach(x=>x.style.display='none');document.querySelectorAll('.nav').forEach(x=>x.style.display='none');document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+ if(r=='worker'){appTitle.textContent='ROOMMADE WORKER';sub.textContent='객실 사진 보고 지원하는 청소앱';heroTitle.innerHTML='사진 보고<br>가능한 객실만 지원하세요';heroText.textContent='송도 · 영종도 에어비앤비 객실청소를 타입, 금액, 사진, 난이도별로 확인하고 지원합니다.';quick.innerHTML="<button class='pill' onclick=\"go('jobs')\">일감 보기</button><button class='pill white' onclick=\"go('profile')\">내 프로필</button>";document.querySelectorAll('.worker').forEach(x=>x.style.display='block');navW.style.display='flex';go('jobs')}
+ if(r=='admin'){appTitle.textContent='ROOMMADE MANAGER';sub.textContent='공고·지원자·보고 관리';heroTitle.innerHTML='객실 공고부터<br>지원자 승인까지';heroText.textContent='공고 등록, 지원자 검토, 배정, 청소 전후 보고 확인, 정산 확정 흐름을 관리합니다.';quick.innerHTML="<button class='pill' onclick=\"go('adminHome')\">관리 현황</button><button class='pill white' onclick=\"go('postJob')\">공고 등록</button>";document.querySelectorAll('.admin').forEach(x=>x.style.display='block');navA.style.display='flex';go('adminHome')}
+ if(r=='host'){let r0=room(hostRoomId);appTitle.textContent='ROOMMADE HOST';sub.textContent=`${r0.building} ${r0.roomNo}`;heroTitle.innerHTML='내 객실 청소상태를<br>사진으로 확인하세요';heroText.textContent='호스트는 본인 객실의 청소 예정, 완료 보고서만 간단하게 확인합니다.';quick.innerHTML="<button class='pill' onclick=\"go('hostHome')\">내 객실 보기</button><button class='pill white' onclick=\"go('hostReports')\">보고서 확인</button>";document.querySelectorAll('.host').forEach(x=>x.style.display='block');navH.style.display='flex';go('hostHome')}}
+function go(id,b){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');let nav=role=='worker'?navW:role=='admin'?navA:navH;nav.querySelectorAll('button').forEach(x=>x.classList.remove('active'));if(b)b.classList.add('active');scrollTo({top:0,behavior:'smooth'})}
+function render(){renderJobs();renderApps();renderAssigned();renderReportSelect();renderAdmin();renderRooms();renderReports();renderHost();updateBar();pname.value=state.profile.name;pphone.value=state.profile.phone;parea.value=state.profile.area;pexp.value=state.profile.exp;pintro.value=state.profile.intro}
+function renderJobs(list=state.jobs){jobCount.textContent=list.length+'개';jobList.innerHTML=list.map(j=>{let r=jr(j);return `<div class="card job"><div class="photo ${r.tone}"><span>객실</span></div><div><h3 style="margin:2px 0 5px">${r.area} · ${r.building}</h3><div class="meta">${r.type} · ${j.work}</div><div style="margin:9px 0 8px"><span class="price">${j.price}</span> <span class="badge ${money(j.price)>=45000?'red':''}">예상 ${j.minutes}</span></div><div class="tags">${j.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div><div class="actions"><button class="btn light" onclick="showDetail(${j.id})">자세히</button><button class="btn primary" onclick="openApply(${j.id})">지원하기</button></div></div></div>`}).join('')||'<div class="empty">조건에 맞는 객실이 없습니다.</div>'}
+function filterJobs(t,btn){document.querySelectorAll('#jobs .chip').forEach(c=>c.classList.remove('active'));btn.classList.add('active');let list=state.jobs;if(t=='송도'||t=='영종도')list=state.jobs.filter(j=>jr(j).area==t);else if(t=='세탁포함'||t=='초보가능')list=state.jobs.filter(j=>j.tags.includes(t)||j.laundry==t||j.level==t);else if(t=='고단가')list=state.jobs.filter(j=>money(j.price)>=45000);renderJobs(list)}
+function cls(s){return s=='승인'||s=='완료'?'done':s=='거절'?'reject':s=='보류'?'gray':'wait'}
+function renderApps(){appList.innerHTML=state.apps.map(a=>{let j=job(a.jobId),r=jr(j);return `<div class="card"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><div><h3 style="margin:0 0 6px">${r.area} · ${r.building}</h3><div class="meta">${j.price||''} · ${a.time} · ${a.memo}</div></div><span class="state ${cls(a.status)}">${a.status}</span></div></div>`}).join('')||'<div class="empty">아직 지원한 객실이 없습니다.</div>'}
+function renderAssigned(){let ok=state.apps.filter(a=>a.status=='승인');assignedList.innerHTML=ok.map(a=>{let j=job(a.jobId),r=jr(j);return `<div class="card"><h3 style="margin:0 0 8px">${r.area} · ${r.building} ${r.roomNo}</h3><div class="meta">${r.type} · ${j.work} · 지급 ${j.price}</div><div class="info"><div class="row"><span>상세 주소</span><span>${r.area} ${r.building} ${r.roomNo}</span></div><div class="row"><span>도어락</span><span>${r.doorPw}</span></div><div class="row"><span>주차</span><span>${r.parking}</span></div><div class="row"><span>체크포인트</span><span>${r.checklist}</span></div></div><button class="btn blue full" style="margin-top:12px" onclick="go('report')">청소 보고 시작</button></div>`}).join('')||'<div class="notice">관리자가 승인한 객실이 이곳에 표시됩니다. 승인 전에는 주소와 비밀번호가 공개되지 않습니다.</div>'}
+function renderReportSelect(){let ok=state.apps.filter(a=>a.status=='승인');reportJob.innerHTML=ok.map(a=>{let j=job(a.jobId),r=jr(j);return `<option value="${a.jobId}">${r.area} · ${r.building} ${r.roomNo}</option>`}).join('')}
+function renderAdmin(){sJobs.textContent=state.jobs.length;sApps.textContent=state.apps.filter(a=>a.status=='검토중').length;sOk.textContent=state.apps.filter(a=>a.status=='승인').length;sRep.textContent=state.reports.length;adminApps.innerHTML=state.apps.map(a=>{let j=job(a.jobId),r=jr(j);return `<div class="card"><h3 style="margin:0 0 8px">${r.area} · ${r.building} ${r.roomNo}</h3><div class="person"><div class="avatar">${a.name.slice(0,1)}</div><div class="mid"><strong>${a.name}</strong><span>${a.time} · ${a.memo}</span></div><span class="state ${cls(a.status)}">${a.status}</span></div><div class="actions" style="margin-top:10px"><button class="btn blue" onclick="setApp(${a.id},'승인')">승인</button><button class="btn light" onclick="setApp(${a.id},'보류')">보류</button><button class="btn red" onclick="setApp(${a.id},'거절')">거절</button></div></div>`}).join('')||'<div class="empty">아직 지원자가 없습니다.</div>';newRoom.innerHTML=state.rooms.map(r=>`<option value="${r.id}">${r.area} · ${r.building} ${r.roomNo} / ${r.type}</option>`).join('')}
+function setApp(id,status){let a=state.apps.find(x=>x.id==id);if(a)a.status=status;save();render();toast(`지원 상태를 '${status}'로 변경했습니다.`)}
+function renderRooms(){roomCards.innerHTML=state.rooms.map(r=>`<div class="card"><h3 style="margin:0 0 8px">${r.area} · ${r.building} ${r.roomNo}</h3><div class="info"><div class="row"><span>객실 타입</span><span>${r.type}</span></div><div class="row"><span>호스트 비번</span><span>${r.hostPw}</span></div><div class="row"><span>도어락</span><span>${r.doorPw}</span></div><div class="row"><span>체크포인트</span><span>${r.checklist}</span></div></div></div>`).join('')}
+function addRoom(){state.rooms.unshift({id:Date.now(),area:rArea.value,building:rBld.value.trim()||'새 건물',roomNo:rNo.value.trim()||'000호',type:rType.value,hostPw:rHostPw.value.trim()||'0000',doorPw:rDoor.value.trim()||'0000*',parking:rPark.value.trim()||'확인필요',checklist:rCheck.value.trim(),tone:['t1','t2','t3','t4','t5'][state.rooms.length%5]});save();fillHostRooms();render();toast('객실이 추가되었습니다.')}
+function addJob(){let price=newPrice.value.trim()||'0원',tags=[newLaundry.value,newLevel.value,money(price)>=45000?'고단가':''].filter(Boolean);state.jobs.unshift({id:Date.now(),roomId:Number(newRoom.value),work:newWork.value.trim(),price,minutes:newMin.value.trim()||'60분',laundry:newLaundry.value,level:newLevel.value,tags});save();render();toast('새 청소 공고가 등록되었습니다.');go('adminHome')}
+function saveProfile(){state.profile={name:pname.value,phone:pphone.value,area:parea.value,exp:pexp.value,intro:pintro.value};save();toast('구직자 프로필이 저장되었습니다.')}
+function showDetail(id){selectedJob=id;let j=job(id),r=jr(j);dTitle.textContent=`${r.area} · ${r.building}`;dSub.textContent=`${r.type} · ${j.work}`;dInfo.innerHTML=`<div class="row"><span>지급 금액</span><span>${j.price}</span></div><div class="row"><span>예상 시간</span><span>${j.minutes}</span></div><div class="row"><span>세탁</span><span>${j.laundry}</span></div><div class="row"><span>난이도</span><span>${j.level}</span></div><div class="row"><span>정확한 호수</span><span>승인 후 공개</span></div>`;dTags.innerHTML=['침구 교체','화장실 청소','주방 정리','수건 세팅','쓰레기 처리','청소 후 사진 보고'].map(t=>`<span class="tag">${t}</span>`).join('');dApply.onclick=()=>openApply(id);detail.classList.add('active')}
+function hideDetail(){detail.classList.remove('active')}function openApply(id){selectedJob=id;let j=job(id),r=jr(j);hideDetail();aSub.textContent=`${r.area} · ${r.building} · ${j.price}`;aDate.value=today;apply.classList.add('active')}function hideApply(){apply.classList.remove('active')}
+function completeApply(){let exists=state.apps.find(a=>a.jobId==selectedJob&&a.name==state.profile.name);if(exists){toast('이미 지원한 객실입니다.');hideApply();return}let j=job(selectedJob),r=jr(j);state.apps.unshift({id:Date.now(),jobId:selectedJob,name:state.profile.name,phone:state.profile.phone,memo:aMemo.value,time:aTime.value,status:'검토중',created:aDate.value||today});save();render();hideApply();go('apps');toast(`${r.building} 객실 지원이 완료되었습니다.`)}
+function preview(input){let box=input.closest('.upload'),file=input.files&&input.files[0];if(!file)return;let rd=new FileReader();rd.onload=e=>{box.querySelectorAll('img').forEach(i=>i.remove());let img=document.createElement('img');img.src=e.target.result;box.appendChild(img);box.dataset.uploaded='1';updateBar()};rd.readAsDataURL(file)}
+function updateBar(){let checks=document.querySelectorAll('#report input[type="checkbox"]'),ck=[...checks].filter(c=>c.checked).length,up=document.querySelectorAll('#report .upload[data-uploaded="1"]').length,total=checks.length+8,pct=Math.min(100,Math.round((ck+up)/total*100));if(bar)bar.style.width=pct+'%'}
+function submitReport(){let jid=Number(reportJob.value),j=job(jid);if(!j.id){toast('승인된 배정 객실이 없습니다.');return}let r=jr(j),ck=document.querySelectorAll('#report input[type="checkbox"]:checked').length,ph=document.querySelectorAll('#report .upload[data-uploaded="1"]').length;state.reports.unshift({id:Date.now(),jobId:jid,roomId:r.id,title:`${r.area} · ${r.building} ${r.roomNo}`,checks:ck,photos:ph,worker:state.profile.name,time:new Date().toLocaleString('ko-KR')});save();render();toast('완료 보고가 관리자에게 전송되었습니다.')}
+function reportText(rep){let j=job(rep.jobId),r=jr(j);return `[룸메이드 청소 완료 보고]\n\n객실: ${r.area} ${r.building} ${r.roomNo}\n작업일시: ${rep.time}\n작업자: ${rep.worker}\n\n체크리스트 완료: ${rep.checks}개\n사진 첨부: ${rep.photos}장\n\n주요 확인\n- 침구 교체 완료\n- 화장실 물기 제거 확인\n- 주방/냉장고 확인\n- 쓰레기 처리 확인\n\n관리자 확인 후 호스트 보고 가능합니다.`}
+function renderReports(){reportList.innerHTML=state.reports.map(r=>{let text=reportText(r);return `<div class="card"><h3 style="margin:0 0 8px">${r.title}</h3><div class="meta">${r.time} · 체크리스트 ${r.checks}개 완료 · 사진 ${r.photos}장</div><div class="report">${text}</div><div class="actions" style="margin-top:12px"><button class="btn blue" onclick="copyReport(${r.id})">카톡 보고 복사</button><button class="btn green" onclick="toast('관리자 확인 완료 처리했습니다.')">확인 완료</button></div></div>`}).join('')||'<div class="notice">아직 접수된 완료 보고가 없습니다. 구직자가 청소 보고를 전송하면 이곳에 표시됩니다.</div>'}
+function copyReport(id){let r=state.reports.find(x=>x.id==id),text=reportText(r);navigator.clipboard?navigator.clipboard.writeText(text).then(()=>toast('카톡에 붙여넣을 보고서가 복사되었습니다.')):(toast('보고서 내용을 길게 눌러 복사해주세요.'))}
+function renderHost(){let r=room(hostRoomId);if(!r.id){hostCard.innerHTML='<div class="notice">호스트 객실을 찾을 수 없습니다.</div>';return}let jobs=state.jobs.filter(j=>j.roomId==r.id),ok=state.apps.filter(a=>{let j=job(a.jobId);return j.roomId==r.id&&a.status=='승인'}),reps=state.reports.filter(x=>x.roomId==r.id);hostCard.innerHTML=`<div class="card"><div class="photo ${r.tone}" style="min-height:154px;margin-bottom:12px"><span>${r.roomNo}</span></div><h3 style="margin:0 0 6px">${r.area} · ${r.building} ${r.roomNo}</h3><div class="meta">${r.type} · 호스트 전용 확인 화면</div><div class="grid4" style="margin-top:12px"><div class="tile"><strong>${jobs.length}</strong><span>청소공고</span></div><div class="tile"><strong>${ok.length}</strong><span>배정완료</span></div><div class="tile"><strong>${reps.length}</strong><span>보고서</span></div><div class="tile"><strong>${ok.length?'완료':'대기'}</strong><span>상태</span></div></div><div class="info"><div class="row"><span>체크포인트</span><span>${r.checklist}</span></div></div></div><div class="notice">호스트 화면에는 본인 객실의 청소 예정과 완료 보고만 노출됩니다. 내부 정산, 지원자 연락처, 도어락 관리 메모는 관리자만 볼 수 있습니다.</div>`;hostReportsList.innerHTML=reps.map(rep=>`<div class="card"><h3 style="margin:0 0 8px">${rep.title}</h3><div class="meta">${rep.time} · 청소 완료 보고서</div><div class="info"><div class="row"><span>침구</span><span>완료</span></div><div class="row"><span>화장실</span><span>완료</span></div><div class="row"><span>주방</span><span>완료</span></div><div class="row"><span>사진</span><span>${rep.photos}장 첨부</span></div></div></div>`).join('')||`<div class="card"><h3 style="margin:0 0 8px">${r.building} ${r.roomNo}</h3><div class="meta">아직 완료 보고서가 도착하지 않았습니다.</div></div>`}
+function toast(msg){let t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2300)}
+// 앱 시작: 클라우드에서 최신 공고/지원/보고서/객실을 먼저 받아온 뒤 화면을 그림
+(async function boot(){
+  await cloudPull(false).catch(function(){});
+  fillHostRooms();
+  render();
+  startPolling();
+  const b=document.getElementById('cloudBoot');
+  if(b) b.remove();
+})();
+</script>
+</body>
+</html>
