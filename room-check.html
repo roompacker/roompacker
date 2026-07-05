@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>객실 체크 가이드</title>
+<style>
+  :root{
+    --teal:#0e7490;
+    --teal-light:#0891b2;
+    --cream:#faf7f1;
+    --navy:#1e3a5f;
+    --danger:#dc2626;
+    --border:#e5ddd0;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+    background:var(--cream);
+    color:var(--navy);
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    -webkit-tap-highlight-color:transparent;
+  }
+  header{
+    position:sticky; top:0; z-index:50;
+    background:var(--teal);
+    color:#fff;
+    padding:14px 12px;
+    display:flex; align-items:center; gap:10px;
+  }
+  header .back-btn{
+    background:none; border:none; color:#fff;
+    font-size:22px; padding:2px 6px; cursor:pointer;
+    display:none;
+  }
+  header.has-back .back-btn{display:inline-block;}
+  header h1{
+    font-size:17px; margin:0; flex:1;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  header input.room-name-input{
+    flex:1; font-size:17px; font-weight:bold; border:none; border-radius:6px;
+    padding:4px 8px; background:rgba(255,255,255,0.15); color:#fff;
+  }
+  header input.room-name-input:read-only{background:none; padding:4px 0;}
+  #editToggleBtn{
+    background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.4);
+    color:#fff; border-radius:8px; padding:6px 10px; font-size:13px; cursor:pointer;
+    white-space:nowrap;
+  }
+  body.edit-mode #editToggleBtn{ background:#f59e0b; border-color:#f59e0b; color:#1e3a5f; font-weight:bold;}
+  main{padding:12px 12px 90px;}
+
+  /* ---- 목록 화면 ---- */
+  .room-card{
+    background:#fff; border:1px solid var(--border); border-radius:14px;
+    padding:14px; margin-bottom:12px; display:flex; align-items:center; gap:10px;
+    cursor:pointer;
+  }
+  .room-card .info{flex:1; min-width:0;}
+  .room-card .name{font-size:16px; font-weight:bold; margin-bottom:4px;}
+  .room-card .progress-wrap{
+    height:7px; background:#eee; border-radius:5px; overflow:hidden; margin-top:6px;
+  }
+  .room-card .progress-bar{height:100%; background:var(--teal-light);}
+  .room-card .progress-text{font-size:12px; color:#888; margin-top:3px;}
+  .room-card .del-room-btn{
+    display:none; background:var(--danger); color:#fff; border:none; border-radius:8px;
+    width:32px; height:32px; font-size:16px; cursor:pointer; flex-shrink:0;
+  }
+  body.edit-mode .room-card .del-room-btn{display:block;}
+  .empty-msg{text-align:center; color:#999; padding:40px 10px; font-size:14px; line-height:1.6;}
+
+  .fab{
+    position:fixed; right:18px; bottom:22px; width:56px; height:56px; border-radius:50%;
+    background:var(--teal); color:#fff; border:none; font-size:28px; box-shadow:0 4px 10px rgba(0,0,0,0.25);
+    cursor:pointer; z-index:60; display:none; align-items:center; justify-content:center;
+    max-width:480px;
+  }
+  body.edit-mode .fab.list-fab{display:flex;}
+
+  /* ---- 상세 화면 ---- */
+  .tab-bar{
+    display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; margin-bottom:14px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .tab-bar::-webkit-scrollbar{display:none;}
+  .tab-btn{
+    flex:0 0 auto; background:#fff; border:1px solid var(--border); border-radius:20px;
+    padding:8px 14px; font-size:14px; color:var(--navy); cursor:pointer; position:relative;
+    white-space:nowrap;
+  }
+  .tab-btn.active{background:var(--teal); color:#fff; border-color:var(--teal); font-weight:bold;}
+  .tab-btn .tab-del{
+    display:none; position:absolute; top:-6px; right:-6px; background:var(--danger); color:#fff;
+    border-radius:50%; width:18px; height:18px; font-size:11px; line-height:18px; text-align:center;
+  }
+  body.edit-mode .tab-btn .tab-del{display:inline-block;}
+  .tab-add-btn{
+    flex:0 0 auto; background:none; border:2px dashed var(--teal-light); color:var(--teal);
+    border-radius:20px; padding:8px 14px; font-size:14px; cursor:pointer; display:none;
+  }
+  body.edit-mode .tab-add-btn{display:inline-block;}
+
+  section.block{
+    background:#fff; border:1px solid var(--border); border-radius:14px;
+    padding:14px; margin-bottom:14px;
+  }
+  section.block h2{font-size:14px; margin:0 0 10px; color:var(--teal);}
+
+  .photo-grid{display:flex; flex-wrap:wrap; gap:8px;}
+  .photo-item{
+    position:relative; width:104px; height:104px; border-radius:10px; overflow:hidden;
+    background:#f0ece4; border:1px solid var(--border);
+  }
+  .photo-item img{width:100%; height:100%; object-fit:cover; cursor:pointer;}
+  .photo-item .photo-del{
+    display:none; position:absolute; top:3px; right:3px; background:rgba(220,38,38,0.9); color:#fff;
+    border:none; border-radius:50%; width:22px; height:22px; font-size:12px; cursor:pointer;
+  }
+  body.edit-mode .photo-item .photo-del{display:block;}
+  .photo-add-tile{
+    width:104px; height:104px; border-radius:10px; border:2px dashed var(--teal-light);
+    display:none; align-items:center; justify-content:center; flex-direction:column;
+    color:var(--teal-light); font-size:12px; cursor:pointer; background:#f6fbfb;
+  }
+  body.edit-mode .photo-add-tile{display:flex;}
+  .no-photo-msg{color:#aaa; font-size:13px; padding:6px 0;}
+
+  textarea.desc-input{
+    width:100%; min-height:64px; border:1px solid var(--border); border-radius:8px;
+    padding:10px; font-size:14px; font-family:inherit; resize:vertical; background:#fff; color:var(--navy);
+  }
+  textarea.desc-input:read-only{border:none; padding:2px 0; background:none;}
+
+  .check-item{
+    display:flex; align-items:flex-start; gap:8px; padding:8px 0; border-bottom:1px solid #f2eee4;
+  }
+  .check-item:last-child{border-bottom:none;}
+  .check-item input[type="checkbox"]{width:20px; height:20px; margin-top:1px; flex-shrink:0;}
+  .check-item .ck-text{flex:1; font-size:14px; line-height:1.4; padding-top:1px;}
+  .check-item .ck-text.checked{text-decoration:line-through; color:#aaa;}
+  .check-item .ck-del{
+    display:none; background:none; border:none; color:var(--danger); font-size:16px; cursor:pointer; padding:0 4px;
+  }
+  body.edit-mode .check-item .ck-del{display:block;}
+  .add-check-btn{
+    display:none; width:100%; margin-top:6px; background:none; border:2px dashed var(--teal-light);
+    color:var(--teal); border-radius:8px; padding:8px; font-size:13px; cursor:pointer;
+  }
+  body.edit-mode .add-check-btn{display:block;}
+  .no-check-msg{color:#aaa; font-size:13px;}
+
+  .reset-btn{
+    width:100%; background:#fff; border:1px solid var(--danger); color:var(--danger);
+    border-radius:10px; padding:12px; font-size:14px; cursor:pointer; margin-top:4px;
+  }
+
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100;
+    align-items:center; justify-content:center;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal-overlay img{max-width:92%; max-height:85%; border-radius:8px;}
+
+  input[type="file"]{display:none;}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<header id="headerBar">
+  <button class="back-btn" id="backBtn" type="button">‹</button>
+  <h1 id="titleText">객실 체크 가이드</h1>
+  <input type="text" id="roomNameInput" class="room-name-input hidden" readonly>
+  <button id="editToggleBtn" type="button">✏️ 편집</button>
+</header>
+
+<main id="mainArea"></main>
+
+<button class="fab list-fab" id="addRoomFab" type="button">+</button>
+
+<div class="modal-overlay" id="photoModal">
+  <img id="photoModalImg" src="" alt="사진 크게보기">
+</div>
+
+<input type="file" id="photoFileInput" accept="image/*" multiple>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "roomcheck-rooms";
+  var rooms = [];
+  var editMode = false;
+  var currentRoomId = null;
+  var currentAreaId = null;
+  var pendingPhotoAreaId = null; // 사진 추가할 구역 id 임시 저장
+
+  var mainArea = document.getElementById("mainArea");
+  var headerBar = document.getElementById("headerBar");
+  var titleText = document.getElementById("titleText");
+  var roomNameInput = document.getElementById("roomNameInput");
+  var backBtn = document.getElementById("backBtn");
+  var editToggleBtn = document.getElementById("editToggleBtn");
+  var addRoomFab = document.getElementById("addRoomFab");
+  var photoFileInput = document.getElementById("photoFileInput");
+  var photoModal = document.getElementById("photoModal");
+  var photoModalImg = document.getElementById("photoModalImg");
+
+  function uid(){
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function getSampleRooms(){
+    return [
+      {
+        id: uid(),
+        name: "샘플객실 (예: 101호)",
+        areas: [
+          {
+            id: uid(), name: "침실", photos: [],
+            description: "베개 2개는 세로로 세워서 배치. 이불은 정중앙 정렬.",
+            checklist: [
+              { id: uid(), text: "베개 2개 확인", checked: false },
+              { id: uid(), text: "이불 커버 얼룩 확인", checked: false }
+            ]
+          },
+          {
+            id: uid(), name: "욕실", photos: [],
+            description: "수건 3개(대/중/소) 접어서 걸이에 배치.",
+            checklist: [
+              { id: uid(), text: "배수구 머리카락 제거", checked: false },
+              { id: uid(), text: "어메니티 세트 채우기", checked: false }
+            ]
+          },
+          {
+            id: uid(), name: "주방", photos: [], description: "",
+            checklist: [ { id: uid(), text: "그릇/컵 개수 확인", checked: false } ]
+          },
+          {
+            id: uid(), name: "현관", photos: [], description: "",
+            checklist: [ { id: uid(), text: "슬리퍼 2개 정렬", checked: false } ]
+          }
+        ]
+      }
+    ];
+  }
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        rooms = JSON.parse(raw);
+      } else {
+        rooms = getSampleRooms();
+        save();
+      }
+    }catch(err){
+      console.error("불러오기 오류:", err);
+      rooms = getSampleRooms();
+    }
+  }
+
+  function save(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(rooms));
+      return true;
+    }catch(err){
+      console.error("저장 오류:", err);
+      alert("저장 공간이 부족합니다 😢\n사진 개수를 줄이거나 다른 사진을 삭제한 뒤 다시 시도해주세요.");
+      return false;
+    }
+  }
+
+  function findRoom(roomId){
+    for(var i=0;i<rooms.length;i++){ if(rooms[i].id === roomId) return rooms[i]; }
+    return null;
+  }
+  function findArea(room, areaId){
+    for(var i=0;i<room.areas.length;i++){ if(room.areas[i].id === areaId) return room.areas[i]; }
+    return null;
+  }
+
+  // ---------- 화면 그리기 ----------
+  function renderApp(){
+    document.body.classList.toggle("edit-mode", editMode);
+    editToggleBtn.textContent = editMode ? "✅ 완료" : "✏️ 편집";
+
+    if(currentRoomId){
+      renderDetail();
+    } else {
+      renderList();
+    }
+  }
+
+  function calcProgress(room){
+    var total = 0, done = 0;
+    room.areas.forEach(function(a){
+      a.checklist.forEach(function(c){ total++; if(c.checked) done++; });
+    });
+    return { total: total, done: done };
+  }
+
+  function renderList(){
+    headerBar.classList.remove("has-back");
+    titleText.classList.remove("hidden");
+    roomNameInput.classList.add("hidden");
+    titleText.textContent = "객실 체크 가이드";
+
+    if(rooms.length === 0){
+      mainArea.innerHTML = '<div class="empty-msg">등록된 객실이 없어요.<br>편집 모드를 켜고 오른쪽 아래 + 버튼으로<br>객실을 추가해보세요.</div>';
+      return;
+    }
+
+    var html = "";
+    rooms.forEach(function(room){
+      var p = calcProgress(room);
+      var pct = p.total ? Math.round((p.done/p.total)*100) : 0;
+      html += '<div class="room-card" data-room-id="'+room.id+'">'
+        + '<div class="info">'
+        + '<div class="name">'+escapeHtml(room.name)+'</div>'
+        + '<div class="progress-wrap"><div class="progress-bar" style="width:'+pct+'%"></div></div>'
+        + '<div class="progress-text">체크 '+p.done+' / '+p.total+'</div>'
+        + '</div>'
+        + '<button type="button" class="del-room-btn" data-action="del-room" data-room-id="'+room.id+'">✕</button>'
+        + '</div>';
+    });
+    mainArea.innerHTML = html;
+  }
+
+  function renderDetail(){
+    var room = findRoom(currentRoomId);
+    if(!room){ currentRoomId = null; renderList(); return; }
+
+    headerBar.classList.add("has-back");
+    titleText.classList.add("hidden");
+    roomNameInput.classList.remove("hidden");
+    roomNameInput.value = room.name;
+    roomNameInput.readOnly = !editMode;
+
+    if(!currentAreaId || !findArea(room, currentAreaId)){
+      currentAreaId = room.areas.length ? room.areas[0].id : null;
+    }
+
+    var tabsHtml = "";
+    room.areas.forEach(function(area){
+      var active = area.id === currentAreaId ? " active" : "";
+      tabsHtml += '<button type="button" class="tab-btn'+active+'" data-action="select-area" data-area-id="'+area.id+'">'
+        + escapeHtml(area.name)
+        + '<span class="tab-del" data-action="del-area" data-area-id="'+area.id+'">✕</span>'
+        + '</button>';
+    });
+    tabsHtml += '<button type="button" class="tab-add-btn" data-action="add-area">+ 구역</button>';
+
+    var area = currentAreaId ? findArea(room, currentAreaId) : null;
+    var bodyHtml = "";
+
+    if(!area){
+      bodyHtml = '<div class="empty-msg">구역이 없어요.<br>편집 모드에서 + 구역을 눌러 추가하세요.</div>';
+    } else {
+      // 사진
+      var photosHtml = "";
+      area.photos.forEach(function(src, idx){
+        photosHtml += '<div class="photo-item">'
+          + '<img src="'+src+'" data-action="view-photo" data-src-idx="'+idx+'" data-area-id="'+area.id+'">'
+          + '<button type="button" class="photo-del" data-action="del-photo" data-area-id="'+area.id+'" data-photo-idx="'+idx+'">✕</button>'
+          + '</div>';
+      });
+      photosHtml += '<div class="photo-add-tile" data-action="add-photo" data-area-id="'+area.id+'">📷<br>사진추가</div>';
+      var photoSectionInner = photosHtml;
+      if(area.photos.length === 0 && !editMode){
+        photoSectionInner = '<div class="no-photo-msg">등록된 사진이 없어요.</div>';
+      }
+
+      bodyHtml += '<section class="block"><h2>📷 사진 ('+area.name+')</h2>'
+        + '<div class="photo-grid">'+photoSectionInner+'</div></section>';
+
+      // 설명
+      bodyHtml += '<section class="block"><h2>📝 셋팅 설명</h2>'
+        + '<textarea class="desc-input" data-action="edit-desc" data-area-id="'+area.id+'" '
+        + (editMode ? "" : "readonly")
+        + ' placeholder="예: 베개 2개, 이불 정중앙 정렬">'+escapeHtml(area.description)+'</textarea></section>';
+
+      // 체크포인트
+      var ckHtml = "";
+      if(area.checklist.length === 0){
+        ckHtml = '<div class="no-check-msg">체크포인트가 없어요.</div>';
+      } else {
+        area.checklist.forEach(function(item){
+          ckHtml += '<div class="check-item">'
+            + '<input type="checkbox" data-action="toggle-check" data-area-id="'+area.id+'" data-check-id="'+item.id+'" '
+            + (item.checked ? "checked" : "") + '>'
+            + '<div class="ck-text'+(item.checked?' checked':'')+'">'+escapeHtml(item.text)+'</div>'
+            + '<button type="button" class="ck-del" data-action="del-check" data-area-id="'+area.id+'" data-check-id="'+item.id+'">✕</button>'
+            + '</div>';
+        });
+      }
+      bodyHtml += '<section class="block"><h2>✅ 주의할 곳 체크포인트</h2>'
+        + ckHtml
+        + '<button type="button" class="add-check-btn" data-action="add-check" data-area-id="'+area.id+'">+ 체크포인트 추가</button>'
+        + '</section>';
+    }
+
+    bodyHtml += '<button type="button" class="reset-btn" data-action="reset-room-checks">🔄 이 객실 체크 전체 초기화</button>';
+
+    mainArea.innerHTML = '<div class="tab-bar">'+tabsHtml+'</div>' + bodyHtml;
+  }
+
+  function escapeHtml(str){
+    if(!str) return "";
+    return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  // ---------- 사진 리사이즈 ----------
+  function resizeImageFile(file, callback){
+    try{
+      var reader = new FileReader();
+      reader.onload = function(e){
+        var img = new Image();
+        img.onload = function(){
+          var maxW = 800;
+          var w = img.width, h = img.height;
+          if(w > maxW){ h = Math.round(h * maxW / w); w = maxW; }
+          var canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          var ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+          var dataUrl = canvas.toDataURL("image/jpeg", 0.6);
+          callback(dataUrl);
+        };
+        img.onerror = function(){ console.error("이미지 로드 실패"); };
+        img.src = e.target.result;
+      };
+      reader.onerror = function(){ console.error("파일 읽기 실패"); };
+      reader.readAsDataURL(file);
+    }catch(err){
+      console.error("리사이즈 오류:", err);
+    }
+  }
+
+  // ---------- 이벤트 처리 ----------
+  editToggleBtn.addEventListener("click", function(){
+    editMode = !editMode;
+    renderApp();
+  });
+
+  backBtn.addEventListener("click", function(){
+    currentRoomId = null;
+    currentAreaId = null;
+    renderApp();
+  });
+
+  roomNameInput.addEventListener("change", function(){
+    var room = findRoom(currentRoomId);
+    if(!room) return;
+    var v = roomNameInput.value.trim();
+    if(v){ room.name = v; save(); }
+  });
+
+  addRoomFab.addEventListener("click", function(){
+    var name = prompt("새 객실 이름을 입력하세요 (예: 3709호)");
+    if(!name) return;
+    var newRoom = {
+      id: uid(),
+      name: name.trim(),
+      areas: [
+        { id: uid(), name: "침실", photos: [], description: "", checklist: [] },
+        { id: uid(), name: "욕실", photos: [], description: "", checklist: [] },
+        { id: uid(), name: "주방", photos: [], description: "", checklist: [] },
+        { id: uid(), name: "현관", photos: [], description: "", checklist: [] }
+      ]
+    };
+    rooms.push(newRoom);
+    save();
+    renderApp();
+  });
+
+  photoFileInput.addEventListener("change", function(){
+    if(!pendingPhotoAreaId) return;
+    var room = findRoom(currentRoomId);
+    if(!room) return;
+    var area = findArea(room, pendingPhotoAreaId);
+    if(!area) return;
+
+    var files = Array.prototype.slice.call(photoFileInput.files || []);
+    if(files.length === 0) return;
+
+    var remaining = files.length;
+    files.forEach(function(file){
+      resizeImageFile(file, function(dataUrl){
+        area.photos.push(dataUrl);
+        remaining--;
+        if(remaining === 0){
+          save();
+          renderApp();
+        }
+      });
+    });
+    photoFileInput.value = "";
+  });
+
+  photoModal.addEventListener("click", function(){
+    photoModal.classList.remove("show");
+    photoModalImg.src = "";
+  });
+
+  // 메인 영역 클릭 위임 처리
+  mainArea.addEventListener("click", function(e){
+    var target = e.target.closest("[data-action]");
+    if(!target){
+      var card = e.target.closest(".room-card");
+      if(card){
+        currentRoomId = card.getAttribute("data-room-id");
+        currentAreaId = null;
+        renderApp();
+      }
+      return;
+    }
+    var action = target.getAttribute("data-action");
+
+    if(action === "del-room"){
+      e.stopPropagation();
+      var rId = target.getAttribute("data-room-id");
+      if(confirm("이 객실을 삭제할까요? 사진과 체크리스트도 모두 삭제됩니다.")){
+        rooms = rooms.filter(function(r){ return r.id !== rId; });
+        save();
+        renderApp();
+      }
+      return;
+    }
+
+    var room = findRoom(currentRoomId);
+    if(!room) return;
+
+    if(action === "select-area"){
+      currentAreaId = target.getAttribute("data-area-id");
+      renderApp();
+    }
+    else if(action === "add-area"){
+      var aname = prompt("추가할 구역 이름 (예: 발코니, 드레스룸)");
+      if(!aname) return;
+      var newArea = { id: uid(), name: aname.trim(), photos: [], description: "", checklist: [] };
+      room.areas.push(newArea);
+      currentAreaId = newArea.id;
+      save();
+      renderApp();
+    }
+    else if(action === "del-area"){
+      e.stopPropagation();
+      var delAreaId = target.getAttribute("data-area-id");
+      if(confirm("이 구역을 삭제할까요?")){
+        room.areas = room.areas.filter(function(a){ return a.id !== delAreaId; });
+        if(currentAreaId === delAreaId) currentAreaId = null;
+        save();
+        renderApp();
+      }
+    }
+    else if(action === "add-photo"){
+      pendingPhotoAreaId = target.getAttribute("data-area-id");
+      photoFileInput.click();
+    }
+    else if(action === "view-photo"){
+      photoModalImg.src = target.getAttribute("src");
+      photoModal.classList.add("show");
+    }
+    else if(action === "del-photo"){
+      var pAreaId = target.getAttribute("data-area-id");
+      var pIdx = parseInt(target.getAttribute("data-photo-idx"), 10);
+      var pArea = findArea(room, pAreaId);
+      if(pArea){
+        pArea.photos.splice(pIdx, 1);
+        save();
+        renderApp();
+      }
+    }
+    else if(action === "add-check"){
+      var cAreaId = target.getAttribute("data-area-id");
+      var cArea = findArea(room, cAreaId);
+      if(!cArea) return;
+      var txt = prompt("체크포인트 내용을 입력하세요 (예: 베개 2개 확인)");
+      if(!txt) return;
+      cArea.checklist.push({ id: uid(), text: txt.trim(), checked: false });
+      save();
+      renderApp();
+    }
+    else if(action === "del-check"){
+      var dAreaId = target.getAttribute("data-area-id");
+      var dCheckId = target.getAttribute("data-check-id");
+      var dArea = findArea(room, dAreaId);
+      if(dArea){
+        dArea.checklist = dArea.checklist.filter(function(c){ return c.id !== dCheckId; });
+        save();
+        renderApp();
+      }
+    }
+    else if(action === "reset-room-checks"){
+      if(confirm("이 객실의 모든 체크를 초기화할까요?")){
+        room.areas.forEach(function(a){
+          a.checklist.forEach(function(c){ c.checked = false; });
+        });
+        save();
+        renderApp();
+      }
+    }
+  });
+
+  // 체크박스 토글은 change 이벤트로 별도 처리 (checkbox는 click과 change 둘다 발생하므로 change만 사용)
+  mainArea.addEventListener("change", function(e){
+    var target = e.target;
+    if(target.matches('[data-action="toggle-check"]')){
+      var room = findRoom(currentRoomId);
+      if(!room) return;
+      var areaId = target.getAttribute("data-area-id");
+      var checkId = target.getAttribute("data-check-id");
+      var area = findArea(room, areaId);
+      if(!area) return;
+      var item = null;
+      for(var i=0;i<area.checklist.length;i++){
+        if(area.checklist[i].id === checkId){ item = area.checklist[i]; break; }
+      }
+      if(item){
+        item.checked = target.checked;
+        save();
+        renderApp();
+      }
+    }
+    else if(target.matches('[data-action="edit-desc"]')){
+      var room2 = findRoom(currentRoomId);
+      if(!room2) return;
+      var areaId2 = target.getAttribute("data-area-id");
+      var area2 = findArea(room2, areaId2);
+      if(area2){
+        area2.description = target.value;
+        save();
+      }
+    }
+  });
+
+  // ---------- 시작 ----------
+  try{
+    load();
+  }catch(err){
+    console.error("초기화 오류:", err);
+    rooms = getSampleRooms();
+  }
+  renderApp();
+
+})();
+</script>
+</body>
+</html>
