@@ -25,23 +25,37 @@
   header p{ margin:4px 0 0; font-size:12px; opacity:0.85; }
   main{ padding:14px 14px 60px; }
 
-  section.block{
+  .group-card{
     background:#fff; border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:14px;
   }
-  section.block h2{ font-size:15px; margin:0 0 4px; color:var(--teal); }
-  section.block .desc{ font-size:12px; color:#888; margin-bottom:10px; line-height:1.5; }
+  .group-header{ display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+  .room-name-input{
+    flex:1; border:1px solid var(--border); border-radius:8px; padding:10px; font-size:15px;
+    font-weight:bold; color:var(--navy); background:#faf9f6;
+  }
+  .room-name-input::placeholder{ font-weight:normal; color:#bbb; }
+  .del-group-btn{
+    background:var(--danger); color:#fff; border:none; border-radius:8px; width:36px; height:36px;
+    font-size:15px; cursor:pointer; flex-shrink:0;
+  }
+  .sub-label{ font-size:12px; color:var(--teal); font-weight:bold; margin:10px 0 6px; }
 
   .photo-grid{ display:flex; flex-wrap:wrap; gap:8px; }
-  .photo-item{ position:relative; width:84px; height:84px; border-radius:10px; overflow:hidden; background:#f0ece4; border:1px solid var(--border); }
+  .photo-item{ position:relative; width:80px; height:80px; border-radius:10px; overflow:hidden; background:#f0ece4; border:1px solid var(--border); }
   .photo-item img{ width:100%; height:100%; object-fit:cover; }
   .photo-item .photo-del{
     position:absolute; top:2px; right:2px; background:rgba(220,38,38,0.92); color:#fff; border:none;
     border-radius:50%; width:20px; height:20px; font-size:11px; cursor:pointer;
   }
   .photo-add-tile{
-    width:84px; height:84px; border-radius:10px; border:2px dashed var(--teal-light);
+    width:80px; height:80px; border-radius:10px; border:2px dashed var(--teal-light);
     display:flex; align-items:center; justify-content:center; flex-direction:column;
     color:var(--teal-light); font-size:11px; cursor:pointer; background:#f6fbfb; text-align:center;
+  }
+
+  .add-group-btn{
+    width:100%; background:none; border:2px dashed var(--teal-light); color:var(--teal);
+    border-radius:12px; padding:14px; font-size:14px; cursor:pointer; margin-bottom:14px;
   }
 
   .compare-btn{
@@ -69,17 +83,17 @@
   .summary-box .lbl{ font-size:11px; color:#888; margin-top:2px; }
 
   .room-result{ background:#fff; border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:12px; }
-  .room-result h3{ font-size:14px; margin:0 0 10px; }
-  .room-result .sub-title{ font-size:11px; color:#aaa; font-weight:normal; }
+  .room-result h3{ font-size:14px; margin:0 0 10px; color:var(--navy); }
 
   .item-row{ display:flex; gap:8px; padding:7px 0; border-bottom:1px solid #f2eee4; font-size:13px; align-items:flex-start; }
   .item-row:last-child{ border-bottom:none; }
-  .tag{ flex-shrink:0; font-size:11px; padding:2px 6px; border-radius:6px; color:#fff; margin-top:1px; }
+  .tag{ flex-shrink:0; font-size:11px; padding:2px 6px; border-radius:6px; color:#fff; margin-top:1px; white-space:nowrap; }
   .tag.ok{ background:var(--ok); }
   .tag.warn-missing{ background:var(--warn); }
   .tag.warn-extra{ background:var(--danger); }
   .item-row .txt{ flex:1; line-height:1.4; }
   .no-issue{ color:#999; font-size:12px; padding:4px 0; }
+  .skip-msg{ color:var(--warn); font-size:12px; padding:4px 0; }
 
   input[type="file"]{ display:none; }
 </style>
@@ -88,24 +102,14 @@
 
 <header>
   <h1>🔍 일정 비교 체크</h1>
-  <p>예약채널 캘린더 ↔ 로메이드원 일정을 AI가 자동으로 비교해드려요</p>
+  <p>호실별로 에어비앤비 캘린더 ↔ 로메이드원 사진을 넣으면 AI가 비교해드려요</p>
 </header>
 
 <main id="mainArea">
 
-  <section class="block">
-    <h2>① 예약채널 캘린더 사진</h2>
-    <div class="desc">에어비앤비, 봉주르송도, 새늘스테이 등 예약 캘린더 캡처 화면을 여러 장 올려주세요.</div>
-    <div class="photo-grid" id="channelGrid"></div>
-  </section>
+  <div id="groupsArea"></div>
 
-  <section class="block">
-    <h2>② 로메이드원 사진</h2>
-    <div class="desc">로메이드원 앱의 <b>"객실 현황판"</b> 화면을 캡처해서 올려주세요. (예약자명이 보여야 정확해요)</div>
-    <div class="photo-grid" id="roommadeGrid"></div>
-  </section>
-
-  <button type="button" class="compare-btn" id="compareBtn" disabled>사진을 먼저 올려주세요</button>
+  <button type="button" class="compare-btn" id="compareBtn" disabled>객실을 추가해주세요</button>
   <button type="button" class="clear-btn" id="clearBtn">전체 초기화</button>
 
   <div id="resultArea"></div>
@@ -119,11 +123,11 @@
 (function(){
   "use strict";
 
-  var channelPhotos = [];   // {id, dataUrl, base64}
-  var roommadePhotos = [];  // {id, dataUrl, base64}
+  var groups = []; // { id, roomName, channelPhotos:[{id,dataUrl}], roommadePhotos:[{id,dataUrl}] }
+  var pendingGroupId = null;
+  var pendingType = null; // "channel" | "roommade"
 
-  var channelGrid = document.getElementById("channelGrid");
-  var roommadeGrid = document.getElementById("roommadeGrid");
+  var groupsArea = document.getElementById("groupsArea");
   var compareBtn = document.getElementById("compareBtn");
   var clearBtn = document.getElementById("clearBtn");
   var resultArea = document.getElementById("resultArea");
@@ -131,6 +135,11 @@
   var roommadeFileInput = document.getElementById("roommadeFileInput");
 
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  function addGroup(){
+    groups.push({ id: uid(), roomName: "", channelPhotos: [], roommadePhotos: [] });
+    renderGroups();
+  }
 
   // ---------- 사진 리사이즈 (OCR용이라 화질을 좀 더 높게 유지) ----------
   function resizeImageFile(file, callback){
@@ -157,97 +166,156 @@
     }catch(err){ console.error("리사이즈 오류:", err); }
   }
 
-  function renderGrid(gridEl, photos, groupName){
+  function findGroup(groupId){
+    for(var i=0;i<groups.length;i++){ if(groups[i].id === groupId) return groups[i]; }
+    return null;
+  }
+
+  function photoGridHtml(photos, groupId, type){
     var html = "";
     photos.forEach(function(p){
       html += '<div class="photo-item"><img src="'+p.dataUrl+'">'
-        + '<button type="button" class="photo-del" data-group="'+groupName+'" data-id="'+p.id+'">✕</button></div>';
+        + '<button type="button" class="photo-del" data-action="del-photo" data-group-id="'+groupId+'" data-type="'+type+'" data-photo-id="'+p.id+'">✕</button></div>';
     });
-    html += '<div class="photo-add-tile" data-add="'+groupName+'">📷<br>추가</div>';
-    gridEl.innerHTML = html;
+    html += '<div class="photo-add-tile" data-action="add-photo" data-group-id="'+groupId+'" data-type="'+type+'">📷<br>추가</div>';
+    return html;
   }
 
-  function renderGrids(){
-    renderGrid(channelGrid, channelPhotos, "channel");
-    renderGrid(roommadeGrid, roommadePhotos, "roommade");
+  function renderGroups(){
+    if(groups.length === 0){
+      groupsArea.innerHTML = '';
+    } else {
+      var html = "";
+      groups.forEach(function(g){
+        html += '<div class="group-card">'
+          + '<div class="group-header">'
+          + '<input type="text" class="room-name-input" data-action="room-name" data-group-id="'+g.id+'" placeholder="객실 호실 입력 (예: 3709호)" value="'+escapeHtml(g.roomName)+'">'
+          + '<button type="button" class="del-group-btn" data-action="del-group" data-group-id="'+g.id+'">✕</button>'
+          + '</div>'
+          + '<div class="sub-label">① 에어비앤비(예약채널) 캘린더 사진</div>'
+          + '<div class="photo-grid">' + photoGridHtml(g.channelPhotos, g.id, "channel") + '</div>'
+          + '<div class="sub-label">② 로메이드원 객실현황판 사진</div>'
+          + '<div class="photo-grid">' + photoGridHtml(g.roommadePhotos, g.id, "roommade") + '</div>'
+          + '</div>';
+      });
+      groupsArea.innerHTML = html;
+    }
     updateCompareBtn();
   }
 
   function updateCompareBtn(){
-    if(channelPhotos.length > 0 && roommadePhotos.length > 0){
-      compareBtn.disabled = false;
-      compareBtn.textContent = "🔍 AI로 비교하기 ("+channelPhotos.length+" + "+roommadePhotos.length+"장)";
-    } else {
+    var ready = groups.filter(function(g){
+      return g.roomName.trim() !== "" && g.channelPhotos.length > 0 && g.roommadePhotos.length > 0;
+    });
+    if(groups.length === 0){
       compareBtn.disabled = true;
-      compareBtn.textContent = "양쪽 사진을 모두 올려주세요";
+      compareBtn.textContent = "객실을 추가해주세요";
+    } else if(ready.length === 0){
+      compareBtn.disabled = true;
+      compareBtn.textContent = "호실명 + 사진 2종류를 모두 넣어주세요";
+    } else {
+      compareBtn.disabled = false;
+      compareBtn.textContent = "🔍 AI로 비교하기 (" + ready.length + "개 객실)";
     }
   }
 
-  channelGrid.addEventListener("click", handleGridClick);
-  roommadeGrid.addEventListener("click", handleGridClick);
+  // 객실 추가 버튼: groupsArea 아래쪽에 고정 버튼으로 배치
+  var addGroupBtnEl = document.createElement("button");
+  addGroupBtnEl.type = "button";
+  addGroupBtnEl.className = "add-group-btn";
+  addGroupBtnEl.textContent = "+ 객실 추가";
+  addGroupBtnEl.addEventListener("click", addGroup);
+  groupsArea.parentNode.insertBefore(addGroupBtnEl, groupsArea.nextSibling);
 
-  function handleGridClick(e){
-    var addTile = e.target.closest("[data-add]");
-    if(addTile){
-      var g = addTile.getAttribute("data-add");
-      if(g === "channel"){ channelFileInput.click(); } else { roommadeFileInput.click(); }
-      return;
+  groupsArea.addEventListener("click", function(e){
+    var target = e.target.closest("[data-action]");
+    if(!target) return;
+    var action = target.getAttribute("data-action");
+    var groupId = target.getAttribute("data-group-id");
+
+    if(action === "del-group"){
+      if(confirm("이 객실 항목을 삭제할까요?")){
+        groups = groups.filter(function(g){ return g.id !== groupId; });
+        renderGroups();
+      }
     }
-    var delBtn = e.target.closest(".photo-del");
-    if(delBtn){
-      var group = delBtn.getAttribute("data-group");
-      var id = delBtn.getAttribute("data-id");
-      if(group === "channel"){ channelPhotos = channelPhotos.filter(function(p){ return p.id !== id; }); }
-      else{ roommadePhotos = roommadePhotos.filter(function(p){ return p.id !== id; }); }
-      renderGrids();
+    else if(action === "add-photo"){
+      pendingGroupId = groupId;
+      pendingType = target.getAttribute("data-type");
+      if(pendingType === "channel"){ channelFileInput.click(); } else { roommadeFileInput.click(); }
     }
-  }
+    else if(action === "del-photo"){
+      var group = findGroup(groupId);
+      if(!group) return;
+      var type = target.getAttribute("data-type");
+      var photoId = target.getAttribute("data-photo-id");
+      if(type === "channel"){ group.channelPhotos = group.channelPhotos.filter(function(p){ return p.id !== photoId; }); }
+      else{ group.roommadePhotos = group.roommadePhotos.filter(function(p){ return p.id !== photoId; }); }
+      renderGroups();
+    }
+  });
+
+  groupsArea.addEventListener("change", function(e){
+    var target = e.target;
+    if(target.matches('[data-action="room-name"]')){
+      var group = findGroup(target.getAttribute("data-group-id"));
+      if(group){ group.roomName = target.value; updateCompareBtn(); }
+    }
+  });
+  // 입력 중에도 버튼 상태 갱신
+  groupsArea.addEventListener("input", function(e){
+    var target = e.target;
+    if(target.matches('[data-action="room-name"]')){
+      var group = findGroup(target.getAttribute("data-group-id"));
+      if(group){ group.roomName = target.value; updateCompareBtn(); }
+    }
+  });
 
   channelFileInput.addEventListener("change", function(){
+    if(!pendingGroupId) return;
+    var group = findGroup(pendingGroupId);
+    if(!group){ channelFileInput.value = ""; return; }
     var files = Array.prototype.slice.call(channelFileInput.files || []);
     files.forEach(function(file){
       resizeImageFile(file, function(dataUrl){
-        channelPhotos.push({ id: uid(), dataUrl: dataUrl });
-        renderGrids();
+        group.channelPhotos.push({ id: uid(), dataUrl: dataUrl });
+        renderGroups();
       });
     });
     channelFileInput.value = "";
   });
 
   roommadeFileInput.addEventListener("change", function(){
+    if(!pendingGroupId) return;
+    var group = findGroup(pendingGroupId);
+    if(!group){ roommadeFileInput.value = ""; return; }
     var files = Array.prototype.slice.call(roommadeFileInput.files || []);
     files.forEach(function(file){
       resizeImageFile(file, function(dataUrl){
-        roommadePhotos.push({ id: uid(), dataUrl: dataUrl });
-        renderGrids();
+        group.roommadePhotos.push({ id: uid(), dataUrl: dataUrl });
+        renderGroups();
       });
     });
     roommadeFileInput.value = "";
   });
 
   clearBtn.addEventListener("click", function(){
-    if(!confirm("올린 사진과 비교 결과를 모두 지울까요?")) return;
-    channelPhotos = [];
-    roommadePhotos = [];
+    if(!confirm("등록한 객실과 사진, 비교 결과를 모두 지울까요?")) return;
+    groups = [];
     resultArea.innerHTML = "";
-    renderGrids();
+    renderGroups();
   });
 
   // ---------- Claude API 호출 ----------
-  var CHANNEL_PROMPT = "이 이미지는 에어비앤비 또는 숙박 예약채널 앱의 월간 예약 캘린더 화면입니다. "
-    + "화면 상단 제목에서 숙소/객실 이름을 찾고, 달력에 검은 막대 형태로 표시된 각 예약의 예약자 이름과 체크인~체크아웃 날짜를 읽어주세요. "
-    + "화면이 옆으로 잘려서 체크아웃 날짜를 정확히 알 수 없으면 checkOut을 null로 두세요. "
-    + "예약자 이름이 안보이면 guest를 빈 문자열로 두세요. "
-    + "여러 달(예: 7월, 8월)이 같이 보이면 각 예약이 몇 월인지 month 필드에 숫자로 넣어주세요. "
-    + "다른 설명 없이 아래 JSON 형식으로만 답하세요:\n"
-    + '{"rooms":[{"room":"숙소명 텍스트","bookings":[{"guest":"예약자명","month":7,"checkIn":12,"checkOut":14}]}]}';
-
-  var ROOMMADE_PROMPT = "이 이미지는 '로메이드원'이라는 청소/숙박관리 앱의 객실 현황판 또는 일정 화면입니다. "
-    + "화면에 보이는 각 객실명과, 그 객실의 예약(투숙) 일정을 예약자명, 체크인~체크아웃 날짜로 읽어주세요. "
-    + "예약자 이름이 안보이면 guest는 빈 문자열로 두세요. 체크아웃 날짜를 알 수 없으면 checkOut을 null로 두세요. "
-    + "여러 달이 같이 보이면 month 필드에 숫자로 넣어주세요. "
-    + "다른 설명 없이 아래 JSON 형식으로만 답하세요:\n"
-    + '{"rooms":[{"room":"객실명 텍스트","bookings":[{"guest":"예약자명","month":7,"checkIn":12,"checkOut":14}]}]}';
+  function buildPrompt(roomName, sourceLabel){
+    return "이 이미지는 '" + roomName + "' 객실의 " + sourceLabel + " 화면입니다. "
+      + "화면에 표시된 예약(투숙) 일정을 읽어서 예약자 이름과 체크인~체크아웃 날짜를 추출해주세요. "
+      + "화면이 옆으로 잘려서 체크아웃 날짜를 정확히 알 수 없으면 checkOut을 null로 두세요. "
+      + "예약자 이름이 안보이면 guest를 빈 문자열로 두세요. "
+      + "여러 달(예: 7월, 8월)이 같이 보이면 각 예약이 몇 월인지 month 필드에 숫자로 넣어주세요. "
+      + "다른 설명 없이 아래 JSON 형식으로만 답하세요:\n"
+      + '{"bookings":[{"guest":"예약자명","month":7,"checkIn":12,"checkOut":14}]}';
+  }
 
   async function callClaudeVision(dataUrl, promptText){
     var base64 = dataUrl.split(",")[1];
@@ -274,161 +342,28 @@
           if(data.content[i].type === "text"){ textBlock = data.content[i].text; break; }
         }
       }
-      if(!textBlock) return null;
+      if(!textBlock) return [];
       var cleaned = textBlock.replace(/```json/g, "").replace(/```/g, "").trim();
-      return JSON.parse(cleaned);
+      var parsed = JSON.parse(cleaned);
+      return parsed.bookings || [];
     }catch(err){
       console.error("API 호출/파싱 오류:", err);
-      return null;
+      return [];
     }
   }
-
-  // ---------- 방 이름 매칭 ----------
-  function tokenize(str){
-    if(!str) return [];
-    return str.split(/[^\w가-힣0-9]+/).map(function(t){ return t.trim(); }).filter(function(t){ return t.length >= 2; });
-  }
-
-  function similarityScore(a, b){
-    var ta = tokenize(a), tb = tokenize(b);
-    var score = 0;
-    ta.forEach(function(t){
-      if(tb.indexOf(t) !== -1) score++;
-      else {
-        tb.forEach(function(t2){
-          if(t.indexOf(t2) !== -1 || t2.indexOf(t) !== -1) score += 0.5;
-        });
-      }
-    });
-    return score;
-  }
-
-  // ---------- 비교하기 ----------
-  compareBtn.addEventListener("click", async function(){
-    compareBtn.disabled = true;
-    resultArea.innerHTML = '<div class="progress-box"><div class="spinner"></div>사진을 분석하고 있어요...<br><span id="progressText">0 / '
-      + (channelPhotos.length + roommadePhotos.length) + '</span></div>';
-    var progressText = document.getElementById("progressText");
-    var done = 0;
-
-    var channelRooms = []; // {room, bookings:[{guest,month,checkIn,checkOut}]}
-    var roommadeRooms = [];
-
-    for(var i=0;i<channelPhotos.length;i++){
-      var r = await callClaudeVision(channelPhotos[i].dataUrl, CHANNEL_PROMPT);
-      if(r && r.rooms){ channelRooms = channelRooms.concat(r.rooms); }
-      done++; if(progressText) progressText.textContent = done + " / " + (channelPhotos.length + roommadePhotos.length);
-    }
-    for(var j=0;j<roommadePhotos.length;j++){
-      var r2 = await callClaudeVision(roommadePhotos[j].dataUrl, ROOMMADE_PROMPT);
-      if(r2 && r2.rooms){ roommadeRooms = roommadeRooms.concat(r2.rooms); }
-      done++; if(progressText) progressText.textContent = done + " / " + (channelPhotos.length + roommadePhotos.length);
-    }
-
-    renderComparison(channelRooms, roommadeRooms);
-    compareBtn.disabled = false;
-  });
 
   function datesOverlapOrClose(a, b){
-    // a, b: {month, checkIn, checkOut}  -- checkOut may be null
     if(a.month !== b.month) return false;
     var aIn = a.checkIn, aOut = (a.checkOut === null || a.checkOut === undefined) ? a.checkIn : a.checkOut;
     var bIn = b.checkIn, bOut = (b.checkOut === null || b.checkOut === undefined) ? b.checkIn : b.checkOut;
-    // 하루 정도 오차 허용
     return Math.abs(aIn - bIn) <= 1 || (aIn <= bOut + 1 && bIn <= aOut + 1);
   }
 
   function guestSimilar(g1, g2){
-    if(!g1 || !g2) return true; // 이름 정보 없으면 날짜만으로 판단
+    if(!g1 || !g2) return true;
     var s1 = g1.replace(/\s+/g,"").toLowerCase();
     var s2 = g2.replace(/\s+/g,"").toLowerCase();
     return s1.indexOf(s2) !== -1 || s2.indexOf(s1) !== -1;
-  }
-
-  function renderComparison(channelRooms, roommadeRooms){
-    if(channelRooms.length === 0 && roommadeRooms.length === 0){
-      resultArea.innerHTML = '<div class="room-result"><div class="no-issue">사진에서 정보를 읽지 못했어요. 사진이 선명한지 확인하고 다시 시도해주세요.</div></div>';
-      return;
-    }
-
-    var usedRoommade = roommadeRooms.map(function(){ return false; });
-    var totalOk = 0, totalMissing = 0, totalExtra = 0;
-    var html = "";
-
-    channelRooms.forEach(function(cRoom){
-      // 가장 비슷한 로메이드원 객실 찾기
-      var bestIdx = -1, bestScore = 0;
-      roommadeRooms.forEach(function(rRoom, idx){
-        var sc = similarityScore(cRoom.room, rRoom.room);
-        if(sc > bestScore){ bestScore = sc; bestIdx = idx; }
-      });
-
-      var matchedRoom = bestIdx !== -1 && bestScore > 0 ? roommadeRooms[bestIdx] : null;
-      if(matchedRoom) usedRoommade[bestIdx] = true;
-
-      var usedRoommadeBookings = (matchedRoom ? matchedRoom.bookings : []).map(function(){ return false; });
-      var rows = "";
-
-      (cRoom.bookings || []).forEach(function(cb){
-        var foundIdx = -1;
-        if(matchedRoom){
-          matchedRoom.bookings.forEach(function(rb, idx){
-            if(!usedRoommadeBookings[idx] && datesOverlapOrClose(cb, rb) && guestSimilar(cb.guest, rb.guest)){
-              foundIdx = idx;
-            }
-          });
-        }
-        var dateLabel = cb.month + "월 " + cb.checkIn + "일" + (cb.checkOut ? "~" + cb.checkOut + "일" : "일 (종료일 불명확)");
-        var guestLabel = cb.guest ? cb.guest : "(이름 미상)";
-        if(foundIdx !== -1){
-          usedRoommadeBookings[foundIdx] = true;
-          rows += '<div class="item-row"><span class="tag ok">일치</span><span class="txt">'+dateLabel+' · '+guestLabel+'</span></div>';
-          totalOk++;
-        } else {
-          rows += '<div class="item-row"><span class="tag warn-missing">확인필요</span><span class="txt">'+dateLabel+' · '+guestLabel+' — 로메이드원에서 못 찾았어요</span></div>';
-          totalMissing++;
-        }
-      });
-
-      if(matchedRoom){
-        matchedRoom.bookings.forEach(function(rb, idx){
-          if(!usedRoommadeBookings[idx]){
-            var dl = rb.month + "월 " + rb.checkIn + "일" + (rb.checkOut ? "~" + rb.checkOut + "일" : "일");
-            var gl = rb.guest ? rb.guest : "(이름 미상)";
-            rows += '<div class="item-row"><span class="tag warn-extra">확인필요</span><span class="txt">'+dl+' · '+gl+' — 예약채널에서 못 찾았어요 (취소 의심)</span></div>';
-            totalExtra++;
-          }
-        });
-      }
-
-      if(rows === ""){ rows = '<div class="no-issue">비교할 예약 정보가 없어요.</div>'; }
-
-      html += '<div class="room-result"><h3>🏠 '+escapeHtml(cRoom.room||"(이름 미상)")
-        + '<div class="sub-title">로메이드원: '+(matchedRoom ? escapeHtml(matchedRoom.room) : "매칭되는 객실을 못 찾았어요")+'</div></h3>'
-        + rows + '</div>';
-    });
-
-    // 채널 쪽과 전혀 매칭 안 된 로메이드원 객실들 (놓친 것일 수 있음)
-    roommadeRooms.forEach(function(rRoom, idx){
-      if(!usedRoommade[idx]){
-        var rows2 = "";
-        rRoom.bookings.forEach(function(rb){
-          var dl = rb.month + "월 " + rb.checkIn + "일" + (rb.checkOut ? "~" + rb.checkOut + "일" : "일");
-          var gl = rb.guest ? rb.guest : "(이름 미상)";
-          rows2 += '<div class="item-row"><span class="tag warn-extra">확인필요</span><span class="txt">'+dl+' · '+gl+' — 예약채널 사진에는 없었어요</span></div>';
-          totalExtra++;
-        });
-        html += '<div class="room-result"><h3>🏠 '+escapeHtml(rRoom.room)+'<div class="sub-title">예약채널과 매칭 안됨</div></h3>'+rows2+'</div>';
-      }
-    });
-
-    var summaryHtml = '<div class="summary-box">'
-      + '<div><div class="num" style="color:var(--ok)">'+totalOk+'</div><div class="lbl">일치</div></div>'
-      + '<div><div class="num" style="color:var(--warn)">'+totalMissing+'</div><div class="lbl">채널에만있음</div></div>'
-      + '<div><div class="num" style="color:var(--danger)">'+totalExtra+'</div><div class="lbl">로메이드원에만있음</div></div>'
-      + '</div>';
-
-    resultArea.innerHTML = summaryHtml + html;
   }
 
   function escapeHtml(str){
@@ -436,7 +371,94 @@
     return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
   }
 
-  renderGrids();
+  // ---------- 비교하기 ----------
+  compareBtn.addEventListener("click", async function(){
+    var readyGroups = groups.filter(function(g){
+      return g.roomName.trim() !== "" && g.channelPhotos.length > 0 && g.roommadePhotos.length > 0;
+    });
+    var skippedGroups = groups.filter(function(g){
+      return readyGroups.indexOf(g) === -1;
+    });
+
+    compareBtn.disabled = true;
+    var totalPhotos = 0;
+    readyGroups.forEach(function(g){ totalPhotos += g.channelPhotos.length + g.roommadePhotos.length; });
+    resultArea.innerHTML = '<div class="progress-box"><div class="spinner"></div>사진을 분석하고 있어요...<br><span id="progressText">0 / '+totalPhotos+'</span></div>';
+    var progressText = document.getElementById("progressText");
+    var done = 0;
+
+    var resultsHtml = "";
+    var totalOk = 0, totalMissing = 0, totalExtra = 0;
+
+    for(var gi=0; gi<readyGroups.length; gi++){
+      var g = readyGroups[gi];
+      var channelBookings = [];
+      var roommadeBookings = [];
+
+      for(var ci=0; ci<g.channelPhotos.length; ci++){
+        var cb = await callClaudeVision(g.channelPhotos[ci].dataUrl, buildPrompt(g.roomName, "에어비앤비(예약채널) 예약 캘린더"));
+        channelBookings = channelBookings.concat(cb);
+        done++; if(progressText) progressText.textContent = done + " / " + totalPhotos;
+      }
+      for(var ri=0; ri<g.roommadePhotos.length; ri++){
+        var rb = await callClaudeVision(g.roommadePhotos[ri].dataUrl, buildPrompt(g.roomName, "로메이드원 객실 현황판"));
+        roommadeBookings = roommadeBookings.concat(rb);
+        done++; if(progressText) progressText.textContent = done + " / " + totalPhotos;
+      }
+
+      var usedRoommade = roommadeBookings.map(function(){ return false; });
+      var rows = "";
+
+      channelBookings.forEach(function(cbk){
+        var foundIdx = -1;
+        roommadeBookings.forEach(function(rbk, idx){
+          if(!usedRoommade[idx] && datesOverlapOrClose(cbk, rbk) && guestSimilar(cbk.guest, rbk.guest)){
+            foundIdx = idx;
+          }
+        });
+        var dateLabel = cbk.month + "월 " + cbk.checkIn + "일" + (cbk.checkOut ? "~" + cbk.checkOut + "일" : "일 (종료일 불명확)");
+        var guestLabel = cbk.guest ? cbk.guest : "(이름 미상)";
+        if(foundIdx !== -1){
+          usedRoommade[foundIdx] = true;
+          rows += '<div class="item-row"><span class="tag ok">일치</span><span class="txt">'+dateLabel+' · '+escapeHtml(guestLabel)+'</span></div>';
+          totalOk++;
+        } else {
+          rows += '<div class="item-row"><span class="tag warn-missing">확인필요</span><span class="txt">'+dateLabel+' · '+escapeHtml(guestLabel)+' — 로메이드원에서 못 찾았어요</span></div>';
+          totalMissing++;
+        }
+      });
+
+      roommadeBookings.forEach(function(rbk, idx){
+        if(!usedRoommade[idx]){
+          var dl = rbk.month + "월 " + rbk.checkIn + "일" + (rbk.checkOut ? "~" + rbk.checkOut + "일" : "일");
+          var gl = rbk.guest ? rbk.guest : "(이름 미상)";
+          rows += '<div class="item-row"><span class="tag warn-extra">확인필요</span><span class="txt">'+dl+' · '+escapeHtml(gl)+' — 예약채널에서 못 찾았어요 (취소 의심)</span></div>';
+          totalExtra++;
+        }
+      });
+
+      if(rows === ""){ rows = '<div class="no-issue">비교할 예약 정보가 없어요.</div>'; }
+      resultsHtml += '<div class="room-result"><h3>🏠 '+escapeHtml(g.roomName)+'</h3>'+rows+'</div>';
+    }
+
+    if(skippedGroups.length > 0){
+      var skipNames = skippedGroups.map(function(g){ return g.roomName.trim() || "(호실명 없음)"; }).join(", ");
+      resultsHtml += '<div class="room-result"><div class="skip-msg">⚠️ 다음 객실은 호실명 또는 사진이 부족해서 건너뛰었어요: '+escapeHtml(skipNames)+'</div></div>';
+    }
+
+    var summaryHtml = '<div class="summary-box">'
+      + '<div><div class="num" style="color:var(--ok)">'+totalOk+'</div><div class="lbl">일치</div></div>'
+      + '<div><div class="num" style="color:var(--warn)">'+totalMissing+'</div><div class="lbl">채널에만있음</div></div>'
+      + '<div><div class="num" style="color:var(--danger)">'+totalExtra+'</div><div class="lbl">로메이드원에만있음</div></div>'
+      + '</div>';
+
+    resultArea.innerHTML = summaryHtml + resultsHtml;
+    compareBtn.disabled = false;
+    updateCompareBtn();
+  });
+
+  // ---------- 시작 ----------
+  addGroup(); // 처음 화면에 객실 입력칸 1개는 기본으로 보여주기
 })();
 </script>
 </body>
