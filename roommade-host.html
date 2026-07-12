@@ -26,12 +26,7 @@ body{display:flex;justify-content:center}
 .brand{flex:1}.brand strong{display:block;font-size:16px;letter-spacing:-.4px}.brand small{display:block;font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1.2px;margin-top:1px}
 .iconbtn{width:39px;height:39px;border:1px solid rgba(227,224,218,.9);background:white;border-radius:13px;font-size:17px;color:var(--navy)}
 .view{padding:15px 14px 4px}
-.updated{text-align:center;font-size:11px;color:var(--muted);font-weight:700;margin-bottom:6px}
-.syncbadge{display:flex;align-items:center;justify-content:center;gap:6px;font-size:10px;font-weight:800;margin-bottom:12px;padding:7px;border-radius:10px;background:#EAF3FB;color:#2471A3;transition:background .3s,color .3s}
-.syncbadge.off{background:#FDEEEE;color:#C0556B}
-.syncdot{width:7px;height:7px;border-radius:50%;background:#2F6FAF;animation:pulse 1.6s infinite}
-.syncbadge.off .syncdot{background:#D95C5C;animation:none}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.updated{text-align:center;font-size:11px;color:var(--muted);font-weight:700;margin-bottom:12px}
 .section{margin-top:14px}.sectitle{display:flex;align-items:center;justify-content:space-between;margin:0 4px 9px}.sectitle h2{margin:0;font-size:15px;letter-spacing:-.4px}
 .card{background:white;border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 6px 20px rgba(35,64,92,.045)}
 .monthnav{display:flex;align-items:center;justify-content:space-between;background:white;border:1px solid var(--line);border-radius:19px;padding:10px 12px;margin-bottom:10px}.monthnav button{border:0;background:#F1EEE8;width:36px;height:36px;border-radius:11px;color:var(--navy);font-weight:900;font-size:18px}.monthnav b{font-size:15px}.monthnav small{display:block;text-align:center;color:var(--muted);font-size:9px;margin-top:1px}
@@ -69,7 +64,6 @@ body{display:flex;justify-content:center}
 
   <div class="view">
     <div class="updated" id="updatedAt"></div>
-    <div class="syncbadge" id="syncBadge"><span class="syncdot"></span><span id="syncBadgeText">연결 중...</span></div>
 
     <div id="loadingBox" class="loadbox">
       <div class="big">☁️</div>
@@ -112,23 +106,12 @@ body{display:flex;justify-content:center}
   var allowedRoomIds = null; // 링크로 지정된 객실만 (null이면 전체)
   var calYear = new Date().getFullYear();
   var calMonth = new Date().getMonth();
-  var POLL_MS = 8000; // 8초마다 자동으로 새 데이터 확인 (실시간처럼 반영)
-  var pollTimer = null;
-  var lastUpdatedAt = null;
-  var isFirstLoad = true;
 
   function $(id){ return document.getElementById(id); }
 
   function toast(msg){
     var t = $('toast'); t.textContent = msg; t.className = 'toast show';
     setTimeout(function(){ t.className = 'toast'; }, 1800);
-  }
-
-  function setSyncBadge(ok, msg){
-    var el = $('syncBadge'); var txt = $('syncBadgeText');
-    if (!el || !txt) return;
-    el.className = 'syncbadge' + (ok ? '' : ' off');
-    txt.textContent = msg || (ok ? '실시간 연결됨' : '연결 끊김 · 재시도 중');
   }
 
   // URL 파라미터 읽기 (구형 사파리도 안전하게 직접 파싱)
@@ -143,8 +126,7 @@ body{display:flex;justify-content:center}
   }
 
   // 클라우드에서 데이터 불러오기
-  // silent=true 이면 화면 전체 로딩 표시 없이 조용히 새로고침 (자동 폴링용)
-  function loadData(silent){
+  function loadData(){
     var binId = getParam('id');
     var roomsParam = getParam('rooms');
     if (roomsParam){
@@ -152,73 +134,27 @@ body{display:flex;justify-content:center}
     }
     if (!binId){
       $('loadingBox').innerHTML = '<div class="big">⚠️</div><div>잘못된 링크예요.<br>사장님께 링크를 다시 받아주세요.</div>';
-      $('loadingBox').style.display = 'block';
-      $('content').style.display = 'none';
-      setSyncBadge(false, '링크 오류');
       return;
     }
-    if (!silent){
-      $('loadingBox').style.display = 'block';
-      $('content').style.display = 'none';
-    }
+    $('loadingBox').style.display = 'block';
+    $('content').style.display = 'none';
 
-    fetch(DB_URL + '/shares/' + binId + '.json', { cache: 'no-store' })
+    fetch(DB_URL + '/shares/' + binId + '.json')
     .then(function(res){
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
     })
     .then(function(json){
-      var incoming = json || {};
-      if (!incoming.rooms) incoming.rooms = [];
-      if (!incoming.transactions) incoming.transactions = [];
-
-      // 새 데이터인지 확인 (updatedAt이 달라졌을 때만 다시 그림 → 깜빡임 방지)
-      var changed = incoming.updatedAt !== lastUpdatedAt;
-      DATA = incoming;
-      lastUpdatedAt = incoming.updatedAt;
-
-      $('loadingBox').style.display = 'none';
-      $('content').style.display = 'block';
-
-      if (changed || isFirstLoad){
-        render();
-        if (!isFirstLoad && !silent === false) { /* no-op, placeholder for future toast control */ }
-      }
-      setSyncBadge(true, '🟢 실시간 연결됨');
-      if (isFirstLoad){
-        isFirstLoad = false;
-        startPolling();
-      }
+      DATA = json || {};
+      if (!DATA.rooms) DATA.rooms = [];
+      if (!DATA.transactions) DATA.transactions = [];
+      render();
     })
     .catch(function(e){
       console.error(e);
-      if (!silent){
-        $('loadingBox').innerHTML = '<div class="big">❌</div><div>불러오기 실패<br><small>' + esc(e.message) + '</small></div>';
-        $('loadingBox').style.display = 'block';
-        $('content').style.display = 'none';
-      }
-      setSyncBadge(false, '🔴 연결 끊김 · 재시도 중');
+      $('loadingBox').innerHTML = '<div class="big">❌</div><div>불러오기 실패<br><small>' + esc(e.message) + '</small></div>';
     });
   }
-
-  function startPolling(){
-    if (pollTimer) clearInterval(pollTimer);
-    pollTimer = setInterval(function(){ loadData(true); }, POLL_MS);
-  }
-  function stopPolling(){
-    if (pollTimer) clearInterval(pollTimer);
-    pollTimer = null;
-  }
-
-  // 화면을 안 보고 있을 땐 폴링을 멈춰서 배터리/데이터 절약, 다시 보면 즉시 갱신
-  document.addEventListener('visibilitychange', function(){
-    if (document.hidden){
-      stopPolling();
-    } else {
-      loadData(true);
-      startPolling();
-    }
-  });
 
   // 보여줄 객실 (링크에 지정된 것만)
   function myRooms(){
@@ -238,6 +174,7 @@ body{display:flex;justify-content:center}
     var seen = {};
     // 1) 입실 손님 기준
     var noteByCleanDate = {}; // 청소일(=그날 퇴실) → 메모
+    var suppliesByInDate = {}; // 입실일 → 준비물
     txs.forEach(function(tx){
       if (String(tx.targetId) !== String(roomId)) return;
       if (tx.type && tx.type !== 'income' && tx.type !== '수입') return;
@@ -317,6 +254,7 @@ body{display:flex;justify-content:center}
         var nextIn = new Date(next.checkIn);
         var gap = Math.round((nextIn - thisOut) / 86400000);
         // gap>=1 이면 퇴실 후 다음 입실까지 비는 기간
+        // 방식2: 실제 빈 밤 = 퇴실일 ~ 입실 전날
         if (gap >= 1){
           var emptyFrom = new Date(thisOut); // 퇴실일(청소 후 빈 상태 시작)
           var emptyTo = new Date(nextIn); emptyTo.setDate(emptyTo.getDate() - 1); // 입실 전날
@@ -324,7 +262,7 @@ body{display:flex;justify-content:center}
             kind:'empty',
             from: dateStr(emptyFrom),
             to: dateStr(emptyTo),
-            days: gap
+            days: gap   // 비는 일수 (퇴실~입실 사이)
           });
         }
       }
@@ -435,10 +373,38 @@ body{display:flex;justify-content:center}
   }
 
   function render(){
+    $('loadingBox').style.display = 'none';
+    $('content').style.display = 'block';
     if (DATA.updatedAt){
       var d = new Date(DATA.updatedAt);
-      $('updatedAt').textContent = '🕐 ' + (d.getMonth()+1) + '월 ' + d.getDate() + '일 ' +
+      var now = new Date();
+      var mins = Math.floor((now - d)/60000);
+      var timeStr = '🕐 ' + (d.getMonth()+1) + '월 ' + d.getDate() + '일 ' +
         pad(d.getHours())+':'+pad(d.getMinutes()) + ' 기준';
+      // 최근 6시간 내 업데이트면 강조
+      if (mins >= 0 && mins < 360){
+        var ago = mins < 1 ? '방금' : (mins < 60 ? mins+'분 전' : Math.floor(mins/60)+'시간 전');
+        $('updatedAt').innerHTML = '<span style="color:#D95C5C;">🔴 '+ago+' 업데이트됨</span> · '+timeStr;
+      } else {
+        $('updatedAt').textContent = timeStr;
+      }
+      // C: 이전에 본 업데이트 시각 저장 (변경 강조용)
+      try {
+        var seenKey = 'roommade-host-lastseen-' + binId;
+        window._prevSeen = localStorage.getItem(seenKey) || '';
+        localStorage.setItem(seenKey, DATA.updatedAt);
+      } catch(e){ window._prevSeen = ''; }
+      // C: 이전에 본 것보다 새로운 데이터면 상단 배너
+      try {
+        if (window._prevSeen && DATA.updatedAt && DATA.updatedAt > window._prevSeen) {
+          var banner = document.createElement('div');
+          banner.style.cssText = 'background:#FFF3E4;color:#B8860B;border:1px solid #F0D890;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:12px;font-weight:700;text-align:center;';
+          banner.textContent = '🆕 지난번 확인 이후 새로 업데이트되었어요!';
+          var content = document.getElementById('content');
+          if (content && content.firstChild) content.insertBefore(banner, content.firstChild);
+          else if (content) content.appendChild(banner);
+        }
+      } catch(e){}
     }
     renderCalendar();
     renderRooms();
@@ -450,11 +416,11 @@ body{display:flex;justify-content:center}
   function dateStr(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
   function fmtMD(s){ if(!s) return '-'; var d=new Date(s); if(isNaN(d.getTime())) return esc(s); return (d.getMonth()+1)+'/'+d.getDate(); }
 
-  $('btnRefresh').addEventListener('click', function(){ toast('새로고침'); loadData(false); });
+  $('btnRefresh').addEventListener('click', function(){ toast('새로고침'); loadData(); });
   $('prevMonth').addEventListener('click', function(){ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); });
   $('nextMonth').addEventListener('click', function(){ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); });
 
-  loadData(false);
+  loadData();
 })();
 </script>
 </body>
