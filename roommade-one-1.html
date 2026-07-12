@@ -1112,7 +1112,38 @@ input,select,textarea{min-height:44px}
       inNights:$('#txInNights').value.trim(), inGuests:$('#txInGuests').value.trim(), inTime:$('#txInTime').value, inSupplies:$('#txInSupplies').value.trim()
     } : {};
     const obj={id:id||uid('tx'),date,billingMonth,type:txType,targetId,targetName:target.name,branch,amount,taxRate,taxAmount,netAmount:amount-taxAmount,paid,memo,status,createdAt:Date.now(),...sched};
-    if(id){const i=state.transactions.findIndex(x=>x.id===id);state.transactions[i]={...state.transactions[i],...obj}}else state.transactions.push(obj);save();closeModal('txModal');toast('기록을 저장했어요');render();
+    if(id){const i=state.transactions.findIndex(x=>x.id===id);state.transactions[i]={...state.transactions[i],...obj}}else state.transactions.push(obj);
+    // 🔄 입실(예약) 정보가 있으면 → 나가는 날 청소 자동 생성
+    let autoMsg='';
+    if(txType==='income' && sched.inNights){
+      const n=parseInt(sched.inNights,10);
+      if(n>0){
+        const co=new Date(date+'T00:00:00'); co.setDate(co.getDate()+n);
+        const coStr=co.getFullYear()+'-'+String(co.getMonth()+1).padStart(2,'0')+'-'+String(co.getDate()).padStart(2,'0');
+        // 그 날짜에 같은 객실 청소가 이미 있는지
+        const exist=state.transactions.find(t=>t.type==='income'&&t.targetId===targetId&&t.date===coStr&&t.status!=='cancelled');
+        if(exist){
+          // 이미 있으면 체크아웃 정보만 채움(비어있을 때만)
+          if(!exist.outNights&&!exist.outGuests){
+            exist.outNights=sched.inNights; exist.outGuests=sched.inGuests; exist.outTime=exist.outTime||'11:00';
+          }
+        }else{
+          // 없으면 새 청소 자동 생성 (체크아웃 = 이번 입실 정보)
+          const newAmount = branch==='펜트하우스' ? 0 : (target.price||0);
+          state.transactions.push({
+            id:uid('tx'), date:coStr, billingMonth:ym(coStr), type:'income',
+            targetId:targetId, targetName:target.name, branch:branch,
+            amount:newAmount, taxRate:target.tax||0, taxAmount:0, netAmount:newAmount,
+            outNights:sched.inNights, outGuests:sched.inGuests, outTime:'11:00',
+            inNights:'', inGuests:'', inTime:'', inSupplies:'',
+            memo:'', paid:false, status:coStr<=today()?'done':'booked',
+            createdAt:Date.now()+1, autoGen:true
+          });
+          autoMsg=' → '+coStr.slice(5).replace('-','/')+' 청소 자동 생성';
+        }
+      }
+    }
+    save();closeModal('txModal');toast('기록을 저장했어요'+autoMsg);render();
   }
   function deleteTxForm(){const id=$('#txEditId').value;if(!id)return;if(confirm('이 기록을 삭제할까요?')){state.transactions=state.transactions.filter(x=>x.id!==id);save();closeModal('txModal');render();toast('삭제했어요')}}
   function openRoom(id=''){const r=state.rooms.find(x=>x.id===id);$('#roomEditId').value=id;$('#roomNameInput').value=r?.name||'';$('#roomHostInput').value=r?.hostName||'';$('#roomBranchInput').value=r?.branch||(state.branch==='전체'?'영종점':state.branch);$('#roomPriceInput').value=r?.price||'';$('#roomTaxInput').value=r?.tax||'';$('#roomBaseGuests').value=r?.baseGuests||'';$('#roomExtraSetup').value=r?.extraSetup||'';$('#roomDoorPw').value=r?.doorPw||'';$('#roomSupplyPw').value=r?.supplyPw||'';const drb=$('#deleteRoomBtn');if(drb)drb.style.display=id?'block':'none';const arb=$('#archiveRoomBtn');if(arb){arb.style.display=id?'block':'none';if(r&&r.archived){arb.textContent='📤 보관 해제 (메뉴에 다시 표시)';arb.style.background='#D5F5E3';arb.style.color='#1E8449';arb.style.borderColor='#A9DFBF';}else{arb.textContent='📦 이 객실 보관 (메뉴에서 숨김)';arb.style.background='#FDF0D5';arb.style.color='#B8860B';arb.style.borderColor='#F0D890';}}openModal('roomModal')}
