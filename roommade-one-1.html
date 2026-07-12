@@ -698,25 +698,23 @@ input,select,textarea{min-height:44px}
       .filter(t=>t.type==='income'&&t.date===dateStr&&t.status!=='cancelled')
       .sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
     if(!list.length){toast('이 날짜에 청소 일정이 없어요');return;}
-    const L=['🧹 오늘의 청소 업무','📅 '+dateText(dateStr),'총 '+list.length+'건','═══════════════',''];
+    const L=['🧹 '+dateText(dateStr)+' 청소 ('+list.length+'건)',''];
     list.forEach((t,i)=>{
       const room=state.rooms.find(r=>r.id===t.targetId)||{};
-      const time=t.outTime||'시간미정';
-      L.push('【'+(i+1)+'】 '+time+'  '+(t.targetName||room.name));
+      L.push('【'+(i+1)+'】 '+(t.targetName||room.name));
       if(t.outNights||t.outGuests){
-        L.push('  🚪 퇴실: '+(t.outNights||'-')+'박 '+(t.outGuests||'-')+'명'+(t.outTime?' ('+t.outTime+')':''));
+        L.push('🚪 퇴실 '+(t.outNights||'-')+'박 '+(t.outGuests||'-')+'명'+(t.outTime?' '+t.outTime:''));
       }
+      if(room.doorPw)L.push('🔑 '+room.doorPw+(room.supplyPw?'  📦 '+room.supplyPw:''));
+      else if(room.supplyPw)L.push('📦 '+room.supplyPw);
+      if(t.memo)L.push('📝 '+t.memo);
       if(t.inNights){
-        L.push('  🏠 입실: '+t.inNights+'박 '+(t.inGuests||'-')+'명'+(t.inTime?' ('+t.inTime+')':''));
-        if(t.inSupplies)L.push('  🛒 셋팅: '+t.inSupplies);
+        L.push('🏠 입실 '+t.inNights+'박 '+(t.inGuests||'-')+'명'+(t.inTime?' '+t.inTime:''));
+        if(t.inSupplies)L.push('🛒 셋팅 '+t.inSupplies);
       }
-      if(room.doorPw)L.push('  🔑 도어락: '+room.doorPw);
-      if(room.supplyPw)L.push('  📦 비품함: '+room.supplyPw);
-      if(t.memo)L.push('  📝 '+t.memo);
       L.push('');
     });
-    L.push('═══════════════');
-    shareText(L.join('\n'));
+    shareText(L.join('\n').trim());
   }
 
   // 자동 예정 → 임시 객체로 변환해 카톡
