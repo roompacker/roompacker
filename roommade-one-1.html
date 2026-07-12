@@ -161,7 +161,8 @@ input,select,textarea{min-height:44px}
           <div><b id="boardMonthTitle">2026년 6월</b><small>객실 누르면 그 달 체크인·아웃 전체</small></div>
           <button data-board-month="1">›</button>
         </div>
-        <button id="makeRoomview" style="width:100%;background:var(--navy);color:#fff;border:0;border-radius:14px;padding:13px;font-size:13px;font-weight:800;cursor:pointer;font-family:Pretendard,sans-serif;margin-bottom:14px;">📤 호스트에게 룸뷰 링크 보내기</button>
+        <button id="makeRoomview" style="width:100%;background:var(--navy);color:#fff;border:0;border-radius:14px;padding:13px;font-size:13px;font-weight:800;cursor:pointer;font-family:Pretendard,sans-serif;margin-bottom:8px;">📤 호스트에게 룸뷰 링크 보내기</button>
+        <button id="notifyUpdate" style="width:100%;background:#FEE500;color:#3C1E1E;border:0;border-radius:14px;padding:13px;font-size:13px;font-weight:800;cursor:pointer;font-family:Pretendard,sans-serif;margin-bottom:14px;">🔔 호스트에게 업데이트 알림 보내기</button>
         <div id="boardList"></div>
       </div>
     </section>
@@ -381,6 +382,13 @@ input,select,textarea{min-height:44px}
     <div style="font-size:12px;color:var(--sub);font-weight:700;margin:8px 0 6px;">보낼 객실을 골라주세요 (여러 개 가능)</div>
     <div id="rvRoomChecks" style="max-height:40vh;overflow-y:auto;margin-bottom:12px;"></div>
     <button class="primary" id="rvMakeLink">📤 링크 만들어 공유하기</button>
+  </div>
+</div>
+<div class="modal" id="notifyModal">
+  <div class="sheet">
+    <div class="grab"></div><div class="sheethead"><h3>🔔 업데이트 알림 보내기</h3><button class="close" data-close="notifyModal">×</button></div>
+    <div style="font-size:12px;color:var(--sub);margin-bottom:12px;">알림을 보낼 호스트를 선택하세요.</div>
+    <div id="notifyList"></div>
   </div>
 </div>
 
@@ -708,8 +716,6 @@ input,select,textarea{min-height:44px}
       L.push('');
     });
     L.push('═══════════════');
-    L.push('※ 사진은 아래에 첨부해서 보내주세요 📷');
-    L.push('룸메이드');
     shareText(L.join('\n'));
   }
 
@@ -772,6 +778,27 @@ input,select,textarea{min-height:44px}
   }
 
   // 호스트용 룸뷰 링크 생성 + 공유
+  // B: 저장된 호스트에게 '업데이트 알림' 카톡 보내기
+  async function sendUpdateNotify(){
+    let saved=[];
+    try{ saved=JSON.parse(localStorage.getItem('roommade-호스트링크')||'[]'); }catch(e){}
+    if(!saved.length){ toast('먼저 호스트에게 링크를 한 번 공유해주세요'); return; }
+    // 최신 데이터를 클라우드에 올려 링크 내용 갱신
+    try{ await cloudUpload(true); }catch(e){ toast('❌ 업로드 실패: '+(e&&e.message||'')); return; }
+    // 호스트가 여러 명이면 선택 목록, 한 명이면 바로
+    if(saved.length===1){ shareUpdateMsg(saved[0]); return; }
+    const html=saved.map((s,i)=>`<button class="secondary" data-notify-idx="${i}" style="width:100%;margin-bottom:8px;text-align:left;">📢 ${esc(s.host)} 님에게 알림</button>`).join('')
+      +`<button class="secondary" data-notify-all="1" style="width:100%;background:#FEE500;color:#3C1E1E;border:0;">📢 전체 호스트에게 알림</button>`;
+    $('#notifyList').innerHTML=html;
+    openModal('notifyModal');
+  }
+  function shareUpdateMsg(entry){
+    const msg=`${entry.host} 님, 객실 현황이 업데이트되었습니다. 🔔\n최신 예약·청소 일정을 아래 링크에서 확인해주세요.\n${entry.link}`;
+    if(navigator.share){
+      navigator.share({title:'ROOMMADE 업데이트 알림',text:msg,url:entry.link}).then(()=>toast('✅ 알림 전송')).catch(err=>{if(err&&err.name!=='AbortError')fallbackCopy(msg,entry.link);});
+    }else fallbackCopy(msg,entry.link);
+  }
+
   function makeRoomviewLink(){
     const rooms=branchFilter(state.rooms).filter(r=>!r.archived);
     if(!rooms.length){toast('표시할 객실이 없어요');return;}
@@ -873,6 +900,13 @@ input,select,textarea{min-height:44px}
       // 링크엔 짧은 ID + 선택 객실만 (URL 짧음 → 아이폰 문제 없음)
       const roomsParam=encodeURIComponent(checked.join(','));
       const link=CLOUD.HOST_BASE+'?id='+binId+'&rooms='+roomsParam;
+      try{
+        const saved=JSON.parse(localStorage.getItem('roommade-호스트링크')||'[]');
+        const idx=saved.findIndex(x=>x.host===host);
+        const entry={host:host, link:link, rooms:checked, updatedAt:new Date().toISOString()};
+        if(idx>=0)saved[idx]=entry; else saved.push(entry);
+        localStorage.setItem('roommade-호스트링크',JSON.stringify(saved));
+      }catch(e){}
       const msg=`${host} 님, 객실 현황입니다.\n예약·청소·준비사항을 아래 링크에서 확인해주세요.\n${link}`;
       closeModal('roomviewModal');
       if(navigator.share){
@@ -1381,6 +1415,8 @@ input,select,textarea{min-height:44px}
     if(b.dataset.date){selectedDate=b.dataset.date;renderSchedule()}
     if(b.id==='addSelectedDate')openTx('income',selectedDate);
     if(b.id==='sendDayTimeline')dayTimelineMsg(selectedDate);
+    if(b.dataset.notifyIdx!=null){let saved=[];try{saved=JSON.parse(localStorage.getItem('roommade-호스트링크')||'[]');}catch(e){}const entry=saved[Number(b.dataset.notifyIdx)];if(entry){closeModal('notifyModal');shareUpdateMsg(entry);}return;}
+    if(b.dataset.notifyAll){let saved=[];try{saved=JSON.parse(localStorage.getItem('roommade-호스트링크')||'[]');}catch(e){}closeModal('notifyModal');const allMsg=saved.map(s=>s.host+' 님: '+s.link).join('\n\n');const msg='객실 현황이 업데이트되었습니다. 🔔\n\n'+allMsg;if(navigator.share){navigator.share({text:msg}).catch(()=>{});}else fallbackCopy(msg,'');return;}
     const edit=b.closest('[data-edit-tx]')?.dataset.editTx;if(edit&&!b.dataset.toggleStatus)openTx(state.transactions.find(x=>x.id===edit)?.type||'income',today(),edit);
     if(b.id==='addSetupBtn'){openSetup();return;}
     const setupEl=b.closest('[data-edit-setup]');
@@ -1407,6 +1443,7 @@ input,select,textarea{min-height:44px}
   $('#saveSetup').addEventListener('click',saveSetupForm);$('#deleteSetup').addEventListener('click',deleteSetupForm);
   $('#supplyReceiptInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{supplyReceiptData=ev.target.result;$('#supplyReceiptPreview').innerHTML=`<img src="${supplyReceiptData}" style="max-width:100%;border-radius:10px;">`;};r.readAsDataURL(f);});
   const mrv=$('#makeRoomview');if(mrv)mrv.addEventListener('click',makeRoomviewLink);
+  {const nu=$('#notifyUpdate');if(nu)nu.addEventListener('click',sendUpdateNotify);}
   const rvm=$('#rvMakeLink');if(rvm)rvm.addEventListener('click',buildRoomviewLink);
   $('#rvRoomChecks').addEventListener('change',()=>{
     if($('#rvHostName').value.trim())return;
