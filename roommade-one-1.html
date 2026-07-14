@@ -127,6 +127,11 @@ input,select,textarea{min-height:44px}
         <div class="card" id="todayJobs"></div>
       </div>
 
+      <div class="section">
+        <div class="sectitle"><h2>⚠️ 오늘 꼭 확인!</h2></div>
+        <div id="todayAlerts"></div>
+      </div>
+
       <div class="section" style="display:none;">
         <div class="sectitle"><h2>🏠 다가올 체크인 준비</h2><button id="addSetupBtn">+ 셋팅 추가</button></div>
         <div class="card" id="checkinPrep"></div>
@@ -618,6 +623,38 @@ input,select,textarea{min-height:44px}
     const jobs=branchFilter(state.transactions).filter(t=>t.type==='income'&&t.date===today()&&t.status!=='cancelled').sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
     let jobsHtml = jobs.length?jobs.map((t,i)=>jobHTML(t,i)).join(''):'';
     $('#todayJobs').innerHTML=jobsHtml||empty('☕','오늘 등록된 청소 일정이 없어요');
+    renderTodayAlerts();
+  }
+
+  // ⚠️ 오늘 꼭 확인! — 얼리체크인(16시 이전 입실)/레이트체크아웃(11시 이후 퇴실)/오늘 준비물
+  function renderTodayAlerts(){
+    const el=$('#todayAlerts'); if(!el)return;
+    const list=branchFilter(state.transactions).filter(t=>t.type==='income'&&t.date===today()&&t.status!=='cancelled');
+    const early=[], late=[], supplies=[];
+    list.forEach(t=>{
+      const name=t.targetName||'';
+      // 얼리체크인: 입실 시간이 16:00 이전 (시간 있고 박수 있을 때)
+      if(t.inNights && t.inTime && t.inTime<'16:00'){
+        early.push({name, time:t.inTime, guests:t.inGuests});
+      }
+      // 레이트체크아웃: 퇴실 시간이 11:00 이후
+      if((t.outNights||t.outGuests) && t.outTime && t.outTime>'11:00'){
+        late.push({name, time:t.outTime, guests:t.outGuests});
+      }
+      // 오늘 준비물
+      if(t.inSupplies){ supplies.push({name, sup:t.inSupplies}); }
+    });
+    let html='';
+    if(early.length){
+      html+=`<div style="background:#FFF3E4;border:1px solid #F5D9A8;border-radius:14px;padding:12px 14px;margin-bottom:8px;"><div style="font-weight:800;color:#C77800;font-size:13px;margin-bottom:6px;">🌅 얼리체크인 (16시 이전 입실)</div>`+early.map(e=>`<div style="font-size:12px;color:#5A4A2A;margin-bottom:2px;">• ${esc(e.name)} — <b>${e.time}</b> 입실${e.guests?' ('+e.guests+'명)':''}</div>`).join('')+`</div>`;
+    }
+    if(late.length){
+      html+=`<div style="background:#F3E8FF;border:1px solid #DDC4F5;border-radius:14px;padding:12px 14px;margin-bottom:8px;"><div style="font-weight:800;color:#7B3FB0;font-size:13px;margin-bottom:6px;">🌙 레이트체크아웃 (11시 이후 퇴실)</div>`+late.map(e=>`<div style="font-size:12px;color:#4A3A5A;margin-bottom:2px;">• ${esc(e.name)} — <b>${e.time}</b> 퇴실${e.guests?' ('+e.guests+'명)':''}</div>`).join('')+`</div>`;
+    }
+    if(supplies.length){
+      html+=`<div style="background:#E4F5EC;border:1px solid #B8E0C8;border-radius:14px;padding:12px 14px;margin-bottom:8px;"><div style="font-weight:800;color:#1E8449;font-size:13px;margin-bottom:6px;">🛒 오늘 준비물 (침구·수건)</div>`+supplies.map(e=>`<div style="font-size:12px;color:#2A4A3A;margin-bottom:2px;">• ${esc(e.name)} — <b>${esc(e.sup)}</b></div>`).join('')+`</div>`;
+    }
+    el.innerHTML = html || `<div style="text-align:center;padding:16px;color:var(--muted);font-size:12px;">✅ 오늘 특이사항 없어요</div>`;
   }
   // 초과 인원에 따라 추가 셋팅 자동 계산
   // 규칙 "토퍼1, 수건2"  + 초과 2명  →  "토퍼2, 수건4"
