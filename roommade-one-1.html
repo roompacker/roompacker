@@ -127,7 +127,7 @@ input,select,textarea{min-height:44px}
         <div class="card" id="todayJobs"></div>
       </div>
 
-      <div class="section">
+      <div class="section" style="display:none;">
         <div class="sectitle"><h2>🏠 다가올 체크인 준비</h2><button id="addSetupBtn">+ 셋팅 추가</button></div>
         <div class="card" id="checkinPrep"></div>
       </div>
@@ -615,17 +615,9 @@ input,select,textarea{min-height:44px}
   function renderHome(){
     const tx=monthTx(currentYM()), income=sum(tx,'income'),expense=sum(tx,'expense'),net=income-expense,recv=sum(tx,'income',false),pay=sum(tx,'expense',false),margin=income?Math.round(net/income*100):0;
     $('#homeMonthLabel').textContent=monthText(currentYM())+' 예상 순익';$('#homeNet').textContent=money(net);$('#homeIncome').textContent=money(income);$('#homeExpense').textContent=money(expense);$('#homeReceivable').textContent=short(recv)+'원';$('#homePayable').textContent=short(pay)+'원';$('#homeMargin').textContent=margin+'%';
-    const jobs=branchFilter(state.transactions).filter(t=>t.type==='income'&&t.date===today()&&t.status!=='cancelled').sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
-    // 오늘 자동 청소 예정 (아직 기록 안 한 것)
-    const todayPlanned=getPlannedCleanings().filter(p=>p.date===today()&&(state.branch==='전체'||p.branch===state.branch));
+    const jobs=branchFilter(state.transactions).filter(t=>t.type==='income'&&t.date===today()&&t.status!=='cancelled').sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
     let jobsHtml = jobs.length?jobs.map((t,i)=>jobHTML(t,i)).join(''):'';
-    jobsHtml += todayPlanned.map(p=>plannedHTML(p)).join('');
     $('#todayJobs').innerHTML=jobsHtml||empty('☕','오늘 등록된 청소 일정이 없어요');
-    // 다가올 체크인 준비 (오늘 이후 청소 예정 + 수동 셋팅, 날짜순)
-    const prep=getPlannedCleanings().filter(p=>p.date>=today()&&(state.branch==='전체'||p.branch===state.branch)).map(p=>({kind:'prep',date:p.date,data:p}));
-    const setups=getSetups().filter(s=>s.date>=today()&&(state.branch==='전체'||s.branch===state.branch)).map(s=>({kind:'setup',date:s.date,data:s}));
-    const merged=prep.concat(setups).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0).slice(0,12);
-    $('#checkinPrep').innerHTML=merged.length?merged.map(m=>m.kind==='setup'?setupHTML(m.data):prepHTML(m.data)).join(''):empty('🛏️','다가올 체크인 준비가 없어요');
   }
   // 초과 인원에 따라 추가 셋팅 자동 계산
   // 규칙 "토퍼1, 수건2"  + 초과 2명  →  "토퍼2, 수건4"
