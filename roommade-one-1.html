@@ -155,7 +155,7 @@ input,select,textarea{min-height:44px}
           <div class="days" id="calendarDays"></div>
         </div>
         <div class="section">
-          <div class="sectitle"><h2 id="selectedDateTitle">선택 날짜</h2><div style="display:flex;gap:6px;"><button id="sendDayTimeline" style="background:#FEE500;color:#3C1E1E;border:0;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:800;">📤 하루 업무</button><button id="addSelectedDate">+ 등록</button></div></div>
+          <div class="sectitle"><h2 id="selectedDateTitle">선택 날짜</h2><div style="display:flex;gap:6px;"><button id="autoAssignBtn" style="background:#E8F4FD;color:#2F6FAF;border:0;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:800;">🎯 자동배치</button><button id="sendDayTimeline" style="background:#FEE500;color:#3C1E1E;border:0;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:800;">📤 하루 업무</button><button id="addSelectedDate">+ 등록</button></div></div>
           <div class="card" id="selectedDateList"></div>
         </div>
       </div>
@@ -360,6 +360,16 @@ input,select,textarea{min-height:44px}
     <div class="field"><label>이름</label><input id="staffNameInput" placeholder="예: 김실장" /></div>
     <div class="twocol"><div class="field"><label>지점</label><select id="staffBranchInput"><option>영종점</option><option>송도점</option><option>펜트하우스</option></select></div><div class="field"><label>급여 방식</label><select id="staffPayTypeInput"><option>건당</option><option>시간</option><option>당일</option><option>월급</option></select></div></div>
     <div class="twocol"><div class="field"><label>기본 단가</label><input type="number" id="staffRateInput" placeholder="17000" /></div><div class="field"><label>세금률 %</label><input type="number" step="0.1" id="staffTaxInput" placeholder="3.3" /></div></div>
+    <div style="background:#F6F9FC;border:1px solid #E3EDF5;border-radius:14px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:800;color:var(--navy);margin-bottom:10px;">🎯 배치 정보 (자동배치용)</div>
+      <div class="field"><label>일할 수 있는 날</label><select id="staffAvailInput"><option value="불특정">불특정 (아무때나)</option><option value="주말">주말만</option><option value="주말+평일">주말+평일</option></select></div>
+      <div class="twocol">
+        <div class="field"><label>청소 속도 (별점)</label><select id="staffSpeedInput"><option value="3">⭐⭐⭐ 보통</option><option value="5">⭐⭐⭐⭐⭐ 매우빠름</option><option value="4">⭐⭐⭐⭐ 빠름</option><option value="2">⭐⭐ 느림</option><option value="1">⭐ 매우느림</option></select></div>
+        <div class="field"><label>품질 평가 (별점)</label><select id="staffQualityInput"><option value="3">⭐⭐⭐ 보통</option><option value="5">⭐⭐⭐⭐⭐ 매우좋음</option><option value="4">⭐⭐⭐⭐ 좋음</option><option value="2">⭐⭐ 미흡</option><option value="1">⭐ 매우미흡</option></select></div>
+      </div>
+      <div class="field"><label>근무 형태</label><select id="staffSoloInput"><option value="단독">단독 가능</option><option value="2인1조">2인 1조 필요</option></select></div>
+      <div class="field"><label>숙련 객실 (잘하는 객실 체크)</label><div id="staffSkillRooms" style="max-height:130px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff;"></div></div>
+    </div>
     <button class="primary" id="saveStaff">저장</button>
     <button class="secondary" id="archiveStaffBtn" style="margin-top:8px;display:none;background:#FDF0D5;color:#B8860B;border-color:#F0D890;">📦 이 직원 보관 (메뉴에서 숨김)</button>
     <button class="secondary danger" id="deleteStaffBtn" style="margin-top:8px;display:none;">🗑️ 이 직원 삭제</button>
@@ -387,6 +397,13 @@ input,select,textarea{min-height:44px}
     <div style="font-size:12px;color:var(--sub);font-weight:700;margin:8px 0 6px;">보낼 객실을 골라주세요 (여러 개 가능)</div>
     <div id="rvRoomChecks" style="max-height:40vh;overflow-y:auto;margin-bottom:12px;"></div>
     <button class="primary" id="rvMakeLink">📤 링크 만들어 공유하기</button>
+  </div>
+</div>
+<div class="modal" id="assignModal">
+  <div class="sheet">
+    <div class="grab"></div><div class="sheethead"><h3>🎯 자동 배치 결과</h3><button class="close" data-close="assignModal">×</button></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">스케줄 → 페이 → 품질 → 숙련도 순으로 배정했어요.</div>
+    <div id="assignResult" style="max-height:60vh;overflow-y:auto;"></div>
   </div>
 </div>
 <div class="modal" id="notifyModal">
@@ -1368,8 +1385,109 @@ input,select,textarea{min-height:44px}
     save();closeModal('roomModal');render();
     toast(r.archived?('📦 "'+r.name+'" 보관됨 (메뉴에서 숨김)'):('📤 "'+r.name+'" 다시 표시됨'));
   }
-  function openStaff(id=''){const s=state.staff.find(x=>x.id===id);$('#staffEditId').value=id;$('#staffNameInput').value=s?.name||'';$('#staffBranchInput').value=s?.branch||(state.branch==='전체'?'영종점':state.branch);$('#staffPayTypeInput').value=s?.payType||'건당';$('#staffRateInput').value=s?.rate||'';$('#staffTaxInput').value=s?.tax??3.3;const dsb=$('#deleteStaffBtn');if(dsb)dsb.style.display=id?'block':'none';const asb=$('#archiveStaffBtn');if(asb){asb.style.display=id?'block':'none';if(s&&s.archived){asb.textContent='📤 보관 해제 (메뉴에 다시 표시)';asb.style.background='#D5F5E3';asb.style.color='#1E8449';asb.style.borderColor='#A9DFBF';}else{asb.textContent='📦 이 직원 보관 (메뉴에서 숨김)';asb.style.background='#FDF0D5';asb.style.color='#B8860B';asb.style.borderColor='#F0D890';}}openModal('staffModal')}
-  function saveStaffForm(){const id=$('#staffEditId').value,name=$('#staffNameInput').value.trim(),branch=$('#staffBranchInput').value,payType=$('#staffPayTypeInput').value,rate=Number($('#staffRateInput').value),tax=Number($('#staffTaxInput').value||0);if(!name||!rate)return toast('이름과 기본 단가를 입력해주세요');const obj={id:id||uid('staff'),name,branch,payType,rate,tax};if(id)state.staff[state.staff.findIndex(x=>x.id===id)]=obj;else state.staff.push(obj);save();closeModal('staffModal');render();toast('직원을 저장했어요')}
+  function openStaff(id=''){const s=state.staff.find(x=>x.id===id);$('#staffEditId').value=id;$('#staffNameInput').value=s?.name||'';$('#staffBranchInput').value=s?.branch||(state.branch==='전체'?'영종점':state.branch);$('#staffPayTypeInput').value=s?.payType||'건당';$('#staffRateInput').value=s?.rate||'';$('#staffTaxInput').value=s?.tax??3.3;
+    // 배치 정보 채우기
+    if($('#staffAvailInput'))$('#staffAvailInput').value=s?.avail||'불특정';
+    if($('#staffSpeedInput'))$('#staffSpeedInput').value=String(s?.speed||3);
+    if($('#staffQualityInput'))$('#staffQualityInput').value=String(s?.quality||3);
+    if($('#staffSoloInput'))$('#staffSoloInput').value=s?.solo||'단독';
+    if($('#staffSkillRooms')){
+      const skills=(s?.skillRooms)||[];
+      const rms=state.rooms.filter(r=>!r.archived);
+      $('#staffSkillRooms').innerHTML=rms.length?rms.map(r=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:12px;"><input type="checkbox" class="skill-room-chk" value="${r.id}" ${skills.includes(r.id)?'checked':''} style="width:18px;height:18px;flex-shrink:0;" />${esc(r.name)}</label>`).join(''):'<div style="font-size:11px;color:var(--muted);text-align:center;padding:8px;">등록된 객실이 없어요</div>';
+    }
+    const dsb=$('#deleteStaffBtn');if(dsb)dsb.style.display=id?'block':'none';const asb=$('#archiveStaffBtn');if(asb){asb.style.display=id?'block':'none';if(s&&s.archived){asb.textContent='📤 보관 해제 (메뉴에 다시 표시)';asb.style.background='#D5F5E3';asb.style.color='#1E8449';asb.style.borderColor='#A9DFBF';}else{asb.textContent='📦 이 직원 보관 (메뉴에서 숨김)';asb.style.background='#FDF0D5';asb.style.color='#B8860B';asb.style.borderColor='#F0D890';}}openModal('staffModal')}
+  function saveStaffForm(){const id=$('#staffEditId').value,name=$('#staffNameInput').value.trim(),branch=$('#staffBranchInput').value,payType=$('#staffPayTypeInput').value,rate=Number($('#staffRateInput').value),tax=Number($('#staffTaxInput').value||0);if(!name||!rate)return toast('이름과 기본 단가를 입력해주세요');const avail=$('#staffAvailInput')?$('#staffAvailInput').value:'불특정';const speed=Number($('#staffSpeedInput')?$('#staffSpeedInput').value:3);const quality=Number($('#staffQualityInput')?$('#staffQualityInput').value:3);const solo=$('#staffSoloInput')?$('#staffSoloInput').value:'단독';const skillRooms=[...document.querySelectorAll('.skill-room-chk:checked')].map(c=>c.value);const prev=id?state.staff.find(x=>x.id===id):null;const obj={id:id||uid('staff'),name,branch,payType,rate,tax,avail,speed,quality,solo,skillRooms,archived:prev?prev.archived:false};if(id)state.staff[state.staff.findIndex(x=>x.id===id)]=obj;else state.staff.push(obj);save();closeModal('staffModal');render();toast('직원을 저장했어요')}
+
+  // 🎯 직원 자동 배치 — 우선순위: ①가능스케줄 ②페이 낮은순 ③품질 높은순 ④숙련객실
+  function autoAssignStaff(dateStr){
+    dateStr=dateStr||selectedDate||today();
+    const jobs=branchFilter(state.transactions)
+      .filter(t=>t.type==='income'&&t.date===dateStr&&t.status!=='cancelled')
+      .sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
+    if(!jobs.length){toast('이 날짜에 청소 일정이 없어요');return;}
+    // 그날 요일 (0=일, 6=토)
+    const dow=new Date(dateStr+'T00:00:00').getDay();
+    const isWeekend=(dow===0||dow===6);
+    // 가능한 직원 (보관 제외 + 스케줄 맞는 사람)
+    const pool=state.staff.filter(s=>{
+      if(s.archived)return false;
+      if(state.branch!=='전체'&&s.branch!==state.branch)return false;
+      const av=s.avail||'불특정';
+      if(av==='불특정')return true;
+      if(av==='주말')return isWeekend;
+      if(av==='주말+평일')return true;
+      return true;
+    });
+    if(!pool.length){toast('이 날 일할 수 있는 직원이 없어요');return;}
+    // 배정 결과
+    const result=[];
+    const loadCount={}; // 직원별 배정 건수 (골고루)
+    pool.forEach(s=>loadCount[s.id]=0);
+    jobs.forEach(job=>{
+      // 후보 정렬: ②페이 낮은순 → ③품질 높은순 → ④숙련객실 우선
+      const cands=pool.slice().sort((a,b)=>{
+        // 숙련 객실이면 가산점 (④)
+        const aSkill=(a.skillRooms||[]).includes(job.targetId)?1:0;
+        const bSkill=(b.skillRooms||[]).includes(job.targetId)?1:0;
+        // 배정 균형 먼저 (한 명에게 몰리지 않게)
+        if(loadCount[a.id]!==loadCount[b.id])return loadCount[a.id]-loadCount[b.id];
+        // ② 페이 낮은 순
+        if((a.rate||0)!==(b.rate||0))return (a.rate||0)-(b.rate||0);
+        // ③ 품질 높은 순
+        if((a.quality||3)!==(b.quality||3))return (b.quality||3)-(a.quality||3);
+        // ④ 숙련 객실
+        return bSkill-aSkill;
+      });
+      const pick=cands[0];
+      if(!pick)return;
+      loadCount[pick.id]++;
+      // 2인1조면 한 명 더
+      let partner=null;
+      if(pick.solo==='2인1조'){
+        const p2=cands.slice(1).find(x=>x.id!==pick.id);
+        if(p2){ partner=p2; loadCount[p2.id]++; }
+      }
+      result.push({job, staff:pick, partner});
+    });
+    // 결과 화면 표시
+    const html=result.map((r,i)=>{
+      const skill=(r.staff.skillRooms||[]).includes(r.job.targetId);
+      return `<div style="border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:#fff;">
+        <div style="font-size:12px;font-weight:800;color:var(--ink);margin-bottom:4px;">${i+1}. ${esc(r.job.targetName||'')}</div>
+        <div style="font-size:12px;color:var(--navy);font-weight:700;">👤 ${esc(r.staff.name)}${r.partner?' + '+esc(r.partner.name)+' (2인1조)':''}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px;">${money(r.staff.rate)} · 품질 ${'⭐'.repeat(r.staff.quality||3)}${skill?' · 🎯숙련':''}</div>
+      </div>`;
+    }).join('');
+    $('#assignResult').innerHTML=html+`<button class="primary" id="assignConfirm" style="margin-top:8px;">✅ 이대로 인건비 등록하기</button>`;
+    window._assignResult=result;
+    openModal('assignModal');
+  }
+  // 배치 결과를 인건비(지출)로 등록
+  function confirmAssign(){
+    const result=window._assignResult||[];
+    if(!result.length)return;
+    let cnt=0;
+    result.forEach(r=>{
+      const people=[r.staff]; if(r.partner)people.push(r.partner);
+      people.forEach(p=>{
+        // 같은 날 같은 직원 중복 방지
+        const dup=state.transactions.find(t=>t.type==='expense'&&t.targetId===p.id&&t.date===r.job.date&&t.memo===('배치: '+r.job.targetName));
+        if(dup)return;
+        const amt=p.rate||0, taxR=p.tax||0, taxA=Math.round(amt*taxR/100);
+        state.transactions.push({
+          id:uid('tx'), date:r.job.date, billingMonth:ym(r.job.date), type:'expense',
+          targetId:p.id, targetName:p.name, branch:p.branch,
+          amount:amt, taxRate:taxR, taxAmount:taxA, netAmount:amt-taxA,
+          outNights:'',outGuests:'',outTime:'',inNights:'',inGuests:'',inTime:'',inSupplies:'',
+          memo:'배치: '+r.job.targetName, paid:false, status:'done', createdAt:Date.now()+cnt
+        });
+        cnt++;
+      });
+    });
+    save();closeModal('assignModal');render();
+    toast(cnt?('✅ 인건비 '+cnt+'건 등록됐어요'):'이미 등록된 배치예요');
+  }
 
   function makeReport(){const targetId=$('#reportTarget').value,month=$('#reportMonth').value;if(!targetId||!month)return toast('대상과 정산 월을 선택해주세요');const type=reportMode==='room'?'income':'expense',entity=(reportMode==='room'?state.rooms:state.staff).find(x=>x.id===targetId),items=state.transactions.filter(t=>t.type===type&&(t.targetId===targetId||(entity&&t.targetName===entity.name))&&(t.billingMonth||ym(t.date))===month&&t.status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date));const total=sum(items),paid=sum(items,null,true),pending=sum(items,null,false);let lines=[`──────────────`,`📋 ${entity.name} ${reportMode==='room'?'청소 정산':'지급 내역'}`,monthText(month),`──────────────`,``];items.forEach((t,i)=>lines.push(`${i+1}. ${dateText(t.date)}  ${money(t.netAmount||t.amount)}${t.memo?' / '+t.memo:''}${!t.paid?' ('+(type==='income'?'미수금':'미지급')+')':''}`));lines.push('',`총 ${items.length}건  ${money(total)}`,`${reportMode==='room'?'입금':'지급'} 완료  ${money(paid)}`,`${reportMode==='room'?'미수금':'미지급'}  ${money(pending)}`,'──────────────');$('#reportBox').textContent=lines.join('\n');$('#reportBox').style.display='block';$('#copyReport').style.display='block'}
   function copyReport(){navigator.clipboard?.writeText($('#reportBox').textContent).then(()=>toast('보고서 문구를 복사했어요')).catch(()=>toast('복사에 실패했어요'))}
@@ -1473,6 +1591,8 @@ input,select,textarea{min-height:44px}
     if(b.dataset.date){selectedDate=b.dataset.date;renderSchedule()}
     if(b.id==='addSelectedDate')openTx('income',selectedDate);
     if(b.id==='sendDayTimeline')dayTimelineMsg(selectedDate);
+    if(b.id==='autoAssignBtn'){autoAssignStaff(selectedDate);return;}
+    if(b.id==='assignConfirm'){confirmAssign();return;}
     if(b.dataset.notifyIdx!=null){let saved=[];try{saved=JSON.parse(localStorage.getItem('roommade-호스트링크')||'[]');}catch(e){}const entry=saved[Number(b.dataset.notifyIdx)];if(entry){closeModal('notifyModal');shareUpdateMsg(entry);}return;}
     if(b.dataset.notifyAll){let saved=[];try{saved=JSON.parse(localStorage.getItem('roommade-호스트링크')||'[]');}catch(e){}closeModal('notifyModal');const allMsg=saved.map(s=>s.host+' 님: '+s.link).join('\n\n');const msg='객실 현황이 업데이트되었습니다. 🔔\n\n'+allMsg;if(navigator.share){navigator.share({text:msg}).catch(()=>{});}else fallbackCopy(msg,'');return;}
     const edit=b.closest('[data-edit-tx]')?.dataset.editTx;if(edit&&!b.dataset.toggleStatus)openTx(state.transactions.find(x=>x.id===edit)?.type||'income',today(),edit);
