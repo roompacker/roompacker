@@ -156,7 +156,7 @@ input,select,textarea{min-height:44px}
           <div class="days" id="calendarDays"></div>
         </div>
         <div class="section">
-          <div class="sectitle"><h2 id="selectedDateTitle">선택 날짜</h2><div style="display:flex;gap:6px;"><button id="autoAssignBtn" style="background:#E8F4FD;color:#2F6FAF;border:0;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:800;">🎯 자동배치</button><button id="sendDayTimeline" style="background:#FEE500;color:#3C1E1E;border:0;border-radius:10px;padding:6px 10px;font-size:12px;font-weight:800;">📤 하루 업무</button><button id="addSelectedDate">+ 등록</button></div></div>
+          <div class="sectitle"><h2 id="selectedDateTitle">선택 날짜</h2><div style="display:flex;gap:5px;flex-wrap:wrap;"><button id="autoAssignBtn" style="background:#E8F4FD;color:#2F6FAF;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🎯 자동배치</button><button id="sendDayTimeline" style="background:#FEE500;color:#3C1E1E;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">👷 직원용</button><button id="sendDayAdmin" style="background:#D7F5EA;color:#1E8449;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🧺 관리자용</button><button id="addSelectedDate">+ 등록</button></div></div>
           <div class="card" id="selectedDateList"></div>
         </div>
       </div>
@@ -760,6 +760,7 @@ input,select,textarea{min-height:44px}
     shareText(L.join('\n'));
   }
   // 📅 그날 하루치 전체 업무 타임라인 (직원용)
+  // 👷 직원용 하루 업무 — 입실 준비할 것만 (헷갈리지 않게)
   function dayTimelineMsg(dateStr){
     dateStr=dateStr||selectedDate||today();
     const list=branchFilter(state.transactions)
@@ -770,18 +771,53 @@ input,select,textarea{min-height:44px}
     list.forEach((t,i)=>{
       const room=state.rooms.find(r=>r.id===t.targetId)||{};
       L.push('【'+(i+1)+'】 '+(t.targetName||room.name));
-      if(t.outNights||t.outGuests){
-        L.push('🚪 퇴실 '+(t.outNights||'-')+'박 '+(t.outGuests||'-')+'명'+(t.outTime?' '+t.outTime:''));
-      }
       if(room.doorPw)L.push('🔑 '+room.doorPw+(room.supplyPw?'  📦 '+room.supplyPw:''));
       else if(room.supplyPw)L.push('📦 '+room.supplyPw);
-      if(t.memo)L.push('📝 '+t.memo);
       if(t.inNights){
         L.push('🏠 입실 '+t.inNights+'박 '+(t.inGuests||'-')+'명'+(t.inTime?' '+t.inTime:''));
-        if(t.inSupplies)L.push('🛒 셋팅 '+t.inSupplies);
+        if(t.inSupplies)L.push('🛒 셋팅준비 '+t.inSupplies);
       }
       L.push('');
     });
+    shareText(L.join('\n').trim());
+  }
+
+  // 🧺 관리자용 하루 보고 — 전체 정보 + 세탁물/재고
+  function dayAdminMsg(dateStr){
+    dateStr=dateStr||selectedDate||today();
+    const list=branchFilter(state.transactions)
+      .filter(t=>t.type==='income'&&t.date===dateStr&&t.status!=='cancelled')
+      .sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
+    if(!list.length){toast('이 날짜에 청소 일정이 없어요');return;}
+    const L=['🧺 [관리자용] '+dateText(dateStr)+' ('+list.length+'건)',''];
+    const stock={};
+    function addStock(str){
+      if(!str)return;
+      str.split(',').forEach(s=>{
+        const m=s.trim().match(/^(.+?)(\d+)$/);
+        if(m){const name=m[1].trim();stock[name]=(stock[name]||0)+Number(m[2]);}
+      });
+    }
+    list.forEach((t,i)=>{
+      const room=state.rooms.find(r=>r.id===t.targetId)||{};
+      L.push('【'+(i+1)+'】 '+(t.targetName||room.name));
+      if(t.outNights||t.outGuests) L.push('🚪 퇴실 '+(t.outNights||'-')+'박 '+(t.outGuests||'-')+'명'+(t.outTime?' '+t.outTime:''));
+      if(t.inNights){
+        L.push('🏠 입실 '+t.inNights+'박 '+(t.inGuests||'-')+'명'+(t.inTime?' '+t.inTime:''));
+        if(t.inSupplies){L.push('🛒 셋팅 '+t.inSupplies);addStock(t.inSupplies);}
+      }
+      if(t.memo){L.push('📝 '+t.memo);
+        const nums=t.memo.match(/(쇼파베드|토퍼|수건|베개|이불)\s*\d+/g);
+        if(nums)nums.forEach(x=>addStock(x.replace(/\s+/g,'')));
+      }
+      L.push('');
+    });
+    const keys=Object.keys(stock);
+    if(keys.length){
+      L.push('━━━━━━━━━━');
+      L.push('📦 오늘 필요 수량 (재고·세탁)');
+      keys.forEach(k=>L.push('• '+k+' : '+stock[k]));
+    }
     shareText(L.join('\n').trim());
   }
 
@@ -814,7 +850,7 @@ input,select,textarea{min-height:44px}
   function renderSchedule(){
     $('#scheduleMonthTitle').textContent=monthText(scheduleMonth);const [y,m]=scheduleMonth.split('-').map(Number),first=new Date(y,m-1,1),start=new Date(y,m-1,1-first.getDay());let html='';
     for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;const items=branchFilter(state.transactions).filter(t=>t.date===ds&&t.status!=='cancelled');const inc=sum(items,'income'),exp=sum(items,'expense');const incCnt=items.filter(t=>t.type==='income').length;const moneyLabel=inc?short(inc):(incCnt?'청소':'');html+=`<button class="day ${d.getMonth()!==m-1?'other':''} ${ds===today()?'today':''} ${ds===selectedDate?'selected':''}" data-date="${ds}"><div class="daynum">${d.getDate()}</div><div class="dotwrap">${incCnt?'<i class="dot"></i>':''}${exp?'<i class="dot exp"></i>':''}</div>${moneyLabel?`<div class="daymoney">${moneyLabel}</div>`:''}</button>`}
-    $('#calendarDays').innerHTML=html;$('#selectedDateTitle').textContent=dateText(selectedDate);const list=branchFilter(state.transactions).filter(t=>t.date===selectedDate&&t.status!=='cancelled').sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));$('#selectedDateList').innerHTML=list.length?list.map((t,idx)=>`<div class="drag-tx" data-tx-card="${t.id}" style="margin-bottom:8px;touch-action:pan-y;">${txHTML(t)}</div>`).join(''):empty('📭','이 날짜에는 등록된 내역이 없어요');
+    $('#calendarDays').innerHTML=html;$('#selectedDateTitle').textContent=dateText(selectedDate);const list=branchFilter(state.transactions).filter(t=>t.date===selectedDate&&t.status!=='cancelled').sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));$('#selectedDateList').innerHTML=list.length?list.map((t,idx)=>{const isPent=t.branch==='펜트하우스';return `<div class="drag-tx" data-tx-card="${t.id}" style="margin-bottom:8px;touch-action:pan-y;${isPent?'background:#D7F5EA;border-radius:16px;padding:3px;':''}">${txHTML(t)}</div>`;}).join(''):empty('📭','이 날짜에는 등록된 내역이 없어요');
   }
 
   // 객실 현황판 — 객실별 예약·청소·준비상태 요약
@@ -1721,6 +1757,7 @@ input,select,textarea{min-height:44px}
     if(b.dataset.date){selectedDate=b.dataset.date;renderSchedule()}
     if(b.id==='addSelectedDate')openTx('income',selectedDate);
     if(b.id==='sendDayTimeline')dayTimelineMsg(selectedDate);
+    if(b.id==='sendDayAdmin')dayAdminMsg(selectedDate);
     if(b.id==='autoAssignBtn'){autoAssignStaff(selectedDate);return;}
     if(b.id==='assignConfirm'){confirmAssign();return;}
     if(b.dataset.notifyIdx!=null){let saved=[];try{saved=JSON.parse(localStorage.getItem('roommade-호스트링크')||'[]');}catch(e){}const entry=saved[Number(b.dataset.notifyIdx)];if(entry){closeModal('notifyModal');shareUpdateMsg(entry);}return;}
