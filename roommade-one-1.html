@@ -156,7 +156,7 @@ input,select,textarea{min-height:44px}
           <div class="days" id="calendarDays"></div>
         </div>
         <div class="section">
-          <div class="sectitle"><h2 id="selectedDateTitle">선택 날짜</h2><div style="display:flex;gap:5px;flex-wrap:wrap;"><button id="autoAssignBtn" style="background:#E8F4FD;color:#2F6FAF;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🎯 자동배치</button><button id="sendDayTimeline" style="background:#FEE500;color:#3C1E1E;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">👷 직원용</button><button id="sendDayAdmin" style="background:#D7F5EA;color:#1E8449;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🧺 관리자용</button><button id="addSelectedDate">+ 등록</button></div></div>
+          <div class="sectitle"><h2 id="selectedDateTitle">선택 날짜</h2><div style="display:flex;gap:5px;flex-wrap:wrap;"><button id="autoAssignBtn" style="background:#E8F4FD;color:#2F6FAF;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🎯 자동배치</button><button id="sendDayTimeline" style="background:#FEE500;color:#3C1E1E;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">👷 직원용</button><button id="sendStaffGroup" style="background:#FFE0B2;color:#B8860B;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">👥 팀별발송</button><button id="sendDayAdmin" style="background:#D7F5EA;color:#1E8449;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🧺 관리자용</button><button id="addSelectedDate">+ 등록</button></div></div>
           <div class="card" id="selectedDateList"></div>
         </div>
       </div>
@@ -419,6 +419,13 @@ input,select,textarea{min-height:44px}
     <div style="font-size:12px;color:var(--sub);font-weight:700;margin:8px 0 6px;">보낼 객실을 골라주세요 (여러 개 가능)</div>
     <div id="rvRoomChecks" style="max-height:40vh;overflow-y:auto;margin-bottom:12px;"></div>
     <button class="primary" id="rvMakeLink">📤 링크 만들어 공유하기</button>
+  </div>
+</div>
+<div class="modal" id="staffSendModal">
+  <div class="sheet">
+    <div class="grab"></div><div class="sheethead"><h3>👥 팀별 발송</h3><button class="close" data-close="staffSendModal">×</button></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">화면 순서대로 묶인 팀이에요. 각 팀에게 담당 객실만 보내요.</div>
+    <div id="staffSendList" style="max-height:65vh;overflow-y:auto;"></div>
   </div>
 </div>
 <div class="modal" id="assignModal">
@@ -761,6 +768,94 @@ input,select,textarea{min-height:44px}
   }
   // 📅 그날 하루치 전체 업무 타임라인 (직원용)
   // 👷 직원용 하루 업무 — 입실 준비할 것만 (헷갈리지 않게)
+  // 👥 화면 순서대로 [객실묶음→직원묶음] 그룹핑
+  function buildDayGroups(dateStr){
+    dateStr=dateStr||selectedDate||today();
+    // 청소(income)와 인건비(expense)를 한 목록으로, 화면과 같은 순서
+    const all=branchFilter(state.transactions)
+      .filter(t=>t.date===dateStr&&t.status!=='cancelled')
+      .sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
+    const groups=[]; let curRooms=[];
+    all.forEach(t=>{
+      if(t.type==='income'){ curRooms.push(t); }
+      else if(t.type==='expense'){
+        // 직원 등장 → 지금까지 모인 객실을 이 직원(들)에게
+        if(!groups.length || groups[groups.length-1].closed){
+          groups.push({rooms:curRooms.slice(), staff:[], closed:false});
+          curRooms=[];
+        }
+        const g=groups[groups.length-1];
+        g.staff.push(t);
+      }
+    });
+    // 객실 뒤에 직원이 안 온 경우(마지막 남은 객실)
+    if(curRooms.length){ groups.push({rooms:curRooms.slice(), staff:[]}); }
+    // 각 그룹: 직원이 나온 뒤 다음 객실이 오면 새 그룹 → closed 처리
+    // (위 로직 보정: 직원 뒤 객실이 오면 새 그룹 시작)
+    return rebuildGroups(all);
+  }
+  // 더 정확한 그룹핑: 객실 연속 → 직원 연속 = 한 그룹
+  function rebuildGroups(all){
+    const groups=[]; let cur={rooms:[],staff:[]}; let phase='rooms';
+    all.forEach(t=>{
+      if(t.type==='income'){
+        if(phase==='staff'){ groups.push(cur); cur={rooms:[],staff:[]}; phase='rooms'; }
+        cur.rooms.push(t);
+      }else if(t.type==='expense'){
+        phase='staff'; cur.staff.push(t);
+      }
+    });
+    if(cur.rooms.length||cur.staff.length)groups.push(cur);
+    return groups;
+  }
+
+  // 직원용 텍스트 (담당 객실만)
+  function staffMsgText(rooms, staffNames, dateStr){
+    const L=['🧹 '+dateText(dateStr)+' 청소'];
+    if(staffNames)L.push('👤 '+staffNames);
+    L.push('');
+    rooms.forEach((t,i)=>{
+      const room=state.rooms.find(r=>r.id===t.targetId)||{};
+      L.push('【'+(i+1)+'】 '+(t.targetName||room.name));
+      if(room.doorPw)L.push('🔑 '+room.doorPw+(room.supplyPw?'  📦 '+room.supplyPw:''));
+      else if(room.supplyPw)L.push('📦 '+room.supplyPw);
+      if(t.inNights){
+        L.push('🏠 입실 '+t.inNights+'박 '+(t.inGuests||'-')+'명'+(t.inTime?' '+t.inTime:''));
+        if(t.inSupplies)L.push('🛒 셋팅준비 '+t.inSupplies);
+      }
+      L.push('');
+    });
+    return L.join('\n').trim();
+  }
+
+  // 👥 직원별 발송 — 그룹 목록 모달
+  function openStaffSend(dateStr){
+    dateStr=dateStr||selectedDate||today();
+    const groups=buildDayGroups(dateStr).filter(g=>g.rooms.length&&g.staff.length);
+    if(!groups.length){toast('직원 배치가 된 청소가 없어요 (자동배치를 먼저 해주세요)');return;}
+    let html='';
+    groups.forEach((g,gi)=>{
+      const roomNames=g.rooms.map(r=>r.targetName).join(', ');
+      const staffNames=g.staff.map(s=>s.targetName).join(', ');
+      html+=`<div style="border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:#fff;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">📍 객실 ${g.rooms.length}개</div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:6px;">${esc(roomNames)}</div>
+        <div style="font-size:12px;color:var(--navy);font-weight:800;margin-bottom:8px;">👤 ${esc(staffNames)}</div>
+        <button class="secondary" data-send-group="${gi}" style="width:100%;background:#FEE500;color:#3C1E1E;border:0;font-weight:800;">📤 이 팀에게 카톡 보내기</button>
+      </div>`;
+    });
+    $('#staffSendList').innerHTML=html;
+    window._dayGroups=groups; window._dayGroupsDate=dateStr;
+    openModal('staffSendModal');
+  }
+  function sendGroupMsg(gi){
+    const groups=window._dayGroups||[];
+    const g=groups[gi]; if(!g)return;
+    const staffNames=g.staff.map(s=>s.targetName).join(', ');
+    const msg=staffMsgText(g.rooms, staffNames, window._dayGroupsDate);
+    shareText(msg);
+  }
+
   function dayTimelineMsg(dateStr){
     dateStr=dateStr||selectedDate||today();
     const list=branchFilter(state.transactions)
@@ -785,11 +880,9 @@ input,select,textarea{min-height:44px}
   // 🧺 관리자용 하루 보고 — 전체 정보 + 세탁물/재고
   function dayAdminMsg(dateStr){
     dateStr=dateStr||selectedDate||today();
-    const list=branchFilter(state.transactions)
-      .filter(t=>t.type==='income'&&t.date===dateStr&&t.status!=='cancelled')
-      .sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
-    if(!list.length){toast('이 날짜에 청소 일정이 없어요');return;}
-    const L=['🧺 [관리자용] '+dateText(dateStr)+' ('+list.length+'건)',''];
+    const groups=buildDayGroups(dateStr);
+    if(!groups.length){toast('이 날짜에 일정이 없어요');return;}
+    const L=['🧺 [관리자용] '+dateText(dateStr),''];
     const stock={};
     function addStock(str){
       if(!str)return;
@@ -798,19 +891,27 @@ input,select,textarea{min-height:44px}
         if(m){const name=m[1].trim();stock[name]=(stock[name]||0)+Number(m[2]);}
       });
     }
-    list.forEach((t,i)=>{
-      const room=state.rooms.find(r=>r.id===t.targetId)||{};
-      L.push('【'+(i+1)+'】 '+(t.targetName||room.name));
-      if(t.outNights||t.outGuests) L.push('🚪 퇴실 '+(t.outNights||'-')+'박 '+(t.outGuests||'-')+'명'+(t.outTime?' '+t.outTime:''));
-      if(t.inNights){
-        L.push('🏠 입실 '+t.inNights+'박 '+(t.inGuests||'-')+'명'+(t.inTime?' '+t.inTime:''));
-        if(t.inSupplies){L.push('🛒 셋팅 '+t.inSupplies);addStock(t.inSupplies);}
+    let n=0;
+    groups.forEach(g=>{
+      g.rooms.forEach(t=>{
+        n++;
+        const room=state.rooms.find(r=>r.id===t.targetId)||{};
+        L.push('【'+n+'】 '+(t.targetName||room.name)+(t.branch==='펜트하우스'?' 🌿':''));
+        if(t.outNights||t.outGuests) L.push('🚪 퇴실 '+(t.outNights||'-')+'박 '+(t.outGuests||'-')+'명'+(t.outTime?' '+t.outTime:''));
+        if(t.inNights){
+          L.push('🏠 입실 '+t.inNights+'박 '+(t.inGuests||'-')+'명'+(t.inTime?' '+t.inTime:''));
+          if(t.inSupplies){L.push('🛒 셋팅 '+t.inSupplies);addStock(t.inSupplies);}
+        }
+        if(t.memo){L.push('📝 '+t.memo);
+          const nums=t.memo.match(/(쇼파베드|토퍼|수건|베개|이불)\s*\d+/g);
+          if(nums)nums.forEach(x=>addStock(x.replace(/\s+/g,'')));
+        }
+        L.push('');
+      });
+      if(g.staff.length){
+        L.push('👤 담당: '+g.staff.map(s=>s.targetName).join(', '));
+        L.push('─────');
       }
-      if(t.memo){L.push('📝 '+t.memo);
-        const nums=t.memo.match(/(쇼파베드|토퍼|수건|베개|이불)\s*\d+/g);
-        if(nums)nums.forEach(x=>addStock(x.replace(/\s+/g,'')));
-      }
-      L.push('');
     });
     const keys=Object.keys(stock);
     if(keys.length){
@@ -1758,6 +1859,8 @@ input,select,textarea{min-height:44px}
     if(b.id==='addSelectedDate')openTx('income',selectedDate);
     if(b.id==='sendDayTimeline')dayTimelineMsg(selectedDate);
     if(b.id==='sendDayAdmin')dayAdminMsg(selectedDate);
+    if(b.id==='sendStaffGroup'){openStaffSend(selectedDate);return;}
+    if(b.dataset.sendGroup!=null){sendGroupMsg(Number(b.dataset.sendGroup));return;}
     if(b.id==='autoAssignBtn'){autoAssignStaff(selectedDate);return;}
     if(b.id==='assignConfirm'){confirmAssign();return;}
     if(b.dataset.notifyIdx!=null){let saved=[];try{saved=JSON.parse(localStorage.getItem('roommade-호스트링크')||'[]');}catch(e){}const entry=saved[Number(b.dataset.notifyIdx)];if(entry){closeModal('notifyModal');shareUpdateMsg(entry);}return;}
