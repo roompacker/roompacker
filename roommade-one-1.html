@@ -115,6 +115,7 @@ input,select,textarea{min-height:44px}
       <div class="section">
         <div class="sectitle"><h2>빠른 등록</h2></div>
         <div class="card quickgrid">
+          <button class="quick" data-quick="book"><span class="qi">🆕</span><span>예약 등록</span></button>
           <button class="quick" data-quick="income"><span class="qi">🧹</span><span>청소 등록</span></button>
           <button class="quick" data-quick="expense"><span class="qi">👤</span><span>인건비</span></button>
           <button class="quick" data-quick="room"><span class="qi">🏠</span><span>객실 추가</span></button>
@@ -275,6 +276,27 @@ input,select,textarea{min-height:44px}
   </nav>
 </div>
 
+<div class="modal" id="bookModal">
+  <div class="sheet">
+    <div class="grab"></div><div class="sheethead"><h3>🆕 예약 등록</h3><button class="close" data-close="bookModal">×</button></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">손님 한 팀을 등록하면 청소는 자동으로 만들어져요.</div>
+    <div class="field"><label>1️⃣ 지점</label><select id="bookBranch"><option>영종점</option><option>송도점</option><option>펜트하우스</option></select></div>
+    <div class="field"><label>2️⃣ 객실</label><select id="bookRoom"></select></div>
+    <div class="twocol">
+      <div class="field"><label>3️⃣ 입실일</label><input type="date" id="bookCheckin"></div>
+      <div class="field"><label>4️⃣ 퇴실일</label><input type="date" id="bookCheckout"></div>
+    </div>
+    <div id="bookNights" style="font-size:12px;color:var(--navy);font-weight:700;margin:-4px 0 10px;text-align:center;"></div>
+    <div class="twocol">
+      <div class="field"><label>5️⃣ 인원</label><input type="number" id="bookGuests" placeholder="예: 4"></div>
+      <div class="field"><label>입실 시간</label><input type="time" id="bookInTime" value="16:00"></div>
+    </div>
+    <div id="bookSetupPreview" style="background:#E4F5EC;border:1px solid #B8E0C8;border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#1E8449;display:none;"></div>
+    <div class="field"><label>추가 준비물 (자동 외 직접)</label><input id="bookSupplies" placeholder="자동 계산돼요. 추가할 것만"></div>
+    <div class="field"><label>메모 (선택)</label><input id="bookMemo" placeholder="특이사항"></div>
+    <button class="primary" id="bookSave">예약 등록 (청소 자동 생성)</button>
+  </div>
+</div>
 <div class="modal" id="txModal">
   <div class="sheet">
     <div class="grab"></div>
@@ -1489,6 +1511,113 @@ input,select,textarea{min-height:44px}
     toast(cnt?('✅ 인건비 '+cnt+'건 등록됐어요'):'이미 등록된 배치예요');
   }
 
+  // 🆕 예약 등록 열기
+  function openBook(){
+    const br=$('#bookBranch'); if(br)br.value=(state.branch!=='전체'?state.branch:'영종점');
+    fillBookRooms();
+    $('#bookCheckin').value=selectedDate||today();
+    $('#bookCheckout').value='';
+    $('#bookGuests').value=''; $('#bookInTime').value='16:00';
+    $('#bookSupplies').value=''; $('#bookMemo').value='';
+    $('#bookNights').textContent='';
+    $('#bookSetupPreview').style.display='none';
+    openModal('bookModal');
+  }
+  function fillBookRooms(){
+    const branch=$('#bookBranch').value;
+    const rms=state.rooms.filter(r=>!r.archived&&r.branch===branch);
+    $('#bookRoom').innerHTML=rms.length?rms.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join(''):'<option value="">객실 없음</option>';
+    updateBookPreview();
+  }
+  function bookNightsCalc(){
+    const ci=$('#bookCheckin').value, co=$('#bookCheckout').value;
+    if(ci&&co){
+      const n=Math.round((new Date(co)-new Date(ci))/86400000);
+      if(n>0){$('#bookNights').textContent='🌙 '+n+'박';return n;}
+      else{$('#bookNights').textContent='⚠️ 퇴실일이 입실일보다 뒤여야 해요';return 0;}
+    }
+    $('#bookNights').textContent='';return 0;
+  }
+  function updateBookPreview(){
+    bookNightsCalc();
+    const roomId=$('#bookRoom').value, guests=Number($('#bookGuests').value||0);
+    const room=state.rooms.find(r=>r.id===roomId);
+    const pv=$('#bookSetupPreview');
+    if(room&&guests>0){
+      const base=Number(room.baseGuests||0);
+      const over=Math.max(0,guests-base);
+      let txt='🛒 기준 '+base+'명';
+      if(over>0&&room.extraSetup){
+        const auto=calcExtraSetup(room.extraSetup||'',over);
+        txt+=' → '+guests+'명 (+'+over+'명 초과)\n➕ 자동 추가: '+auto;
+      }else if(over>0){
+        txt+=' → '+guests+'명 (+'+over+'명 초과, 추가셋팅 규칙 없음)';
+      }else{
+        txt+=' → 기준 인원 내';
+      }
+      pv.textContent=txt; pv.style.display='block';
+    }else pv.style.display='none';
+  }
+  function saveBookForm(){
+    const branch=$('#bookBranch').value, roomId=$('#bookRoom').value;
+    const ci=$('#bookCheckin').value, co=$('#bookCheckout').value;
+    const guests=$('#bookGuests').value.trim(), inTime=$('#bookInTime').value;
+    const room=state.rooms.find(r=>r.id===roomId);
+    if(!room){toast('객실을 선택해주세요');return;}
+    if(!ci||!co){toast('입실일과 퇴실일을 넣어주세요');return;}
+    const nights=Math.round((new Date(co)-new Date(ci))/86400000);
+    if(nights<=0){toast('퇴실일이 입실일보다 뒤여야 해요');return;}
+    if(!guests){toast('인원을 넣어주세요');return;}
+    // 자동 셋팅 계산
+    const base=Number(room.baseGuests||0), over=Math.max(0,Number(guests)-base);
+    let supplies=$('#bookSupplies').value.trim();
+    if(over>0&&room.extraSetup){
+      const auto=calcExtraSetup(room.extraSetup||'',over);
+      supplies=auto+(supplies?', '+supplies:'');
+    }
+    const memo=$('#bookMemo').value.trim();
+    const amount=branch==='펜트하우스'?0:(room.price||0);
+    // ① 입실일에 손님 기록 (체크인 정보) — 청소는 퇴실일에 자동 생성됨
+    // 여기선 '퇴실일 청소'를 직접 만들고 체크아웃을 이 손님 정보로 채움
+    // 그리고 입실 정보도 넣어 다음 청소가 이어지게
+    const coStr=co;
+    // 이미 퇴실일에 이 객실 청소 있으면 재사용
+    let clean=state.transactions.find(t=>t.type==='income'&&t.targetId===roomId&&t.date===coStr&&t.status!=='cancelled');
+    if(clean){
+      clean.outNights=String(nights); clean.outGuests=guests; clean.outTime=clean.outTime||'11:00';
+      if(memo)clean.memo=memo;
+    }else{
+      clean={
+        id:uid('tx'), date:coStr, billingMonth:ym(coStr), type:'income',
+        targetId:roomId, targetName:room.name, branch:branch,
+        amount:amount, taxRate:room.tax||0, taxAmount:0, netAmount:amount,
+        outNights:String(nights), outGuests:guests, outTime:'11:00',
+        inNights:'', inGuests:'', inTime:'', inSupplies:'',
+        memo:memo, paid:false, status:coStr<=today()?'done':'booked', createdAt:Date.now(), autoGen:true
+      };
+      state.transactions.push(clean);
+    }
+    // 입실일 기록: 입실일에 청소가 있으면 거기 입실정보 채우고, 없으면 만들되 셋팅정보 담음
+    let inClean=state.transactions.find(t=>t.type==='income'&&t.targetId===roomId&&t.date===ci&&t.status!=='cancelled');
+    if(inClean){
+      inClean.inNights=String(nights); inClean.inGuests=guests; inClean.inTime=inTime; inClean.inSupplies=supplies;
+    }else{
+      inClean={
+        id:uid('tx'), date:ci, billingMonth:ym(ci), type:'income',
+        targetId:roomId, targetName:room.name, branch:branch,
+        amount:amount, taxRate:room.tax||0, taxAmount:0, netAmount:amount,
+        outNights:'', outGuests:'', outTime:'',
+        inNights:String(nights), inGuests:guests, inTime:inTime, inSupplies:supplies,
+        memo:'', paid:false, status:ci<=today()?'done':'booked', createdAt:Date.now()+1, autoGen:true
+      };
+      state.transactions.push(inClean);
+    }
+    save();closeModal('bookModal');
+    setBranch(branch);
+    selectedDate=ci; render();
+    toast('✅ 예약 등록! '+co.slice(5).replace('-','/')+' 청소 자동 생성');
+  }
+
   function makeReport(){const targetId=$('#reportTarget').value,month=$('#reportMonth').value;if(!targetId||!month)return toast('대상과 정산 월을 선택해주세요');const type=reportMode==='room'?'income':'expense',entity=(reportMode==='room'?state.rooms:state.staff).find(x=>x.id===targetId),items=state.transactions.filter(t=>t.type===type&&(t.targetId===targetId||(entity&&t.targetName===entity.name))&&(t.billingMonth||ym(t.date))===month&&t.status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date));const total=sum(items),paid=sum(items,null,true),pending=sum(items,null,false);let lines=[`──────────────`,`📋 ${entity.name} ${reportMode==='room'?'청소 정산':'지급 내역'}`,monthText(month),`──────────────`,``];items.forEach((t,i)=>lines.push(`${i+1}. ${dateText(t.date)}  ${money(t.netAmount||t.amount)}${t.memo?' / '+t.memo:''}${!t.paid?' ('+(type==='income'?'미수금':'미지급')+')':''}`));lines.push('',`총 ${items.length}건  ${money(total)}`,`${reportMode==='room'?'입금':'지급'} 완료  ${money(paid)}`,`${reportMode==='room'?'미수금':'미지급'}  ${money(pending)}`,'──────────────');$('#reportBox').textContent=lines.join('\n');$('#reportBox').style.display='block';$('#copyReport').style.display='block'}
   function copyReport(){navigator.clipboard?.writeText($('#reportBox').textContent).then(()=>toast('보고서 문구를 복사했어요')).catch(()=>toast('복사에 실패했어요'))}
   function exportData(){const data={app:'roommade-one',version:1,exportedAt:new Date().toISOString(),currentBranch:state.branch,rooms:state.rooms,staff:state.staff,transactions:state.transactions};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`roommade-one-${today()}.json`;a.click();URL.revokeObjectURL(a.href);toast('백업 파일을 만들었어요')}
@@ -1578,7 +1707,8 @@ input,select,textarea{min-height:44px}
   document.addEventListener('click',e=>{
     const b=e.target.closest('button,[data-edit-tx],[data-settle-toggle],[data-room-month],[data-plan-clean],[data-edit-setup],[data-sched-view]');if(!b)return;
     if(b.dataset.nav)return setView(b.dataset.nav);if(b.dataset.goto)return setView(b.dataset.goto);if(b.dataset.branch)return setBranch(b.dataset.branch);
-    if(b.dataset.quick){if(b.dataset.quick==='income'||b.dataset.quick==='expense')openTx(b.dataset.quick);if(b.dataset.quick==='room')openRoom();if(b.dataset.quick==='staff')openStaff();if(b.dataset.quick==='supply')openSupply()}
+    if(b.dataset.quick){if(b.dataset.quick==='book')openBook();if(b.dataset.quick==='income'||b.dataset.quick==='expense')openTx(b.dataset.quick);if(b.dataset.quick==='room')openRoom();if(b.dataset.quick==='staff')openStaff();if(b.dataset.quick==='supply')openSupply()}
+    if(b.id==='bookSave'){saveBookForm();return;}
     if(b.id==='fab')openTx('income',activeView==='schedule'?selectedDate:today());if(b.dataset.close)return closeModal(b.dataset.close);
     if(b.dataset.type){txType=b.dataset.type;updateTxType()}
     if(b.dataset.month){scheduleMonth=shiftMonth(scheduleMonth,Number(b.dataset.month));renderSchedule()}
@@ -1621,6 +1751,11 @@ input,select,textarea{min-height:44px}
   $('#saveSetup').addEventListener('click',saveSetupForm);$('#deleteSetup').addEventListener('click',deleteSetupForm);
   $('#supplyReceiptInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{supplyReceiptData=ev.target.result;$('#supplyReceiptPreview').innerHTML=`<img src="${supplyReceiptData}" style="max-width:100%;border-radius:10px;">`;};r.readAsDataURL(f);});
   const mrv=$('#makeRoomview');if(mrv)mrv.addEventListener('click',makeRoomviewLink);
+  {const bb=$('#bookBranch');if(bb)bb.addEventListener('change',fillBookRooms);
+   const brm=$('#bookRoom');if(brm)brm.addEventListener('change',updateBookPreview);
+   const bci=$('#bookCheckin');if(bci)bci.addEventListener('change',updateBookPreview);
+   const bco=$('#bookCheckout');if(bco)bco.addEventListener('change',updateBookPreview);
+   const bg=$('#bookGuests');if(bg)bg.addEventListener('input',updateBookPreview);}
   {const nu=$('#notifyUpdate');if(nu)nu.addEventListener('click',sendUpdateNotify);}
   const rvm=$('#rvMakeLink');if(rvm)rvm.addEventListener('click',buildRoomviewLink);
   $('#rvRoomChecks').addEventListener('change',()=>{
