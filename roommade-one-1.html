@@ -124,7 +124,7 @@ input,select,textarea{min-height:44px}
       </div>
 
       <div class="section">
-        <div class="sectitle"><h2>오늘의 운영</h2><button data-goto="schedule">일정보기</button></div>
+        <div class="sectitle"><h2>Today Schedule</h2><button data-goto="schedule">일정보기</button></div>
         <div class="card" id="todayJobs"></div>
       </div>
 
@@ -156,7 +156,7 @@ input,select,textarea{min-height:44px}
           <div class="days" id="calendarDays"></div>
         </div>
         <div class="section">
-          <div class="sectitle"><h2 id="selectedDateTitle">선택 날짜</h2><div style="display:flex;gap:5px;flex-wrap:wrap;"><button id="autoAssignBtn" style="background:#E8F4FD;color:#2F6FAF;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🎯 자동배치</button><button id="sendDayTimeline" style="background:#FEE500;color:#3C1E1E;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">👷 직원용</button><button id="sendStaffGroup" style="background:#FFE0B2;color:#B8860B;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">👥 팀별발송</button><button id="sendDayAdmin" style="background:#D7F5EA;color:#1E8449;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🧺 관리자용</button><button id="addSelectedDate">+ 등록</button></div></div>
+          <div class="sectitle"><h2 id="selectedDateTitle">선택 날짜</h2><div style="display:flex;gap:5px;flex-wrap:wrap;"><button id="autoAssignBtn" style="background:#E8F4FD;color:#2F6FAF;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🎯 자동배치</button><button id="sendDayTimeline" style="background:#FEE500;color:#3C1E1E;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">👷 직원용</button><button id="sendStaffGroup" style="background:#FFE0B2;color:#B8860B;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">👥 팀별발송</button><button id="sendDayAdmin" style="background:#D7F5EA;color:#1E8449;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🧺 관리자용</button><button id="sendDayHost" style="background:#E3F0FF;color:#2F6FAF;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🏠 호스트용</button><button id="addSelectedDate">+ 등록</button></div></div>
           <div class="card" id="selectedDateList"></div>
         </div>
       </div>
@@ -913,12 +913,36 @@ input,select,textarea{min-height:44px}
         L.push('─────');
       }
     });
-    const keys=Object.keys(stock);
-    if(keys.length){
-      L.push('━━━━━━━━━━');
-      L.push('📦 오늘 필요 수량 (재고·세탁)');
-      keys.forEach(k=>L.push('• '+k+' : '+stock[k]));
-    }
+    shareText(L.join('\n').trim());
+  }
+
+  // 📋 호스트용 카톡 — 퇴실/입실/얼리·레이트/토퍼 추가내용
+  function dayHostMsg(dateStr){
+    dateStr=dateStr||selectedDate||today();
+    const list=branchFilter(state.transactions)
+      .filter(t=>t.type==='income'&&t.date===dateStr&&t.status!=='cancelled')
+      .sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
+    if(!list.length){toast('이 날짜에 청소 일정이 없어요');return;}
+    const L=['🏠 '+dateText(dateStr)+' 객실 현황 ('+list.length+'건)',''];
+    list.forEach((t,i)=>{
+      const room=state.rooms.find(r=>r.id===t.targetId)||{};
+      L.push('【'+(i+1)+'】 '+(t.targetName||room.name));
+      // 퇴실
+      if(t.outNights||t.outGuests){
+        let line='🚪 퇴실 '+(t.outNights||'-')+'박 '+(t.outGuests||'-')+'명'+(t.outTime?' '+t.outTime:'');
+        if(t.outTime&&t.outTime>'11:00')line+=' 🌙레이트';
+        L.push(line);
+      }
+      // 입실
+      if(t.inNights){
+        let line='🏠 입실 '+t.inNights+'박 '+(t.inGuests||'-')+'명'+(t.inTime?' '+t.inTime:'');
+        if(t.inTime&&t.inTime<'16:00')line+=' 🌅얼리';
+        L.push(line);
+      }
+      // 토퍼·추가 사용 내용 (메모)
+      if(t.memo)L.push('📝 '+t.memo);
+      L.push('');
+    });
     shareText(L.join('\n').trim());
   }
 
@@ -1859,6 +1883,7 @@ input,select,textarea{min-height:44px}
     if(b.id==='addSelectedDate')openTx('income',selectedDate);
     if(b.id==='sendDayTimeline')dayTimelineMsg(selectedDate);
     if(b.id==='sendDayAdmin')dayAdminMsg(selectedDate);
+    if(b.id==='sendDayHost')dayHostMsg(selectedDate);
     if(b.id==='sendStaffGroup'){openStaffSend(selectedDate);return;}
     if(b.dataset.sendGroup!=null){sendGroupMsg(Number(b.dataset.sendGroup));return;}
     if(b.id==='autoAssignBtn'){autoAssignStaff(selectedDate);return;}
