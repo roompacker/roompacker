@@ -156,7 +156,7 @@ input,select,textarea{min-height:44px}
           <div class="days" id="calendarDays"></div>
         </div>
         <div class="section">
-          <div class="sectitle"><h2 id="selectedDateTitle">선택 날짜</h2><div style="display:flex;gap:5px;flex-wrap:wrap;"><button id="autoAssignBtn" style="background:#E8F4FD;color:#2F6FAF;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🎯 자동배치</button><button id="sendDayTimeline" style="background:#FEE500;color:#3C1E1E;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">👷 직원용</button><button id="sendStaffGroup" style="background:#FFE0B2;color:#B8860B;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">👥 팀별발송</button><button id="sendDayAdmin" style="background:#D7F5EA;color:#1E8449;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🧺 관리자용</button><button id="sendDayHost" style="background:#E3F0FF;color:#2F6FAF;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🏠 호스트용</button><button id="addSelectedDate">+ 등록</button></div></div>
+          <div class="sectitle"><h2 id="selectedDateTitle">선택 날짜</h2><div style="display:flex;gap:5px;flex-wrap:wrap;"><button id="autoAssignBtn" style="background:#E8F4FD;color:#2F6FAF;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🎯 자동배치</button><button id="sendDayTimeline" style="background:#FEE500;color:#3C1E1E;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">👷 직원용</button><button id="sendStaffGroup" style="background:#FFE0B2;color:#B8860B;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">👥 팀별발송</button><button id="sendDayAdmin" style="background:#D7F5EA;color:#1E8449;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🧺 관리자용</button><button id="sendDayHost" style="background:#E3F0FF;color:#2F6FAF;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🏠 호스트용</button><button id="addBookDate" style="background:var(--navy);color:#fff;border:0;border-radius:10px;padding:6px 11px;font-size:11px;font-weight:800;">🆕 예약</button><button id="addSelectedDate" style="background:#EEF3F8;color:#2F6FAF;border:0;border-radius:10px;padding:6px 10px;font-size:11px;font-weight:800;">🧹 청소</button></div></div>
           <div class="card" id="selectedDateList"></div>
         </div>
       </div>
@@ -1881,6 +1881,7 @@ input,select,textarea{min-height:44px}
     if(b.dataset.insightMonth){insightMonth=shiftMonth(insightMonth,Number(b.dataset.insightMonth));renderInsight()}
     if(b.dataset.date){selectedDate=b.dataset.date;renderSchedule()}
     if(b.id==='addSelectedDate')openTx('income',selectedDate);
+    if(b.id==='addBookDate'){openBook();return;}
     if(b.id==='sendDayTimeline')dayTimelineMsg(selectedDate);
     if(b.id==='sendDayAdmin')dayAdminMsg(selectedDate);
     if(b.id==='sendDayHost')dayHostMsg(selectedDate);
