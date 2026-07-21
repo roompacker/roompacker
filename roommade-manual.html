@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>룸메이드 객실 메뉴북</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  /* ===== 기본 설정 (블루+크림 팔레트, 모바일 퍼스트) ===== */
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --blue: #2563eb;
+    --blue-dark: #1d4ed8;
+    --blue-light: #dbeafe;
+    --cream: #fdf9f0;
+    --ink: #1e293b;
+    --gray: #64748b;
+    --line: #e2e8f0;
+    --green: #16a34a;
+    --red: #dc2626;
+  }
+  body {
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    line-height: 1.6;
+    padding-bottom: 40px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* ===== 상단 헤더 ===== */
+  header {
+    background: var(--blue);
+    color: #fff;
+    padding: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(37,99,235,.25);
+  }
+  header h1 { font-size: 17px; font-weight: 800; letter-spacing: .5px; }
+  header .sub { font-size: 11px; opacity: .85; font-weight: 500; }
+  .admin-toggle {
+    background: rgba(255,255,255,.18);
+    border: 1px solid rgba(255,255,255,.4);
+    color: #fff;
+    border-radius: 20px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .admin-toggle.on { background: #fff; color: var(--blue); }
+
+  /* ===== 동기화 상태 표시 ===== */
+  .sync-bar {
+    font-size: 11px;
+    text-align: center;
+    padding: 5px;
+    color: var(--gray);
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+  }
+  .sync-bar.saving { color: var(--blue); font-weight: 700; }
+  .sync-bar.error { color: var(--red); font-weight: 700; }
+
+  /* ===== 지점 필터 칩 ===== */
+  .chips {
+    display: flex;
+    gap: 8px;
+    padding: 14px 16px 6px;
+    overflow-x: auto;
+  }
+  .chip {
+    flex-shrink: 0;
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 20px;
+    padding: 7px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gray);
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .chip.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+  /* ===== 객실 카드 목록 ===== */
+  .room-list { padding: 10px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .room-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(30,41,59,.07);
+    border: 1px solid var(--line);
+    cursor: pointer;
+    display: flex;
+    align-items: stretch;
+  }
+  .room-card .thumb {
+    width: 110px;
+    min-height: 92px;
+    background: var(--blue-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    flex-shrink: 0;
+    background-size: cover;
+    background-position: center;
+  }
+  .room-card .body { padding: 12px 14px; flex: 1; }
+  .room-card .branch-tag {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 800;
+    color: var(--blue);
+    background: var(--blue-light);
+    border-radius: 6px;
+    padding: 2px 8px;
+    margin-bottom: 4px;
+  }
+  .room-card .name { font-size: 15.5px; font-weight: 800; }
+  .room-card .meta { font-size: 12px; color: var(--gray); margin-top: 3px; }
+  .add-room-btn {
+    background: #fff;
+    border: 2px dashed var(--blue);
+    color: var(--blue);
+    border-radius: 16px;
+    padding: 16px;
+    font-size: 14px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  /* ===== 상세 화면 ===== */
+  .detail { display: none; }
+  .detail.show { display: block; }
+  .home.hide { display: none; }
+  .back-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px 4px;
+  }
+  .back-btn {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  .detail-title { padding: 6px 16px 0; }
+  .detail-title h2 { font-size: 21px; font-weight: 800; }
+  .detail-title .branch { font-size: 13px; color: var(--blue); font-weight: 700; }
+
+  /* ===== 정보 섹션 카드 ===== */
+  .section {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    box-shadow: 0 2px 8px rgba(30,41,59,.05);
+    margin: 12px 16px;
+    overflow: hidden;
+  }
+  .section .sec-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 16px;
+    font-size: 15px;
+    font-weight: 800;
+    border-bottom: 1px solid var(--line);
+    background: #fafcff;
+  }
+  .section .sec-body { padding: 13px 16px; font-size: 14px; white-space: pre-wrap; word-break: keep-all; }
+  .section .sec-body.empty { color: #b0b8c4; }
+  .section textarea {
+    width: 100%;
+    min-height: 90px;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+  }
+  .section textarea:focus { outline: 2px solid var(--blue); border-color: var(--blue); }
+
+  /* ===== 캐러셀 (사진 메뉴북) ===== */
+  .carousel-wrap { margin: 12px 0 4px; }
+  .carousel {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 0;
+  }
+  .carousel::-webkit-scrollbar { display: none; }
+  .slide {
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+    padding: 0 16px;
+  }
+  .slide .frame {
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    box-shadow: 0 3px 12px rgba(30,41,59,.08);
+    overflow: hidden;
+  }
+  .slide .photo {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    display: block;
+    background: var(--blue-light);
+  }
+  .slide .step-badge {
+    position: absolute;
+    margin: 10px;
+    background: var(--blue);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    border-radius: 20px;
+    padding: 4px 12px;
+  }
+  .slide .caption {
+    padding: 12px 14px;
+    font-size: 14.5px;
+    font-weight: 600;
+    word-break: keep-all;
+    min-height: 46px;
+  }
+  .slide .caption.empty { color: #b0b8c4; font-weight: 500; }
+  .slide .photo-tools {
+    display: flex;
+    gap: 6px;
+    padding: 0 12px 12px;
+    flex-wrap: wrap;
+  }
+  .tool-btn {
+    background: #f1f5f9;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  .tool-btn.danger { color: var(--red); }
+
+  /* 캐러셀 하단 점 표시 + 카운터 */
+  .dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 0 2px;
+  }
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #cbd5e1;
+  }
+  .dot.active { background: var(--blue); width: 20px; border-radius: 4px; }
+  .photo-counter {
+    text-align: center;
+    font-size: 12px;
+    color: var(--gray);
+    font-weight: 700;
+  }
+  .no-photos {
+    margin: 0 16px;
+    background: #fff;
+    border: 2px dashed var(--line);
+    border-radius: 16px;
+    padding: 30px 16px;
+    text-align: center;
+    color: var(--gray);
+    font-size: 13.5px;
+  }
+
+  /* ===== 관리자 편집 버튼들 ===== */
+  .admin-actions {
+    display: none;
+    padding: 4px 16px 10px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  body.admin .admin-actions { display: flex; }
+  body.admin .photo-tools { display: flex; }
+  body:not(.admin) .photo-tools { display: none; }
+  .action-btn {
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 11px 16px;
+    font-size: 13.5px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    flex: 1;
+    min-width: 130px;
+  }
+  .action-btn.gray { background: #fff; color: var(--ink); border: 1.5px solid var(--line); }
+  .action-btn.red { background: #fff; color: var(--red); border: 1.5px solid #fecaca; }
+  body:not(.admin) .add-room-btn { display: none; }
+
+  /* ===== 모달 (비밀번호 / 입력) ===== */
+  .modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,.55);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 20px;
+    padding: 22px 20px;
+    width: 100%;
+    max-width: 360px;
+  }
+  .modal h3 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+  .modal p { font-size: 13px; color: var(--gray); margin-bottom: 14px; word-break: keep-all; }
+  .modal input[type="password"], .modal input[type="text"] {
+    width: 100%;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    padding: 13px;
+    font-size: 16px;
+    font-family: inherit;
+    margin-bottom: 12px;
+    text-align: center;
+    letter-spacing: 4px;
+  }
+  .modal input.left { text-align: left; letter-spacing: normal; }
+  .modal input:focus { outline: 2px solid var(--blue); border-color: var(--blue); }
+  .modal .btn-row { display: flex; gap: 8px; }
+  .modal .btn-row button {
+    flex: 1;
+    border: none;
+    border-radius: 12px;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .btn-ok { background: var(--blue); color: #fff; }
+  .btn-cancel { background: #f1f5f9; color: var(--ink); }
+  .pw-error { color: var(--red); font-size: 12.5px; font-weight: 700; text-align: center; margin-bottom: 10px; display: none; }
+  .pw-error.show { display: block; }
+
+  /* 로딩 */
+  .loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--gray);
+    font-size: 14px;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>📖 룸메이드 객실 메뉴북</h1>
+    <div class="sub">사진 그대로 따라하면 완성!</div>
+  </div>
+  <button class="admin-toggle" id="btnAdmin">🔒 관리자</button>
+</header>
+
+<div class="sync-bar" id="syncBar">불러오는 중...</div>
+
+<!-- ===== 홈 화면: 객실 목록 ===== -->
+<div class="home" id="homeView">
+  <div class="chips" id="chipArea"></div>
+  <div class="room-list" id="roomList">
+    <div class="loading">☁️ 객실 정보를 불러오는 중이에요...</div>
+  </div>
+</div>
+
+<!-- ===== 상세 화면 ===== -->
+<div class="detail" id="detailView"></div>
+
+<!-- ===== 비밀번호 모달 ===== -->
+<div class="modal-bg" id="pwModal">
+  <div class="modal">
+    <h3>🔒 관리자 비밀번호</h3>
+    <p>수정하려면 4자리 비밀번호를 입력하세요.</p>
+    <input type="password" id="pwInput" inputmode="numeric" maxlength="4" placeholder="••••">
+    <div class="pw-error" id="pwError">비밀번호가 틀렸어요!</div>
+    <div class="btn-row">
+      <button class="btn-cancel" id="pwCancel">취소</button>
+      <button class="btn-ok" id="pwOk">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 텍스트 입력 모달 (객실 추가/이름 변경/설명 입력 공용) ===== -->
+<div class="modal-bg" id="inputModal">
+  <div class="modal">
+    <h3 id="inputTitle">입력</h3>
+    <p id="inputDesc"></p>
+    <input type="text" class="left" id="inputField" placeholder="">
+    <div class="btn-row">
+      <button class="btn-cancel" id="inputCancel">취소</button>
+      <button class="btn-ok" id="inputOk">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 사진 선택용 숨김 input -->
+<input type="file" id="photoInput" accept="image/*" multiple style="display:none;">
+
+<script>
+/* ============================================================
+   룸메이드 객실 메뉴북 v1.0
+   - Firebase Realtime Database 연동 (roompacker-48249)
+   - 사진 캐러셀 메뉴북 / 관리자 비밀번호 잠금
+   ============================================================ */
+
+// ★★★ 관리자 비밀번호 (여기서 바꾸세요!) ★★★
+var ADMIN_PW = '1234';
+
+// Firebase 데이터베이스 주소 (기존 룸메이드 앱과 동일 프로젝트)
+var DB_URL = 'https://roompacker-48249-default-rtdb.asia-southeast1.firebasedatabase.app/manualbook.json';
+
+// 전역 상태
+var appData = { rooms: {} };   // 전체 데이터
+var currentRoomId = null;      // 지금 보고 있는 객실
+var currentBranch = '전체';    // 지점 필터
+var isAdmin = false;           // 관리자 모드 여부
+var saveTimer = null;          // 저장 디바운스 타이머
+var BRANCHES = ['전체', '영종점', '송도점', '펜트하우스'];
+
+// ---------- 유틸 ----------
+// HTML 특수문자 이스케이프 (보안 및 깨짐 방지)
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+// 고유 아이디 생성
+function makeId() {
+  return 'r' + Date.now() + Math.floor(Math.random() * 1000);
+}
+// 동기화 상태 표시
+function setSync(msg, cls) {
+  try {
+    var bar = document.getElementById('syncBar');
+    bar.textContent = msg;
+    bar.className = 'sync-bar' + (cls ? ' ' + cls : '');
+  } catch (e) { console.error('상태표시 오류:', e); }
+}
+
+// ---------- Firebase 불러오기 / 저장 ----------
+function loadData() {
+  setSync('☁️ 불러오는 중...', 'saving');
+  fetch(DB_URL)
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      try {
+        if (data && data.rooms) {
+          appData = data;
+        } else {
+          // 처음 실행이면 기본 객실 4개 생성
+          appData = { rooms: {} };
+          var seeds = [
+            { branch: '영종점', name: '영종점 객실' },
+            { branch: '송도점', name: '송도점 객실' },
+            { branch: '펜트하우스', name: '펜트하우스 큰객실' },
+            { branch: '펜트하우스', name: '펜트하우스 작은객실' }
+          ];
+          seeds.forEach(function (s) {
+            var id = makeId() + Math.floor(Math.random() * 100);
+            appData.rooms[id] = {
+              name: s.name, branch: s.branch,
+              info: '', checkin: '', setting: '',
+              photos: [], order: Date.now()
+            };
+          });
+          saveData();
+        }
+        setSync('✅ 최신 상태 (' + new Date().toLocaleTimeString('ko-KR') + ')');
+        renderHome();
+      } catch (e) {
+        console.error('데이터 처리 오류:', e);
+        setSync('⚠️ 데이터 처리 오류', 'error');
+      }
+    })
+    .catch(function (e) {
+      console.error('불러오기 오류:', e);
+      setSync('⚠️ 인터넷 연결을 확인하세요', 'error');
+      document.getElementById('roomList').innerHTML =
+        '<div class="loading">연결 실패 😢<br>와이파이/데이터를 확인하고 새로고침 해주세요.</div>';
+    });
+}
+
+// 저장 (2초 디바운스 - 연속 수정 시 마지막에 한 번만 전송)
+function saveData() {
+  try {
+    if (saveTimer) clearTimeout(saveTimer);
+    setSync('💾 저장 중...', 'saving');
+    saveTimer = setTimeout(function () {
+      fetch(DB_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(appData)
+      })
+      .then(function (res) {
+        if (res.ok) setSync('✅ 저장 완료 (' + new Date().toLocaleTimeString('ko-KR') + ')');
+        else setSync('⚠️ 저장 실패', 'error');
+      })
+      .catch(function (e) {
+        console.error('저장 오류:', e);
+        setSync('⚠️ 저장 실패 - 인터넷 확인', 'error');
+      });
+    }, 2000);
+  } catch (e) { console.error('저장 준비 오류:', e); }
+}
+
+// ---------- 홈 화면 렌더링 ----------
+function renderChips() {
+  try {
+    var area = document.getElementById('chipArea');
+    area.innerHTML = '';
+    BRANCHES.forEach(function (b) {
+      var btn = document.createElement('button');
+      btn.className = 'chip' + (currentBranch === b ? ' active' : '');
+      btn.textContent = b;
+      btn.addEventListener('click', function () {
+        currentBranch = b;
+        renderHome();
+      });
+      area.appendChild(btn);
+    });
+  } catch (e) { console.error('칩 렌더 오류:', e); }
+}
+
+function renderHome() {
+  try {
+    renderChips();
+    var list = document.getElementById('roomList');
+    list.innerHTML = '';
+
+    // 객실을 등록 순서로 정렬
+    var ids = Object.keys(appData.rooms).sort(function (a, b) {
+      return (appData.rooms[a].order || 0) - (appData.rooms[b].order || 0);
+    });
+
+    var shown = 0;
+    ids.forEach(function (id) {
+      var r = appData.rooms[id];
+      if (currentBranch !== '전체' && r.branch !== currentBranch) return;
+      shown++;
+
+      var card = document.createElement('div');
+      card.className = 'room-card';
+
+      var thumb = document.createElement('div');
+      thumb.className = 'thumb';
+      if (r.photos && r.photos.length > 0) {
+        thumb.style.backgroundImage = 'url(' + r.photos[0].img + ')';
+      } else {
+        thumb.textContent = '🛏️';
+      }
+
+      var body = document.createElement('div');
+      body.className = 'body';
+      body.innerHTML =
+        '<span class="branch-tag">' + esc(r.branch) + '</span>' +
+        '<div class="name">' + esc(r.name) + '</div>' +
+        '<div class="meta">📸 체크포인트 사진 ' + (r.photos ? r.photos.length : 0) + '장</div>';
+
+      card.appendChild(thumb);
+      card.appendChild(body);
+      card.addEventListener('click', function () { openRoom(id); });
+      list.appendChild(card);
+    });
+
+    if (shown === 0) {
+      list.innerHTML = '<div class="loading">이 지점에는 아직 객실이 없어요.</div>';
+    }
+
+    // 관리자용: 객실 추가 버튼
+    var addBtn = document.createElement('button');
+    addBtn.className = 'add-room-btn';
+    addBtn.textContent = '＋ 새 객실 추가';
+    addBtn.addEventListener('click', addRoom);
+    list.appendChild(addBtn);
+  } catch (e) { console.error('홈 렌더 오류:', e); }
+}
+
+// ---------- 객실 추가 ----------
+function addRoom() {
+  askInput('새 객실 추가', '객실 이름을 입력하세요. (예: 펜트하우스 큰객실)', '', function (name) {
+    if (!name) return;
+    askInput('지점 선택', '지점을 입력하세요: 영종점 / 송도점 / 펜트하우스', '펜트하우스', function (branch) {
+      if (!branch) branch = '펜트하우스';
+      if (BRANCHES.indexOf(branch) < 1) branch = '펜트하우스'; // 잘못 입력 시 기본값
+      var id = makeId();
+      appData.rooms[id] = {
+        name: name, branch: branch,
+        info: '', checkin: '', setting: '',
+        photos: [], order: Date.now()
+      };
+      saveData();
+      renderHome();
+    });
+  });
+}
+
+// ---------- 상세 화면 ----------
+function openRoom(id) {
+  currentRoomId = id;
+  document.getElementById('homeView').classList.add('hide');
+  var dv = document.getElementById('detailView');
+  dv.classList.add('show');
+  renderDetail();
+  window.scrollTo(0, 0);
+}
+
+function closeRoom() {
+  currentRoomId = null;
+  document.getElementById('homeView').classList.remove('hide');
+  document.getElementById('detailView').classList.remove('show');
+  renderHome();
+}
+
+function renderDetail() {
+  try {
+    var r = appData.rooms[currentRoomId];
+    if (!r) { closeRoom(); return; }
+    var dv = document.getElementById('detailView');
+    dv.innerHTML = '';
+
+    // 뒤로가기 바
+    var backBar = document.createElement('div');
+    backBar.className = 'back-bar';
+    var backBtn = document.createElement('button');
+    backBtn.className = 'back-btn';
+    backBtn.textContent = '← 목록';
+    backBtn.addEventListener('click', closeRoom);
+    backBar.appendChild(backBtn);
+    dv.appendChild(backBar);
+
+    // 제목
+    var titleDiv = document.createElement('div');
+    titleDiv.className = 'detail-title';
+    titleDiv.innerHTML = '<div class="branch">' + esc(r.branch) + '</div><h2>' + esc(r.name) + '</h2>';
+    dv.appendChild(titleDiv);
+
+    // 관리자용 객실 관리 버튼
+    var adminRow = document.createElement('div');
+    adminRow.className = 'admin-actions';
+    var renameBtn = document.createElement('button');
+    renameBtn.className = 'action-btn gray';
+    renameBtn.textContent = '✏️ 이름 변경';
+    renameBtn.addEventListener('click', function () {
+      askInput('객실 이름 변경', '새 이름을 입력하세요.', r.name, function (v) {
+        if (v) { r.name = v; saveData(); renderDetail(); }
+      });
+    });
+    var delBtn = document.createElement('button');
+    delBtn.className = 'action-btn red';
+    delBtn.textContent = '🗑️ 객실 삭제';
+    delBtn.addEventListener('click', function () {
+      if (confirm('정말 "' + r.name + '" 객실을 삭제할까요?\n사진과 정보가 모두 사라져요!')) {
+        delete appData.rooms[currentRoomId];
+        saveData();
+        closeRoom();
+      }
+    });
+    adminRow.appendChild(renameBtn);
+    adminRow.appendChild(delBtn);
+    dv.appendChild(adminRow);
+
+    // 3개 정보 섹션 (객실 정보 / 입실 정보 / 셋팅 정보)
+    var sections = [
+      { key: 'info',    icon: '📋', title: '객실 정보',  hint: '위치, 평수, 특이사항 등을 적어주세요.' },
+      { key: 'checkin', icon: '🔑', title: '입실 정보',  hint: '출입 비밀번호, 주차, 들어가는 방법 등을 적어주세요.' },
+      { key: 'setting', icon: '🛏️', title: '셋팅 정보',  hint: '침구 개수, 어메니티 개수, 배치 기준 등을 적어주세요.' }
+    ];
+    sections.forEach(function (s) {
+      var sec = document.createElement('div');
+      sec.className = 'section';
+      var head = document.createElement('div');
+      head.className = 'sec-head';
+      head.textContent = s.icon + ' ' + s.title;
+      sec.appendChild(head);
+
+      if (isAdmin) {
+        // 관리자: 바로 수정 가능한 입력칸
+        var ta = document.createElement('textarea');
+        ta.value = r[s.key] || '';
+        ta.placeholder = s.hint;
+        ta.addEventListener('input', function () {
+          r[s.key] = ta.value;
+          saveData();
+        });
+        var wrap = document.createElement('div');
+        wrap.className = 'sec-body';
+        wrap.appendChild(ta);
+        sec.appendChild(wrap);
+      } else {
+        // 작업자: 보기 전용
+        var body = document.createElement('div');
+        body.className = 'sec-body' + (r[s.key] ? '' : ' empty');
+        body.textContent = r[s.key] || '아직 등록된 내용이 없어요.';
+        sec.appendChild(body);
+      }
+      dv.appendChild(sec);
+    });
+
+    // 사진 캐러셀 섹션
+    var photoHead = document.createElement('div');
+    photoHead.className = 'section';
+    photoHead.innerHTML = '<div class="sec-head">📸 체크포인트 사진 (옆으로 넘겨보세요!)</div>';
+    dv.appendChild(photoHead);
+
+    renderCarousel(dv, r);
+
+    // 관리자: 사진 추가 버튼
+    var photoActions = document.createElement('div');
+    photoActions.className = 'admin-actions';
+    var addPhotoBtn = document.createElement('button');
+    addPhotoBtn.className = 'action-btn';
+    addPhotoBtn.textContent = '📷 사진 추가 (여러 장 가능)';
+    addPhotoBtn.addEventListener('click', function () {
+      document.getElementById('photoInput').click();
+    });
+    photoActions.appendChild(addPhotoBtn);
+    dv.appendChild(photoActions);
+  } catch (e) { console.error('상세 렌더 오류:', e); }
+}
+
+// ---------- 캐러셀 렌더링 ----------
+function renderCarousel(container, r) {
+  try {
+    var wrap = document.createElement('div');
+    wrap.className = 'carousel-wrap';
+
+    if (!r.photos || r.photos.length === 0) {
+      var empty = document.createElement('div');
+      empty.className = 'no-photos';
+      empty.innerHTML = '아직 사진이 없어요 📷<br>관리자 모드에서 사진을 추가해주세요.';
+      wrap.appendChild(empty);
+      container.appendChild(wrap);
+      return;
+    }
+
+    var carousel = document.createElement('div');
+    carousel.className = 'carousel';
+
+    r.photos.forEach(function (p, idx) {
+      var slide = document.createElement('div');
+      slide.className = 'slide';
+
+      var frame = document.createElement('div');
+      frame.className = 'frame';
+      frame.style.position = 'relative';
+
+      // 단계 배지 (STEP 1/8)
+      var badge = document.createElement('div');
+      badge.className = 'step-badge';
+      badge.textContent = 'STEP ' + (idx + 1) + ' / ' + r.photos.length;
+      frame.appendChild(badge);
+
+      // 사진
+      var img = document.createElement('img');
+      img.className = 'photo';
+      img.src = p.img;
+      img.alt = '체크포인트 ' + (idx + 1);
+      frame.appendChild(img);
+
+      // 설명 문구
+      var cap = document.createElement('div');
+      cap.className = 'caption' + (p.caption ? '' : ' empty');
+      cap.textContent = p.caption || '(설명이 아직 없어요)';
+      frame.appendChild(cap);
+
+      // 관리자용 사진 도구 (설명수정/순서이동/삭제)
+      var tools = document.createElement('div');
+      tools.className = 'photo-tools';
+
+      var capBtn = document.createElement('button');
+      capBtn.className = 'tool-btn';
+      capBtn.textContent = '✏️ 설명';
+      capBtn.addEventListener('click', function () {
+        askInput('사진 설명 입력', '이 사진에서 확인할 포인트를 적어주세요. (예: 수건은 3단 접기로 2장씩)', p.caption || '', function (v) {
+          p.caption = v || '';
+          saveData();
+          renderDetail();
+        });
+      });
+
+      var leftBtn = document.createElement('button');
+      leftBtn.className = 'tool-btn';
+      leftBtn.textContent = '◀ 앞으로';
+      leftBtn.addEventListener('click', function () {
+        if (idx > 0) {
+          var t = r.photos[idx - 1];
+          r.photos[idx - 1] = r.photos[idx];
+          r.photos[idx] = t;
+          saveData();
+          renderDetail();
+        }
+      });
+
+      var rightBtn = document.createElement('button');
+      rightBtn.className = 'tool-btn';
+      rightBtn.textContent = '뒤로 ▶';
+      rightBtn.addEventListener('click', function () {
+        if (idx < r.photos.length - 1) {
+          var t2 = r.photos[idx + 1];
+          r.photos[idx + 1] = r.photos[idx];
+          r.photos[idx] = t2;
+          saveData();
+          renderDetail();
+        }
+      });
+
+      var delPhotoBtn = document.createElement('button');
+      delPhotoBtn.className = 'tool-btn danger';
+      delPhotoBtn.textContent = '🗑️ 삭제';
+      delPhotoBtn.addEventListener('click', function () {
+        if (confirm('이 사진을 삭제할까요?')) {
+          r.photos.splice(idx, 1);
+          saveData();
+          renderDetail();
+        }
+      });
+
+      tools.appendChild(capBtn);
+      tools.appendChild(leftBtn);
+      tools.appendChild(rightBtn);
+      tools.appendChild(delPhotoBtn);
+      frame.appendChild(tools);
+
+      slide.appendChild(frame);
+      carousel.appendChild(slide);
+    });
+
+    wrap.appendChild(carousel);
+
+    // 점 표시 + 카운터
+    var dots = document.createElement('div');
+    dots.className = 'dots';
+    r.photos.forEach(function (_, i) {
+      var d = document.createElement('div');
+      d.className = 'dot' + (i === 0 ? ' active' : '');
+      dots.appendChild(d);
+    });
+    wrap.appendChild(dots);
+
+    var counter = document.createElement('div');
+    counter.className = 'photo-counter';
+    counter.textContent = '1 / ' + r.photos.length;
+    wrap.appendChild(counter);
+
+    // 스크롤 시 현재 사진 번호 갱신
+    carousel.addEventListener('scroll', function () {
+      try {
+        var i = Math.round(carousel.scrollLeft / carousel.clientWidth);
+        counter.textContent = (i + 1) + ' / ' + r.photos.length;
+        var ds = dots.querySelectorAll('.dot');
+        ds.forEach(function (d, j) {
+          d.className = 'dot' + (j === i ? ' active' : '');
+        });
+      } catch (e) { console.error('스크롤 처리 오류:', e); }
+    });
+
+    container.appendChild(wrap);
+  } catch (e) { console.error('캐러셀 렌더 오류:', e); }
+}
+
+// ---------- 사진 업로드 + 자동 압축 ----------
+// 폰 사진 원본(수 MB)을 800px / JPEG 60% 로 줄여서 저장 (Firebase 용량 절약)
+function compressImage(file, callback) {
+  try {
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var img = new Image();
+      img.onload = function () {
+        var MAX = 800; // 최대 가로/세로 800px
+        var w = img.width, h = img.height;
+        if (w > h && w > MAX) { h = h * (MAX / w); w = MAX; }
+        else if (h >= w && h > MAX) { w = w * (MAX / h); h = MAX; }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        callback(canvas.toDataURL('image/jpeg', 0.6));
+      };
+      img.onerror = function () { alert('사진을 읽을 수 없어요.'); };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  } catch (e) {
+    console.error('사진 압축 오류:', e);
+    alert('사진 처리 중 오류가 발생했어요.');
+  }
+}
+
+// ---------- 입력 모달 (프롬프트 대체) ----------
+var inputCallback = null;
+function askInput(title, desc, defaultVal, cb) {
+  try {
+    document.getElementById('inputTitle').textContent = title;
+    document.getElementById('inputDesc').textContent = desc;
+    var f = document.getElementById('inputField');
+    f.value = defaultVal || '';
+    inputCallback = cb;
+    document.getElementById('inputModal').classList.add('show');
+    setTimeout(function () { f.focus(); }, 100);
+  } catch (e) { console.error('입력 모달 오류:', e); }
+}
+
+// ---------- 이벤트 연결 (전부 addEventListener 사용) ----------
+try {
+  // 관리자 버튼
+  document.getElementById('btnAdmin').addEventListener('click', function () {
+    if (isAdmin) {
+      // 관리자 모드 끄기
+      isAdmin = false;
+      document.body.classList.remove('admin');
+      this.textContent = '🔒 관리자';
+      this.classList.remove('on');
+      if (currentRoomId) renderDetail(); else renderHome();
+    } else {
+      // 비밀번호 모달 열기
+      document.getElementById('pwInput').value = '';
+      document.getElementById('pwError').classList.remove('show');
+      document.getElementById('pwModal').classList.add('show');
+      setTimeout(function () { document.getElementById('pwInput').focus(); }, 100);
+    }
+  });
+
+  // 비밀번호 확인
+  document.getElementById('pwOk').addEventListener('click', function () {
+    var v = document.getElementById('pwInput').value;
+    if (v === ADMIN_PW) {
+      isAdmin = true;
+      document.body.classList.add('admin');
+      var btn = document.getElementById('btnAdmin');
+      btn.textContent = '🔓 관리자 ON';
+      btn.classList.add('on');
+      document.getElementById('pwModal').classList.remove('show');
+      if (currentRoomId) renderDetail(); else renderHome();
+    } else {
+      document.getElementById('pwError').classList.add('show');
+    }
+  });
+  document.getElementById('pwCancel').addEventListener('click', function () {
+    document.getElementById('pwModal').classList.remove('show');
+  });
+  // 비밀번호 입력 후 엔터
+  document.getElementById('pwInput').addEventListener('keyup', function (e) {
+    if (e.key === 'Enter') document.getElementById('pwOk').click();
+  });
+
+  // 입력 모달 버튼
+  document.getElementById('inputOk').addEventListener('click', function () {
+    var v = document.getElementById('inputField').value.trim();
+    document.getElementById('inputModal').classList.remove('show');
+    if (inputCallback) inputCallback(v);
+    inputCallback = null;
+  });
+  document.getElementById('inputCancel').addEventListener('click', function () {
+    document.getElementById('inputModal').classList.remove('show');
+    inputCallback = null;
+  });
+
+  // 사진 파일 선택 시 → 압축 → 추가
+  document.getElementById('photoInput').addEventListener('change', function (e) {
+    var files = Array.prototype.slice.call(e.target.files || []);
+    if (files.length === 0 || !currentRoomId) return;
+    var r = appData.rooms[currentRoomId];
+    var done = 0;
+    setSync('📷 사진 압축 중... (' + files.length + '장)', 'saving');
+    files.forEach(function (file) {
+      compressImage(file, function (dataUrl) {
+        r.photos.push({ img: dataUrl, caption: '' });
+        done++;
+        if (done === files.length) {
+          saveData();
+          renderDetail();
+        }
+      });
+    });
+    e.target.value = ''; // 같은 파일 재선택 가능하도록 초기화
+  });
+
+  // 시작!
+  loadData();
+} catch (e) {
+  console.error('앱 초기화 오류:', e);
+}
+</script>
+</body>
+</html>
