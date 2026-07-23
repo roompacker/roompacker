@@ -63,6 +63,14 @@
     .brand-copy strong { display: block; font-size: 16px; letter-spacing: .02em; }
     .brand-copy span { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; font-weight: 700; }
     .top-actions { display: flex; align-items: center; gap: 8px; }
+    .sync-pill { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 10px; border: 1px solid var(--line); border-radius: 99px; background: rgba(255,255,255,.8); color: var(--muted); font-size: 10px; font-weight: 850; }
+    .sync-pill b { font-weight: 850; }
+    .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #cbd7de; }
+    .sync-pill[data-mode="ok"] { color: #237c65; border-color: #cdeade; background: #f2fbf7; }
+    .sync-pill[data-mode="ok"] .sync-dot { background: #3fae8d; }
+    .sync-pill[data-mode="wait"] .sync-dot { background: var(--yellow); }
+    .sync-pill[data-mode="err"] { color: var(--red); border-color: #f2d3cf; background: #fff6f4; }
+    .sync-pill[data-mode="err"] .sync-dot { background: var(--red); }
 
     .icon-btn, .outline-btn, .primary-btn {
       border: 0; border-radius: 13px; min-height: 40px;
@@ -236,7 +244,9 @@
     .edit-reference-preview { display: flex; align-items: center; gap: 9px; margin-top: 8px; }
     .edit-reference-preview img { width: 58px; height: 45px; object-fit: cover; border-radius: 9px; border: 1px solid #dbe7ee; }
     .edit-reference-preview button { padding: 6px 8px; border: 1px solid #f0d6d2; border-radius: 8px; color: #b35b51; background: #fff6f4; font-size: 10px; font-weight: 850; }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+    .modal-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+    .danger-btn { min-height: 40px; padding: 0 13px; border: 1px solid #f0d6d2; border-radius: 13px; color: var(--red); background: #fff6f4; font-size: 12px; font-weight: 800; }
+    .danger-btn:hover { background: #ffeceb; }
 
     .image-modal-backdrop { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 15px; background: rgba(17, 30, 42, .82); }
     .image-viewer { position: relative; width: min(100%, 820px); }
@@ -271,6 +281,7 @@
         <div class="brand-copy"><strong>ROOMMADE</strong><span>객실 체크포인트 메모</span></div>
       </div>
       <div class="top-actions">
+        <span class="sync-pill" id="syncStatus" data-mode="wait"><i class="sync-dot"></i><b id="syncText">연결 중</b></span>
         <button class="outline-btn" id="copyReportBtn" type="button">↗ 보고서 복사</button>
         <button class="icon-btn" id="resetBtn" type="button" aria-label="초기화" title="초기화">↺</button>
       </div>
@@ -323,9 +334,11 @@
     <section class="bottom-actions">
       <button class="outline-btn" id="copyReportBtnBottom" type="button">↗ 체크 결과 복사</button>
       <button class="outline-btn" id="downloadBtn" type="button">↓ 백업 파일 저장</button>
+      <button class="outline-btn" id="importBtn" type="button">↑ 백업 불러오기</button>
       <button class="outline-btn" id="collapseBtn" type="button">⌃ 모두 접기</button>
+      <input id="importInput" type="file" accept=".json,application/json" hidden />
     </section>
-    <p class="hint">입력한 내용은 이 기기의 브라우저에 자동 저장됩니다. 객실별로 사용하려면 객실명을 바꾸고 백업 파일을 저장해 주세요.</p>
+    <p class="hint">체크·메모·사진은 클라우드에 자동 저장되어 같은 링크를 보는 모든 작업자와 약 8초 안에 공유됩니다. 인터넷이 끊기면 "오프라인"으로 표시되고, 연결되면 자동으로 다시 저장돼요.</p>
   </main>
 
   <button class="quick-add" id="quickAddBtn" type="button"><span>＋</span> 새 체크포인트</button>
@@ -344,7 +357,7 @@
         <div class="form-field full"><label for="newDescription">설명</label><textarea id="newDescription" placeholder="기준 사진처럼 정리해야 하는 이유나 주의사항을 적어주세요."></textarea></div>
         <div class="form-field full">
           <label for="newChecks">확인 항목 <span style="color:#a5b2ba;font-weight:600">(한 줄에 하나씩)</span></label>
-          <textarea id="newChecks" placeholder="수량과 위치가 기준 사진과 같다\n오염·물기·먼지가 없다\n파손·고장·누락이 없다"></textarea>
+          <textarea id="newChecks" placeholder="수량과 위치가 기준 사진과 같다&#10;오염·물기·먼지가 없다&#10;파손·고장·누락이 없다"></textarea>
           <div class="suggest-row"><span>구역을 선택하면 추천 문구를 불러올 수 있어요.</span><button class="suggest-btn" id="suggestBtn" type="button">✦ 추천 체크 불러오기</button></div>
         </div>
         <div class="form-field full">
@@ -371,7 +384,7 @@
         <div class="form-field full"><label for="editDescription">기본 설명</label><textarea id="editDescription" placeholder="이 포인트를 어떻게 셋팅해야 하는지 적어주세요."></textarea></div>
         <div class="form-field full">
           <label for="editChecks">확인 항목 <span style="color:#a5b2ba;font-weight:600">(한 줄에 하나씩)</span></label>
-          <textarea id="editChecks" placeholder="수량과 위치가 기준 사진과 같다\n오염·물기·먼지가 없다\n파손·고장·누락이 없다"></textarea>
+          <textarea id="editChecks" placeholder="수량과 위치가 기준 사진과 같다&#10;오염·물기·먼지가 없다&#10;파손·고장·누락이 없다"></textarea>
         </div>
         <div class="form-field full">
           <label>기준 사진 교체 <span style="color:#a5b2ba;font-weight:600">(선택)</span></label>
@@ -379,7 +392,7 @@
           <div id="editReferencePreview" class="edit-reference-preview" hidden><img id="editReferencePreviewImage" alt="새 기준 사진 미리보기" /><button id="clearEditReferenceBtn" type="button">기준 사진 삭제</button></div>
         </div>
       </div>
-      <div class="modal-actions"><button class="outline-btn" id="cancelEditModal" type="button">취소</button><button class="primary-btn" type="submit">수정 내용 저장</button></div>
+      <div class="modal-actions"><button class="danger-btn" id="deleteCheckpointBtn" type="button">포인트 삭제</button><span style="flex:1"></span><button class="outline-btn" id="cancelEditModal" type="button">취소</button><button class="primary-btn" type="submit">수정 내용 저장</button></div>
     </form>
   </div>
 
@@ -389,6 +402,17 @@
 
   <script>
     const STORAGE_KEY = "roommade-photo-checkpoint-v2";
+
+    // ===== Firebase 실시간 동기화 설정 (roompacker-48249) =====
+    // 다른 객실용으로 파일을 복제하면 SYNC_PATH만 바꿔 주세요. (예: "photo-checkpoint/songdo-501")
+    const DB_URL = "https://roompacker-48249-default-rtdb.asia-southeast1.firebasedatabase.app";
+    const SYNC_PATH = "photo-checkpoint/hanla-c-403";
+    const SYNC_URL = `${DB_URL}/${SYNC_PATH}.json`;
+    const PUSH_DELAY = 4000;   // 입력이 멈추고 4초 뒤 자동 업로드
+    const POLL_INTERVAL = 8000; // 8초마다 다른 작업자의 변경 내용 확인
+    let pushTimer = null;
+    let syncDirty = false;
+    let isPushing = false;
 
     const seedCheckpoints = [
       {
@@ -487,14 +511,16 @@
       try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
         if (saved && Array.isArray(saved.items)) {
-          return { roomName: saved.roomName || "한라웨스턴파크 C · 403호", inspector: saved.inspector || "", items: saved.items.map(normalizeItem) };
+          return { roomName: saved.roomName || "한라웨스턴파크 C · 403호", inspector: saved.inspector || "", items: saved.items.map(normalizeItem), updatedAt: saved.updatedAt || 0 };
         }
       } catch (error) { console.warn("저장된 체크리스트를 불러오지 못했습니다.", error); }
-      return { roomName: "한라웨스턴파크 C · 403호", inspector: "", items: seedCheckpoints.map(normalizeItem) };
+      return { roomName: "한라웨스턴파크 C · 403호", inspector: "", items: seedCheckpoints.map(normalizeItem), updatedAt: 0 };
     }
 
     function saveState() {
+      state.updatedAt = Date.now();
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (error) { showToast("저장 공간이 부족합니다. 사진 수를 줄여 주세요."); }
+      queueCloudPush();
     }
 
     function getItem(itemId) { return state.items.find(item => item.id === itemId); }
@@ -512,11 +538,11 @@
         </label>`).join("");
       const extras = item.photos.map((photo, photoIndex) => `
         <button class="extra-thumb" type="button" data-image-role="extra" data-item-id="${escapeHTML(item.id)}" data-photo-index="${photoIndex}" aria-label="추가 사진 크게 보기">
-          <img src="${photo}" alt="추가 기록 사진 ${photoIndex + 1}" />
+          <img src="${escapeHTML(photo)}" alt="추가 기록 사진 ${photoIndex + 1}" />
           <span class="remove-photo" data-remove-photo="true" data-item-id="${escapeHTML(item.id)}" data-photo-index="${photoIndex}" aria-label="사진 삭제">×</span>
         </button>`).join("");
       const reference = item.reference ? `
-        <img src="${item.reference}" alt="${escapeHTML(item.title)} 기준 사진" />
+        <img src="${escapeHTML(item.reference)}" alt="${escapeHTML(item.title)} 기준 사진" />
         <span class="photo-badge">기준 사진</span>
         <button class="photo-open" type="button" data-image-role="reference" data-item-id="${escapeHTML(item.id)}">확대해서 보기 ↗</button>` : `<div class="empty-reference">기준 사진 없이 추가된 메모 포인트</div>`;
       return `
@@ -699,13 +725,112 @@
       catch (error) { window.prompt("아래 내용을 복사해 주세요.", report); }
     }
 
+    // 삭제 후 카드 번호(01, 02...)를 순서대로 다시 매깁니다.
+    function renumberItems() {
+      state.items.forEach((item, index) => { item.number = String(index + 1).padStart(2, "0"); });
+    }
+
+    // 저장했던 백업(JSON 파일)을 다시 불러옵니다.
+    function importBackup(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (!data || !Array.isArray(data.items)) throw new Error("형식이 다른 파일");
+          state = { roomName: data.roomName || "한라웨스턴파크 C · 403호", inspector: data.inspector || "", items: data.items.map(normalizeItem) };
+          saveState();
+          $("#roomName").value = state.roomName;
+          $("#inspector").value = state.inspector;
+          renderCards();
+          showToast("백업을 불러왔어요.");
+        } catch (error) {
+          showToast("백업 파일이 아니거나 파일이 손상되었어요.");
+        }
+      };
+      reader.onerror = () => showToast("파일을 읽지 못했어요. 다시 시도해 주세요.");
+      reader.readAsText(file);
+    }
+
     function resetChecklist() {
-      if (!confirm("이 기기에 저장된 체크 결과와 추가 메모·사진을 초기화할까요?")) return;
+      if (!confirm("체크 결과와 추가 메모·사진을 모두 초기화할까요?\n(다른 작업자 화면에도 똑같이 초기화가 반영됩니다)")) return;
       state = { roomName: "한라웨스턴파크 C · 403호", inspector: "", items: seedCheckpoints.map(normalizeItem) }; saveState(); $("#roomName").value = state.roomName; $("#inspector").value = state.inspector; renderCards(); showToast("기준 체크리스트로 초기화했어요.");
+    }
+
+    // ===== 클라우드 동기화 함수들 =====
+    // 상단바의 동기화 상태 표시를 바꿉니다. (ok=초록, wait=노랑, err=빨강)
+    function setSyncStatus(mode, text) {
+      const pill = $("#syncStatus"); if (!pill) return;
+      pill.dataset.mode = mode;
+      $("#syncText").textContent = text;
+    }
+
+    // 저장할 내용이 생기면 4초 뒤에 한 번만 업로드하도록 예약합니다.
+    function queueCloudPush() {
+      syncDirty = true;
+      setSyncStatus("wait", "저장 대기");
+      clearTimeout(pushTimer);
+      pushTimer = setTimeout(pushToCloud, PUSH_DELAY);
+    }
+
+    // 현재 상태 전체를 Firebase에 업로드합니다.
+    async function pushToCloud() {
+      if (isPushing) { clearTimeout(pushTimer); pushTimer = setTimeout(pushToCloud, 1500); return; }
+      isPushing = true;
+      setSyncStatus("wait", "올리는 중");
+      try {
+        const response = await fetch(SYNC_URL, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(state) });
+        if (!response.ok) throw new Error(`업로드 실패 (${response.status})`);
+        syncDirty = false;
+        setSyncStatus("ok", "동기화됨");
+      } catch (error) {
+        console.warn("클라우드 저장 실패", error);
+        setSyncStatus("err", "오프라인");
+        clearTimeout(pushTimer);
+        pushTimer = setTimeout(pushToCloud, 10000); // 10초 뒤 자동 재시도
+      } finally { isPushing = false; }
+    }
+
+    // 사용자가 입력 중이거나 창(모달)이 열려 있으면 화면을 바꾸지 않습니다.
+    function isUserBusy() {
+      const active = document.activeElement;
+      const typing = active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA");
+      const modalOpen = !$("#newModalBackdrop").hidden || !$("#editModalBackdrop").hidden || !$("#imageModalBackdrop").hidden;
+      return typing || modalOpen;
+    }
+
+    // Firebase에서 최신 내용을 내려받아, 다른 작업자의 변경이 더 새 것이면 화면에 반영합니다.
+    async function pullFromCloud(isFirst = false) {
+      if (!isFirst && (syncDirty || isPushing || isUserBusy())) return;
+      try {
+        const response = await fetch(SYNC_URL);
+        if (!response.ok) throw new Error(`다운로드 실패 (${response.status})`);
+        const remote = await response.json();
+        if (!remote || !Array.isArray(remote.items)) {
+          // 클라우드가 비어 있으면(첫 사용) 지금 기기의 내용을 첫 데이터로 올립니다.
+          if (isFirst) queueCloudPush();
+          else setSyncStatus("ok", "동기화됨");
+          return;
+        }
+        if ((remote.updatedAt || 0) > (state.updatedAt || 0)) {
+          state = { roomName: remote.roomName || "한라웨스턴파크 C · 403호", inspector: remote.inspector || "", items: remote.items.map(normalizeItem), updatedAt: remote.updatedAt || Date.now() };
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (error) { /* 용량 부족 시 화면 반영만 유지 */ }
+          $("#roomName").value = state.roomName;
+          $("#inspector").value = state.inspector;
+          renderCards();
+        }
+        setSyncStatus("ok", "동기화됨");
+      } catch (error) {
+        console.warn("클라우드 불러오기 실패", error);
+        setSyncStatus("err", "오프라인");
+      }
     }
 
     $("#roomName").value = state.roomName; $("#inspector").value = state.inspector;
     renderCards();
+
+    // 시작할 때 클라우드 확인 후, 8초마다 자동으로 새 내용을 확인합니다.
+    pullFromCloud(true);
+    setInterval(pullFromCloud, POLL_INTERVAL);
 
     $("#roomName").addEventListener("input", event => { state.roomName = event.target.value; saveState(); });
     $("#inspector").addEventListener("input", event => { state.inspector = event.target.value; saveState(); });
@@ -790,6 +915,39 @@
       const imageTarget = event.target.closest("[data-image-role]");
       if (imageTarget) { const item = getItem(imageTarget.dataset.itemId); if (!item) return; const source = imageTarget.dataset.imageRole === "reference" ? item.reference : item.photos[Number(imageTarget.dataset.photoIndex)]; openImage(source, `${item.number}. ${item.title}`); }
     });
+
+    // 백업 불러오기 버튼
+    $("#importBtn").addEventListener("click", () => $("#importInput").click());
+    $("#importInput").addEventListener("change", event => {
+      const file = event.target.files[0];
+      event.target.value = "";
+      if (!file) return;
+      if (!confirm("현재 화면의 내용을 백업 파일 내용으로 바꿀까요?")) return;
+      importBackup(file);
+    });
+
+    // 편집 창에서 포인트 삭제
+    $("#deleteCheckpointBtn").addEventListener("click", () => {
+      const item = getItem(editingItemId); if (!item) return;
+      if (!confirm(`"${item.title}" 포인트를 삭제할까요?\n메모와 추가 사진도 함께 삭제됩니다.`)) return;
+      state.items = state.items.filter(entry => entry.id !== item.id);
+      renumberItems();
+      saveState(); renderCards(); closeEditModal(); showToast("체크포인트를 삭제했어요.");
+    });
+
+    // 기준 사진 파일이 없거나 로딩에 실패하면 깨진 이미지 대신 안내 문구를 보여줍니다.
+    $("#cards").addEventListener("error", event => {
+      const image = event.target;
+      if (!(image instanceof HTMLImageElement)) return;
+      const referenceBox = image.closest(".reference-photo");
+      if (referenceBox) {
+        referenceBox.removeAttribute("data-image-role");
+        referenceBox.innerHTML = `<div class="empty-reference" style="text-align:center;line-height:1.6">기준 사진을 불러오지 못했어요<br /><small style="font-weight:700;color:#a3b1bb">편집 → 새 사진 선택으로 등록할 수 있어요</small></div>`;
+        return;
+      }
+      const thumb = image.closest(".extra-thumb");
+      if (thumb) thumb.remove();
+    }, true);
 
     document.addEventListener("keydown", event => { if (event.key === "Escape") { closeNewModal(); closeEditModal(); closeImage(); } });
   </script>
