@@ -7,58 +7,58 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="format-detection" content="telephone=no" />
-<meta name="theme-color" content="#2F6FAF" />
+<meta name="theme-color" content="#ECE6F8" />
 <title>ROOMMADE ONE</title>
 <style>
 :root{
-  --cream:#F6F0E8;--cream-2:#FFF8EF;--navy:#2F6FAF;--navy2:#4C89C2;--blue:#6CA4D9;--sky:#EAF3FB;--mint:#F1F6FB;
-  --green:#2F6FAF;--red:#D95C5C;--amber:#E58E33;--purple:#7E8896;
-  --ink:#243140;--sub:#65707E;--muted:#97A1AC;--line:#E3E0DA;--bg:#F8F5F0;--card:#FFFFFF;
-  --shadow:0 12px 32px rgba(59,87,120,.10);--radius:22px;
+  --cream:#EDE9F4;--cream-2:#FFF8EF;--navy:#8159C6;--navy2:#9E83CC;--blue:#9B7BD3;--sky:#F6F3FB;--mint:#F8F6FC;
+  --green:#8159C6;--red:#D95C5C;--amber:#E58E33;--purple:#A9A3B2;
+  --ink:#4D3F66;--sub:#8F889C;--muted:#A49EAF;--line:#DDDAE3;--bg:#F3F0F7;--card:#FFFFFF;
+  --shadow:0 12px 32px rgba(113,87,158,.10);--radius:22px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;min-height:100%;background:linear-gradient(180deg,#F8F4EE 0%,#EEF3F8 100%);color:var(--ink);font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+html,body{margin:0;min-height:100%;background:linear-gradient(180deg,#F1EFF6 0%,#F7F5FA 100%);color:var(--ink);font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 button,input,select,textarea{font:inherit}
 button{cursor:pointer}
 body{display:flex;justify-content:center}
 .app{width:100%;max-width:560px;min-height:100vh;background:var(--bg);position:relative;padding-bottom:104px;overflow-x:hidden}
-.topbar{position:sticky;top:0;z-index:30;background:rgba(248,245,240,.95);backdrop-filter:blur(16px);padding:14px 17px 10px;border-bottom:1px solid rgba(227,224,218,.92)}
+.topbar{position:sticky;top:0;z-index:30;background:rgba(243,240,247,.95);backdrop-filter:blur(16px);padding:14px 17px 10px;border-bottom:1px solid rgba(221,218,227,.92)}
 .brandrow{display:flex;align-items:center;gap:11px}
-.logo{width:39px;height:39px;border-radius:14px;background:linear-gradient(145deg,var(--navy),var(--blue));color:white;display:grid;place-items:center;font-size:18px;box-shadow:0 7px 16px rgba(18,59,102,.22)}
+.logo{width:39px;height:39px;border-radius:14px;background:linear-gradient(145deg,var(--navy),var(--blue));color:white;display:grid;place-items:center;font-size:18px;box-shadow:0 7px 16px rgba(78,37,148,.22)}
 .brand{flex:1}.brand strong{display:block;font-size:16px;letter-spacing:-.4px}.brand small{display:block;font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1.2px;margin-top:1px}
-.iconbtn{width:39px;height:39px;border:1px solid rgba(227,224,218,.9);background:white;border-radius:13px;box-shadow:0 5px 14px rgba(90,107,126,.08);font-size:17px;color:var(--navy)}
-.branchbar{display:flex;gap:5px;margin-top:12px;padding:4px;background:#EEE9E0;border-radius:14px}
-.branchbtn{flex:1;border:0;background:transparent;border-radius:11px;padding:8px 5px;color:var(--sub);font-size:12px;font-weight:800}.branchbtn.active{background:white;color:var(--navy);box-shadow:0 6px 12px rgba(90,107,126,.08)}
+.iconbtn{width:39px;height:39px;border:1px solid rgba(221,218,227,.9);background:white;border-radius:13px;box-shadow:0 5px 14px rgba(136,125,157,.08);font-size:17px;color:var(--navy)}
+.branchbar{display:flex;gap:5px;margin-top:12px;padding:4px;background:#E5E0EE;border-radius:14px}
+.branchbtn{flex:1;border:0;background:transparent;border-radius:11px;padding:8px 5px;color:var(--sub);font-size:12px;font-weight:800}.branchbtn.active{background:white;color:var(--navy);box-shadow:0 6px 12px rgba(136,125,157,.08)}
 .view{display:none;padding:15px 14px 4px}.view.active{display:block}
-.hero{position:relative;overflow:hidden;border-radius:28px;background:linear-gradient(135deg,#2F6FAF 0%,#5A97D0 68%,#F1A247 120%);padding:20px;color:white;box-shadow:0 18px 35px rgba(47,111,175,.22)}
+.hero{position:relative;overflow:hidden;border-radius:28px;background:linear-gradient(135deg,#8159C6 0%,#AC93D8 68%,#F2A9CD 120%);padding:20px;color:white;box-shadow:0 18px 35px rgba(129,89,198,.22)}
 .hero:after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;right:-72px;top:-78px;background:rgba(255,255,255,.08)}
 .hero:before{content:"";position:absolute;width:90px;height:90px;border-radius:50%;right:40px;bottom:-50px;background:rgba(255,255,255,.06)}
 .eyebrow{font-size:11px;font-weight:800;letter-spacing:.5px;opacity:.78}.heroamount{font-size:31px;font-weight:900;letter-spacing:-1.2px;margin:5px 0 15px}.herometa{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:relative;z-index:1}.herostat{background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:10px 11px}.herostat small{font-size:10px;opacity:.75}.herostat b{display:block;font-size:14px;margin-top:2px}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.metric{background:white;border:1px solid var(--line);border-radius:18px;padding:12px 10px;box-shadow:0 8px 18px rgba(101,112,126,.06)}.metric span{display:block;font-size:10px;color:var(--muted);font-weight:700}.metric b{display:block;font-size:14px;margin-top:4px;letter-spacing:-.4px}.metric.green b{color:var(--green)}.metric.red b{color:var(--red)}.metric.amber b{color:var(--amber)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.metric{background:white;border:1px solid var(--line);border-radius:18px;padding:12px 10px;box-shadow:0 8px 18px rgba(143,136,156,.06)}.metric span{display:block;font-size:10px;color:var(--muted);font-weight:700}.metric b{display:block;font-size:14px;margin-top:4px;letter-spacing:-.4px}.metric.green b{color:var(--green)}.metric.red b{color:var(--red)}.metric.amber b{color:var(--amber)}
 .section{margin-top:14px}.sectitle{display:flex;align-items:center;justify-content:space-between;margin:0 4px 9px}.sectitle h2{margin:0;font-size:15px;letter-spacing:-.4px}.sectitle button{border:0;background:transparent;color:var(--blue);font-size:11px;font-weight:800}
-.card{background:white;border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 6px 20px rgba(35,64,92,.045)}
-.quickgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:10px}.quick{border:0;background:linear-gradient(180deg,#FFFDFC 0%,#F8F4EE 100%);border-radius:16px;padding:11px 4px 9px;color:var(--ink);border:1px solid rgba(227,224,218,.78)}.quick .qi{display:grid;place-items:center;margin:auto;width:34px;height:34px;border-radius:12px;background:white;font-size:16px;box-shadow:0 4px 10px rgba(101,112,126,.08)}.quick span{display:block;margin-top:7px;font-size:10px;font-weight:800}.quick:nth-child(1) .qi{background:var(--sky);color:var(--navy)}.quick:nth-child(2) .qi{background:#FFF3E4;color:var(--amber)}.quick:nth-child(3) .qi{background:#FDEEEE;color:var(--red)}.quick:nth-child(4) .qi{background:#EFF1F4;color:var(--purple)}
-.job{display:flex;gap:11px;align-items:center;padding:13px 14px;border-bottom:1px solid var(--line)}.job:last-child{border-bottom:0}.jobtime{width:47px;text-align:center}.jobtime b{font-size:13px}.jobtime small{display:block;font-size:9px;color:var(--muted)}.jobicon{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(145deg,var(--sky),#FFF8EF);font-size:17px;color:var(--navy)}.jobinfo{flex:1;min-width:0}.jobinfo b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.jobinfo small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.status{border:0;border-radius:10px;padding:7px 9px;font-size:10px;font-weight:800}.status.done{background:var(--sky);color:var(--green)}.status.wait{background:#FFF3E4;color:var(--amber)}.status.book{background:#F0F2F5;color:var(--purple)}.kkbtn{border:0;border-radius:10px;padding:8px 10px;font-size:13px;font-weight:800;cursor:pointer}.kkbtn.worker{background:#FEE500;color:#3C1E1E}.kkbtn.host{background:#EDF0F3;color:var(--sub)}
+.card{background:white;border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 6px 20px rgba(86,59,133,.045)}
+.quickgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:10px}.quick{border:0;background:linear-gradient(180deg,#FFFDFC 0%,#F1EFF6 100%);border-radius:16px;padding:11px 4px 9px;color:var(--ink);border:1px solid rgba(221,218,227,.78)}.quick .qi{display:grid;place-items:center;margin:auto;width:34px;height:34px;border-radius:12px;background:white;font-size:16px;box-shadow:0 4px 10px rgba(143,136,156,.08)}.quick span{display:block;margin-top:7px;font-size:10px;font-weight:800}.quick:nth-child(1) .qi{background:var(--sky);color:var(--navy)}.quick:nth-child(2) .qi{background:#FFF3E4;color:var(--amber)}.quick:nth-child(3) .qi{background:#FDEEEE;color:var(--red)}.quick:nth-child(4) .qi{background:#F6F5F7;color:var(--purple)}
+.job{display:flex;gap:11px;align-items:center;padding:13px 14px;border-bottom:1px solid var(--line)}.job:last-child{border-bottom:0}.jobtime{width:47px;text-align:center}.jobtime b{font-size:13px}.jobtime small{display:block;font-size:9px;color:var(--muted)}.jobicon{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(145deg,var(--sky),#FFF8EF);font-size:17px;color:var(--navy)}.jobinfo{flex:1;min-width:0}.jobinfo b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.jobinfo small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.status{border:0;border-radius:10px;padding:7px 9px;font-size:10px;font-weight:800}.status.done{background:var(--sky);color:var(--green)}.status.wait{background:#FFF3E4;color:var(--amber)}.status.book{background:#F7F6F8;color:var(--purple)}.kkbtn{border:0;border-radius:10px;padding:8px 10px;font-size:13px;font-weight:800;cursor:pointer}.kkbtn.worker{background:#FEE500;color:#3C1E1E}.kkbtn.host{background:#F4F3F6;color:var(--sub)}
 .empty{padding:30px 15px;text-align:center;color:var(--muted);font-size:12px}.empty .big{font-size:30px;margin-bottom:7px}
 .txrow{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-bottom:1px solid var(--line)}.txrow:last-child{border-bottom:0}.txico{width:36px;height:36px;border-radius:13px;display:grid;place-items:center}.txico.income{background:var(--sky);color:var(--green)}.txico.expense{background:#FDEEEE;color:var(--red)}.txmain{flex:1;min-width:0}.txmain b{font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.txmain small{font-size:10px;color:var(--muted);display:block;line-height:1.5}.txamt{text-align:right}.txamt b{font-size:13px}.txamt b.income{color:var(--green)}.txamt b.expense{color:var(--red)}.txamt small{display:block;font-size:9px;color:var(--muted)}
-.monthnav{display:flex;align-items:center;justify-content:space-between;background:white;border:1px solid var(--line);border-radius:19px;padding:10px 12px;margin-bottom:10px}.monthnav button{border:0;background:#F1EEE8;width:34px;height:34px;border-radius:11px;color:var(--navy);font-weight:900}.monthnav b{font-size:15px}.monthnav small{display:block;text-align:center;color:var(--muted);font-size:9px;margin-top:1px}
-.calendar{padding:12px}.week,.days{display:grid;grid-template-columns:repeat(7,1fr)}.week div{text-align:center;font-size:10px;color:var(--muted);font-weight:800;padding:5px 0}.days{gap:4px}.day{min-height:55px;border:0;background:#FBF8F3;border-radius:13px;padding:5px 2px;position:relative;color:var(--ink)}.day.other{opacity:.28}.day.today{outline:2px solid #B7CFE7}.day.selected{background:linear-gradient(145deg,var(--navy),var(--navy2));color:white}.daynum{font-size:11px;font-weight:800}.dotwrap{display:flex;justify-content:center;gap:2px;margin-top:4px}.dot{width:4px;height:4px;border-radius:50%;background:var(--green)}.dot.exp{background:var(--red)}.daymoney{font-size:7px;color:var(--green);font-weight:800;margin-top:3px}.day.selected .daymoney{color:#FCE7C7}
-.segment{display:flex;padding:4px;background:#EEE9E0;border-radius:14px;margin-bottom:10px}.segbtn{flex:1;border:0;background:transparent;border-radius:11px;padding:9px 5px;font-size:11px;font-weight:800;color:var(--sub)}.segbtn.active{background:white;color:var(--navy);box-shadow:0 4px 10px rgba(101,112,126,.08)}
+.monthnav{display:flex;align-items:center;justify-content:space-between;background:white;border:1px solid var(--line);border-radius:19px;padding:10px 12px;margin-bottom:10px}.monthnav button{border:0;background:#EBE7F1;width:34px;height:34px;border-radius:11px;color:var(--navy);font-weight:900}.monthnav b{font-size:15px}.monthnav small{display:block;text-align:center;color:var(--muted);font-size:9px;margin-top:1px}
+.calendar{padding:12px}.week,.days{display:grid;grid-template-columns:repeat(7,1fr)}.week div{text-align:center;font-size:10px;color:var(--muted);font-weight:800;padding:5px 0}.days{gap:4px}.day{min-height:55px;border:0;background:#F6F4F9;border-radius:13px;padding:5px 2px;position:relative;color:var(--ink)}.day.other{opacity:.28}.day.today{outline:2px solid #CFC1E6}.day.selected{background:linear-gradient(145deg,var(--navy),var(--navy2));color:white}.daynum{font-size:11px;font-weight:800}.dotwrap{display:flex;justify-content:center;gap:2px;margin-top:4px}.dot{width:4px;height:4px;border-radius:50%;background:var(--green)}.dot.exp{background:var(--red)}.daymoney{font-size:7px;color:var(--green);font-weight:800;margin-top:3px}.day.selected .daymoney{color:#FCE7C7}
+.segment{display:flex;padding:4px;background:#E5E0EE;border-radius:14px;margin-bottom:10px}.segbtn{flex:1;border:0;background:transparent;border-radius:11px;padding:9px 5px;font-size:11px;font-weight:800;color:var(--sub)}.segbtn.active{background:white;color:var(--navy);box-shadow:0 4px 10px rgba(143,136,156,.08)}
 .settlehero{padding:17px}.settlehero small{font-size:10px;color:var(--muted);font-weight:800}.settlehero strong{display:block;font-size:27px;letter-spacing:-1px;margin-top:3px}.settlehero p{margin:6px 0 0;font-size:10px;color:var(--sub)}
 .group{margin-top:9px;overflow:hidden}.grouphead{display:flex;align-items:center;gap:10px;padding:13px 14px;background:#FFF9F3;border-bottom:1px solid var(--line)}.avatar{width:35px;height:35px;border-radius:13px;background:linear-gradient(145deg,var(--sky),#FFF3E4);display:grid;place-items:center;font-size:15px;color:var(--navy)}.groupname{flex:1}.groupname b{display:block;font-size:12px}.groupname small{font-size:9px;color:var(--muted)}.groupamt{text-align:right}.groupamt b{font-size:13px;color:var(--amber)}.groupamt small{display:block;font-size:9px;color:var(--muted)}.paybtn{margin:0 12px 12px;width:calc(100% - 24px);border:0;border-radius:13px;padding:10px;background:linear-gradient(145deg,var(--navy),var(--navy2));color:white;font-size:11px;font-weight:800}
 .kpigrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.kpi{padding:14px}.kpi span{font-size:10px;color:var(--muted);font-weight:700}.kpi strong{display:block;font-size:20px;margin-top:4px}.kpi small{display:block;font-size:9px;color:var(--sub);margin-top:3px}
-.rankrow{padding:11px 14px}.ranktop{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px}.ranktop b{font-size:12px}.bar{height:8px;background:#ECE7DF;border-radius:99px;overflow:hidden}.bar span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--navy),var(--blue))}.bar.red span{background:linear-gradient(90deg,var(--red),#F09A86)}
+.rankrow{padding:11px 14px}.ranktop{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px}.ranktop b{font-size:12px}.bar{height:8px;background:#E3DFEC;border-radius:99px;overflow:hidden}.bar span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--navy),var(--blue))}.bar.red span{background:linear-gradient(90deg,var(--red),#F09A86)}
 .chart{padding:14px 12px 10px}.bars{height:145px;display:flex;align-items:flex-end;gap:7px;border-bottom:1px solid var(--line);padding:0 2px}.barcol{flex:1;height:100%;display:flex;align-items:flex-end;justify-content:center;gap:2px;position:relative}.barv{width:38%;min-height:3px;border-radius:6px 6px 0 0;background:linear-gradient(180deg,var(--blue),var(--navy2))}.barv.exp{background:linear-gradient(180deg,#F3A284,var(--red))}.chartlabels{display:flex;gap:7px;padding:7px 2px 0}.chartlabels span{flex:1;text-align:center;font-size:8px;color:var(--muted)}
 .advice{padding:14px;display:flex;gap:10px}.adviceicon{width:39px;height:39px;border-radius:14px;background:#FFF3E4;display:grid;place-items:center;color:var(--amber)}.advicetxt b{font-size:12px}.advicetxt p{margin:3px 0 0;font-size:10px;color:var(--sub);line-height:1.5}
-.manageblock{padding:13px 14px}.managehead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.managehead b{font-size:13px}.addmini{border:0;background:linear-gradient(145deg,var(--navy),var(--navy2));color:white;border-radius:10px;padding:7px 10px;font-size:10px;font-weight:800}.entity{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.entity:first-of-type{border-top:0}.entityico{width:34px;height:34px;border-radius:12px;background:linear-gradient(145deg,var(--sky),#FFF8EF);display:grid;place-items:center;color:var(--navy)}.entitymain{flex:1}.entitymain b{display:block;font-size:12px}.entitymain small{font-size:9px;color:var(--muted)}.editbtn{border:0;background:#F0EEE9;border-radius:9px;padding:6px 8px;font-size:10px;color:var(--sub)}
-.formcard{padding:14px}.field{margin-bottom:11px}.field label{display:block;font-size:10px;color:var(--sub);font-weight:800;margin:0 0 5px 2px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:13px;background:#FCFAF6;padding:12px 13px;color:var(--ink);outline:none}.field textarea{min-height:75px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:#86ADD2;background:white}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:8px}.primary{width:100%;border:0;border-radius:14px;background:linear-gradient(145deg,var(--navy),var(--navy2));color:white;padding:13px;font-size:12px;font-weight:900}.secondary{width:100%;border:1px solid var(--line);border-radius:14px;background:white;color:var(--navy);padding:12px;font-size:11px;font-weight:800}.danger{background:#FDEEEE;color:var(--red);border:0}
-.reportbox{display:none;margin-top:10px;background:#FCFAF6;border-radius:15px;padding:12px;border:1px solid var(--line);font-size:10px;white-space:pre-wrap;line-height:1.65;color:var(--ink)}
-.bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:40;width:100%;max-width:560px;background:rgba(255,255,255,.97);backdrop-filter:blur(16px);border-top:1px solid var(--line);display:flex;padding:7px 5px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -8px 24px rgba(101,112,126,.05)}.navbtn{flex:1;border:0;background:transparent;color:var(--muted);font-size:9px;font-weight:800;padding:5px 2px}.navbtn i{display:grid;place-items:center;width:34px;height:28px;border-radius:12px;margin:0 auto 2px;font-style:normal;font-size:16px}.navbtn.active{color:var(--navy)}.navbtn.active i{background:linear-gradient(145deg,var(--sky),#FFF8EF)}
-.fab{position:fixed;right:max(18px,calc((100vw - 560px)/2 + 18px));bottom:86px;z-index:35;width:54px;height:54px;border-radius:19px;border:0;background:linear-gradient(145deg,var(--navy),var(--blue));color:white;font-size:27px;box-shadow:0 12px 25px rgba(47,111,175,.30)}
-.modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(36,49,64,.45);align-items:flex-end;justify-content:center}.modal.open{display:flex}.sheet{width:100%;max-width:560px;max-height:91vh;overflow:auto;background:white;border-radius:28px 28px 0 0;padding:10px 16px calc(20px + env(safe-area-inset-bottom));animation:up .22s ease}.grab{width:38px;height:4px;border-radius:99px;background:#D7D0C6;margin:0 auto 12px}.sheethead{display:flex;align-items:center;margin-bottom:13px}.sheethead h3{flex:1;margin:0;font-size:17px}.close{width:34px;height:34px;border:0;border-radius:11px;background:#F4EFE8;font-size:16px;color:var(--navy)}.typegrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.typebtn{border:1px solid var(--line);border-radius:15px;background:#FCFAF6;padding:12px;font-weight:800;color:var(--sub)}.typebtn.active.income{background:var(--sky);border-color:#BDD2E8;color:var(--green)}.typebtn.active.expense{background:#FDEEEE;border-color:#F4C4C4;color:var(--red)}
-.toast{position:fixed;left:50%;bottom:94px;transform:translateX(-50%);z-index:200;background:linear-gradient(145deg,var(--navy),var(--navy2));color:white;padding:11px 16px;border-radius:99px;font-size:11px;font-weight:700;box-shadow:0 8px 25px rgba(47,111,175,.22);white-space:nowrap;animation:toast .2s ease}
+.manageblock{padding:13px 14px}.managehead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.managehead b{font-size:13px}.addmini{border:0;background:linear-gradient(145deg,var(--navy),var(--navy2));color:white;border-radius:10px;padding:7px 10px;font-size:10px;font-weight:800}.entity{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.entity:first-of-type{border-top:0}.entityico{width:34px;height:34px;border-radius:12px;background:linear-gradient(145deg,var(--sky),#FFF8EF);display:grid;place-items:center;color:var(--navy)}.entitymain{flex:1}.entitymain b{display:block;font-size:12px}.entitymain small{font-size:9px;color:var(--muted)}.editbtn{border:0;background:#EBE9F0;border-radius:9px;padding:6px 8px;font-size:10px;color:var(--sub)}
+.formcard{padding:14px}.field{margin-bottom:11px}.field label{display:block;font-size:10px;color:var(--sub);font-weight:800;margin:0 0 5px 2px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:13px;background:#F8F7FA;padding:12px 13px;color:var(--ink);outline:none}.field textarea{min-height:75px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:#A992CF;background:white}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:8px}.primary{width:100%;border:0;border-radius:14px;background:linear-gradient(145deg,var(--navy),var(--navy2));color:white;padding:13px;font-size:12px;font-weight:900}.secondary{width:100%;border:1px solid var(--line);border-radius:14px;background:white;color:var(--navy);padding:12px;font-size:11px;font-weight:800}.danger{background:#FDEEEE;color:var(--red);border:0}
+.reportbox{display:none;margin-top:10px;background:#F8F7FA;border-radius:15px;padding:12px;border:1px solid var(--line);font-size:10px;white-space:pre-wrap;line-height:1.65;color:var(--ink)}
+.bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:40;width:100%;max-width:560px;background:rgba(255,255,255,.97);backdrop-filter:blur(16px);border-top:1px solid var(--line);display:flex;padding:7px 5px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -8px 24px rgba(143,136,156,.05)}.navbtn{flex:1;border:0;background:transparent;color:var(--muted);font-size:9px;font-weight:800;padding:5px 2px}.navbtn i{display:grid;place-items:center;width:34px;height:28px;border-radius:12px;margin:0 auto 2px;font-style:normal;font-size:16px}.navbtn.active{color:var(--navy)}.navbtn.active i{background:linear-gradient(145deg,var(--sky),#FFF8EF)}
+.fab{position:fixed;right:max(18px,calc((100vw - 560px)/2 + 18px));bottom:86px;z-index:35;width:54px;height:54px;border-radius:19px;border:0;background:linear-gradient(145deg,var(--navy),var(--blue));color:white;font-size:27px;box-shadow:0 12px 25px rgba(129,89,198,.30)}
+.modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(77,63,102,.45);align-items:flex-end;justify-content:center}.modal.open{display:flex}.sheet{width:100%;max-width:560px;max-height:91vh;overflow:auto;background:white;border-radius:28px 28px 0 0;padding:10px 16px calc(20px + env(safe-area-inset-bottom));animation:up .22s ease}.grab{width:38px;height:4px;border-radius:99px;background:#CCC6D7;margin:0 auto 12px}.sheethead{display:flex;align-items:center;margin-bottom:13px}.sheethead h3{flex:1;margin:0;font-size:17px}.close{width:34px;height:34px;border:0;border-radius:11px;background:#ECE8F3;font-size:16px;color:var(--navy)}.typegrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.typebtn{border:1px solid var(--line);border-radius:15px;background:#F8F7FA;padding:12px;font-weight:800;color:var(--sub)}.typebtn.active.income{background:var(--sky);border-color:#D3C7E7;color:var(--green)}.typebtn.active.expense{background:#FDEEEE;border-color:#F4C4C4;color:var(--red)}
+.toast{position:fixed;left:50%;bottom:94px;transform:translateX(-50%);z-index:200;background:linear-gradient(145deg,var(--navy),var(--navy2));color:white;padding:11px 16px;border-radius:99px;font-size:11px;font-weight:700;box-shadow:0 8px 25px rgba(129,89,198,.22);white-space:nowrap;animation:toast .2s ease}
 @keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}@keyframes toast{from{transform:translate(-50%,10px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
-@media(min-width:561px){.app{box-shadow:0 0 40px rgba(101,112,126,.12)}.modal{align-items:center}.sheet{border-radius:28px;max-height:88vh}}
+@media(min-width:561px){.app{box-shadow:0 0 40px rgba(143,136,156,.12)}.modal{align-items:center}.sheet{border-radius:28px;max-height:88vh}}
 
 /* Galaxy Chrome · iPhone Safari 공통 모바일 최적화 */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;overscroll-behavior-y:none}
@@ -78,6 +78,172 @@ input,select,textarea{min-height:44px}
   .modal{height:100dvh}
   .sheet{max-height:88dvh}
 }
+
+/* ROOMMADE ONE · 통합 운영 UX 리디자인 */
+:root{
+  --bg:#F8F6FB;--card:#FFFFFF;--line:#EFECF4;--ink:#4E3A6F;--sub:#988FA9;--muted:#ABA2BB;
+  --navy:#8159C6;--navy2:#A186D1;--blue:#A588D6;--sky:#F6F3FC;--cream:#F8F6FC;--cream-2:#FFFFFF;
+  --shadow:0 12px 30px rgba(104,73,158,.08);--radius:20px;
+}
+html,body{background:linear-gradient(180deg,#F8F6FC 0%,#F7F5FB 100%)}
+.app{background:#F8F6FC}
+.topbar{background:rgba(248,246,252,.94);border-bottom-color:#EFEBF5}
+.brandrow{gap:10px}
+.logo{width:40px;height:40px;border-radius:14px;background:linear-gradient(145deg,#8159C6,#AB8FDD);box-shadow:0 8px 18px rgba(129,89,198,.2)}
+.brand strong{letter-spacing:-.6px}.brand small{color:#A599B8;letter-spacing:1.4px}
+.top-actions{display:flex;align-items:center;gap:6px}
+.rolebtn{border:1px solid #E6E0F1;background:#F6F3FC;color:#8159C6;border-radius:12px;padding:8px 9px;font-size:10px;font-weight:900;white-space:nowrap}
+.topcontext{display:flex;align-items:center;justify-content:space-between;margin:9px 2px 0;color:#B0A8BE;font-size:10px;font-weight:800}
+.topcontext strong{color:#8159C6}.topcontext button{border:0;background:transparent;color:#A090BC;font-size:10px;font-weight:800;padding:0}
+.branchbar{margin-top:10px;background:#F4F1F8}.branchbtn.active{color:#8159C6}
+.view{padding-top:17px}
+.homeintro{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:0 3px 14px}
+.homeintro h1{font-size:24px;line-height:1.18;letter-spacing:-1px;margin:4px 0 5px;color:#4F3876}
+.homeintro p{font-size:11px;color:var(--sub);line-height:1.55;margin:0}
+.homeintro .eyebrow{color:#AB9BC6;font-size:10px;letter-spacing:1.4px}
+.home-date{min-width:70px;text-align:right;color:#AFA5BF;font-size:10px;font-weight:800;line-height:1.5;padding-bottom:2px}
+.todayhero{background:linear-gradient(135deg,#8159C6 0%,#9D82CB 72%,#AE95DA 130%);padding:18px 18px 16px;border-radius:25px;box-shadow:0 18px 35px rgba(129,89,198,.18)}
+.todayhero .heroamount{font-size:34px;letter-spacing:-1.4px;margin:4px 0 14px}
+.todayhero .eyebrow{opacity:.82}.todayhero .herometa{gap:8px}
+.todayhero .herostat{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.15);padding:9px 11px}
+.todayhero .herostat b{font-size:15px}.hero-subline{font-size:10px;opacity:.78;margin-top:-8px;margin-bottom:12px}
+.progressline{height:7px;background:rgba(255,255,255,.22);border-radius:99px;overflow:hidden;margin:4px 0 0}
+.progressline span{display:block;height:100%;width:0;border-radius:99px;background:#FFFFFF;transition:width .25s ease}
+.smart-strip{display:flex;align-items:center;gap:10px;padding:12px 13px;margin-top:10px;background:#FFFFFF;border:1px solid #ECE8F4;border-radius:17px;box-shadow:0 6px 18px rgba(104,73,158,.045)}
+.smart-strip .smart-icon{width:32px;height:32px;border-radius:11px;background:#F6F3FC;display:grid;place-items:center;font-size:16px;flex-shrink:0}
+.smart-strip b{display:block;font-size:12px}.smart-strip small{display:block;color:var(--sub);font-size:10px;margin-top:2px;line-height:1.4}
+.quickgrid{grid-template-columns:repeat(3,1fr);gap:8px;padding:9px;background:#FFFFFF;border-color:#ECE8F3}
+.quick{background:#F8F5FC;border-color:#F0EDF6;padding:11px 4px 10px}.quick .qi{color:#8159C6;box-shadow:0 4px 12px rgba(104,73,158,.07)}
+.quick:nth-child(1) .qi{background:#F6F3FC}.quick:nth-child(2) .qi{background:#EAF7F3;color:#2C8D73}.quick:nth-child(3) .qi{background:#FFF3E5;color:#C67B22}
+.quick span{font-size:10px}.section{margin-top:16px}
+.sectitle{margin-left:2px;margin-right:2px}.sectitle h2{font-size:14px}
+.job{padding:12px 13px;gap:9px}.job:hover{background:#F8F6FC}.jobicon{width:38px;height:38px;background:#F8F5FC;color:#8159C6}
+.jobinfo small{line-height:1.45}.jobactions{display:flex;align-items:center;gap:4px;flex-shrink:0}.jobdone{border:0;border-radius:10px;padding:7px 8px;background:#F6F5F9;color:#9A92A9;font-size:10px;font-weight:900;white-space:nowrap}.jobdone.is-done{background:#E4F5EE;color:#248866}
+.txrow .jobdone{padding:6px 7px;font-size:9px;flex-shrink:0}
+.kkbtn{padding:7px 8px}.kkbtn.host{background:#F9F7FA;color:#9185A4}
+.financePeek{margin-top:15px;background:#FFFFFF;border:1px solid #ECE8F3;border-radius:18px;box-shadow:0 6px 18px rgba(104,73,158,.04);overflow:hidden}
+.financePeek summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;padding:13px 14px;color:#6C5790;font-size:12px;font-weight:900}.financePeek summary::-webkit-details-marker{display:none}.financePeek summary:after{content:'⌄';color:#ABA2BB;font-size:15px}.financePeek[open] summary:after{content:'⌃'}.financePeek .grid3{margin:0;padding:0 9px 9px}.financePeek .metric{box-shadow:none;border-color:#F1EEF7;padding:10px}.financePeek .metric b{font-size:13px}
+.schedule-intro,.manage-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:0 3px 13px}.schedule-intro h1,.manage-intro h1{font-size:23px;letter-spacing:-.9px;margin:4px 0 0}.schedule-intro p,.manage-intro p{font-size:10px;color:var(--sub);margin:4px 0 0}.primary.mini,.secondary.mini{width:auto;padding:10px 12px;border-radius:12px;white-space:nowrap;font-size:11px}
+.schedule-tools{display:flex;gap:7px;margin:10px 0 12px}.toolbtn{flex:1;border:1px solid #EAE5F3;background:#FFFFFF;border-radius:12px;padding:10px 8px;color:#7A63A2;font-size:10px;font-weight:900}.toolbtn.primarytool{background:#F6F3FC;border-color:#E3DAF2;color:#8159C6}.toolbtn.more{flex:0 0 42px;font-size:15px;padding:6px}.more-actions{display:none;grid-template-columns:repeat(2,1fr);gap:7px;margin:-4px 0 11px}.more-actions.open{display:grid}.more-actions button{border:1px solid #ECE8F3;background:#FFFFFF;border-radius:12px;padding:10px 8px;color:#9185A5;font-size:10px;font-weight:800}.datehead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 2px 8px}.datehead h2{font-size:15px;margin:0}.datehead small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.datehead .date-actions{display:flex;gap:6px}.date-actions button{border:0;border-radius:11px;padding:9px 10px;font-size:10px;font-weight:900}.date-actions .addclean{background:#F7F5FB;color:#8159C6}
+.hostshare{display:flex;align-items:center;gap:12px;padding:13px 14px;margin-bottom:12px;background:#FFFFFF;border:1px solid #ECE8F4;border-radius:18px;box-shadow:0 6px 18px rgba(104,73,158,.04)}.hostshare-copy{flex:1;min-width:0}.hostshare-copy b{display:block;font-size:12px}.hostshare-copy small{display:block;color:var(--sub);font-size:10px;line-height:1.4;margin-top:3px}.hostshare-actions{display:flex;gap:6px;flex-shrink:0}.hostshare-actions button{border:0;border-radius:11px;padding:9px 9px;font-size:10px;font-weight:900}.hostshare-actions #makeRoomview{background:#8159C6;color:#fff}.hostshare-actions #notifyUpdate{background:#FEE500;color:#3C1E1E}
+.view-title{margin:0 3px 13px}.view-title h1{font-size:23px;letter-spacing:-.9px;margin:4px 0 0}.view-title p{font-size:10px;color:var(--sub);margin:4px 0 0}
+.manageblock{box-shadow:0 6px 18px rgba(104,73,158,.04);border-color:#ECE8F3}.managehead b{font-size:13px}.addmini{background:#F6F3FC;color:#8159C6;border:1px solid #E6DEF3}.entity{padding:11px 0}.entityico{background:#F8F5FC;color:#8159C6}.editbtn{background:#F8F7FA;color:#9185A5}
+.modal.role-modal{align-items:center}.role-modal .sheet{padding:22px 16px calc(20px + env(safe-area-inset-bottom));border-radius:25px}.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.role-choice{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;border:1px solid #E9E5F1;background:#F8F5FC;border-radius:16px;padding:13px}.role-choice b{font-size:13px;color:#5B4386}.role-choice small{font-size:10px;line-height:1.4;color:#ACA4B9}.role-choice.active{background:#F6F3FC;border-color:#BEAAE0;box-shadow:0 0 0 2px rgba(129,89,198,.08)}.role-note{margin:11px 1px 0;font-size:10px;line-height:1.5;color:#B9B2C5}.host-preview{display:none;margin-top:11px}.host-preview.show{display:block}.host-preview label{display:block;font-size:10px;font-weight:800;color:#988FA9;margin:0 0 5px 2px}.host-preview select{width:100%;min-height:44px;border:1px solid #E9E5F1;border-radius:12px;padding:10px;background:#F8F5FC;color:#4E3A6F}
+/* 권한별 노출: 실제 인증은 서버에서 적용하고, 이 파일은 화면 흐름을 미리보기합니다. */
+.app[data-role="host"] .branchbar,.app[data-role="staff"] .branchbar{display:none}
+.app[data-role="host"] .view[data-view="settlement"],.app[data-role="host"] .view[data-view="insight"],.app[data-role="host"] .view[data-view="manage"],.app[data-role="staff"] .view[data-view="settlement"],.app[data-role="staff"] .view[data-view="insight"],.app[data-role="staff"] .view[data-view="manage"],.app[data-role="director"] .view[data-view="settlement"],.app[data-role="director"] .view[data-view="manage"]{display:none!important}
+.app[data-role="host"] .financePeek,.app[data-role="staff"] .financePeek,.app[data-role="host"] .jobdone,.app[data-role="director"] .jobdone,.app[data-role="host"] .kkbtn.worker,.app[data-role="staff"] .kkbtn.worker,.app[data-role="staff"] .kkbtn.host{display:none}
+.app[data-role="host"] #schedBoardWrap,.app[data-role="host"] [data-sched-view="board"]{display:none!important}
+.app[data-role="host"] .schedule-tools,.app[data-role="staff"] #autoAssignBtn,.app[data-role="director"] #autoAssignBtn,.app[data-role="host"] .more-actions,.app[data-role="staff"] .more-actions,.app[data-role="host"] .schedule-intro [data-quick="book"],.app[data-role="staff"] .schedule-intro [data-quick="book"]{display:none!important}
+.app[data-role="director"] .hostshare,.app[data-role="staff"] .hostshare,.app[data-role="host"] .hostshare{display:none}
+.app[data-role="host"] .jobinfo small,.app[data-role="staff"] .jobinfo small{color:#9C94AC}
+.app[data-role="host"] .rolebtn{background:#F8F6FC;color:#917EB3}
+</style>
+<style id="roommade-trend-refresh">
+/* ROOMMADE ONE · 2026 mobile product UI refresh
+   기능/상태/데이터 구조는 유지하고, 화면의 위계와 시각 밀도만 새로 정리합니다. */
+:root{
+  --bg:#F8F7FB;--card:#FFFFFF;--line:#EDEAF3;--ink:#432E68;--sub:#9B92AA;--muted:#ACA3BB;
+  --navy:#582CA4;--navy2:#835AC9;--blue:#AA8CDE;--sky:#F6F3FB;--cream:#F8F7FB;--cream-2:#FFFFFF;
+  --green:#238A70;--red:#D85C68;--amber:#C77A28;--purple:#A399B3;
+  --shadow:0 10px 28px rgba(80,51,130,.065);--radius:18px;
+}
+html,body{background:#F8F7FB;color:var(--ink);font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{letter-spacing:-.02em}
+.app{background:var(--bg);padding-bottom:calc(128px + env(safe-area-inset-bottom))}
+.topbar{padding:13px 16px 11px;background:rgba(248,247,251,.9);border-bottom:1px solid rgba(228,223,237,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.brandrow{gap:10px}
+.logo{position:relative;width:40px;height:40px;border-radius:13px;background:#422672;color:#F1EAFD;box-shadow:0 8px 16px rgba(66,38,114,.16);font-size:17px;font-weight:900;letter-spacing:-.06em}
+.logo:after{content:"";position:absolute;right:7px;bottom:7px;width:5px;height:5px;border-radius:50%;background:#B6EB77;box-shadow:0 0 0 3px rgba(182,235,119,.12)}
+.brand strong{font-size:15px;font-weight:900;letter-spacing:-.6px}.brand small{color:#B8B2C4;font-size:9px;letter-spacing:1.55px}
+.top-actions{gap:6px}.iconbtn{width:38px;height:38px;border:1px solid #E9E5F1;background:#FFF;border-radius:12px;box-shadow:none;color:var(--navy);font-size:16px}
+.rolebtn{border:1px solid #E1D9EE;background:#F6F3FB;color:var(--navy);border-radius:11px;padding:8px 9px;font-size:10px}
+.topcontext{margin-top:8px;color:#B3ACC0;font-size:10px}.topcontext strong{color:var(--navy)}.topcontext button{color:#ACA1BF}
+.branchbar{margin-top:10px;padding:3px;background:#F1EEF5;border-radius:13px;gap:4px}.branchbtn{padding:8px 5px;border-radius:10px;color:#AAA2B7;font-size:11px}.branchbtn.active{background:#FFF;color:var(--navy);box-shadow:0 3px 10px rgba(89,63,134,.09)}
+.view{padding:19px 16px 8px}.section{margin-top:18px}.sectitle{margin:0 2px 9px}.sectitle h2{font-size:14px;font-weight:900;color:#503A76;letter-spacing:-.45px}.sectitle button{color:#9B84C5;font-size:10px}
+.eyebrow{color:#A18DC4!important;font-size:9px;letter-spacing:1.45px;font-weight:900}
+.homeintro{margin:0 2px 15px}.homeintro h1{font-size:25px;line-height:1.15;font-weight:900;letter-spacing:-1.25px;color:#462D70}.homeintro p{font-size:10px;color:#A39BB1;line-height:1.55}.home-date{color:#B9B2C4;font-size:9px}.home-date span:last-child{color:#947EBA}
+.hero,.todayhero{border:0;border-radius:23px;background:#422672;box-shadow:0 16px 30px rgba(66,38,114,.16);padding:19px 18px 17px}
+.todayhero:before{width:160px;height:160px;right:-76px;bottom:-82px;background:rgba(170,140,222,.18)}.todayhero:after{width:210px;height:210px;right:-100px;top:-122px;background:rgba(182,235,119,.1)}
+.todayhero .eyebrow{color:#D3C6E9!important;opacity:.9}.todayhero .heroamount{font-size:35px;line-height:1;margin:7px 0 13px;letter-spacing:-1.8px}.hero-subline{color:#C8BEDA;font-size:10px}.todayhero .herostat{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:9px 10px}.todayhero .herostat small{color:#C9BFDA}.todayhero .herostat b{font-size:14px}.progressline{height:6px;background:rgba(255,255,255,.14)}.progressline span{background:#B6EB77}
+.smart-strip{margin-top:10px;padding:11px 12px;background:#FFF;border:1px solid #EBE7F3;border-radius:16px;box-shadow:var(--shadow)}.smart-strip .smart-icon{width:31px;height:31px;background:#EDF7E1;border-radius:10px;font-size:15px}.smart-strip b{font-size:11px}.smart-strip small{font-size:9px;color:#A29AB1}
+.card{border:1px solid #ECE8F2;border-radius:18px;box-shadow:var(--shadow)}
+.quickgrid{gap:7px;padding:8px;background:#FFF}.quick{background:#F8F7FB;border:1px solid #F1EFF5;border-radius:14px;padding:10px 4px 9px}.quick .qi{width:32px;height:32px;border-radius:10px;box-shadow:none;font-size:15px}.quick span{font-size:9px;margin-top:6px}.quick:nth-child(1) .qi{background:#F6F3FB;color:#835AC9}.quick:nth-child(2) .qi{background:#E8F6F1;color:#238A70}.quick:nth-child(3) .qi{background:#FFF2E3;color:#C77A28}
+.job{padding:12px 13px;border-bottom-color:#F5F3F8}.jobtime{width:45px}.jobtime b{font-size:12px}.jobtime small{font-size:8px;color:#A9A1B7}.jobicon{width:37px;height:37px;border-radius:12px;background:#F7F5FB;color:#835AC9;font-size:16px}.jobinfo b{font-size:12px}.jobinfo small{font-size:9px;color:#B8B2C4}.status{border-radius:9px;padding:6px 8px;font-size:9px}.status.done{background:#E5F5EF;color:#238A70}.status.wait{background:#FFF1E3;color:#B66D25}.status.book{background:#F6F5F9;color:#A098AF}.jobdone{border-radius:9px;padding:6px 7px;font-size:9px}.jobdone.is-done{background:#E5F5EF;color:#238A70}.kkbtn{border-radius:9px;padding:6px 8px;font-size:11px}
+.empty{padding:27px 14px;font-size:11px}.empty .big{font-size:27px}
+.financePeek{margin-top:17px;background:#FFF;border:1px solid #ECE8F2;border-radius:16px;box-shadow:var(--shadow)}.financePeek summary{padding:12px 13px;font-size:11px;color:#796799}.financePeek .grid3{padding:0 8px 8px}.financePeek .metric{padding:9px;border-radius:13px}.financePeek .metric b{font-size:12px}
+.schedule-intro,.manage-intro{margin:0 2px 14px}.schedule-intro h1,.manage-intro h1,.view-title h1{font-size:24px;line-height:1.15;font-weight:900;letter-spacing:-1.15px;color:#462D70}.schedule-intro p,.manage-intro p,.view-title p{font-size:10px;color:#A39BB1;line-height:1.5}.primary.mini,.secondary.mini{padding:9px 11px;border-radius:11px;font-size:10px}
+.primary{border-radius:12px;background:#582CA4;box-shadow:0 8px 15px rgba(88,44,164,.14);padding:12px;font-size:11px}.secondary{border-radius:12px;border-color:#E9E5F1;color:var(--navy);padding:11px;font-size:10px}.danger{background:#FFF0F1;color:var(--red)}
+.segment{padding:3px;background:#F1EFF5;border-radius:13px}.segbtn{padding:8px 5px;border-radius:10px;font-size:10px;color:#A69EB4}.segbtn.active{color:var(--navy);box-shadow:0 3px 9px rgba(87,62,131,.08)}
+.schedule-tools{gap:6px}.toolbtn{border-color:#E9E5F1;border-radius:11px;padding:9px 7px;color:#8371A2;font-size:9px}.toolbtn.primarytool{background:#F6F3FB;color:#835AC9;border-color:#E1D8EF}.toolbtn.more{flex-basis:40px}
+.monthnav{border:1px solid #ECE8F2;border-radius:16px;padding:9px 10px;box-shadow:var(--shadow)}.monthnav button{width:32px;height:32px;border-radius:10px;background:#F6F4F9;color:var(--navy)}.monthnav b{font-size:14px}.monthnav small{font-size:8px}
+.calendar{padding:10px}.week div{font-size:9px;padding:4px 0}.days{gap:4px}.day{min-height:53px;border-radius:11px;background:#F8F7FA;padding:5px 2px}.day.today{outline:2px solid #D4C9E7}.day.selected{background:#582CA4}.daynum{font-size:10px}.daymoney{font-size:7px}.dot{width:4px;height:4px}
+.datehead{margin:0 2px 8px}.datehead h2{font-size:14px}.datehead small{font-size:9px}.date-actions button{border-radius:10px;padding:8px 9px;font-size:9px}.date-actions .addclean{background:#F6F3FB;color:#835AC9}
+.hostshare{padding:11px 12px;margin-bottom:10px;border-color:#EBE7F3;border-radius:16px;box-shadow:var(--shadow)}.hostshare-copy b{font-size:11px}.hostshare-copy small{font-size:9px}.hostshare-actions button{border-radius:9px;padding:8px 8px;font-size:9px}.hostshare-actions #makeRoomview{background:#582CA4}.hostshare-actions #notifyUpdate{background:#F6E04B}
+.settlehero{padding:16px}.settlehero small{font-size:9px}.settlehero strong{font-size:28px}.settlehero p{font-size:9px;color:#A69EB4}.group{border:1px solid #ECE8F2;border-radius:16px;box-shadow:var(--shadow);overflow:hidden}.grouphead{padding:11px 12px;background:#F8F7FB;border-bottom-color:#F5F3F8}.avatar{width:33px;height:33px;border-radius:11px;background:#F6F3FB;color:#835AC9;font-size:14px}.groupname b{font-size:11px}.groupname small,.groupamt small{font-size:8px}.groupamt b{font-size:12px}.paybtn{margin:0 10px 10px;width:calc(100% - 20px);border-radius:10px;padding:9px;background:#582CA4;font-size:10px}
+.kpigrid{gap:7px}.kpi{padding:13px;border-radius:16px}.kpi span{font-size:9px}.kpi strong{font-size:19px;margin-top:3px}.kpi small{font-size:8px;color:#AAA2B7}.rankrow{padding:10px 12px}.ranktop{font-size:10px}.ranktop b{font-size:11px}.bar{height:7px;background:#F4F2F7}.chart{padding:12px 11px 9px}.bars{height:135px;gap:6px}.barv{border-radius:5px 5px 0 0}.chartlabels{gap:6px;padding-top:6px}.chartlabels span{font-size:7px}.advice{padding:12px}.adviceicon{width:36px;height:36px;border-radius:11px}.advicetxt b{font-size:11px}.advicetxt p{font-size:9px}
+.manageblock{padding:12px;border-color:#ECE8F2;border-radius:16px}.managehead b{font-size:12px}.addmini{border-radius:9px;padding:6px 8px;background:#F6F3FB;color:#835AC9;border-color:#E2DBEF;font-size:9px}.entity{padding:10px 0}.entityico{width:32px;height:32px;border-radius:10px}.entitymain b{font-size:11px}.entitymain small{font-size:8px}.editbtn{border-radius:8px;padding:5px 7px;font-size:9px}
+.formcard{padding:13px;border-radius:16px}.field{margin-bottom:10px}.field label{font-size:9px;margin-bottom:4px}.field input,.field select,.field textarea{border-color:#E9E5F1;border-radius:11px;background:#F8F7FA;padding:10px 11px;color:#533D78}.field input:focus,.field select:focus,.field textarea:focus{border-color:#9B81CA;box-shadow:0 0 0 3px rgba(170,140,222,.1);background:#FFF}
+.reportbox{background:#F8F7FB;border-color:#ECE8F2;border-radius:12px;font-size:9px}.role-modal .sheet{border-radius:22px}.role-choice{border-color:#E9E5F1;background:#F8F7FB;border-radius:14px;padding:12px}.role-choice b{font-size:12px}.role-choice small{font-size:9px}.role-choice.active{background:#F6F3FB;border-color:#B5A0DA;box-shadow:0 0 0 2px rgba(131,90,201,.08)}
+.bottomnav{left:50%;bottom:calc(11px + env(safe-area-inset-bottom));width:calc(100% - 24px);max-width:536px;padding:7px 6px;border:1px solid rgba(227,222,237,.94);border-radius:23px;background:rgba(255,255,255,.88);box-shadow:0 12px 30px rgba(80,53,126,.14);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}.navbtn{padding:4px 2px;font-size:8px;color:#A9A1B7}.navbtn i{width:32px;height:27px;border-radius:10px;font-size:15px}.navbtn.active{color:#582CA4}.navbtn.active i{background:#F6F3FB;color:#835AC9}
+.fab{right:max(18px,calc((100vw - 560px)/2 + 18px));bottom:calc(91px + env(safe-area-inset-bottom));width:51px;height:51px;border-radius:16px;background:#B6EB77;color:#482E75;font-size:24px;box-shadow:0 10px 22px rgba(58,104,65,.22)}
+.modal{background:rgba(59,36,98,.48);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}.sheet{border:1px solid #ECE9F2;border-bottom:0;border-radius:25px 25px 0 0;padding:9px 15px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -12px 34px rgba(66,38,114,.12)}.grab{background:#D6D0E0}.sheethead h3{font-size:16px}.close{width:33px;height:33px;border-radius:10px;background:#F6F4F9;color:var(--navy)}.typebtn{border-color:#E9E5F1;border-radius:13px;background:#F8F7FB;padding:11px}.toast{bottom:calc(92px + env(safe-area-inset-bottom));background:#422672;border-radius:12px;padding:10px 14px;box-shadow:0 8px 20px rgba(66,38,114,.2);font-size:10px}
+@media(max-width:560px){.view{padding-left:15px;padding-right:15px}.bottomnav{width:calc(100% - 20px)}.fab{right:18px}}
+@media(min-width:561px){.bottomnav{width:calc(100% - 28px)}}
+</style>
+<style id="roommade-notion-pastel">
+/* ROOMMADE ONE · Notion-style pastel workspace */
+:root{
+  --bg:#F2EFF7;--card:#FFFDF9;--line:#DCD6E7;--ink:#614F81;--sub:#A29BAF;--muted:#B1ABBB;
+  --navy:#9580B9;--navy2:#B2A0D2;--blue:#B2A0D2;--sky:#EDE7F8;--cream:#FFF5E2;--cream-2:#FFFDF9;
+  --green:#5E9C83;--red:#D98988;--amber:#D6A34A;--purple:#B3ADBD;
+  --pastel-blue:#EDE6F8;--pastel-sky:#F8F5FC;--pastel-cream:#FFF5E2;--pastel-red:#F9DFDE;--pastel-yellow:#FFF0B8;--pastel-green:#E2F2E9;
+  --shadow:0 3px 12px rgba(131,124,145,.055);--radius:15px;
+}
+html,body{background:#F2EFF7;color:var(--ink)}
+body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.025em}
+.app{background:#F2EFF7;padding-bottom:calc(126px + env(safe-area-inset-bottom))}
+.topbar{background:rgba(255,253,249,.92);border-bottom:1px solid #DED8E9;padding:13px 16px 10px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.logo{background:var(--pastel-blue);border:1px solid #DACFEE;color:#8970B5;box-shadow:none;border-radius:12px;font-weight:900}.logo:after{background:#EBA6A2;box-shadow:0 0 0 3px rgba(235,166,162,.16)}
+.brand strong{color:#5D497F;font-size:15px}.brand small{color:#A19BAC;font-size:9px;letter-spacing:1.5px}
+.iconbtn{border-color:#DDD8E5;background:#FFFDF9;color:#9580B9;box-shadow:none;border-radius:11px}.rolebtn{border-color:#DFD6EF;background:var(--pastel-sky);color:#9580B9;border-radius:10px}
+.topcontext{color:#B4AFBB}.topcontext strong{color:#9580B9}.topcontext button{color:#A99BC2}
+.branchbar{background:#E9E6F0;border:1px solid #DDD6E8;padding:3px;border-radius:12px}.branchbtn{color:#B0ACB8;border-radius:9px;font-size:11px}.branchbtn.active{background:#FFFDF9;color:#9580B9;box-shadow:0 2px 7px rgba(131,124,145,.08)}
+.view{padding:20px 15px 8px}.section{margin-top:18px}.sectitle{margin:0 2px 8px}.sectitle h2{font-size:14px;color:#6A5989;font-weight:900}.sectitle h2:before{content:"";display:inline-block;width:4px;height:13px;margin:0 6px 0 0;border-radius:8px;background:#D1C3E8;vertical-align:-1px}.sectitle button{color:#AB9BC7;font-size:10px}
+.homeintro{margin:0 2px 15px}.homeintro .eyebrow{display:inline-flex;align-items:center;background:var(--pastel-cream);color:#B88842!important;border-radius:6px;padding:4px 7px;font-size:9px;letter-spacing:1.2px}.homeintro h1{font-size:26px;line-height:1.14;letter-spacing:-1.35px;color:#604B83;margin-top:7px}.homeintro p{font-size:10px;color:#A7A2B0;line-height:1.55}.home-date{color:#A4A0AC;font-size:9px}.home-date span:last-child{color:#AB9BC7}
+.hero,.todayhero{color:#6A578B;background:var(--pastel-blue);border:1px solid #DACFEE;border-radius:18px;box-shadow:none;padding:18px 17px 16px}.todayhero:before{width:150px;height:150px;right:-70px;bottom:-86px;background:rgba(255,255,255,.34)}.todayhero:after{width:200px;height:200px;right:-96px;top:-126px;background:rgba(255,245,198,.42)}.todayhero .eyebrow{color:#A293BB!important;opacity:1}.todayhero .heroamount{color:#614B87;font-size:34px;letter-spacing:-1.7px;margin:7px 0 13px}.todayhero .hero-subline{color:#9D93AD;opacity:1}.todayhero .herostat{background:rgba(255,255,255,.64);border:1px solid rgba(255,255,255,.78);border-radius:12px;padding:9px 10px}.todayhero .herostat small{color:#A9A1B9;opacity:1}.todayhero .herostat b{color:#6A578B;font-size:14px}.progressline{background:rgba(149,128,185,.14);height:6px}.progressline span{background:#B2A0D2}
+.smart-strip{position:relative;cursor:pointer;background:var(--pastel-yellow);border-color:#F1D98F;border-radius:14px;box-shadow:none;padding:11px 35px 11px 12px}.smart-strip:after{content:"›";position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:21px;color:#B28A37}.smart-strip .smart-icon{background:rgba(255,255,255,.62);border-radius:9px}.smart-strip b{font-size:11px;color:#5E5A47}.smart-strip small{font-size:9px;color:#887A59}
+.card{background:var(--card);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow)}
+[data-card-nav],[data-goto]{cursor:pointer}.smart-strip:active,[data-card-nav]:active{transform:translateY(1px);filter:saturate(.95)}
+.quickgrid{padding:7px;gap:7px;background:var(--card);border-color:var(--line)}.quick{border:1px solid transparent;border-radius:12px;padding:11px 4px 9px;background:var(--pastel-blue)}.quick:nth-child(2){background:var(--pastel-yellow)}.quick:nth-child(3){background:var(--pastel-red)}.quick .qi{width:31px;height:31px;border-radius:9px;background:rgba(255,255,255,.72);color:#9580B9;box-shadow:none}.quick:nth-child(2) .qi{color:#B7842F;background:rgba(255,255,255,.68)}.quick:nth-child(3) .qi{color:#B66D6B;background:rgba(255,255,255,.72)}.quick span{color:#7C6E94;font-size:9px}.quick:active{transform:scale(.98)}
+.job,[data-card-nav]#todayJobs{background:var(--card)}[data-card-nav]#todayJobs{border-left:3px solid #D6CAED;overflow:hidden}.job{padding:12px 12px;border-bottom-color:#E6E2ED}.jobicon{background:var(--pastel-sky);color:#9580B9}.jobtime b,.jobinfo b{color:#6B5A89}.jobtime small,.jobinfo small{color:#B9B4C0}.status.done{background:var(--pastel-green);color:#4E8D75}.status.wait{background:#FFF0D3;color:#B88436}.status.book{background:#F4F3F6;color:#A29DAD}.jobdone.is-done{background:var(--pastel-green);color:#4E8D75}.kkbtn.worker{background:#FFE985}.kkbtn.host{background:#F4F3F6}
+.txico.income{background:var(--pastel-sky);color:#9580B9}.txico.expense{background:var(--pastel-red);color:#B76C6A}.txrow{border-bottom-color:#E6E2ED}.txmain b{color:#6B5A89}.txmain small{color:#B9B4C0}
+.financePeek{background:var(--card);border-color:var(--line);border-radius:14px;box-shadow:var(--shadow)}.financePeek summary{padding:12px 13px;color:#81729A;font-size:11px}.financePeek summary:after{display:none}.finance-link{color:#AB9BC7!important;font-size:10px!important;font-weight:900}.finance-link:after{content:" ›"}
+.schedule-intro h1,.manage-intro h1,.view-title h1{color:#604B83;font-size:25px;letter-spacing:-1.25px}.schedule-intro p,.manage-intro p,.view-title p{color:#A7A2B0;font-size:10px}.primary.mini,.secondary.mini{border-radius:10px}.primary{background:#B2A0D2;box-shadow:none;color:white;border-radius:11px}.secondary{background:var(--card);border-color:#D4D0DC;color:#9580B9;border-radius:11px}
+.segment{background:#E9E6F0;border-radius:11px;padding:3px}.segbtn{border-radius:8px;color:#AEA9B6;font-size:10px}.segbtn.active{background:var(--card);color:#9580B9;box-shadow:0 2px 6px rgba(131,124,145,.08)}
+.schedule-tools{gap:6px}.toolbtn{background:var(--card);border-color:#D7D2E1;color:#9186A3;border-radius:10px}.toolbtn.primarytool{background:var(--pastel-sky);border-color:#DFD6EF;color:#9580B9}.more-actions button{background:var(--card);border-color:#D7D2E1;border-radius:10px;color:#948AA5}
+.monthnav{background:var(--card);border-color:var(--line);border-radius:14px;box-shadow:var(--shadow)}.monthnav button{background:var(--pastel-sky);color:#9580B9}.monthnav b{color:#6B5A89}.calendar{background:var(--card);border-color:var(--line);border-radius:14px}.day{background:#F7F5FA;border-radius:10px}.day.selected{background:#B2A0D2}.day.today{outline:2px solid #D1C4E9}.daymoney{color:#5E9C83}.dot{background:#6EB294}.dot.exp{background:#D98988}
+.hostshare{background:var(--card);border-color:var(--line);border-radius:14px;box-shadow:var(--shadow)}.hostshare-actions #makeRoomview{background:#B2A0D2}.hostshare-actions #notifyUpdate{background:#FFE985;color:#6F5B20}
+.settlehero{background:var(--pastel-cream);border-color:#F1DCA9;box-shadow:none;border-radius:15px}.settlehero strong{color:#735B31}.settlehero p{color:#937A52}.group{border-color:var(--line);border-radius:14px;box-shadow:var(--shadow)}.grouphead{background:#FFF9EF;border-bottom-color:#E0DAEB}.avatar{background:var(--pastel-blue);color:#9580B9}.groupamt b{color:#B98437}.paybtn{background:#B2A0D2;border-radius:10px}
+.kpi{background:var(--card);border-color:var(--line);box-shadow:var(--shadow);border-radius:14px}.kpi strong{color:#6B5A89}.rankrow{border-color:#E6E2ED}.bar{background:#E7E3EF}.bar span{background:#BAA7DC}.bar.red span{background:#E4A09B}.chart{background:var(--card);border-color:var(--line)}.barv{background:#BAA7DC}.barv.exp{background:#E4A09B}.advice{background:var(--pastel-yellow);border-color:#F1D98F;border-radius:14px}.adviceicon{background:rgba(255,255,255,.64);color:#B7842F}
+.manageblock,.formcard{background:var(--card);border-color:var(--line);border-radius:14px;box-shadow:var(--shadow)}.managehead b{color:#6B5A89}.addmini{background:var(--pastel-sky);border-color:#DFD6EF;color:#9580B9;box-shadow:none;border-radius:9px}.entity{border-top-color:#E6E2ED}.entityico{background:var(--pastel-blue);color:#9580B9}.editbtn{background:#EBE7F1;color:#9C96A6}.field label{color:#968DA5}.field input,.field select,.field textarea{background:#F8F7FA;border-color:#D5D0DF;border-radius:10px}.field input:focus,.field select:focus,.field textarea:focus{border-color:#AD98D2;box-shadow:0 0 0 3px rgba(173,152,210,.13)}
+.role-choice{background:#F8F7FA;border-color:#D7D2E1;border-radius:12px}.role-choice.active{background:var(--pastel-sky);border-color:#C5B4E2;box-shadow:0 0 0 2px rgba(178,160,210,.1)}
+.bottomnav{background:rgba(255,253,249,.94);border-color:#D9D4E2;box-shadow:0 8px 25px rgba(131,124,145,.13);border-radius:20px}.navbtn{color:#A0AAA9}.navbtn.active{color:#9580B9}.navbtn.active i{background:var(--pastel-blue);color:#9580B9}
+.fab{background:var(--pastel-yellow);border:1px solid #F0D98D;color:#85692F;box-shadow:0 8px 18px rgba(164,129,53,.18)}
+.modal{background:rgba(93,84,108,.32)}.sheet{background:#FFFDF9;border-color:#DCD6E7;box-shadow:0 -10px 28px rgba(131,124,145,.12)}.grab{background:#CDC8D8}.close{background:#E9E6F0;color:#9580B9}.typebtn{background:#F8F7FA;border-color:#D7D2E1}.typebtn.active.income{background:var(--pastel-sky);border-color:#D6CAED;color:#9580B9}.typebtn.active.expense{background:var(--pastel-red);border-color:#E8B8B5;color:#B76C6A}.toast{background:#9580B9;border-radius:11px;box-shadow:0 7px 18px rgba(149,128,185,.22)}
+</style>
+<style id="roommade-smart-ops">
+/* ROOMMADE ONE · Smart operations board */
+.smart-ops-view{padding-top:17px}
+.ops-pagehead{margin-bottom:12px}.ops-pagehead h1{margin-top:7px!important}.ops-pagehead p{max-width:285px}
+.ops-topline{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 2px 12px}.ops-date-button{flex:1;min-width:0;text-align:left;border:0;background:transparent;padding:2px 0;color:var(--ink)}.ops-date-button span{display:block;color:#9A8E7E;font-size:9px;font-weight:900;letter-spacing:.5px}.ops-date-button b{display:inline-block;margin-top:3px;font-size:14px;color:#6F5C90}.ops-date-button small{display:inline-block;margin-left:6px;color:#AEA3C0;font-size:9px}.ops-book-main{width:auto;min-width:105px;padding:10px 12px;display:flex;align-items:center;justify-content:center;gap:3px;font-size:10px;background:#B2A0D2}.ops-book-main span{font-size:16px;line-height:1}
+.ops-hero{margin-bottom:10px}.ops-hero .heroamount{font-size:36px}
+.ops-flow-card{display:flex;align-items:stretch;gap:3px;padding:7px 5px;margin-bottom:10px;background:#FFFDF9;border:1px solid #DCD6E7;border-radius:14px;box-shadow:var(--shadow)}.ops-flow-card button{flex:1;min-width:0;border:0;background:transparent;border-radius:10px;padding:7px 2px;text-align:center;color:#A19AAE}.ops-flow-card button:active{background:#F8F7FB}.ops-flow-card button span{display:block;color:#B3ADBC;font-size:8px;font-weight:900;letter-spacing:.4px}.ops-flow-card button b{display:block;margin-top:2px;color:#84759E;font-size:10px}.ops-flow-card button em{display:block;margin-top:4px;color:#B2A0D2;font-size:12px;font-style:normal;font-weight:900}.ops-flow-card i{align-self:center;color:#D0C7BC;font-size:17px;font-style:normal}
+.ops-action-section{margin-top:15px}.ops-actions{grid-template-columns:repeat(4,1fr)}.ops-actions .quick{min-width:0}.ops-actions .quick:nth-child(4){background:#E6E1F5}.ops-actions .quick:nth-child(4) .qi{color:#75629D}
+.ops-stack{display:grid;gap:10px;margin-top:14px}.ops-card{background:#FFFDF9;border:1px solid #DCD6E7;border-radius:16px;box-shadow:var(--shadow);overflow:hidden;scroll-margin-top:16px}.ops-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:13px 13px 10px}.ops-card-head>div{min-width:0}.ops-label{display:inline-flex;align-items:center;padding:3px 6px;border-radius:5px;font-size:8px;font-weight:900;letter-spacing:.7px}.red-label{background:#F9DFDE;color:#B66C6B}.blue-label{background:#EDE6F8;color:#9B8AB9}.yellow-label{background:#FFF0B8;color:#9C7A2D}.green-label{background:#E2F2E9;color:#5A8B73}.gray-label{background:#EEF0F0;color:#A59FAE}.ops-card-head h2{margin:6px 0 2px;color:#6B598A;font-size:14px;letter-spacing:-.45px}.ops-card-head small{display:block;color:#BAB7C1;font-size:9px;line-height:1.45}.ops-count{display:grid;place-items:center;width:30px;height:30px;border-radius:10px;font-size:13px;flex-shrink:0}.red-count{background:#F9DFDE;color:#B66C6B}.blue-count{background:#EDE6F8;color:#9B8AB9}.ops-head-action{border:0;border-radius:9px;padding:7px 9px;background:#F7F5FB;color:#9B8AB9;font-size:9px;font-weight:900;white-space:nowrap}.ops-list{padding:0 10px 9px}.ops-line{display:flex;align-items:center;gap:9px;width:100%;min-height:68px;border:0;border-top:1px solid #E8E4F0;background:transparent;text-align:left;padding:10px 3px;color:var(--ink)}.ops-line:first-child{border-top:0}.ops-line:active{background:#FBF5E9;border-radius:10px}.ops-line-icon{display:grid;place-items:center;width:31px;height:31px;border-radius:10px;flex-shrink:0;background:#F8E8E7;font-size:14px}.ops-checkin-line .ops-line-icon{background:#F6F3FB}.ops-line-main{flex:1;min-width:0}.ops-line-main b{display:block;color:#6F5D8E;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ops-line-main small{display:block;margin-top:2px;color:#B5B1BC;font-size:9px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ops-line-main .supply-ok{color:#5E9C83}.ops-line-main .supply-need{color:#C97673}.ops-line-main .setup-text{color:#A798C0}.ops-line-main .assigned-text{color:#9A8B62}.ops-side-tag{border-radius:7px;padding:5px 6px;font-size:8px;font-weight:900;flex-shrink:0}.ok-tag{background:#E2F2E9;color:#568B74}.need-tag{background:#F9DFDE;color:#B66C6B}.ops-staff-row{display:flex;align-items:center;gap:8px;width:100%;border:0;border-top:1px solid #E8E4F0;background:transparent;text-align:left;padding:10px 3px}.ops-staff-row:first-child{border-top:0}.ops-staff-row>span:nth-child(2){flex:1;min-width:0}.ops-staff-row b{display:block;color:#6F5D8E;font-size:11px}.ops-staff-row small{display:block;margin-top:2px;color:#BAB7C1;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ops-avatar{display:grid;place-items:center;width:31px;height:31px;border-radius:10px;background:#FFF0B8;font-size:14px}.ops-staff-row em{font-style:normal}.ops-unassigned{position:relative;display:flex;align-items:center;gap:7px;width:100%;margin-top:3px;border:0;border-top:1px dashed #E8D8AA;background:#FFFCF1;padding:10px 4px;text-align:left;color:#8F7442}.ops-unassigned>span{display:grid;place-items:center;width:25px;height:25px;border-radius:8px;background:#FFF0B8;font-size:16px}.ops-unassigned b{font-size:10px}.ops-unassigned small{font-size:8px;color:#A38E68}.ops-unassigned em{margin-left:auto;font-size:18px;font-style:normal}
+.ops-money{border-color:#DDD9E9}.ops-money-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:0 10px 9px}.ops-money-tile{border:0;border-radius:11px;padding:10px 10px 9px;text-align:left}.ops-money-tile small{display:block;font-size:8px;font-weight:900;color:#A29CAB}.ops-money-tile strong{display:block;margin-top:4px;color:#71608E;font-size:14px;letter-spacing:-.5px}.ops-money-tile em{display:block;margin-top:4px;color:#B2AEB9;font-size:8px;font-style:normal}.ops-money-tile.income{background:#F6F3FB}.ops-money-tile.expense{background:#F9DFDE}.ops-money-tile.pending{background:#FFF0B8}.ops-money-tile.margin{background:#E6E1F5}.ops-money-tile:active{transform:scale(.98)}.ops-mini-list{padding:0 10px}.ops-money-row{display:flex;align-items:center;gap:8px;width:100%;border:0;border-top:1px solid #E8E4F0;background:transparent;padding:9px 3px;text-align:left}.ops-money-row:first-child{border-top:0}.ops-money-icon{display:grid;place-items:center;width:25px;height:25px;border-radius:8px;font-weight:900}.ops-money-icon.income{background:#F6F3FB;color:#9B8AB9}.ops-money-icon.expense{background:#F9DFDE;color:#B66C6B}.ops-money-row>span:nth-child(2){flex:1;min-width:0}.ops-money-row b{display:block;color:#71608E;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ops-money-row small{display:block;margin-top:2px;color:#A4A0AA;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ops-money-row strong{font-size:10px}.ops-money-row strong.income{color:#5E9C83}.ops-money-row strong.expense{color:#C97673}.ops-money-foot{display:flex;align-items:center;justify-content:space-between;margin:4px 13px 12px;padding-top:9px;border-top:1px solid #E8E4F0;color:#B3AFBA;font-size:9px}.ops-money-foot b{color:#B2A0D2;font-size:11px}.ops-money-foot button{border:0;background:transparent;color:#AA9BC3;font-size:9px;font-weight:900}.ops-private-note{padding:13px 3px 10px;text-align:center;color:#A4A0AA;font-size:9px}.ops-timeline-list{border-radius:12px;box-shadow:none}.ops-all .ops-card-head{padding-bottom:8px}.ops-alerts #todayAlerts{padding:0 10px 9px}.ops-alerts #todayAlerts>div{border-radius:11px!important;padding:10px 11px!important;margin-bottom:6px!important}.ops-alerts #todayAlerts>div:last-child{margin-bottom:0!important}.ops-alerts #todayAlerts>div>div:first-child{font-size:10px!important}.ops-alerts #todayAlerts>div>div:not(:first-child){font-size:9px!important}
+.app[data-role="host"] .ops-money,.app[data-role="staff"] .ops-money{display:none}.app[data-role="host"] .ops-staff,.app[data-role="host"] .ops-actions [data-quick="assign"],.app[data-role="staff"] .ops-staff{display:none}.app[data-role="staff"] .ops-actions [data-goto="settlement"]{display:none}
+@media(max-width:380px){.ops-actions{grid-template-columns:repeat(2,1fr)}.ops-flow-card button b{font-size:9px}.ops-card-head h2{font-size:13px}}
 </style>
 </head>
 <body>
@@ -85,9 +251,13 @@ input,select,textarea{min-height:44px}
   <header class="topbar">
     <div class="brandrow">
       <div class="logo">R</div>
-      <div class="brand"><strong>ROOMMADE ONE</strong><small>OPERATIONS & CASH</small></div>
-      <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
+      <div class="brand"><strong>ROOMMADE ONE</strong><small>SMART CLEANING OPS</small></div>
+      <div class="top-actions">
+        <button class="rolebtn" id="roleBtn" title="화면 모드 전환">관리자⌄</button>
+        <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
+      </div>
     </div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><button id="roleHint">화면 모드 미리보기</button></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -97,49 +267,97 @@ input,select,textarea{min-height:44px}
   </header>
 
   <main>
-    <section class="view active" data-view="home">
-      <div class="hero">
-        <div class="eyebrow" id="homeMonthLabel">이번 달 예상 순익</div>
-        <div class="heroamount" id="homeNet">0원</div>
+    <section class="view active smart-ops-view" data-view="home">
+      <div class="homeintro ops-pagehead">
+        <div>
+          <div class="eyebrow">ROOMMADE OPERATIONS</div>
+          <h1 id="homeGreeting">오늘 운영 보드</h1>
+          <p id="homeSubtext">예약부터 체크아웃·셋팅·직원 배정·정산까지 한 흐름으로 관리해요.</p>
+        </div>
+      </div>
+
+      <div class="ops-topline">
+        <button class="ops-date-button" data-goto="schedule"><span>오늘 업무일</span><b id="homeDate">오늘</b><small id="homeBranchLabel">전체 지점</small></button>
+        <button class="primary ops-book-main" data-quick="book"><span>＋</span> 예약+청소</button>
+      </div>
+
+      <div class="hero todayhero ops-hero">
+        <div class="eyebrow" id="homeMonthLabel">오늘의 전체 운영</div>
+        <div class="heroamount" id="homeNet">0건</div>
+        <div class="hero-subline" id="homeHeroSubline">체크아웃과 체크인을 불러오는 중이에요.</div>
         <div class="herometa">
-          <div class="herostat"><small>총 수입</small><b id="homeIncome">0원</b></div>
-          <div class="herostat"><small>총 지출</small><b id="homeExpense">0원</b></div>
+          <div class="herostat"><small>완료</small><b id="homeIncome">0건</b></div>
+          <div class="herostat"><small>대기</small><b id="homeExpense">0건</b></div>
+        </div>
+        <div class="progressline"><span id="homeProgressBar"></span></div>
+      </div>
+
+      <div class="ops-flow-card">
+        <button data-ops-jump="opsCheckoutBlock"><span>01</span><b>퇴실</b><em id="opsFlowCheckout">0</em></button>
+        <i>›</i>
+        <button data-ops-jump="opsCheckinBlock"><span>02</span><b>셋팅</b><em id="opsFlowCheckin">0</em></button>
+        <i>›</i>
+        <button data-ops-jump="opsStaffBlock"><span>03</span><b>배정</b><em id="opsFlowStaff">0</em></button>
+        <i>›</i>
+        <button data-ops-jump="opsMoneyBlock"><span>04</span><b>정산</b><em id="opsFlowMoney">0</em></button>
+      </div>
+
+      <div class="smart-strip" id="homeSmartStrip" data-card-nav="schedule">
+        <div class="smart-icon">✨</div><div><b>오늘의 운영 상태</b><small>일정을 불러오는 중이에요.</small></div>
+      </div>
+
+      <div class="section ops-action-section">
+        <div class="sectitle"><h2>바로 실행</h2><button data-goto="manage">기본정보 관리</button></div>
+        <div class="card quickgrid ops-actions">
+          <button class="quick" data-quick="book"><span class="qi">＋</span><span>예약+청소</span></button>
+          <button class="quick" data-quick="income"><span class="qi">✓</span><span>체크아웃 기록</span></button>
+          <button class="quick" data-quick="assign"><span class="qi">↗</span><span>직원 매칭</span></button>
+          <button class="quick" data-goto="settlement"><span class="qi">₩</span><span>수입·지출</span></button>
         </div>
       </div>
-      <div class="grid3">
-        <div class="metric green"><span>받을 돈</span><b id="homeReceivable">0원</b></div>
-        <div class="metric red"><span>줄 돈</span><b id="homePayable">0원</b></div>
-        <div class="metric amber"><span>마진율</span><b id="homeMargin">0%</b></div>
-      </div>
 
-      <div class="section">
-        <div class="sectitle"><h2>빠른 등록</h2></div>
-        <div class="card quickgrid">
-          <button class="quick" data-quick="book"><span class="qi">🆕</span><span>예약 등록</span></button>
-          <button class="quick" data-quick="income"><span class="qi">🧹</span><span>청소 등록</span></button>
-          <button class="quick" data-quick="expense"><span class="qi">👤</span><span>인건비</span></button>
-          <button class="quick" data-quick="room"><span class="qi">🏠</span><span>객실 추가</span></button>
-          <button class="quick" data-quick="staff"><span class="qi">＋</span><span>직원 추가</span></button>
-        </div>
-      </div>
+      <div class="ops-stack">
+        <section class="ops-card ops-checkout" id="opsCheckoutBlock">
+          <div class="ops-card-head"><div><span class="ops-label red-label">CHECK-OUT</span><h2>오늘 나가는 게스트</h2><small>사용한 토퍼·수건을 기록하고 청소를 시작해요.</small></div><b class="ops-count red-count" id="opsCheckoutCount">0</b></div>
+          <div class="ops-list" id="opsCheckoutList"></div>
+        </section>
 
-      <div class="section">
-        <div class="sectitle"><h2>Today Schedule</h2><button data-goto="schedule">일정보기</button></div>
-        <div class="card" id="todayJobs"></div>
-      </div>
+        <section class="ops-card ops-checkin" id="opsCheckinBlock">
+          <div class="ops-card-head"><div><span class="ops-label blue-label">CHECK-IN SETUP</span><h2>오늘 들어오는 예약</h2><small>인원에 맞는 셋팅과 준비물을 바로 확인해요.</small></div><b class="ops-count blue-count" id="opsCheckinCount">0</b></div>
+          <div class="ops-list" id="opsCheckinList"></div>
+        </section>
 
-      <div class="section">
-        <div class="sectitle"><h2>⚠️ 오늘 꼭 확인!</h2></div>
-        <div id="todayAlerts"></div>
-      </div>
+        <section class="ops-card ops-staff" id="opsStaffBlock">
+          <div class="ops-card-head"><div><span class="ops-label yellow-label">TEAM MATCH</span><h2>직원 스케줄 매칭</h2><small>오늘 청소와 직원 일정을 비교해 배정해요.</small></div><button class="ops-head-action" data-quick="assign">자동 매칭</button></div>
+          <div class="ops-list" id="opsStaffList"></div>
+        </section>
 
-      <div class="section" style="display:none;">
-        <div class="sectitle"><h2>🏠 다가올 체크인 준비</h2><button id="addSetupBtn">+ 셋팅 추가</button></div>
-        <div class="card" id="checkinPrep"></div>
+        <section class="ops-card ops-money" id="opsMoneyBlock">
+          <div class="ops-card-head"><div><span class="ops-label green-label">MONEY BLOCKS</span><h2>수입 · 지출 블록</h2><small id="financeSummaryText">오늘 기록을 한눈에 확인해요.</small></div><button class="ops-head-action" data-goto="settlement">전체 정산</button></div>
+          <div class="ops-money-grid">
+            <button class="ops-money-tile income" data-quick="income"><small>오늘 수입</small><strong id="opsIncomeTotal">0원</strong><em>＋ 기록하기</em></button>
+            <button class="ops-money-tile expense" data-quick="expense"><small>오늘 지출</small><strong id="opsExpenseTotal">0원</strong><em>− 기록하기</em></button>
+            <button class="ops-money-tile pending" data-goto="settlement"><small>이번 달 미수금</small><strong id="homeReceivable">0원</strong><em>정산 보기 ›</em></button>
+            <button class="ops-money-tile margin" data-goto="settlement"><small>이번 달 줄 돈</small><strong id="homePayable">0원</strong><em>지급 보기 ›</em></button>
+          </div>
+          <div class="ops-mini-list" id="opsMoneyList"></div>
+          <div class="ops-money-foot"><span>현재 마진율 <b id="homeMargin">0%</b></span><button data-goto="insight">분석 열기 ›</button></div>
+        </section>
+
+        <section class="ops-card ops-all" id="opsAllBlock">
+          <div class="ops-card-head"><div><span class="ops-label gray-label">TODAY TIMELINE</span><h2>오늘 전체 청소 기록</h2><small>카드를 누르면 예약·체크아웃 정보를 수정할 수 있어요.</small></div><button class="ops-head-action" data-goto="schedule">달력 보기</button></div>
+          <div class="card ops-timeline-list" id="todayJobs" data-card-nav="schedule"></div>
+        </section>
+
+        <section class="ops-card ops-alerts" id="opsAlertBlock">
+          <div class="ops-card-head"><div><span class="ops-label red-label">CHECK POINT</span><h2>놓치면 안 되는 것</h2><small>얼리·레이트·추가 셋팅을 모아 보여드려요.</small></div><span>⚠️</span></div>
+          <div id="todayAlerts"></div>
+        </section>
       </div>
     </section>
 
     <section class="view" data-view="schedule">
+      <div class="schedule-intro"><div><div class="eyebrow" style="color:#AB9BC6;letter-spacing:1.2px;font-size:10px;">WORKFLOW</div><h1>일정과 현황</h1><p>예약 하나를 입력하면 퇴실 청소와 준비물이 이어집니다.</p></div><button class="primary mini" data-quick="book">＋ 예약</button></div>
       <div class="segment" style="margin-bottom:12px;">
         <button class="segbtn active" data-sched-view="calendar">📅 월간 달력</button>
         <button class="segbtn" data-sched-view="board">🏢 객실 현황판</button>
@@ -156,7 +374,9 @@ input,select,textarea{min-height:44px}
           <div class="days" id="calendarDays"></div>
         </div>
         <div class="section">
-          <div class="sectitle"><h2 id="selectedDateTitle">선택 날짜</h2><div style="display:flex;gap:5px;flex-wrap:wrap;"><button id="autoAssignBtn" style="background:#E8F4FD;color:#2F6FAF;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🎯 자동배치</button><button id="sendDayTimeline" style="background:#FEE500;color:#3C1E1E;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">👷 직원용</button><button id="sendStaffGroup" style="background:#FFE0B2;color:#B8860B;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">👥 팀별발송</button><button id="sendDayAdmin" style="background:#D7F5EA;color:#1E8449;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🧺 관리자용</button><button id="sendDayHost" style="background:#E3F0FF;color:#2F6FAF;border:0;border-radius:10px;padding:6px 9px;font-size:11px;font-weight:800;">🏠 호스트용</button><button id="addBookDate" style="background:var(--navy);color:#fff;border:0;border-radius:10px;padding:6px 11px;font-size:11px;font-weight:800;">🆕 예약</button><button id="addSelectedDate" style="background:#EEF3F8;color:#2F6FAF;border:0;border-radius:10px;padding:6px 10px;font-size:11px;font-weight:800;">🧹 청소</button></div></div>
+          <div class="datehead"><div><h2 id="selectedDateTitle">선택 날짜</h2><small>날짜를 누르면 그날의 업무만 정리됩니다.</small></div><div class="date-actions"><button class="primary mini" id="scheduleAddBtn">＋ 새 예약</button><button class="addclean" id="addSelectedDate">청소만</button></div></div>
+          <div class="schedule-tools"><button class="toolbtn primarytool" id="autoAssignBtn">🎯 직원 자동배치</button><button class="toolbtn" id="sendDayTimeline">💬 직원에게 보내기</button><button class="toolbtn more" id="scheduleMoreBtn">•••</button></div>
+          <div class="more-actions" id="scheduleMoreActions"><button id="sendStaffGroup">👥 팀별 발송</button><button id="sendDayAdmin">🧺 관리자 요약</button><button id="sendDayHost">🏠 호스트 요약</button></div>
           <div class="card" id="selectedDateList"></div>
         </div>
       </div>
@@ -167,8 +387,7 @@ input,select,textarea{min-height:44px}
           <div><b id="boardMonthTitle">2026년 6월</b><small>객실 누르면 그 달 체크인·아웃 전체</small></div>
           <button data-board-month="1">›</button>
         </div>
-        <button id="makeRoomview" style="width:100%;background:var(--navy);color:#fff;border:0;border-radius:14px;padding:13px;font-size:13px;font-weight:800;cursor:pointer;font-family:Pretendard,sans-serif;margin-bottom:8px;">📤 호스트에게 룸뷰 링크 보내기</button>
-        <button id="notifyUpdate" style="width:100%;background:#FEE500;color:#3C1E1E;border:0;border-radius:14px;padding:13px;font-size:13px;font-weight:800;cursor:pointer;font-family:Pretendard,sans-serif;margin-bottom:14px;">🔔 호스트에게 업데이트 알림 보내기</button>
+        <div class="hostshare"><div class="hostshare-copy"><b>호스트 공유</b><small>예약·청소·준비상태만 보여주는 링크를 한 번에 관리하세요.</small></div><div class="hostshare-actions"><button id="makeRoomview">링크 만들기</button><button id="notifyUpdate">업데이트</button></div></div>
         <div id="boardList"></div>
       </div>
     </section>
@@ -220,6 +439,7 @@ input,select,textarea{min-height:44px}
     </section>
 
     <section class="view" data-view="manage">
+      <div class="view-title"><div class="eyebrow" style="color:#AB9BC6;letter-spacing:1.2px;font-size:10px;">CONTROL CENTER</div><h1>관리와 자료</h1><p>객실·직원·비품을 한 곳에서 관리하고 필요한 순간에만 펼쳐보세요.</p></div>
       <div class="section" style="margin-top:0"><div class="card manageblock"><div class="managehead"><b>🏠 객실 관리</b><button class="addmini" data-quick="room">+ 추가</button></div><div id="roomList"></div></div></div>
       <div class="section"><div class="card manageblock"><div class="managehead"><b>👥 직원 관리</b><button class="addmini" data-quick="staff">+ 추가</button></div><div id="staffList"></div></div></div>
       <div class="section"><div class="card manageblock"><div class="managehead"><b>📦 비품 · 소모품</b><button class="addmini" data-quick="supply">+ 추가</button></div><div id="supplyList"></div></div></div>
@@ -253,9 +473,9 @@ input,select,textarea{min-height:44px}
       <div class="section">
         <div class="sectitle"><h2>데이터 관리</h2></div>
         <div class="card formcard">
-          <button class="secondary" id="cloudUploadBtn" style="margin-bottom:8px;background:#D6EAF8;color:#2471A3;border-color:#AED6F1">☁️ 클라우드에 올리기 (호스트 공유용)</button>
+          <button class="secondary" id="cloudUploadBtn" style="margin-bottom:8px;background:#E9E0F7;color:#7242C7;border-color:#CDBBEE">☁️ 클라우드에 올리기 (호스트 공유용)</button>
           <div style="display:flex;gap:6px;margin-bottom:8px;">
-            <input id="cloudRestoreId" placeholder="복구 ID (호스트 링크의 id=뒤 값)" style="flex:1;min-width:0;padding:10px;border:1px solid #AED6F1;border-radius:10px;font-size:12px;" value="6a34e866f5f4af5e290d565e" />
+            <input id="cloudRestoreId" placeholder="복구 ID (호스트 링크의 id=뒤 값)" style="flex:1;min-width:0;padding:10px;border:1px solid #CDBBEE;border-radius:10px;font-size:12px;" value="6a34e866f5f4af5e290d565e" />
             <button class="secondary" id="cloudRestoreBtn" style="background:#D5F5E3;color:#1E8449;border-color:#A9DFBF;white-space:nowrap;">복구</button>
           </div>
           <div class="twocol"><button class="secondary" id="exportBtn">백업 내보내기</button><button class="secondary" id="importBtn">백업 가져오기</button></div>
@@ -268,12 +488,27 @@ input,select,textarea{min-height:44px}
 
   <button class="fab" id="fab">＋</button>
   <nav class="bottomnav">
-    <button class="navbtn active" data-nav="home"><i>⌂</i>홈</button>
+    <button class="navbtn active" data-nav="home"><i>▣</i>운영</button>
     <button class="navbtn" data-nav="schedule"><i>▦</i>일정</button>
     <button class="navbtn" data-nav="settlement"><i>₩</i>정산</button>
     <button class="navbtn" data-nav="insight"><i>↗</i>분석</button>
     <button class="navbtn" data-nav="manage"><i>☰</i>관리</button>
   </nav>
+</div>
+
+<div class="modal role-modal" id="roleModal">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheethead"><h3>화면 모드 미리보기</h3><button class="close" data-close="roleModal">×</button></div>
+    <div class="role-grid">
+      <button class="role-choice active" data-role-choice="admin"><b>관리자</b><small>전체 운영·정산·설정</small></button>
+      <button class="role-choice" data-role-choice="director"><b>실장</b><small>전체 일정·객실 확인</small></button>
+      <button class="role-choice" data-role-choice="staff"><b>직원 / 매니저</b><small>배정된 작업 중심</small></button>
+      <button class="role-choice" data-role-choice="host"><b>호스트</b><small>내 객실 상태·준비만</small></button>
+    </div>
+    <div class="host-preview" id="hostPreviewBox"><label for="hostPreviewSelect">호스트 객실 미리보기</label><select id="hostPreviewSelect"></select></div>
+    <p class="role-note">현재 HTML에서 화면 흐름을 확인하기 위한 모드 전환입니다. 실제 호스트별 접근 제한은 배포 시 로그인·서버 권한과 함께 적용해야 합니다.</p>
+  </div>
 </div>
 
 <div class="modal" id="bookModal">
@@ -293,6 +528,7 @@ input,select,textarea{min-height:44px}
     </div>
     <div id="bookSetupPreview" style="background:#E4F5EC;border:1px solid #B8E0C8;border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#1E8449;display:none;"></div>
     <div class="field"><label>추가 준비물 (자동 외 직접)</label><input id="bookSupplies" placeholder="자동 계산돼요. 추가할 것만"></div>
+    <div class="field"><label>퇴실 사용 물품 (선택)</label><input id="bookOutSupplies" placeholder="예: 토퍼1, 수건12"></div>
     <div class="field"><label>메모 (선택)</label><input id="bookMemo" placeholder="특이사항"></div>
     <button class="primary" id="bookSave">예약 등록 (청소 자동 생성)</button>
   </div>
@@ -309,16 +545,17 @@ input,select,textarea{min-height:44px}
     <div class="field"><label>귀속월</label><input type="month" id="txBillingInput" /></div>
 
     <!-- 청소 스케줄 정보 (수입일 때만) -->
-    <div id="txScheduleBox" style="border:1px solid var(--line);border-radius:15px;padding:12px;margin-bottom:11px;background:#FCFAF6;">
+    <div id="txScheduleBox" style="border:1px solid var(--line);border-radius:15px;padding:12px;margin-bottom:11px;background:#F8F7FA;">
       <div style="font-size:11px;font-weight:800;color:var(--sub);margin-bottom:9px;">🗓 청소 스케줄 (선택)</div>
       <!-- 체크아웃 -->
       <div style="background:#FDEEEE;border-radius:12px;padding:10px;margin-bottom:8px;">
         <div style="font-size:10px;font-weight:800;color:var(--red);margin-bottom:7px;">🚪 체크아웃 (나가는 손님)</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;">
           <div><label style="font-size:9px;color:var(--sub);font-weight:800;">박수</label><input type="text" id="txOutNights" inputmode="numeric" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;"></div>
           <div><label style="font-size:9px;color:var(--sub);font-weight:800;">인원</label><input type="text" id="txOutGuests" inputmode="numeric" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;"></div>
           <div><label style="font-size:9px;color:var(--sub);font-weight:800;">시간</label><input type="time" id="txOutTime" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;"></div>
         </div>
+        <div class="field" style="margin:8px 0 0;"><label style="font-size:9px;color:var(--sub);font-weight:800;">사용 물품 (토퍼·수건 등)</label><input type="text" id="txOutSupplies" placeholder="예: 토퍼1, 수건12" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;"></div>
       </div>
       <!-- 체크인 -->
       <div style="background:var(--sky);border-radius:12px;padding:10px;">
@@ -382,7 +619,7 @@ input,select,textarea{min-height:44px}
     <div class="field"><label>이름</label><input id="staffNameInput" placeholder="예: 김실장" /></div>
     <div class="twocol"><div class="field"><label>지점</label><select id="staffBranchInput"><option>영종점</option><option>송도점</option><option>펜트하우스</option></select></div><div class="field"><label>급여 방식</label><select id="staffPayTypeInput"><option>건당</option><option>시간</option><option>당일</option><option>월급</option></select></div></div>
     <div class="twocol"><div class="field"><label>기본 단가</label><input type="number" id="staffRateInput" placeholder="17000" /></div><div class="field"><label>세금률 %</label><input type="number" step="0.1" id="staffTaxInput" placeholder="3.3" /></div></div>
-    <div style="background:#F6F9FC;border:1px solid #E3EDF5;border-radius:14px;padding:12px;margin-bottom:12px;">
+    <div style="background:#F8F7FB;border:1px solid #EFEBF6;border-radius:14px;padding:12px;margin-bottom:12px;">
       <div style="font-size:12px;font-weight:800;color:var(--navy);margin-bottom:10px;">🎯 배치 정보 (자동배치용)</div>
       <div class="field"><label>일할 수 있는 날</label><select id="staffAvailInput"><option value="불특정">불특정 (아무때나)</option><option value="주말">주말만</option><option value="주말+평일">주말+평일</option></select></div>
       <div class="twocol">
@@ -459,6 +696,57 @@ input,select,textarea{min-height:44px}
   const dateText=v=>{const d=new Date(v+'T00:00:00');return `${d.getMonth()+1}월 ${d.getDate()}일 (${['일','월','화','수','목','금','토'][d.getDay()]})`};
   const currentYM=()=>today().slice(0,7);
   let activeView='home', settleMode='receivable', reportMode='room';
+  let activeRole=localStorage.getItem('roommade-one-role')||'admin';
+  let hostPreviewKey=localStorage.getItem('roommade-one-host')||'';
+  const ROLE_META={
+    admin:{label:'관리자',sub:'전체 운영·정산·설정'},
+    director:{label:'실장',sub:'전체 일정·객실 확인'},
+    staff:{label:'직원 / 매니저',sub:'배정 작업 중심'},
+    host:{label:'호스트',sub:'내 객실 상태·준비'}
+  };
+  function roleCanView(view){
+    if(activeRole==='admin')return true;
+    if(activeRole==='director')return ['home','schedule','insight'].includes(view);
+    return ['home','schedule'].includes(view);
+  }
+  function hostKey(room){return room.hostName||room.id||'';}
+  function hostRooms(){
+    const all=Array.isArray(state?.rooms)?state.rooms:[];
+    if(!all.length)return [];
+    const keys=[...new Set(all.map(hostKey).filter(Boolean))];
+    const key=hostPreviewKey||keys[0]||'';
+    return all.filter(r=>hostKey(r)===key);
+  }
+  function fillHostPreview(){
+    const el=$('#hostPreviewSelect');if(!el)return;
+    const rooms=Array.isArray(state?.rooms)?state.rooms.filter(r=>!r.archived):[];
+    const groups=new Map();rooms.forEach(r=>{const key=hostKey(r);if(key&&!groups.has(key))groups.set(key,r.hostName||r.name)});
+    el.innerHTML=groups.size?[...groups].map(([key,label])=>`<option value="${esc(key)}">${esc(label)}</option>`).join(''):'<option value="">등록된 호스트 객실 없음</option>';
+    if(hostPreviewKey&&groups.has(hostPreviewKey))el.value=hostPreviewKey;else if(groups.size){hostPreviewKey=[...groups.keys()][0];el.value=hostPreviewKey;}
+  }
+  function applyRole(){
+    const app=$('.app');if(!app)return;
+    if(!ROLE_META[activeRole])activeRole='admin';
+    app.dataset.role=activeRole;
+    const meta=ROLE_META[activeRole];
+    if($('#roleBtn'))$('#roleBtn').textContent=meta.label+'⌄';
+    if($('#topRoleText'))$('#topRoleText').textContent=meta.label;
+    if($('#topBranchText'))$('#topBranchText').textContent=activeRole==='host'?'내 객실':(state.branch==='전체'?'전체 지점':state.branch);
+    if($('#homeBranchLabel'))$('#homeBranchLabel').textContent=activeRole==='host'?'내 객실':(state.branch==='전체'?'전체 지점':state.branch);
+    if($('#roleHint'))$('#roleHint').textContent=meta.sub;
+    $$('.role-choice').forEach(b=>b.classList.toggle('active',b.dataset.roleChoice===activeRole));
+    $('#hostPreviewBox')?.classList.toggle('show',activeRole==='host');
+    if(!roleCanView(activeView))activeView='home';
+    $$('.navbtn').forEach(b=>{const allowed=roleCanView(b.dataset.nav);b.style.display=allowed?'':'none';});
+    if($('#fab'))$('#fab').style.display=activeView==='home'?'none':'block';
+  }
+  function setRole(role){
+    if(!ROLE_META[role])return;
+    activeRole=role;localStorage.setItem('roommade-one-role',role);
+    if(role==='host'){fillHostPreview();if($('#hostPreviewSelect')?.value)hostPreviewKey=$('#hostPreviewSelect').value;localStorage.setItem('roommade-one-host',hostPreviewKey);}
+    applyRole();setView(roleCanView(activeView)?activeView:'home');render();
+    toast(ROLE_META[role].label+' 화면으로 전환했어요');
+  }
   let scheduleMonth=currentYM(), insightMonth=currentYM(), selectedDate=today(), txType='income';
   let boardMonth=currentYM(), schedView='calendar', settleOpen={}, settlePeriod='month';
 
@@ -570,7 +858,17 @@ input,select,textarea{min-height:44px}
     return; // 자동 클라우드 업로드 비활성화 (무료 플랜 요청 한도 절약)
   }
   function toast(msg){$('.toast')?.remove();const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.append(el);setTimeout(()=>el.remove(),1900)}
-  function branchFilter(arr){return state.branch==='전체'?arr:arr.filter(x=>x.branch===state.branch)}
+  function branchFilter(arr){
+    let out=state.branch==='전체'?arr:arr.filter(x=>x.branch===state.branch);
+    if(activeRole==='host'){
+      const ids=new Set(hostRooms().map(r=>r.id));
+      out=out.filter(x=>x.type==='income'?ids.has(x.targetId):ids.has(x.id));
+    }else if(activeRole==='staff'){
+      // 직원 화면은 금액·인건비 대신 작업 흐름만 노출
+      out=out.filter(x=>x.type!=='expense');
+    }
+    return out;
+  }
   function monthTx(month= currentYM()){return branchFilter(state.transactions).filter(t=>(t.billingMonth||ym(t.date))===month&&t.status!=='cancelled')}
   function sum(arr,type,paid=null){return arr.filter(t=>(!type||t.type===type)&&(paid===null||!!t.paid===paid)).reduce((a,t)=>a+Number(t.netAmount??t.amount),0)}
   function roomName(id){return state.rooms.find(r=>r.id===id)?.name||'삭제된 객실'}
@@ -652,10 +950,11 @@ input,select,textarea{min-height:44px}
     return planned.filter(p=>{const k=p.targetId+'|'+p.date;if(seen.has(k))return false;seen.add(k);return true;});
   }
 
-  function setView(view){activeView=view;$$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===view));$$('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.nav===view));window.scrollTo({top:0,behavior:'smooth'});render();}
+  function setView(view){if(!roleCanView(view))view='home';activeView=view;applyRole();$$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===view));$$('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.nav===view));window.scrollTo({top:0,behavior:'smooth'});render();}
   function setBranch(branch){state.branch=branch;save();$$('.branchbtn').forEach(b=>b.classList.toggle('active',b.dataset.branch===branch));render();}
 
   function render(){
+    applyRole();
     try{ renderHome(); }catch(e){ console.error('home',e); }
     try{ renderSchedule(); }catch(e){ console.error('schedule',e); }
     try{ renderBoard(); }catch(e){ console.error('board',e); }
@@ -664,12 +963,77 @@ input,select,textarea{min-height:44px}
     try{ renderManage(); }catch(e){ console.error('manage',e); }
   }
   function renderHome(){
-    const tx=monthTx(currentYM()), income=sum(tx,'income'),expense=sum(tx,'expense'),net=income-expense,recv=sum(tx,'income',false),pay=sum(tx,'expense',false),margin=income?Math.round(net/income*100):0;
-    $('#homeMonthLabel').textContent=monthText(currentYM())+' 예상 순익';$('#homeNet').textContent=money(net);$('#homeIncome').textContent=money(income);$('#homeExpense').textContent=money(expense);$('#homeReceivable').textContent=short(recv)+'원';$('#homePayable').textContent=short(pay)+'원';$('#homeMargin').textContent=margin+'%';
     const jobs=branchFilter(state.transactions).filter(t=>t.type==='income'&&t.date===today()&&t.status!=='cancelled').sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
+    const tx=monthTx(currentYM()), income=sum(tx,'income'),expense=sum(tx,'expense'),net=income-expense,recv=sum(tx,'income',false),pay=sum(tx,'expense',false),margin=income?Math.round(net/income*100):0;
+    const done=jobs.filter(t=>t.status==='done').length,pending=Math.max(0,jobs.length-done),progress=jobs.length?Math.round(done/jobs.length*100):0;
+    const attention=jobs.filter(t=>(t.inNights&&t.inTime&&t.inTime<'16:00')||(t.outTime&&t.outTime>'11:00')||t.inSupplies).length;
+    const branchLabel=activeRole==='host'?'내 객실':(state.branch==='전체'?'전체 지점':state.branch);
+    $('#homeGreeting').innerHTML=activeRole==='host'?'내 객실의 오늘<br>운영 보드':'오늘의 운영을<br>한눈에 정리해요';
+    $('#homeSubtext').textContent=activeRole==='host'?'예약·청소·준비상태만 간단히 보여드려요.':'예약 하나를 입력하면 체크아웃·셋팅·배정까지 이어집니다.';
+    $('#homeDate').textContent=dateText(today());$('#homeBranchLabel').textContent=branchLabel;
+    $('#homeMonthLabel').textContent='오늘의 청소 일정';$('#homeNet').textContent=jobs.length+'건';$('#homeIncome').textContent=done+'건';$('#homeExpense').textContent=pending+'건';$('#homeHeroSubline').textContent=jobs.length?(progress+'% 완료 · '+(pending?'대기 '+pending+'건':'모든 작업 완료')):'오늘 예정된 청소가 없어요';$('#homeProgressBar').style.width=progress+'%';
+    $('#homeReceivable').textContent=short(recv)+'원';$('#homePayable').textContent=short(pay)+'원';$('#homeMargin').textContent=margin+'%';$('#financeSummaryText').textContent='순익 '+short(net)+'원 · 작업 '+income+'건';
+    $('#homeSmartStrip').innerHTML=attention?`<div class="smart-icon">⚠️</div><div><b>오늘 확인할 항목 ${attention}건</b><small>얼리·레이트 체크인/아웃 또는 추가 셋팅이 있어요.</small></div>`:pending?`<div class="smart-icon">✨</div><div><b>다음 작업을 확인하세요</b><small>${pending}건이 대기 중이에요. 완료 버튼으로 바로 처리할 수 있습니다.</small></div>`:`<div class="smart-icon">✅</div><div><b>오늘 운영이 정리됐어요</b><small>특이사항이 생기면 일정에서 바로 추가하세요.</small></div>`;
     let jobsHtml = jobs.length?jobs.map((t,i)=>jobHTML(t,i)).join(''):'';
     $('#todayJobs').innerHTML=jobsHtml||empty('☕','오늘 등록된 청소 일정이 없어요');
     renderTodayAlerts();
+    renderSmartOps();
+  }
+
+  // ── 스마트 운영 보드 ──
+  // 예약/청소 기록을 같은 하루 업무 카드에서 체크아웃·셋팅·직원·정산 순서로 묶습니다.
+  function renderSmartOps(){
+    const date=today();
+    const jobs=branchFilter(state.transactions).filter(t=>t.type==='income'&&t.date===date&&t.status!=='cancelled').sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
+    const checkouts=jobs.filter(t=>t.outNights||t.outGuests||t.outSupplies);
+    const checkins=jobs.filter(t=>t.inNights);
+    const expenses=branchFilter(state.transactions).filter(t=>t.type==='expense'&&t.date===date&&t.status!=='cancelled');
+    const assigned=jobs.filter(t=>Array.isArray(t.assignedStaffIds)&&t.assignedStaffIds.length);
+    const unassigned=jobs.filter(t=>!Array.isArray(t.assignedStaffIds)||!t.assignedStaffIds.length);
+    const canFinance=activeRole==='admin'||activeRole==='director';
+    const moneyIncome=sum(jobs,'income'),moneyExpense=sum(expenses,'expense'),pendingMoney=jobs.filter(t=>!t.paid).length+expenses.filter(t=>!t.paid).length;
+    const setText=(id,value)=>{const el=$('#'+id);if(el)el.textContent=value;};
+    setText('opsCheckoutCount',checkouts.length);setText('opsCheckinCount',checkins.length);setText('opsFlowCheckout',checkouts.length);setText('opsFlowCheckin',checkins.length);setText('opsFlowStaff',unassigned.length?unassigned.length:'✓');setText('opsFlowMoney',moneyIncome+moneyExpense?moneyIncome+moneyExpense+'원':'0');setText('opsIncomeTotal',money(moneyIncome));setText('opsExpenseTotal',money(moneyExpense));
+    const checkoutEl=$('#opsCheckoutList');
+    if(checkoutEl)checkoutEl.innerHTML=checkouts.length?checkouts.map(opsCheckoutHTML).join(''):empty('🧺','오늘 체크아웃 게스트가 없어요');
+    const checkinEl=$('#opsCheckinList');
+    if(checkinEl)checkinEl.innerHTML=checkins.length?checkins.map(opsCheckinHTML).join(''):empty('🛏️','오늘 체크인 셋팅이 없어요');
+    const staffEl=$('#opsStaffList');
+    if(staffEl){
+      const rows=[];
+      assigned.forEach(t=>{
+        const names=(t.assignedStaffNames||t.assignedStaffIds.map(staffName)).join(', ');
+        rows.push(`<button class="ops-staff-row" data-edit-tx="${t.id}"><span class="ops-avatar">👤</span><span><b>${esc(names)}</b><small>${esc(t.targetName||roomName(t.targetId))} · ${t.assignedStaffIds.length>1?'2인1조':'담당 배정'}</small></span><em class="ops-tag ok-tag">배정됨</em></button>`);
+      });
+      if(unassigned.length)rows.push(`<button class="ops-unassigned" data-quick="assign"><span>＋</span><b>미배정 ${unassigned.length}건</b><small>직원 자동 매칭으로 배정하기</small><em>›</em></button>`);
+      if(!rows.length)rows.push(empty('👥','오늘 직원 배정이 아직 없어요'));
+      staffEl.innerHTML=rows.join('');
+    }
+    const moneyEl=$('#opsMoneyList');
+    if(moneyEl){
+      const moneyRows=canFinance?branchFilter(state.transactions).filter(t=>t.date===date&&t.status!=='cancelled').sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,4):[];
+      moneyEl.innerHTML=moneyRows.length?moneyRows.map(opsMoneyHTML).join(''):(canFinance?empty('₩','오늘 기록된 수입·지출이 없어요'):'<div class="ops-private-note">금액 정보는 관리자 화면에서만 보여요.</div>');
+    }
+    const moneyBlock=$('#opsMoneyBlock');if(moneyBlock)moneyBlock.dataset.pending=pendingMoney;
+  }
+  function opsCheckoutHTML(t){
+    const room=state.rooms.find(r=>r.id===t.targetId)||{};
+    const used=t.outSupplies||'';
+    const late=t.outTime&&t.outTime>'11:00';
+    const info=(t.outNights||'-')+'박 · '+(t.outGuests||'-')+'명'+(t.outTime?' · '+t.outTime:'');
+    return `<button class="ops-line ops-checkout-line" data-edit-tx="${t.id}"><span class="ops-line-icon">🚪</span><span class="ops-line-main"><b>${esc(t.targetName||room.name)}</b><small>${info}</small><small class="${used?'supply-ok':'supply-need'}">${used?'🧺 사용 물품 · '+esc(used):'🧺 토퍼·수건 사용량 기록 필요'}</small></span><span class="ops-side-tag ${used?'ok-tag':'need-tag'}">${late?'레이트':(used?'완료':'입력')}</span></button>`;
+  }
+  function opsCheckinHTML(t){
+    const room=state.rooms.find(r=>r.id===t.targetId)||{};
+    const guests=Number(t.inGuests||0),base=Number(room.baseGuests||0),over=base&&guests>base?guests-base:0;
+    const auto=over?calcExtraSetup(room.extraSetup||'',over):'';
+    const setup=t.inSupplies||auto||'기본 셋팅';
+    const names=Array.isArray(t.assignedStaffNames)&&t.assignedStaffNames.length?t.assignedStaffNames.join(', '):'직원 미배정';
+    return `<button class="ops-line ops-checkin-line" data-edit-tx="${t.id}"><span class="ops-line-icon">🏠</span><span class="ops-line-main"><b>${esc(t.targetName||room.name)}</b><small>${t.inTime||'16:00'} 입실 · ${guests||'-'}명 · ${t.inNights||'-'}박</small><small class="setup-text">🛒 셋팅 · ${esc(setup)}${over?' · '+over+'명 초과':''}</small><small class="assigned-text">👤 ${esc(names)}</small></span><span class="ops-side-tag ${names==='직원 미배정'?'need-tag':'ok-tag'}">${names==='직원 미배정'?'배정':'확인'}</span></button>`;
+  }
+  function opsMoneyHTML(t){
+    const isIn=t.type==='income';
+    return `<button class="ops-money-row" data-edit-tx="${t.id}"><span class="ops-money-icon ${isIn?'income':'expense'}">${isIn?'＋':'−'}</span><span><b>${esc(t.targetName||'')}</b><small>${t.memo?esc(t.memo):(isIn?'청소 수입':'직원 지출')}</small></span><strong class="${isIn?'income':'expense'}">${isIn?'+':'−'}${money(t.netAmount||t.amount)}</strong></button>`;
   }
 
   // ⚠️ 오늘 꼭 확인! — 얼리체크인(16시 이전 입실)/레이트체크아웃(11시 이후 퇴실)/오늘 준비물
@@ -735,7 +1099,7 @@ input,select,textarea{min-height:44px}
     if(!setup){ setup=`<small style="color:var(--muted);">기본 셋팅</small>`; }
     return `<div class="job" data-plan-clean="${p.fromId}"><div class="jobtime"><b>${dl}</b><small>${p.branch.replace('점','')}</small></div><div class="jobicon">🛏️</div><div class="jobinfo"><b>${esc(p.targetName)}</b><small>체크인 ${p.nights}박${g?' · '+g+'명':''}</small>${setup}</div><div style="display:flex;gap:4px;"><button class="kkbtn worker" data-kakao-worker="${p.fromId}" data-kakao-kind="plan">💬</button><button class="kkbtn host" data-kakao-host="${p.fromId}" data-kakao-kind="plan">📋</button></div></div>`;
   }
-  function plannedHTML(p){return `<div class="job" data-plan-clean="${p.fromId}" style="background:linear-gradient(90deg,rgba(108,164,217,.06),transparent);"><div class="jobtime"><b>예정</b><small>${p.branch.replace('점','')}</small></div><div class="jobicon">🧹</div><div class="jobinfo"><b>${esc(p.targetName)}</b><small>체크인 ${p.nights}박${p.guests?' · '+p.guests+'명':''}${p.supplies?' · 🛒'+esc(p.supplies):''}</small></div><div style="display:flex;gap:4px;"><button class="kkbtn worker" data-kakao-worker="${p.fromId}" data-kakao-kind="plan">💬</button><button class="kkbtn host" data-kakao-host="${p.fromId}" data-kakao-kind="plan">📋</button></div></div>`}
+  function plannedHTML(p){return `<div class="job" data-plan-clean="${p.fromId}" style="background:linear-gradient(90deg,rgba(155,123,211,.06),transparent);"><div class="jobtime"><b>예정</b><small>${p.branch.replace('점','')}</small></div><div class="jobicon">🧹</div><div class="jobinfo"><b>${esc(p.targetName)}</b><small>체크인 ${p.nights}박${p.guests?' · '+p.guests+'명':''}${p.supplies?' · 🛒'+esc(p.supplies):''}</small></div><div style="display:flex;gap:4px;"><button class="kkbtn worker" data-kakao-worker="${p.fromId}" data-kakao-kind="plan">💬</button><button class="kkbtn host" data-kakao-host="${p.fromId}" data-kakao-kind="plan">📋</button></div></div>`}
 
   // ── 카톡 메시지 ──
   function shareText(text){
@@ -749,6 +1113,7 @@ input,select,textarea{min-height:44px}
     L.push('  '+(t.outNights||t.nights||'-')+'박 / '+(t.outGuests||t.guests||'-')+'명'+(t.outTime?' ('+t.outTime+')':''));
     if(room.doorPw)L.push('  🔑 도어락: '+room.doorPw);
     if(room.supplyPw)L.push('  📦 비품함: '+room.supplyPw);
+    if(t.outSupplies)L.push('  🧺 사용 물품: '+t.outSupplies);
     L.push('','🏠 체크인 준비');
     if(t.inNights){L.push('  '+t.inNights+'박 / '+(t.inGuests||'-')+'명'+(t.inTime?' ('+t.inTime+')':''));if(t.inSupplies)L.push('  🛒 셋팅준비: '+t.inSupplies);}
     else L.push('  체크인 예정 없음');
@@ -760,6 +1125,7 @@ input,select,textarea{min-height:44px}
     const L=['📋 청소 예정 확인 — '+dateText(t.date),'──────────────','🏠 '+(t.targetName||room.name),''];
     L.push('🚪 체크아웃');
     L.push('  '+(t.outNights||t.nights||'-')+'박 / '+(t.outGuests||t.guests||'-')+'명'+(t.outTime?' ('+t.outTime+')':''));
+    if(t.outSupplies)L.push('  🧺 사용 물품: '+t.outSupplies);
     L.push('','🏠 체크인');
     if(t.inNights){L.push('  '+t.inNights+'박 / '+(t.inGuests||'-')+'명'+(t.inTime?' ('+t.inTime+')':''));if(t.inSupplies)L.push('  셋팅준비: '+t.inSupplies);}
     else L.push('  체크인 예정 없음');
@@ -796,6 +1162,22 @@ input,select,textarea{min-height:44px}
   }
   // 더 정확한 그룹핑: 객실 연속 → 직원 연속 = 한 그룹
   function rebuildGroups(all){
+    const hasAssignments=all.some(t=>t.type==='income'&&Array.isArray(t.assignedStaffIds)&&t.assignedStaffIds.length);
+    if(hasAssignments){
+      const groups=[],map=new Map();
+      all.filter(t=>t.type==='income').forEach(t=>{
+        const ids=Array.isArray(t.assignedStaffIds)?t.assignedStaffIds:[];
+        const key=ids.length?ids.join('|'):'unassigned_'+t.id;
+        if(!map.has(key)){const g={rooms:[],staff:[],staffIds:ids};map.set(key,g);groups.push(g);}
+        map.get(key).rooms.push(t);
+      });
+      all.filter(t=>t.type==='expense').forEach(t=>{
+        let g=groups.find(x=>x.staffIds.includes(t.targetId));
+        if(!g&&t.memo){g=groups.find(x=>x.rooms.some(r=>t.memo.includes(r.targetName||'')));}
+        if(g)g.staff.push(t);
+      });
+      return groups;
+    }
     const groups=[]; let cur={rooms:[],staff:[]}; let phase='rooms';
     all.forEach(t=>{
       if(t.type==='income'){
@@ -823,6 +1205,7 @@ input,select,textarea{min-height:44px}
         L.push('🏠 입실 '+t.inNights+'박 '+(t.inGuests||'-')+'명'+(t.inTime?' '+t.inTime:''));
         if(t.inSupplies)L.push('🛒 셋팅준비 '+t.inSupplies);
       }
+      if(t.outSupplies)L.push('🧺 사용 물품 '+t.outSupplies);
       L.push('');
     });
     return L.join('\n').trim();
@@ -872,6 +1255,7 @@ input,select,textarea{min-height:44px}
         L.push('🏠 입실 '+t.inNights+'박 '+(t.inGuests||'-')+'명'+(t.inTime?' '+t.inTime:''));
         if(t.inSupplies)L.push('🛒 셋팅준비 '+t.inSupplies);
       }
+      if(t.outSupplies)L.push('🧺 사용 물품 '+t.outSupplies);
       L.push('');
     });
     shareText(L.join('\n').trim());
@@ -898,6 +1282,7 @@ input,select,textarea{min-height:44px}
         const room=state.rooms.find(r=>r.id===t.targetId)||{};
         L.push('【'+n+'】 '+(t.targetName||room.name)+(t.branch==='펜트하우스'?' 🌿':''));
         if(t.outNights||t.outGuests) L.push('🚪 퇴실 '+(t.outNights||'-')+'박 '+(t.outGuests||'-')+'명'+(t.outTime?' '+t.outTime:''));
+        if(t.outSupplies){L.push('🧺 사용 물품 '+t.outSupplies);addStock(t.outSupplies);}
         if(t.inNights){
           L.push('🏠 입실 '+t.inNights+'박 '+(t.inGuests||'-')+'명'+(t.inTime?' '+t.inTime:''));
           if(t.inSupplies){L.push('🛒 셋팅 '+t.inSupplies);addStock(t.inSupplies);}
@@ -933,6 +1318,7 @@ input,select,textarea{min-height:44px}
         if(t.outTime&&t.outTime>'11:00')line+=' 🌙레이트';
         L.push(line);
       }
+      if(t.outSupplies)L.push('🧺 사용 물품 '+t.outSupplies);
       // 입실
       if(t.inNights){
         let line='🏠 입실 '+t.inNights+'박 '+(t.inGuests||'-')+'명'+(t.inTime?' '+t.inTime:'');
@@ -949,11 +1335,17 @@ input,select,textarea{min-height:44px}
   // 자동 예정 → 임시 객체로 변환해 카톡
   function planToTx(fromId){
     const src=state.transactions.find(x=>x.id===fromId);if(!src)return null;
-    return {date:getPlannedCleanings().find(p=>p.fromId===fromId)?.date||today(),targetId:src.targetId,targetName:src.targetName,outNights:src.inNights,outGuests:src.inGuests,outTime:src.inTime,inSupplies:src.inSupplies};
+    return {date:getPlannedCleanings().find(p=>p.fromId===fromId)?.date||today(),targetId:src.targetId,targetName:src.targetName,outNights:src.inNights,outGuests:src.inGuests,outTime:src.inTime,outSupplies:src.outSupplies||'',inSupplies:src.inSupplies};
   }
-  function jobHTML(t,i){const st=t.status==='done'?['완료','done']:['대기','wait'];return `<div class="job"><div class="jobtime" data-edit-tx="${t.id}"><b>${i===0?'11:00':`${11+i}:20`}</b><small>${t.branch.replace('점','')}</small></div><div class="jobicon" data-edit-tx="${t.id}">🧹</div><div class="jobinfo" data-edit-tx="${t.id}"><b>${esc(t.targetName||roomName(t.targetId))}</b><small>${esc(t.memo||'청소 일정')} · ${money(t.netAmount||t.amount)}</small></div><div style="display:flex;gap:4px;"><button class="kkbtn worker" data-kakao-worker="${t.id}">💬</button><button class="kkbtn host" data-kakao-host="${t.id}">📋</button></div></div>`}
+  function jobHTML(t,i){
+    const done=t.status==='done',canFinance=activeRole==='admin'||activeRole==='director';
+    const assigned=Array.isArray(t.assignedStaffNames)&&t.assignedStaffNames.length?' · 👤 '+esc(t.assignedStaffNames.join(', ')):'';
+    const used=t.outSupplies?' · 🧺 '+esc(t.outSupplies):'';
+    const detail=(canFinance?`${esc(t.memo||'청소 일정')} · ${money(t.netAmount||t.amount)}`:(t.inSupplies?'준비물 '+esc(t.inSupplies):'청소 작업'))+assigned+used;
+    return `<div class="job"><div class="jobtime" data-edit-tx="${t.id}"><b>${i===0?'11:00':`${11+i}:20`}</b><small>${(t.branch||'').replace('점','')}</small></div><div class="jobicon" data-edit-tx="${t.id}">🧹</div><div class="jobinfo" data-edit-tx="${t.id}"><b>${esc(t.targetName||roomName(t.targetId))}</b><small>${detail}</small></div><div class="jobactions"><button class="jobdone ${done?'is-done':''}" data-toggle-status="${t.id}">${done?'완료':'완료 처리'}</button><button class="kkbtn worker" data-kakao-worker="${t.id}">💬</button><button class="kkbtn host" data-kakao-host="${t.id}">📋</button></div></div>`;
+  }
   function txHTML(t){
-    const isIn=t.type==='income';
+    const isIn=t.type==='income',canFinance=activeRole==='admin'||activeRole==='director';
     const kakao=isIn?`<div style="display:flex;gap:4px;margin-left:6px;"><button class="kkbtn worker" data-kakao-worker="${t.id}">💬</button><button class="kkbtn host" data-kakao-host="${t.id}">📋</button></div>`:'';
     const name=esc(t.targetName||(isIn?roomName(t.targetId):staffName(t.targetId)));
     // 상세 줄: 체크아웃(박/명) + 체크인(준비물) + 메모(추가요금)
@@ -963,12 +1355,15 @@ input,select,textarea{min-height:44px}
       if(t.outNights||t.nights)out.push((t.outNights||t.nights)+'박');
       if(t.outGuests||t.guests)out.push((t.outGuests||t.guests)+'명');
       if(out.length)detail+=`<small style="color:var(--red);">🚪 체크아웃 ${out.join('/')}</small>`;
+      if(t.outSupplies)detail+=`<small style="color:#B77D38;">🧺 사용 물품: ${esc(t.outSupplies)}</small>`;
       if(t.inSupplies)detail+=`<small style="color:#4FB0A3;">🛒 셋팅준비: ${esc(t.inSupplies)}</small>`;
-      if(t.memo)detail+=`<small style="color:var(--sub);">💰 ${esc(t.memo)}</small>`;
+      if(t.memo&&canFinance)detail+=`<small style="color:var(--sub);">💰 ${esc(t.memo)}</small>`;
     } else if(t.memo){
       detail+=`<small style="color:var(--sub);">${esc(t.memo)}</small>`;
     }
-    return `<div class="txrow"><div class="txico ${t.type}" data-edit-tx="${t.id}">${isIn?'＋':'−'}</div><div class="txmain" data-edit-tx="${t.id}"><b>${name}</b><small>${dateText(t.date)}</small>${detail}</div><div class="txamt" data-edit-tx="${t.id}"><b class="${t.type}">${isIn?'+':'-'}${money(t.netAmount||t.amount)}</b><small>${t.paid?(isIn?'입금완료':'지급완료'):(isIn?'미수금':'미지급')}</small></div>${kakao}</div>`;
+    const amount=canFinance?`<div class="txamt" data-edit-tx="${t.id}"><b class="${t.type}">${isIn?'+':'-'}${money(t.netAmount||t.amount)}</b><small>${t.paid?(isIn?'입금완료':'지급완료'):(isIn?'미수금':'미지급')}</small></div>`:`<div class="txamt"><small class="status ${t.status==='done'?'done':'wait'}">${t.status==='done'?'완료':'대기'}</small></div>`;
+    const statusButton=isIn?`<button class="jobdone ${t.status==='done'?'is-done':''}" data-toggle-status="${t.id}">${t.status==='done'?'완료':'완료 처리'}</button>`:'';
+    return `<div class="txrow"><div class="txico ${t.type}" data-edit-tx="${t.id}">${isIn?'＋':'−'}</div><div class="txmain" data-edit-tx="${t.id}"><b>${name}</b><small>${dateText(t.date)}</small>${detail}</div>${statusButton}${amount}${kakao}</div>`;
   }
 
   function shiftMonth(v,delta){const [y,m]=v.split('-').map(Number),d=new Date(y,m-1+delta,1);return `${d.getFullYear()}-${pad(d.getMonth()+1)}`}
@@ -987,7 +1382,7 @@ input,select,textarea{min-height:44px}
     let html='';
     branches.forEach(brName=>{
       const brRooms=rooms.filter(r=>r.branch===brName);if(!brRooms.length)return;
-      if(state.branch==='전체'){const c=brName==='영종점'?'#6CA4D9':brName==='펜트하우스'?'#C0556B':'#4FB0A3';html+=`<div style="display:flex;align-items:center;gap:7px;margin:16px 2px 8px;padding-bottom:6px;border-bottom:2px solid ${c};"><b style="font-size:15px;color:${c};">📍 ${brName}</b><small style="color:var(--muted);">${brRooms.length}개 객실</small></div>`;}
+      if(state.branch==='전체'){const c=brName==='영종점'?'#9B7BD3':brName==='펜트하우스'?'#C0556B':'#4FB0A3';html+=`<div style="display:flex;align-items:center;gap:7px;margin:16px 2px 8px;padding-bottom:6px;border-bottom:2px solid ${c};"><b style="font-size:15px;color:${c};">📍 ${brName}</b><small style="color:var(--muted);">${brRooms.length}개 객실</small></div>`;}
       brRooms.forEach(room=>{
         const cleans=state.transactions.filter(t=>t.type==='income'&&t.targetId===room.id&&(t.billingMonth||ym(t.date))===boardMonth&&t.status!=='cancelled');
         const ho=(room.name||'').match(/(\d+호)$/)?(room.name||'').match(/(\d+호)$/)[1]:room.name;
@@ -998,7 +1393,7 @@ input,select,textarea{min-height:44px}
           return !!t.inSupplies||(base>0&&guests>base);
         }).length;
         const hostLabel=room.hostName?`<small style="display:block;color:var(--navy);font-size:10px;margin-bottom:3px;">👤 ${esc(room.hostName)}</small>`:'';
-        html+=`<button class="card group" data-room-month="${room.id}" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;border:1px solid var(--line);padding:14px 16px;"><div style="display:flex;align-items:center;gap:11px;min-width:0;"><div style="width:42px;height:42px;border-radius:14px;background:var(--sky);display:grid;place-items:center;font-size:18px;flex-shrink:0;">🏠</div><div style="min-width:0;">${hostLabel}<b style="font-size:15px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(ho)}</b><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;"><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#EEF4FA;color:var(--navy);">예약 ${reservations}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#EDF7F4;color:#358879;">청소완료 ${done}/${cleans.length}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:${prep?'#FFF1E5':'#F2F3F5'};color:${prep?'var(--amber)':'var(--muted)'};">준비 ${prep}</span></div></div></div><span style="color:var(--muted);font-size:16px;flex-shrink:0;">›</span></button>`;
+        html+=`<button class="card group" data-room-month="${room.id}" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;border:1px solid var(--line);padding:14px 16px;"><div style="display:flex;align-items:center;gap:11px;min-width:0;"><div style="width:42px;height:42px;border-radius:14px;background:var(--sky);display:grid;place-items:center;font-size:18px;flex-shrink:0;">🏠</div><div style="min-width:0;">${hostLabel}<b style="font-size:15px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(ho)}</b><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;"><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#F8F6FB;color:var(--navy);">예약 ${reservations}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#EDF7F4;color:#358879;">청소완료 ${done}/${cleans.length}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:${prep?'#FFF1E5':'#F8F7F9'};color:${prep?'var(--amber)':'var(--muted)'};">준비 ${prep}</span></div></div></div><span style="color:var(--muted);font-size:16px;flex-shrink:0;">›</span></button>`;
       });
     });
     $('#boardList').innerHTML=html;
@@ -1229,7 +1624,7 @@ input,select,textarea{min-height:44px}
         const s=inMonth[i];
         const ciL=fmtDateK(s.checkIn,WD), coL=fmtDateK(s.checkOut,WD);
         let block=`<div style="padding:12px 0;border-bottom:1px solid var(--line);">`;
-        block+=`<div style="font-size:13px;font-weight:800;color:#4FB0A3;margin-bottom:4px;">🟦 입실 ${ciL}${s.inTime?' <span style="background:#F0EEE9;border-radius:6px;padding:1px 6px;font-size:11px;">'+esc(s.inTime)+'</span>':''}${s.nights?' · '+s.nights+'박':''}${s.guests?' · '+s.guests+'명':''}</div>`;
+        block+=`<div style="font-size:13px;font-weight:800;color:#4FB0A3;margin-bottom:4px;">🟦 입실 ${ciL}${s.inTime?' <span style="background:#EBE9F0;border-radius:6px;padding:1px 6px;font-size:11px;">'+esc(s.inTime)+'</span>':''}${s.nights?' · '+s.nights+'박':''}${s.guests?' · '+s.guests+'명':''}</div>`;
         if(s.supplies){ block+=`<div style="margin:4px 0 6px;background:#FFF3E4;border-radius:9px;padding:7px 10px;font-size:12px;font-weight:700;color:#B5701A;">🛒 셋팅준비: ${esc(s.supplies)}</div>`; }
         block+=`<div style="font-size:13px;font-weight:800;color:#E5897B;">🟧 퇴실 ${coL}</div>`;
         if(s.memo){ block+=`<div style="margin-top:5px;background:#FDEEF0;border-radius:9px;padding:6px 10px;font-size:11px;color:#C0556B;font-weight:700;">💰 추가/메모: ${esc(s.memo)}</div>`; }
@@ -1240,7 +1635,7 @@ input,select,textarea{min-height:44px}
         if(next){
           const gap=Math.round((new Date(next.checkIn)-new Date(s.checkOut))/86400000);
           if(gap>=1){
-            html+=`<div style="padding:8px 0;font-size:12px;font-weight:700;color:#7E8896;border-bottom:1px solid var(--line);">⚪ ${fmtDateK(s.checkOut,WD)} ~ ${fmtDateK(ymd(new Date(new Date(next.checkIn)-86400000)),WD)} 공실 (${gap}일)</div>`;
+            html+=`<div style="padding:8px 0;font-size:12px;font-weight:700;color:#A9A3B2;border-bottom:1px solid var(--line);">⚪ ${fmtDateK(s.checkOut,WD)} ~ ${fmtDateK(ymd(new Date(new Date(next.checkIn)-86400000)),WD)} 공실 (${gap}일)</div>`;
           }
         }
       }
@@ -1276,8 +1671,8 @@ input,select,textarea{min-height:44px}
   function rankHTML(map,red,msg){const arr=Object.entries(map).sort((a,b)=>b[1]-a[1]);if(!arr.length)return empty('📊',msg);const max=arr[0][1]||1;return arr.slice(0,6).map(([name,val],i)=>`<div class="rankrow"><div class="ranktop"><b>${i+1}. ${esc(name)}</b><span>${money(val)}</span></div><div class="bar ${red?'red':''}"><span style="width:${val/max*100}%"></span></div></div>`).join('')}
 
   function renderManage(){
-    const allRooms=branchFilter(state.rooms).slice().sort((a,b)=>(a.order??9999)-(b.order??9999)),staff=branchFilter(state.staff);const rooms=allRooms.filter(r=>!r.archived);const archivedRooms=allRooms.filter(r=>r.archived);let roomHtml=rooms.length?rooms.map((r,idx)=>`<div class="entity drag-room" data-room-card="${r.id}" style="touch-action:pan-y;"><div class="entityico">🏠</div><div class="entitymain"><b>${esc(r.name)}</b><small>${r.branch}${r.hostName?' · 호스트 '+esc(r.hostName):''} · 기본 ${money(r.price)}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join(''):empty('🏠','등록된 객실이 없어요');if(archivedRooms.length){roomHtml+=`<button id="toggleArchived" style="width:100%;margin-top:10px;padding:10px;border:1px dashed #D0C8B8;border-radius:12px;background:#FBF8F3;color:var(--muted);font-size:12px;font-weight:700;">📦 보관된 객실 ${archivedRooms.length}개 ${state._showArchived?'숨기기 ▲':'보기 ▼'}</button>`;if(state._showArchived){roomHtml+='<div style="margin-top:8px;">'+archivedRooms.map(r=>`<div class="entity" style="opacity:.6;"><div class="entityico">📦</div><div class="entitymain"><b>${esc(r.name)}</b><small>보관됨 · ${r.branch}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join('')+'</div>';}}$('#roomList').innerHTML=roomHtml;
-    const actStaff=staff.filter(s=>!s.archived);const arcStaff=staff.filter(s=>s.archived);let staffHtml=actStaff.length?actStaff.map(s=>`<div class="entity" data-staff-card="${s.id}"><div class="entityico">👤</div><div class="entitymain"><b>${esc(s.name)}</b><small>${s.branch} · ${s.payType} ${money(s.rate)}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join(''):empty('👥','등록된 직원이 없어요');if(arcStaff.length){staffHtml+=`<button id="toggleArchivedStaff" style="width:100%;margin-top:10px;padding:10px;border:1px dashed #D0C8B8;border-radius:12px;background:#FBF8F3;color:var(--muted);font-size:12px;font-weight:700;">📦 보관된 직원 ${arcStaff.length}명 ${state._showArchivedStaff?'숨기기 ▲':'보기 ▼'}</button>`;if(state._showArchivedStaff){staffHtml+='<div style="margin-top:8px;">'+arcStaff.map(s=>`<div class="entity" style="opacity:.6;"><div class="entityico">📦</div><div class="entitymain"><b>${esc(s.name)}</b><small>보관됨 · ${s.branch}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join('')+'</div>';}}$('#staffList').innerHTML=staffHtml;
+    const allRooms=branchFilter(state.rooms).slice().sort((a,b)=>(a.order??9999)-(b.order??9999)),staff=branchFilter(state.staff);const rooms=allRooms.filter(r=>!r.archived);const archivedRooms=allRooms.filter(r=>r.archived);let roomHtml=rooms.length?rooms.map((r,idx)=>`<div class="entity drag-room" data-room-card="${r.id}" style="touch-action:pan-y;"><div class="entityico">🏠</div><div class="entitymain"><b>${esc(r.name)}</b><small>${r.branch}${r.hostName?' · 호스트 '+esc(r.hostName):''} · 기본 ${money(r.price)}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join(''):empty('🏠','등록된 객실이 없어요');if(archivedRooms.length){roomHtml+=`<button id="toggleArchived" style="width:100%;margin-top:10px;padding:10px;border:1px dashed #D0C8B8;border-radius:12px;background:#F6F4F9;color:var(--muted);font-size:12px;font-weight:700;">📦 보관된 객실 ${archivedRooms.length}개 ${state._showArchived?'숨기기 ▲':'보기 ▼'}</button>`;if(state._showArchived){roomHtml+='<div style="margin-top:8px;">'+archivedRooms.map(r=>`<div class="entity" style="opacity:.6;"><div class="entityico">📦</div><div class="entitymain"><b>${esc(r.name)}</b><small>보관됨 · ${r.branch}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join('')+'</div>';}}$('#roomList').innerHTML=roomHtml;
+    const actStaff=staff.filter(s=>!s.archived);const arcStaff=staff.filter(s=>s.archived);let staffHtml=actStaff.length?actStaff.map(s=>`<div class="entity" data-staff-card="${s.id}"><div class="entityico">👤</div><div class="entitymain"><b>${esc(s.name)}</b><small>${s.branch} · ${s.payType} ${money(s.rate)}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join(''):empty('👥','등록된 직원이 없어요');if(arcStaff.length){staffHtml+=`<button id="toggleArchivedStaff" style="width:100%;margin-top:10px;padding:10px;border:1px dashed #D0C8B8;border-radius:12px;background:#F6F4F9;color:var(--muted);font-size:12px;font-weight:700;">📦 보관된 직원 ${arcStaff.length}명 ${state._showArchivedStaff?'숨기기 ▲':'보기 ▼'}</button>`;if(state._showArchivedStaff){staffHtml+='<div style="margin-top:8px;">'+arcStaff.map(s=>`<div class="entity" style="opacity:.6;"><div class="entityico">📦</div><div class="entitymain"><b>${esc(s.name)}</b><small>보관됨 · ${s.branch}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join('')+'</div>';}}$('#staffList').innerHTML=staffHtml;
     // 비품 목록 (지점 필터, 구입 필요 강조)
     const sup=(state.supplies||[]).filter(x=>state.branch==='전체'||x.branch===state.branch||x.branch==='공용');
     $('#supplyList').innerHTML=sup.length?sup.map(x=>{
@@ -1320,10 +1715,10 @@ input,select,textarea{min-height:44px}
   function openTx(type='income',date=today(),editId=''){
     txType=type;$('#txEditId').value=editId;$('#txDateInput').value=date;$('#txBillingInput').value=ym(date);$('#txMemoInput').value='';$('#txPaidInput').checked=false;$('#txStatusInput').value='booked';$('#deleteTx').style.display=editId?'block':'none';
     // 청소 스케줄 필드 초기화
-    ['txOutNights','txOutGuests','txOutTime','txInNights','txInGuests','txInTime','txInSupplies'].forEach(function(fid){ var el=$('#'+fid); if(el) el.value=''; });
+    ['txOutNights','txOutGuests','txOutTime','txOutSupplies','txInNights','txInGuests','txInTime','txInSupplies'].forEach(function(fid){ var el=$('#'+fid); if(el) el.value=''; });
     const prefBranch=state.branch==='전체'?'영종점':state.branch;$('#txBranchInput').value=prefBranch;$('#txAmountInput').value='';
     if(editId){const t=state.transactions.find(x=>x.id===editId);if(t){txType=t.type;$('#txDateInput').value=t.date;$('#txBillingInput').value=t.billingMonth||ym(t.date);$('#txBranchInput').value=t.branch;$('#txAmountInput').value=t.amount;$('#txMemoInput').value=t.memo||'';$('#txPaidInput').checked=!!t.paid;$('#txStatusInput').value=t.status||'done';
-      $('#txOutNights').value=t.outNights||t.nights||'';$('#txOutGuests').value=t.outGuests||t.guests||'';$('#txOutTime').value=t.outTime||'';
+      $('#txOutNights').value=t.outNights||t.nights||'';$('#txOutGuests').value=t.outGuests||t.guests||'';$('#txOutTime').value=t.outTime||'';$('#txOutSupplies').value=t.outSupplies||'';
       $('#txInNights').value=t.inNights||'';$('#txInGuests').value=t.inGuests||'';$('#txInTime').value=t.inTime||'';$('#txInSupplies').value=t.inSupplies||'';
     }}
     updateTxType();if(editId){const t=state.transactions.find(x=>x.id===editId);$('#txTargetInput').value=t.targetId}openModal('txModal')
@@ -1337,7 +1732,7 @@ input,select,textarea{min-height:44px}
     const id=$('#txEditId').value,date=$('#txDateInput').value,branch=$('#txBranchInput').value,targetId=$('#txTargetInput').value,amount=Number($('#txAmountInput').value),memo=$('#txMemoInput').value.trim(),billingMonth=$('#txBillingInput').value||ym(date),paid=$('#txPaidInput').checked,status=$('#txStatusInput').value;
     if(!date||!targetId)return toast('날짜와 대상을 확인해주세요');const target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===targetId);if(!target)return toast('대상을 찾을 수 없어요');const taxRate=Number(target.tax||0),taxAmount=Math.round(amount*taxRate/100);
     const sched = txType==='income' ? {
-      outNights:$('#txOutNights').value.trim(), outGuests:$('#txOutGuests').value.trim(), outTime:$('#txOutTime').value,
+      outNights:$('#txOutNights').value.trim(), outGuests:$('#txOutGuests').value.trim(), outTime:$('#txOutTime').value, outSupplies:$('#txOutSupplies').value.trim(),
       inNights:$('#txInNights').value.trim(), inGuests:$('#txInGuests').value.trim(), inTime:$('#txInTime').value, inSupplies:$('#txInSupplies').value.trim()
     } : {};
     const obj={id:id||uid('tx'),date,billingMonth,type:txType,targetId,targetName:target.name,branch,amount,taxRate,taxAmount,netAmount:amount-taxAmount,paid,memo,status,createdAt:Date.now(),...sched};
@@ -1356,6 +1751,7 @@ input,select,textarea{min-height:44px}
           if(!exist.outNights&&!exist.outGuests){
             exist.outNights=sched.inNights; exist.outGuests=sched.inGuests; exist.outTime=exist.outTime||'11:00';
           }
+          if(sched.outSupplies)exist.outSupplies=sched.outSupplies;
         }else{
           // 없으면 새 청소 자동 생성 (체크아웃 = 이번 입실 정보)
           const newAmount = branch==='펜트하우스' ? 0 : (target.price||0);
@@ -1363,7 +1759,7 @@ input,select,textarea{min-height:44px}
             id:uid('tx'), date:coStr, billingMonth:ym(coStr), type:'income',
             targetId:targetId, targetName:target.name, branch:branch,
             amount:newAmount, taxRate:target.tax||0, taxAmount:0, netAmount:newAmount,
-            outNights:sched.inNights, outGuests:sched.inGuests, outTime:'11:00',
+            outNights:sched.inNights, outGuests:sched.inGuests, outTime:'11:00', outSupplies:sched.outSupplies||'',
             inNights:'', inGuests:'', inTime:'', inSupplies:'',
             memo:'', paid:false, status:coStr<=today()?'done':'booked',
             createdAt:Date.now()+1, autoGen:true
@@ -1608,8 +2004,11 @@ input,select,textarea{min-height:44px}
     const loadCount={}; // 직원별 배정 건수 (골고루)
     pool.forEach(s=>loadCount[s.id]=0);
     jobs.forEach(job=>{
+      // 지점을 먼저 맞추고, 해당 지점 직원이 없을 때만 전체 풀로 보완
+      const branchPool=pool.filter(s=>s.branch===job.branch);
+      const candidatePool=branchPool.length?branchPool:pool;
       // 후보 정렬: ②페이 낮은순 → ③품질 높은순 → ④숙련객실 우선
-      const cands=pool.slice().sort((a,b)=>{
+      const cands=candidatePool.slice().sort((a,b)=>{
         // 숙련 객실이면 가산점 (④)
         const aSkill=(a.skillRooms||[]).includes(job.targetId)?1:0;
         const bSkill=(b.skillRooms||[]).includes(job.targetId)?1:0;
@@ -1653,6 +2052,8 @@ input,select,textarea{min-height:44px}
     let cnt=0;
     result.forEach(r=>{
       const people=[r.staff]; if(r.partner)people.push(r.partner);
+      r.job.assignedStaffIds=people.map(p=>p.id);
+      r.job.assignedStaffNames=people.map(p=>p.name);
       people.forEach(p=>{
         // 같은 날 같은 직원 중복 방지
         const dup=state.transactions.find(t=>t.type==='expense'&&t.targetId===p.id&&t.date===r.job.date&&t.memo===('배치: '+r.job.targetName));
@@ -1679,7 +2080,7 @@ input,select,textarea{min-height:44px}
     $('#bookCheckin').value=selectedDate||today();
     $('#bookCheckout').value='';
     $('#bookGuests').value=''; $('#bookInTime').value='16:00';
-    $('#bookSupplies').value=''; $('#bookMemo').value='';
+    $('#bookSupplies').value=''; $('#bookOutSupplies').value=''; $('#bookMemo').value='';
     $('#bookNights').textContent='';
     $('#bookSetupPreview').style.display='none';
     openModal('bookModal');
@@ -1736,6 +2137,7 @@ input,select,textarea{min-height:44px}
       const auto=calcExtraSetup(room.extraSetup||'',over);
       supplies=auto+(supplies?', '+supplies:'');
     }
+    const outSupplies=$('#bookOutSupplies').value.trim();
     const memo=$('#bookMemo').value.trim();
     const amount=branch==='펜트하우스'?0:(room.price||0);
     // ① 입실일에 손님 기록 (체크인 정보) — 청소는 퇴실일에 자동 생성됨
@@ -1747,12 +2149,13 @@ input,select,textarea{min-height:44px}
     if(clean){
       clean.outNights=String(nights); clean.outGuests=guests; clean.outTime=clean.outTime||'11:00';
       if(memo)clean.memo=memo;
+      if(outSupplies)clean.outSupplies=outSupplies;
     }else{
       clean={
         id:uid('tx'), date:coStr, billingMonth:ym(coStr), type:'income',
         targetId:roomId, targetName:room.name, branch:branch,
         amount:amount, taxRate:room.tax||0, taxAmount:0, netAmount:amount,
-        outNights:String(nights), outGuests:guests, outTime:'11:00',
+        outNights:String(nights), outGuests:guests, outTime:'11:00', outSupplies:outSupplies,
         inNights:'', inGuests:'', inTime:'', inSupplies:'',
         memo:memo, paid:false, status:coStr<=today()?'done':'booked', createdAt:Date.now(), autoGen:true
       };
@@ -1866,11 +2269,16 @@ input,select,textarea{min-height:44px}
   document.addEventListener('mouseup',dragEnd);
 
   document.addEventListener('click',e=>{
-    const b=e.target.closest('button,[data-edit-tx],[data-settle-toggle],[data-room-month],[data-plan-clean],[data-edit-setup],[data-sched-view]');if(!b)return;
-    if(b.dataset.nav)return setView(b.dataset.nav);if(b.dataset.goto)return setView(b.dataset.goto);if(b.dataset.branch)return setBranch(b.dataset.branch);
-    if(b.dataset.quick){if(b.dataset.quick==='book')openBook();if(b.dataset.quick==='income'||b.dataset.quick==='expense')openTx(b.dataset.quick);if(b.dataset.quick==='room')openRoom();if(b.dataset.quick==='staff')openStaff();if(b.dataset.quick==='supply')openSupply()}
+    const b=e.target.closest('button,[data-edit-tx],[data-settle-toggle],[data-room-month],[data-plan-clean],[data-edit-setup],[data-sched-view],[data-goto],[data-card-nav],[data-ops-jump]');if(!b)return;
+    if(b.id==='roleBtn'){fillHostPreview();openModal('roleModal');return;}
+    if(b.id==='roleHint'){fillHostPreview();openModal('roleModal');return;}
+    if(b.dataset.roleChoice){setRole(b.dataset.roleChoice);closeModal('roleModal');return;}
+    if(b.dataset.nav)return setView(b.dataset.nav);if(b.dataset.goto)return setView(b.dataset.goto);if(b.dataset.cardNav)return setView(b.dataset.cardNav);if(b.dataset.opsJump){$('#'+b.dataset.opsJump)?.scrollIntoView({behavior:'smooth',block:'start'});return;}if(b.dataset.branch)return setBranch(b.dataset.branch);
+    if(b.dataset.quick){if(b.dataset.quick==='book')openBook();if(b.dataset.quick==='income'||b.dataset.quick==='expense')openTx(b.dataset.quick);if(b.dataset.quick==='assign')autoAssignStaff(activeView==='schedule'?selectedDate:today());if(b.dataset.quick==='room')openRoom();if(b.dataset.quick==='staff')openStaff();if(b.dataset.quick==='supply')openSupply()}
     if(b.id==='bookSave'){saveBookForm();return;}
     if(b.id==='fab')openTx('income',activeView==='schedule'?selectedDate:today());if(b.dataset.close)return closeModal(b.dataset.close);
+    if(b.id==='scheduleAddBtn'){openBook();return;}
+    if(b.id==='scheduleMoreBtn'){const el=$('#scheduleMoreActions');el?.classList.toggle('open');return;}
     if(b.dataset.type){txType=b.dataset.type;updateTxType()}
     if(b.dataset.month){scheduleMonth=shiftMonth(scheduleMonth,Number(b.dataset.month));renderSchedule()}
     if(b.dataset.boardMonth){boardMonth=shiftMonth(boardMonth,Number(b.dataset.boardMonth));renderBoard()}
@@ -1909,6 +2317,7 @@ input,select,textarea{min-height:44px}
     if(b.id==='toggleArchivedStaff'){state._showArchivedStaff=!state._showArchivedStaff;render();return;}
     if(b.dataset.report){reportMode=b.dataset.report;renderReportOptions();$('#reportBox').style.display='none';$('#copyReport').style.display='none'}
   });
+  $('#hostPreviewSelect')?.addEventListener('change',e=>{hostPreviewKey=e.target.value;localStorage.setItem('roommade-one-host',hostPreviewKey);if(activeRole==='host')render();});
   $('#txBranchInput').addEventListener('change',updateTxType);$('#txTargetInput').addEventListener('change',()=>{const id=$('#txTargetInput').value,target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===id);if(target){if(target.branch==='펜트하우스'){$('#txAmountInput').value='0';}else{$('#txAmountInput').value=target.price||target.rate||'';}}autoFillCheckout()});
   $('#txDateInput').addEventListener('change',autoFillCheckout);
   $('#saveTx').addEventListener('click',saveTxForm);$('#deleteTx').addEventListener('click',deleteTxForm);$('#saveRoom').addEventListener('click',saveRoomForm);$('#saveStaff').addEventListener('click',saveStaffForm);$('#saveSupply').addEventListener('click',saveSupplyForm);$('#deleteSupply').addEventListener('click',deleteSupplyForm);
@@ -1935,7 +2344,7 @@ input,select,textarea{min-height:44px}
   $('#todayBtn').addEventListener('click',()=>{scheduleMonth=currentYM();insightMonth=currentYM();selectedDate=today();setView('home')});
   $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id)}));
 
-  setBranch(state.branch||'전체');$('#reportMonth').value=currentYM();
+  applyRole();fillHostPreview();setBranch(state.branch||'전체');$('#reportMonth').value=currentYM();
   applyMonthlyFee();  // 빠진 달 관리비 자동등록
   fillMFForm();       // 설정 폼에 현재값 표시
   render();
