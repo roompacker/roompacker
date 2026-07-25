@@ -958,7 +958,7 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
     return planned.filter(p=>{const k=p.targetId+'|'+p.date;if(seen.has(k))return false;seen.add(k);return true;});
   }
 
-  function setView(view){if(!roleCanView(view))view='home';activeView=view;applyRole();$$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===view));$$('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.nav===view));window.scrollTo({top:0,behavior:'smooth'});render();}
+  function setView(view){if(!roleCanView(view))view='home';if(!viewGuard&&view!==activeView){navStack.push({kind:'view',prev:activeView});try{history.pushState({nav:navStack.length},'');}catch(e){}}activeView=view;applyRole();$$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===view));$$('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.nav===view));window.scrollTo({top:0,behavior:'smooth'});render();}
   function setBranch(branch){state.branch=branch;save();$$('.branchbtn').forEach(b=>b.classList.toggle('active',b.dataset.branch===branch));render();}
 
   function render(){
@@ -1349,7 +1349,9 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
     const done=t.status==='done',canFinance=activeRole==='admin'||activeRole==='director';
     const assigned=Array.isArray(t.assignedStaffNames)&&t.assignedStaffNames.length?' · 👤 '+esc(t.assignedStaffNames.join(', ')):'';
     const used=t.outSupplies?' · 🧺 '+esc(t.outSupplies):'';
-    const detail=(canFinance?`${esc(t.memo||'청소 일정')} · ${money(t.netAmount||t.amount)}`:(t.inSupplies?'준비물 '+esc(t.inSupplies):'청소 작업'))+assigned+used;
+    let nextIn='';
+    if(t.inDate&&t.inDate>t.date){const _d=new Date(t.inDate+'T00:00:00');nextIn=' · ⏳ 공실후 '+(_d.getMonth()+1)+'/'+_d.getDate()+' 입실';}
+    const detail=(canFinance?`${esc(t.memo||'청소 일정')} · ${money(t.netAmount||t.amount)}`:(t.inSupplies?'준비물 '+esc(t.inSupplies):'청소 작업'))+assigned+used+nextIn;
     return `<div class="job"><div class="jobtime" data-edit-tx="${t.id}"><b>${i===0?'11:00':`${11+i}:20`}</b><small>${(t.branch||'').replace('점','')}</small></div><div class="jobicon" data-edit-tx="${t.id}">🧹</div><div class="jobinfo" data-edit-tx="${t.id}"><b>${esc(t.targetName||roomName(t.targetId))}</b><small>${detail}</small></div><div class="jobactions"><button class="jobdone ${done?'is-done':''}" data-toggle-status="${t.id}">${done?'완료':'완료 처리'}</button><button class="kkbtn worker" data-kakao-worker="${t.id}">💬</button><button class="kkbtn host" data-kakao-host="${t.id}">📋</button></div></div>`;
   }
   function txHTML(t){
@@ -1364,12 +1366,18 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
       if(t.outGuests||t.guests)out.push((t.outGuests||t.guests)+'명');
       if(out.length)detail+=`<small style="color:var(--red);">🚪 체크아웃 ${out.join('/')}</small>`;
       if(t.outSupplies)detail+=`<small style="color:#B77D38;">🧺 사용 물품: ${esc(t.outSupplies)}</small>`;
-      const ins=[];
-      if(t.inDate&&t.inDate!==t.date){const _d=new Date(t.inDate+'T00:00:00');ins.push((_d.getMonth()+1)+'/'+_d.getDate()+' 입실예정');}
-      if(t.inGuests)ins.push(t.inGuests+'명');
-      if(t.inNights)ins.push(t.inNights+'박');
-      if(t.inSupplies)ins.push('셋팅 '+esc(t.inSupplies));
-      if(ins.length)detail+=`<small style="color:#4FB0A3;">🛒 ${ins.join(' · ')}</small>`;
+      const inParts=[];
+      if(t.inGuests)inParts.push(t.inGuests+'명');
+      if(t.inNights)inParts.push(t.inNights+'박');
+      if(t.inSupplies)inParts.push('셋팅 '+esc(t.inSupplies));
+      if(t.inDate&&t.inDate>t.date){
+        // 공실 후 체크인: 바로 입실이 아니니 미리 준비하라는 강조 박스
+        const gap=Math.round((new Date(t.inDate+'T00:00:00')-new Date(t.date+'T00:00:00'))/86400000);
+        const _d=new Date(t.inDate+'T00:00:00');const WD=['일','월','화','수','목','금','토'];
+        detail+=`<small style="display:block;background:#FFF4DE;border:1px solid #F0D9A8;border-radius:9px;padding:6px 8px;margin-top:4px;color:#9C6F1D;font-weight:800;white-space:normal;">⏳ 공실 ${gap}일 → ${_d.getMonth()+1}/${_d.getDate()}(${WD[_d.getDay()]}) 체크인${inParts.length?' · '+inParts.join(' · '):''} — 미리 셋팅!</small>`;
+      } else if(inParts.length){
+        detail+=`<small style="color:#4FB0A3;">🛒 ${t.inDate===t.date?'당일 입실 · ':''}${inParts.join(' · ')}</small>`;
+      }
       if(t.memo&&canFinance)detail+=`<small style="color:var(--sub);">💰 ${esc(t.memo)}</small>`;
     } else if(t.memo){
       detail+=`<small style="color:var(--sub);">${esc(t.memo)}</small>`;
@@ -1696,8 +1704,39 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
   }
   function renderReportOptions(){const list=branchFilter(reportMode==='room'?state.rooms:state.staff);$('#reportTarget').innerHTML='<option value="">선택하세요</option>'+list.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');$('#reportMonth').value=$('#reportMonth').value||currentYM();$$('[data-report]').forEach(b=>b.classList.toggle('active',b.dataset.report===reportMode))}
 
-  function openModal(id){$('#'+id).classList.add('open')}
-  function closeModal(id){$('#'+id).classList.remove('open')}
+  // ── 뒤로가기 버튼 지원: 뒤로 눌러도 앱이 닫히지 않고 모달 닫기 → 이전 화면 순서로 이동 ──
+  let navStack=[];      // 열린 모달·화면 이동 기록
+  let popGuard=false;   // 코드에서 history.back() 호출 시 중복 처리 방지
+  let viewGuard=false;  // 뒤로가기로 화면 전환 시 기록 중복 방지
+  let exitArmed=false;  // 종료 2번 확인용
+  try{history.pushState({nav:0},'');}catch(e){}
+  function openModal(id){
+    $('#'+id).classList.add('open');
+    navStack.push({kind:'modal',id:id});
+    try{history.pushState({nav:navStack.length},'');}catch(e){}
+  }
+  function closeModal(id){
+    $('#'+id).classList.remove('open');
+    const top=navStack[navStack.length-1];
+    if(top&&top.kind==='modal'&&top.id===id){
+      navStack.pop();popGuard=true;
+      try{history.back();}catch(e){popGuard=false;}
+    }
+  }
+  window.addEventListener('popstate',()=>{
+    if(popGuard){popGuard=false;return;}
+    const top=navStack.pop();
+    if(!top){
+      // 더 돌아갈 화면이 없음: 한 번 더 누르면 종료
+      if(exitArmed)return;
+      exitArmed=true;toast('한 번 더 누르면 앱을 나가요');
+      try{history.pushState({nav:0},'');}catch(e){}
+      setTimeout(()=>{exitArmed=false;},1600);
+      return;
+    }
+    if(top.kind==='modal'){$('#'+top.id).classList.remove('open');}
+    else if(top.kind==='view'){viewGuard=true;setView(top.prev);viewGuard=false;}
+  });
   // 🔄 체크아웃 자동 채우기: 선택한 객실의 '직전 체크인'을 찾아 체크아웃 칸에 채움
   // 거래의 inNights(체크인 N박) → 입실일+N박 = 이 청소일이면, 그 손님이 나가는 것
   function autoFillCheckout(){
