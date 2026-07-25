@@ -820,6 +820,24 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
       }
       return t;
     });
+    // 🔧 자동 이전: 입실 셋팅 카드를 없애고, 그 앞의 마지막 청소 기록에 '공실 후 체크인' 정보로 붙입니다
+    const ciCards=s.transactions.filter(t=>t.checkinOnly);
+    if(ciCards.length){
+      ciCards.forEach(c=>{
+        const prev=s.transactions
+          .filter(t=>t.type==='income'&&!t.checkinOnly&&t.targetId===c.targetId&&t.status!=='cancelled'&&t.date<=c.date)
+          .sort((a,b)=>b.date.localeCompare(a.date))[0];
+        if(prev){
+          prev.inDate=c.inDate||c.date;
+          if(c.inNights)prev.inNights=c.inNights;
+          if(c.inGuests)prev.inGuests=c.inGuests;
+          if(c.inTime)prev.inTime=c.inTime;
+          if(c.inSupplies)prev.inSupplies=c.inSupplies;
+          c._remove=true;
+        }
+      });
+      s.transactions=s.transactions.filter(t=>!t._remove);
+    }
     // 🔗 복구 데이터 보정: 거래의 targetId가 현재 객실/직원에 없으면 '이름'으로 다시 연결
     const roomById={},roomByName={},staffById={},staffByName={};
     s.rooms.forEach(r=>{roomById[r.id]=r;roomByName[r.name]=r;});
@@ -958,7 +976,7 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
     return planned.filter(p=>{const k=p.targetId+'|'+p.date;if(seen.has(k))return false;seen.add(k);return true;});
   }
 
-  function setView(view){if(!roleCanView(view))view='home';if(!viewGuard&&view!==activeView){navStack.push({kind:'view',prev:activeView});try{history.pushState({nav:navStack.length},'');}catch(e){}}activeView=view;applyRole();$$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===view));$$('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.nav===view));window.scrollTo({top:0,behavior:'smooth'});render();}
+  function setView(view){if(!roleCanView(view))view='home';if(!viewGuard&&view!==activeView){viewHistory.push(activeView);if(viewHistory.length>20)viewHistory.shift();}activeView=view;applyRole();$$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===view));$$('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.nav===view));window.scrollTo({top:0,behavior:'smooth'});render();}
   function setBranch(branch){state.branch=branch;save();$$('.branchbtn').forEach(b=>b.classList.toggle('active',b.dataset.branch===branch));render();}
 
   function render(){
@@ -1705,37 +1723,33 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
   function renderReportOptions(){const list=branchFilter(reportMode==='room'?state.rooms:state.staff);$('#reportTarget').innerHTML='<option value="">선택하세요</option>'+list.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');$('#reportMonth').value=$('#reportMonth').value||currentYM();$$('[data-report]').forEach(b=>b.classList.toggle('active',b.dataset.report===reportMode))}
 
   // ── 뒤로가기 버튼 지원: 뒤로 눌러도 앱이 닫히지 않고 모달 닫기 → 이전 화면 순서로 이동 ──
-  let navStack=[];      // 열린 모달·화면 이동 기록
-  let popGuard=false;   // 코드에서 history.back() 호출 시 중복 처리 방지
-  let viewGuard=false;  // 뒤로가기로 화면 전환 시 기록 중복 방지
-  let exitArmed=false;  // 종료 2번 확인용
-  try{history.pushState({nav:0},'');}catch(e){}
-  function openModal(id){
-    $('#'+id).classList.add('open');
-    navStack.push({kind:'modal',id:id});
-    try{history.pushState({nav:navStack.length},'');}catch(e){}
-  }
-  function closeModal(id){
-    $('#'+id).classList.remove('open');
-    const top=navStack[navStack.length-1];
-    if(top&&top.kind==='modal'&&top.id===id){
-      navStack.pop();popGuard=true;
-      try{history.back();}catch(e){popGuard=false;}
+  let modalStack=[];   // 열린 모달 순서 기록
+  let viewHistory=[];  // 화면 이동 기록
+  let viewGuard=false; // 뒤로가기로 화면 전환 시 기록 중복 방지
+  let exitArmed=false; // 종료 2번 확인용
+  function openModal(id){$('#'+id).classList.add('open');modalStack.push(id);}
+  function closeModal(id){$('#'+id).classList.remove('open');modalStack=modalStack.filter(m=>m!==id);}
+  try{history.pushState({app:1},'');}catch(e){}
+  window.addEventListener('popstate',function(){
+    // 1) 열려 있는 모달(등록 창 등)이 있으면 가장 최근 것만 닫기
+    while(modalStack.length){
+      const id=modalStack[modalStack.length-1];
+      const el=document.getElementById(id);
+      if(el&&el.classList.contains('open')){closeModal(id);try{history.pushState({app:1},'');}catch(e){}return;}
+      modalStack.pop(); // 이미 닫힌 항목은 정리만
     }
-  }
-  window.addEventListener('popstate',()=>{
-    if(popGuard){popGuard=false;return;}
-    const top=navStack.pop();
-    if(!top){
-      // 더 돌아갈 화면이 없음: 한 번 더 누르면 종료
-      if(exitArmed)return;
+    const anyOpen=document.querySelector('.modal.open');
+    if(anyOpen){anyOpen.classList.remove('open');try{history.pushState({app:1},'');}catch(e){}return;}
+    // 2) 홈이 아니면 이전 화면으로 이동
+    if(activeView!=='home'){viewGuard=true;setView(viewHistory.pop()||'home');viewGuard=false;try{history.pushState({app:1},'');}catch(e){}return;}
+    // 3) 홈 화면에서는 한 번 더 누르면 종료
+    if(!exitArmed){
       exitArmed=true;toast('한 번 더 누르면 앱을 나가요');
-      try{history.pushState({nav:0},'');}catch(e){}
-      setTimeout(()=>{exitArmed=false;},1600);
+      try{history.pushState({app:1},'');}catch(e){}
+      setTimeout(function(){exitArmed=false;},1700);
       return;
     }
-    if(top.kind==='modal'){$('#'+top.id).classList.remove('open');}
-    else if(top.kind==='view'){viewGuard=true;setView(top.prev);viewGuard=false;}
+    try{history.back();}catch(e){}
   });
   // 🔄 체크아웃 자동 채우기: 선택한 객실의 '직전 체크인'을 찾아 체크아웃 칸에 채움
   // 거래의 inNights(체크인 N박) → 입실일+N박 = 이 청소일이면, 그 손님이 나가는 것
