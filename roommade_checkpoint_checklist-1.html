@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f4f8fb" />
+  <title>ROOMMADE · 객실 체크포인트 메모</title>
+  <style>
+    :root {
+      --ink: #263645;
+      --muted: #82919d;
+      --line: #e4ebf0;
+      --paper: #ffffff;
+      --canvas: #f5f8fb;
+      --blue: #3175cf;
+      --blue-strong: #1f5fb6;
+      --blue-soft: #eaf3ff;
+      --cream: #fff8e8;
+      --yellow: #f6c755;
+      --mint: #e8f7f2;
+      --mint-strong: #299879;
+      --red-soft: #fff0ee;
+      --red: #dc6c61;
+      --shadow: 0 16px 40px rgba(45, 77, 106, .08);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 0% 0%, rgba(222, 239, 255, .72), transparent 27rem),
+        linear-gradient(180deg, #f9fbfd 0%, var(--canvas) 52%, #f3f7fa 100%);
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+      letter-spacing: -.02em;
+    }
+
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    img { display: block; max-width: 100%; }
+    [hidden] { display: none !important; }
+
+    .app-shell { width: min(100%, 820px); margin: 0 auto; padding: 22px 16px 84px; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 2px 2px 18px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-mark {
+      width: 38px; height: 38px; border-radius: 13px;
+      display: grid; place-items: center;
+      color: #fff; font-size: 18px; font-weight: 900;
+      background: linear-gradient(145deg, #4d95ee, #2163ba);
+      box-shadow: 0 8px 18px rgba(49, 117, 207, .23);
+    }
+    .brand-copy { line-height: 1.05; }
+    .brand-copy strong { display: block; font-size: 16px; letter-spacing: .02em; }
+    .brand-copy span { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; font-weight: 700; }
+    .top-actions { display: flex; align-items: center; gap: 8px; }
+
+    .icon-btn, .outline-btn, .primary-btn {
+      border: 0; border-radius: 13px; min-height: 40px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .icon-btn:active, .outline-btn:active, .primary-btn:active, .quick-add:active { transform: scale(.97); }
+    .icon-btn { width: 40px; background: rgba(255,255,255,.78); color: var(--ink); border: 1px solid var(--line); }
+    .icon-btn:hover, .outline-btn:hover { background: #fff; box-shadow: 0 7px 16px rgba(42, 68, 91, .08); }
+    .outline-btn { padding: 0 13px; color: var(--blue-strong); background: rgba(255,255,255,.78); border: 1px solid #d8e6f3; font-size: 12px; font-weight: 800; }
+    .primary-btn { padding: 0 15px; color: #fff; background: var(--blue); box-shadow: 0 8px 18px rgba(49,117,207,.2); font-size: 12px; font-weight: 850; }
+    .primary-btn:hover { background: var(--blue-strong); }
+
+    .hero {
+      position: relative; overflow: hidden;
+      padding: 24px;
+      background: rgba(255,255,255,.9);
+      border: 1px solid rgba(225, 235, 242, .9);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+    }
+    .hero::after {
+      content: ""; position: absolute; width: 180px; height: 180px; right: -60px; top: -75px;
+      border-radius: 50%; background: rgba(227, 241, 255, .8); pointer-events: none;
+    }
+    .hero-kicker { position: relative; z-index: 1; color: var(--blue); font-size: 12px; font-weight: 900; }
+    .hero h1 { position: relative; z-index: 1; margin: 8px 0 6px; font-size: clamp(24px, 6vw, 34px); line-height: 1.17; letter-spacing: -.055em; }
+    .hero p { position: relative; z-index: 1; margin: 0; max-width: 610px; color: var(--muted); font-size: 13px; line-height: 1.65; }
+    .room-meta { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .room-input, .staff-input {
+      min-height: 39px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px;
+      color: var(--ink); background: #fbfdff; outline: none; font-size: 12px; font-weight: 750;
+    }
+    .room-input { flex: 1 1 245px; }
+    .staff-input { flex: 1 1 150px; }
+    .room-input:focus, .staff-input:focus, .search-input:focus, .note-input:focus, .modal input:focus, .modal textarea:focus, .modal select:focus { border-color: #9cc5f3; box-shadow: 0 0 0 4px rgba(49,117,207,.1); }
+
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+    .stat { padding: 13px 14px; border-radius: 16px; border: 1px solid var(--line); background: #fbfdff; }
+    .stat-label { color: var(--muted); font-size: 11px; font-weight: 750; }
+    .stat-value { margin-top: 6px; font-size: 21px; font-weight: 900; letter-spacing: -.06em; }
+    .stat-value.blue { color: var(--blue); }
+    .stat-value.mint { color: var(--mint-strong); }
+    .stat-value.red { color: var(--red); }
+    .progress-track { height: 8px; overflow: hidden; margin-top: 18px; border-radius: 99px; background: #edf2f6; }
+    .progress-bar { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #5ca4f2, #2c71c8); transition: width .35s ease; }
+    .progress-caption { display: flex; justify-content: space-between; gap: 12px; margin-top: 8px; color: var(--muted); font-size: 11px; font-weight: 750; }
+
+    .recommendation {
+      display: flex; align-items: flex-start; gap: 12px; margin: 18px 0 14px; padding: 15px 16px;
+      border: 1px solid #f3e2b2; border-radius: 18px; background: linear-gradient(135deg, #fffaf0, #fffdf8);
+    }
+    .recommendation-icon { flex: 0 0 31px; width: 31px; height: 31px; display: grid; place-items: center; border-radius: 11px; background: #ffe6a0; }
+    .recommendation strong { display: block; font-size: 13px; }
+    .recommendation p { margin: 4px 0 0; color: #8e7950; font-size: 11px; line-height: 1.55; }
+    .template-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+    .template-pill { padding: 5px 8px; border-radius: 8px; color: #7c6a45; background: #fff1c9; font-size: 10px; font-weight: 800; }
+
+    .toolbar { position: sticky; top: 0; z-index: 10; padding: 9px 0; background: rgba(245,248,251,.88); backdrop-filter: blur(14px); }
+    .search-row { display: flex; gap: 8px; }
+    .search-wrap { position: relative; flex: 1; }
+    .search-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #9aa9b5; font-size: 15px; }
+    .search-input { width: 100%; height: 42px; padding: 0 14px 0 37px; border: 1px solid var(--line); border-radius: 13px; outline: none; background: rgba(255,255,255,.92); color: var(--ink); font-size: 12px; }
+    .filter-row { display: flex; gap: 6px; overflow-x: auto; padding: 9px 1px 2px; scrollbar-width: none; }
+    .filter-row::-webkit-scrollbar { display: none; }
+    .filter-chip { flex: 0 0 auto; min-height: 30px; padding: 0 11px; border: 1px solid var(--line); border-radius: 99px; background: rgba(255,255,255,.82); color: var(--muted); font-size: 11px; font-weight: 800; }
+    .filter-chip.active { color: #fff; border-color: var(--blue); background: var(--blue); }
+
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 10px; margin: 13px 2px 10px; }
+    .section-head h2 { margin: 0; font-size: 18px; letter-spacing: -.05em; }
+    .section-head p { margin: 0; color: var(--muted); font-size: 11px; font-weight: 700; }
+    .cards { display: grid; gap: 14px; }
+    .checkpoint-card { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); box-shadow: 0 10px 30px rgba(50, 79, 102, .055); transition: border-color .2s, box-shadow .2s; }
+    .checkpoint-card.complete { border-color: #bfe7d9; box-shadow: 0 11px 30px rgba(42,152,121,.08); }
+    .card-head { display: flex; align-items: flex-start; gap: 11px; padding: 17px 17px 13px; }
+    .point-number { flex: 0 0 35px; width: 35px; height: 35px; display: grid; place-items: center; border-radius: 12px; color: var(--blue-strong); background: var(--blue-soft); font-size: 12px; font-weight: 950; }
+    .complete .point-number { color: #177d61; background: var(--mint); }
+    .card-title-wrap { min-width: 0; flex: 1; }
+    .card-title { margin: 0; font-size: 16px; line-height: 1.3; letter-spacing: -.045em; }
+    .card-subtitle { margin-top: 5px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .area-tag { display: inline-flex; margin-top: 8px; padding: 5px 8px; border-radius: 8px; font-size: 10px; font-weight: 850; }
+    .tone-blue { color: #2764a8; background: #eaf3ff; }
+    .tone-mint { color: #237c65; background: #e6f7f1; }
+    .tone-yellow { color: #8e6d1a; background: #fff4cd; }
+    .tone-red { color: #b35b51; background: #ffefed; }
+    .card-actions { display: flex; align-items: center; gap: 3px; flex: 0 0 auto; }
+    .edit-card { min-height: 30px; padding: 0 8px; border: 1px solid #dbe7f0; border-radius: 9px; color: var(--blue-strong); background: #f7fbff; font-size: 10px; font-weight: 900; }
+    .edit-card:hover { border-color: #a9c9e7; background: var(--blue-soft); }
+    .card-menu { width: 30px; height: 30px; border: 0; border-radius: 10px; color: #a2adb5; background: transparent; font-size: 18px; }
+    .card-menu:hover { background: #f3f7fa; color: var(--ink); }
+
+    .reference-photo { position: relative; aspect-ratio: 1.62 / 1; overflow: hidden; margin: 0 12px; border-radius: 16px; background: #eef3f6; }
+    .reference-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform .35s ease; }
+    .reference-photo:hover img { transform: scale(1.025); }
+    .photo-badge { position: absolute; left: 9px; top: 9px; padding: 6px 8px; border-radius: 9px; color: #fff; background: rgba(30, 56, 78, .7); backdrop-filter: blur(5px); font-size: 10px; font-weight: 850; }
+    .photo-open { position: absolute; right: 9px; bottom: 9px; padding: 7px 9px; border: 0; border-radius: 9px; color: #fff; background: rgba(30,56,78,.72); font-size: 10px; font-weight: 850; }
+    .photo-open:hover { background: rgba(30,56,78,.92); }
+    .empty-reference { height: 100%; display: grid; place-items: center; color: #8b9aa5; font-size: 12px; font-weight: 800; }
+
+    .card-body { padding: 15px 17px 17px; }
+    .field-label { color: #9aa6ae; font-size: 10px; font-weight: 900; letter-spacing: .03em; }
+    .location { margin-top: 5px; color: #435461; font-size: 12px; font-weight: 800; }
+    .description { margin: 8px 0 14px; color: #6e7f8a; font-size: 11px; line-height: 1.55; }
+    .checklist { display: grid; gap: 7px; }
+    .check-row { display: flex; align-items: flex-start; gap: 9px; padding: 10px 11px; border: 1px solid #edf1f4; border-radius: 13px; background: #fbfcfd; color: #42535e; font-size: 12px; line-height: 1.42; transition: background .2s, border-color .2s; }
+    .check-row:hover { border-color: #d6e5f1; background: #f9fcff; }
+    .check-row input { appearance: none; flex: 0 0 18px; width: 18px; height: 18px; margin: 0; border: 1.5px solid #cdd9e1; border-radius: 6px; background: #fff; }
+    .check-row input:checked { border-color: var(--mint-strong); background: var(--mint-strong); }
+    .check-row input:checked::after { content: "✓"; display: block; color: #fff; text-align: center; font-size: 12px; font-weight: 950; line-height: 16px; }
+    .check-row:has(input:checked) { border-color: #d4eee4; color: #80918b; background: #f8fdfb; }
+    .check-row:has(input:checked) span { text-decoration: line-through; text-decoration-color: #b5c7c0; }
+    .check-progress { display: flex; justify-content: space-between; margin: 13px 0 9px; color: var(--muted); font-size: 10px; font-weight: 800; }
+    .check-progress strong { color: var(--blue); }
+    .mini-track { height: 5px; overflow: hidden; border-radius: 99px; background: #edf2f5; }
+    .mini-bar { width: 0%; height: 100%; border-radius: inherit; background: #69b69d; transition: width .25s ease; }
+
+    .note-box { margin-top: 14px; padding: 12px; border-radius: 14px; background: #fffaf0; border: 1px solid #f5e9c8; }
+    .note-head { display: flex; justify-content: space-between; gap: 8px; color: #927647; font-size: 11px; font-weight: 850; }
+    .optional { color: #bdab85; font-size: 10px; font-weight: 700; }
+    .note-input { width: 100%; min-height: 56px; margin-top: 8px; padding: 0; resize: vertical; border: 0; outline: 0; background: transparent; color: #6d5b3c; font-size: 12px; line-height: 1.55; }
+    .note-input::placeholder { color: #b9aa8d; }
+
+    .extra-section { margin-top: 14px; }
+    .extra-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .extra-head span { color: #71828d; font-size: 11px; font-weight: 850; }
+    .add-photo { padding: 7px 9px; border: 1px solid #dbe9f4; border-radius: 9px; color: var(--blue-strong); background: #f4f9ff; font-size: 10px; font-weight: 850; }
+    .add-photo:hover { background: var(--blue-soft); }
+    .photo-input { display: none; }
+    .extra-photos { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
+    .extra-photos:empty { display: none; }
+    .extra-thumb { position: relative; overflow: hidden; width: 62px; height: 62px; padding: 0; border: 1px solid #dce7ee; border-radius: 11px; background: #eef3f6; }
+    .extra-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .remove-photo { position: absolute; right: 3px; top: 3px; width: 18px; height: 18px; padding: 0; border: 0; border-radius: 50%; color: #fff; background: rgba(28,48,64,.76); font-size: 12px; line-height: 18px; }
+    .card-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 17px; border-top: 1px solid #f0f3f5; color: var(--muted); background: #fcfdfe; font-size: 10px; font-weight: 800; }
+    .status { display: inline-flex; align-items: center; gap: 5px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #cbd7de; }
+    .complete .status { color: #29856b; }
+    .complete .status-dot { background: #55b495; }
+    .custom-card .point-number { color: #a25d32; background: #fff0e4; }
+    .empty-state { padding: 34px 20px; text-align: center; border: 1px dashed #cfdae2; border-radius: 18px; color: var(--muted); background: rgba(255,255,255,.55); font-size: 12px; line-height: 1.6; }
+
+    .bottom-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .bottom-actions > button { flex: 1 1 145px; }
+    .hint { margin: 13px 2px 0; color: #9aa8b1; font-size: 10px; line-height: 1.55; text-align: center; }
+    .storage-hint { margin: 8px 2px 0; color: #9aa8b1; font-size: 10px; font-weight: 750; text-align: center; }
+    .storage-hint.warn { color: var(--red); }
+    .link-btn { display: block; margin: 10px auto 0; padding: 6px 10px; border: 0; background: transparent; color: #aab6bf; font-size: 10px; font-weight: 750; text-decoration: underline; text-underline-offset: 3px; }
+    .link-btn:hover { color: var(--red); }
+    .danger-btn { min-height: 40px; padding: 0 13px; border: 1px solid #f0d6d2; border-radius: 13px; color: #b35b51; background: #fff6f4; font-size: 12px; font-weight: 800; }
+    .danger-btn:hover { background: #ffeeeb; }
+    .modal-actions .danger-btn { margin-right: auto; }
+    .quick-add { position: fixed; z-index: 20; right: max(18px, calc((100vw - 820px) / 2 + 18px)); bottom: 20px; display: inline-flex; align-items: center; gap: 7px; min-height: 49px; padding: 0 17px; border: 0; border-radius: 99px; color: #fff; background: linear-gradient(135deg, #438ee9, #225fb5); box-shadow: 0 13px 28px rgba(35, 98, 183, .28); font-size: 12px; font-weight: 900; }
+    .quick-add span { font-size: 19px; font-weight: 400; line-height: 1; }
+    .toast { position: fixed; left: 50%; bottom: 80px; z-index: 50; transform: translate(-50%, 16px); padding: 11px 14px; border-radius: 12px; color: #fff; background: rgba(33, 52, 67, .93); opacity: 0; pointer-events: none; transition: opacity .22s, transform .22s; font-size: 12px; font-weight: 750; white-space: nowrap; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    .modal-backdrop { position: fixed; inset: 0; z-index: 40; display: grid; place-items: end center; padding: 16px; background: rgba(24, 43, 58, .38); backdrop-filter: blur(4px); }
+    .modal { width: min(100%, 620px); max-height: min(88vh, 760px); overflow: auto; padding: 20px; border: 1px solid rgba(255,255,255,.75); border-radius: 24px; background: #fff; box-shadow: 0 26px 80px rgba(21, 48, 72, .25); animation: slide-up .22s ease; }
+    @keyframes slide-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .modal-head h3 { margin: 0; font-size: 20px; letter-spacing: -.05em; }
+    .modal-head p { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .modal-close { width: 32px; height: 32px; border: 0; border-radius: 10px; color: var(--muted); background: #f4f7f9; font-size: 18px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+    .form-field { display: grid; gap: 6px; }
+    .form-field.full { grid-column: 1 / -1; }
+    .form-field label { color: #687b87; font-size: 11px; font-weight: 850; }
+    .modal input, .modal textarea, .modal select { width: 100%; border: 1px solid var(--line); border-radius: 12px; outline: none; background: #fbfdff; color: var(--ink); font-size: 12px; }
+    .modal input, .modal select { height: 42px; padding: 0 12px; }
+    .modal textarea { min-height: 92px; padding: 11px 12px; resize: vertical; line-height: 1.55; }
+    .suggest-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 7px; }
+    .suggest-row span { color: #a0adb6; font-size: 10px; }
+    .suggest-btn { padding: 6px 8px; border: 1px solid #e3ebf1; border-radius: 8px; color: var(--blue-strong); background: #f7fbff; font-size: 10px; font-weight: 850; }
+    .file-picker { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px dashed #c9dbe9; border-radius: 13px; background: #f8fbfe; }
+    .file-picker input { display: none; }
+    .file-picker button { min-height: 32px; padding: 0 10px; border: 0; border-radius: 9px; color: var(--blue-strong); background: var(--blue-soft); font-size: 10px; font-weight: 850; }
+    .file-name { overflow: hidden; color: var(--muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .edit-reference-preview { display: flex; align-items: center; gap: 9px; margin-top: 8px; }
+    .edit-reference-preview img { width: 58px; height: 45px; object-fit: cover; border-radius: 9px; border: 1px solid #dbe7ee; }
+    .edit-reference-preview button { padding: 6px 8px; border: 1px solid #f0d6d2; border-radius: 8px; color: #b35b51; background: #fff6f4; font-size: 10px; font-weight: 850; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+    .image-modal-backdrop { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 15px; background: rgba(17, 30, 42, .82); }
+    .image-viewer { position: relative; width: min(100%, 820px); }
+    .image-viewer img { max-height: 78vh; width: 100%; object-fit: contain; border-radius: 14px; background: #162531; }
+    .image-viewer figcaption { margin-top: 9px; color: #eaf2f8; font-size: 12px; text-align: center; }
+    .image-close { position: absolute; top: -44px; right: 0; width: 34px; height: 34px; border: 0; border-radius: 10px; color: #fff; background: rgba(255,255,255,.14); font-size: 19px; }
+
+    @media (min-width: 700px) {
+      .modal-backdrop { place-items: center; }
+      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+      .checkpoint-card:first-child, .checkpoint-card:nth-child(2) { min-height: 100%; }
+    }
+    @media (max-width: 460px) {
+      .app-shell { padding: 15px 12px 82px; }
+      .topbar { padding-bottom: 14px; }
+      .top-actions .outline-btn { display: none; }
+      .hero { padding: 19px; border-radius: 23px; }
+      .stats { gap: 7px; }
+      .stat { padding: 11px 10px; }
+      .stat-value { font-size: 18px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-field.full { grid-column: auto; }
+      .quick-add { right: 15px; bottom: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">R</div>
+        <div class="brand-copy"><strong>ROOMMADE</strong><span>객실 체크포인트 메모</span></div>
+      </div>
+      <div class="top-actions">
+        <button class="outline-btn" id="copyReportBtn" type="button">↗ 보고서 복사</button>
+        <button class="icon-btn" id="resetBtn" type="button" aria-label="새 청소 시작 (체크만 초기화)" title="새 청소 시작 (체크만 초기화)">↺</button>
+      </div>
+    </header>
+
+    <section class="hero" aria-labelledby="pageTitle">
+      <div class="hero-kicker">PHOTO CHECKPOINT · 403호 기준</div>
+      <h1 id="pageTitle">객실을 사진처럼<br />완성해 주세요.</h1>
+      <p>기준 사진과 같은 위치·수량·상태를 확인하고, 달라진 점은 메모와 추가 사진으로 남겨주세요.</p>
+      <div class="room-meta">
+        <input id="roomName" class="room-input" type="text" value="한라웨스턴파크 C · 403호" aria-label="객실명" />
+        <input id="inspector" class="staff-input" type="text" placeholder="담당자 이름" aria-label="담당자 이름" />
+      </div>
+      <div class="stats" aria-live="polite">
+        <div class="stat"><div class="stat-label">완료한 항목</div><div id="checkedStat" class="stat-value blue">0/0</div></div>
+        <div class="stat"><div class="stat-label">완료 포인트</div><div id="completeStat" class="stat-value mint">0/10</div></div>
+        <div class="stat"><div class="stat-label">남은 확인</div><div id="remainingStat" class="stat-value red">0</div></div>
+      </div>
+      <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+      <div class="progress-caption"><span id="progressCaption">아직 시작 전이에요</span><span id="progressPercent">0%</span></div>
+    </section>
+
+    <section class="recommendation" aria-label="추천 입력 방식">
+      <div class="recommendation-icon">✦</div>
+      <div>
+        <strong>룸메이드 추천 방식 · “메모 카드 + 기준 사진”</strong>
+        <p>각 포인트에 기준 사진 1장, 필수 체크 3~5개, 설명 한 줄, 이상 사진을 붙이는 방식이 현장에서 가장 빠르게 확인됩니다.</p>
+        <div class="template-pills"><span class="template-pill">① 위치</span><span class="template-pill">② 셋팅품</span><span class="template-pill">③ 청결·작동</span><span class="template-pill">④ 이상 사진</span></div>
+      </div>
+    </section>
+
+    <section class="toolbar" aria-label="체크포인트 검색 및 필터">
+      <div class="search-row">
+        <label class="search-wrap"><span class="search-icon">⌕</span><input id="searchInput" class="search-input" type="search" placeholder="위치·소품·확인내용 검색" aria-label="체크포인트 검색" /></label>
+        <button class="primary-btn" id="newCheckpointBtn" type="button">＋ 포인트 추가</button>
+      </div>
+      <div class="filter-row" role="tablist" aria-label="구역 필터">
+        <button class="filter-chip active" data-filter="all" type="button">전체</button>
+        <button class="filter-chip" data-filter="미완료" type="button">미완료</button>
+        <button class="filter-chip" data-filter="주방" type="button">주방</button>
+        <button class="filter-chip" data-filter="거실" type="button">거실</button>
+        <button class="filter-chip" data-filter="침실" type="button">침실</button>
+        <button class="filter-chip" data-filter="사용자 추가" type="button">사용자 추가</button>
+      </div>
+    </section>
+
+    <section class="section-head"><div><h2>오늘의 체크포인트</h2><p>사진을 누르면 크게 볼 수 있어요.</p></div><p id="visibleCount">10개 포인트</p></section>
+    <section id="cards" class="cards" aria-live="polite"></section>
+
+    <section class="bottom-actions">
+      <button class="primary-btn" id="shareBtn" type="button">✈ 결과 공유 (카톡)</button>
+      <button class="outline-btn" id="copyReportBtnBottom" type="button">↗ 체크 결과 복사</button>
+      <button class="outline-btn" id="downloadBtn" type="button">↓ 백업 저장</button>
+      <button class="outline-btn" id="importBtn" type="button">↑ 백업 불러오기</button>
+      <button class="outline-btn" id="collapseBtn" type="button">⌃ 모두 접기</button>
+    </section>
+    <input id="importFile" type="file" accept=".json,application/json" style="display:none" />
+    <p class="hint">입력한 내용은 이 기기의 브라우저에 자동 저장됩니다. 폰 교체·데이터 유실에 대비해 <b>백업 저장</b>을 주기적으로 눌러 파일로 보관해 주세요.</p>
+    <p class="storage-hint" id="storageHint"></p>
+    <button class="link-btn" id="fullResetBtn" type="button">기본 체크리스트로 완전 초기화 (추가 포인트·사진 모두 삭제)</button>
+  </main>
+
+  <button class="quick-add" id="quickAddBtn" type="button"><span>＋</span> 새 체크포인트</button>
+  <div id="toast" class="toast" role="status"></div>
+
+  <div id="newModalBackdrop" class="modal-backdrop" hidden>
+    <form id="newCheckpointForm" class="modal">
+      <div class="modal-head">
+        <div><h3>새 체크포인트 메모</h3><p>사진과 설명을 함께 남길 수 있는 포인트를 추가하세요.</p></div>
+        <button class="modal-close" id="closeNewModal" type="button" aria-label="닫기">×</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label for="newTitle">포인트 이름</label><input id="newTitle" required placeholder="예: 욕실 어메니티 선반" /></div>
+        <div class="form-field"><label for="newArea">구역</label><select id="newArea"><option>주방</option><option>거실</option><option>침실</option><option>욕실</option><option>현관</option><option>기타</option></select></div>
+        <div class="form-field full"><label for="newLocation">위치</label><input id="newLocation" placeholder="예: 세면대 오른쪽 선반 2단" /></div>
+        <div class="form-field full"><label for="newDescription">설명</label><textarea id="newDescription" placeholder="기준 사진처럼 정리해야 하는 이유나 주의사항을 적어주세요."></textarea></div>
+        <div class="form-field full">
+          <label for="newChecks">확인 항목 <span style="color:#a5b2ba;font-weight:600">(한 줄에 하나씩)</span></label>
+          <textarea id="newChecks" placeholder="수량과 위치가 기준 사진과 같다\n오염·물기·먼지가 없다\n파손·고장·누락이 없다"></textarea>
+          <div class="suggest-row"><span>구역을 선택하면 추천 문구를 불러올 수 있어요.</span><button class="suggest-btn" id="suggestBtn" type="button">✦ 추천 체크 불러오기</button></div>
+        </div>
+        <div class="form-field full">
+          <label>기준 사진 <span style="color:#a5b2ba;font-weight:600">(선택)</span></label>
+          <div class="file-picker"><input id="newReference" type="file" accept="image/*" /><button id="pickReferenceBtn" type="button">＋ 사진 선택</button><span id="referenceFileName" class="file-name">사진이 없으면 메모 카드로만 추가됩니다.</span></div>
+        </div>
+      </div>
+      <div class="modal-actions"><button class="outline-btn" id="cancelNewModal" type="button">취소</button><button class="primary-btn" type="submit">메모 추가하기</button></div>
+    </form>
+  </div>
+
+  <div id="editModalBackdrop" class="modal-backdrop" hidden>
+    <form id="editCheckpointForm" class="modal">
+      <div class="modal-head">
+        <div><h3>체크포인트 편집</h3><p>제목·위치·설명·체크항목과 기준 사진을 수정할 수 있어요.</p></div>
+        <button class="modal-close" id="closeEditModal" type="button" aria-label="닫기">×</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label for="editTitle">포인트 이름</label><input id="editTitle" required /></div>
+        <div class="form-field"><label for="editArea">구역</label><select id="editArea">
+          <option>주방 · 수납</option><option>주방 · 커피존</option><option>주방 · 냉장고</option><option>주방 · 식기장</option><option>주방 · 싱크대</option><option>주방 · 전체</option><option>거실 · TV</option><option>거실 · 소파</option><option>침실 · 침구</option><option>욕실</option><option>현관</option><option>기타</option>
+        </select></div>
+        <div class="form-field full"><label for="editLocation">위치</label><input id="editLocation" /></div>
+        <div class="form-field full"><label for="editDescription">기본 설명</label><textarea id="editDescription" placeholder="이 포인트를 어떻게 셋팅해야 하는지 적어주세요."></textarea></div>
+        <div class="form-field full">
+          <label for="editChecks">확인 항목 <span style="color:#a5b2ba;font-weight:600">(한 줄에 하나씩)</span></label>
+          <textarea id="editChecks" placeholder="수량과 위치가 기준 사진과 같다\n오염·물기·먼지가 없다\n파손·고장·누락이 없다"></textarea>
+        </div>
+        <div class="form-field full">
+          <label>기준 사진 교체 <span style="color:#a5b2ba;font-weight:600">(선택)</span></label>
+          <div class="file-picker"><input id="editReference" type="file" accept="image/*" /><button id="pickEditReferenceBtn" type="button">＋ 새 사진 선택</button><span id="editReferenceFileName" class="file-name">기존 사진을 유지합니다.</span></div>
+          <div id="editReferencePreview" class="edit-reference-preview" hidden><img id="editReferencePreviewImage" alt="새 기준 사진 미리보기" /><button id="clearEditReferenceBtn" type="button">기준 사진 삭제</button></div>
+        </div>
+      </div>
+      <div class="modal-actions"><button class="danger-btn" id="deleteCheckpointBtn" type="button">🗑 이 포인트 삭제</button><button class="outline-btn" id="cancelEditModal" type="button">취소</button><button class="primary-btn" type="submit">수정 내용 저장</button></div>
+    </form>
+  </div>
+
+  <div id="imageModalBackdrop" class="image-modal-backdrop" hidden>
+    <figure class="image-viewer"><button class="image-close" id="closeImageModal" type="button" aria-label="사진 닫기">×</button><img id="imageModal" alt="확대된 체크포인트 사진" /><figcaption id="imageCaption"></figcaption></figure>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "roommade-photo-checkpoint-v2";
+
+    const seedCheckpoints = [
+      {
+        id: "p01", number: "01", area: "주방 · 수납", tone: "mint", title: "분리수거함 & 청소도구", location: "주방 옆 하부장 · 상단/하단 수납칸",
+        description: "상단에는 청소도구를 눕혀 두고, 하단에는 4종 분리수거함을 사진 순서대로 배치합니다.", reference: "assets/40386.jpg",
+        checks: ["빗자루·쓰레받기·밀대가 상단 선반에 함께 있다", "유리병·비닐·캔·플라스틱 통이 왼쪽부터 기준 사진 순서다", "각 휴지통에 새 봉투가 씌워져 있고 바깥으로 흐트러지지 않았다", "선반·도어 안쪽에 먼지와 이물질이 없다"]
+      },
+      {
+        id: "p02", number: "02", area: "주방 · 수납", tone: "yellow", title: "싱크대 하부 수납", location: "싱크대 아래장 · 좌/우 수납칸",
+        description: "냄비·팬은 왼쪽, 키친타월·수납통·세제통·도마는 오른쪽에 세워 정리합니다.", reference: "assets/40385.jpg",
+        checks: ["냄비·프라이팬이 겹쳐져 있고 물기 없이 정리되어 있다", "키친타월 2롤과 수납용품이 오른쪽 칸에 있다", "검정 수납통·빨간 용기·주황 도마가 쓰러지지 않고 가지런하다", "배관 주변이 젖지 않았고 냄새·누수가 없다"]
+      },
+      {
+        id: "p03", number: "03", area: "주방 · 커피존", tone: "blue", title: "전자레인지 & 커피존", location: "전자레인지 아래 선반 · 커피 공간",
+        description: "커피머신과 잔, 코스터, 수납통의 위치를 기준 사진처럼 맞춥니다.", reference: "assets/40384.jpg",
+        checks: ["전자레인지 전면과 손잡이에 손자국·기름때가 없다", "KANU 커피머신이 왼쪽에 안정적으로 놓여 있다", "초록색 컵 2개가 트레이 위에 놓여 있다", "원형 코스터는 가운데, 흰색 수납통은 오른쪽에 있다", "전선이 바닥으로 늘어지지 않고 콘센트 주변이 정돈되어 있다"]
+      },
+      {
+        id: "p04", number: "04", area: "주방 · 냉장고", tone: "blue", title: "냉장고 내부 & 생수", location: "냉장고 내부 선반 · 문쪽 하단 수납칸",
+        description: "냉장고는 비워서 냄새와 오염을 확인하고, 생수는 문쪽 하단에 세워 둡니다.", reference: "assets/40383.jpg",
+        checks: ["선반·서랍·고무패킹에 음식물과 물기가 없다", "남은 음식·개인 물품·이물질이 모두 제거되어 있다", "문쪽 하단에 생수 2병이 세워져 있다", "냉장고 문이 잘 닫히고 내부에 이상한 냄새가 없다"]
+      },
+      {
+        id: "p05", number: "05", area: "주방 · 식기장", tone: "yellow", title: "식기·컵·와인잔 수납", location: "상부 식기장 · 좌/우 칸과 하단 선반",
+        description: "그릇과 잔은 종류별로 분류하고, 수량은 해당 객실 기준에 맞춰 확인합니다.", reference: "assets/40382.jpg",
+        checks: ["왼쪽 칸의 머그컵·와인잔·잔이 기준 위치에 있다", "오른쪽 칸의 흰색 공기·볼이 종류별로 포개져 있다", "하단의 접시·소접시·볼이 좌우로 흐트러지지 않았다", "컵·잔·그릇에 얼룩·립스틱 자국·물때·깨짐이 없다", "식기장 선반과 문 안쪽에 먼지가 없다"]
+      },
+      {
+        id: "p06", number: "06", area: "주방 · 싱크대", tone: "mint", title: "싱크대 & 조리도구", location: "주방 상판 · 싱크볼 · 벽면 걸이",
+        description: "조리도구는 걸이 위치를 맞추고, 싱크볼·수전·상판은 물기 없이 마감합니다.", reference: "assets/40381.jpg",
+        checks: ["집게·뒤집개·포크·가위·스푼·주걱이 기준 걸이에 걸려 있다", "노란 장갑은 오른쪽 끝에 걸려 있다", "전기포트와 물통이 왼쪽에 놓여 있고 내부가 깨끗하다", "주방세제·스펀지가 싱크대 오른쪽에 있고 세제가 충분하다", "싱크볼·거름망·수전·상판에 물때와 음식물이 없다"]
+      },
+      {
+        id: "p07", number: "07", area: "주방 · 전체", tone: "blue", title: "주방 전체 마감 & 인덕션", location: "주방 상판 전체 · 인덕션 · 싱크대",
+        description: "작업을 마친 뒤 주방을 한 장으로 바라보고 기준 사진과 전체 분위기를 비교합니다.", reference: "assets/40380.jpg",
+        checks: ["인덕션 2구에 얼룩·기름때가 없고 전원이 꺼져 있다", "상판 전체에 crumbs·물기·먼지가 없다", "전기포트·물통·물티슈의 위치가 기준 사진과 같다", "싱크대와 조리도구가 한눈에 보았을 때 정돈되어 있다", "의자·휴지통 주변 바닥까지 이물질이 없다"]
+      },
+      {
+        id: "p08", number: "08", area: "거실 · TV", tone: "red", title: "TV·리모컨·전선", location: "창가 TV장 · 상단/하단 선반",
+        description: "TV 화면과 리모컨을 깨끗하게 닦고, 셋톱박스와 멀티탭 전선을 정리합니다.", reference: "assets/40379.jpg",
+        checks: ["TV 화면·테두리에 손자국과 먼지가 없다", "리모컨과 셋톱박스가 TV장 상단에 나란히 있다", "멀티탭은 하단 선반에 놓여 있고 전선이 정리되어 있다", "TV가 정상 작동하고 리모컨 배터리가 방전되지 않았다", "TV장·창가·바닥 모서리에 먼지와 머리카락이 없다"]
+      },
+      {
+        id: "p09", number: "09", area: "거실 · 소파", tone: "red", title: "소파 & 쿠션 배치", location: "거실 중앙 소파 · 좌석과 등받이",
+        description: "소파의 좌석·등받이 방향을 맞추고 쿠션을 기준 위치에 놓습니다.", reference: "assets/40378.jpg",
+        checks: ["소파 좌석과 등받이 쿠션이 틀어지지 않고 반듯하다", "쿠션이 기준 사진처럼 중앙과 양쪽에 배치되어 있다", "좌석 틈·소파 아래에 리모컨·쓰레기·머리카락이 없다", "패브릭에 얼룩·먼지·이상한 냄새가 없다", "소파 주변 바닥과 창가 쪽이 깨끗하다"]
+      },
+      {
+        id: "p10", number: "10", area: "침실 · 침구", tone: "mint", title: "침대·침구 최종 셋팅", location: "침실 · 2개 침대와 헤드보드",
+        description: "각 침대의 이불·베개·매트리스 커버를 기준 사진처럼 맞춘 뒤 마지막 전체 사진을 남깁니다.", reference: "assets/40377.jpg",
+        checks: ["두 침대의 이불커버가 깨끗하고 좌우 끝선이 가지런하다", "각 침대에 베개 2개가 헤드보드 앞에 반듯하게 놓여 있다", "매트리스 커버가 들뜨거나 오염되지 않았다", "침대 사이·헤드보드 주변에 물건과 먼지가 없다", "침실 바닥·창가·커튼에 머리카락과 이물질이 없다"]
+      }
+    ];
+
+    const suggestions = {
+      "주방": ["위치와 수량이 기준 사진과 같다", "표면에 물기·기름때·음식물이 없다", "소품과 비품이 종류별로 정리되어 있다", "작동 여부와 누수·파손이 없다"],
+      "거실": ["기준 사진과 같은 방향·위치로 배치되어 있다", "화면·표면에 손자국과 먼지가 없다", "틈새·바닥 모서리에 이물질이 없다", "리모컨·전선·소품이 누락되지 않았다"],
+      "침실": ["침구가 깨끗하고 기준 사진처럼 반듯하다", "베개·쿠션 수량과 위치가 맞다", "침대 틈과 헤드보드 주변에 이물질이 없다", "바닥·창가·커튼에 머리카락이 없다"],
+      "욕실": ["수건·어메니티 수량과 위치가 기준 사진과 같다", "세면대·거울·수전·변기에 물때가 없다", "배수구와 바닥에 머리카락이 없다", "휴지·비누·소모품이 충분하다"],
+      "현관": ["신발·슬리퍼·우산이 기준 위치에 있다", "도어락과 현관 바닥이 깨끗하다", "거울·손잡이에 손자국이 없다", "사용 안내문과 비품이 누락되지 않았다"],
+      "기타": ["위치와 수량이 기준 사진과 같다", "표면에 먼지·오염·물기가 없다", "파손·고장·누락이 없다", "필요한 경우 이상 사진과 설명을 남겼다"]
+    };
+
+    let state = loadState();
+    let activeFilter = "all";
+    let pendingReference = "";
+    let editingItemId = null;
+    let pendingEditReference = null;
+    let toastTimer;
+
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+    const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"}[char]));
+
+    function normalizeItem(item, index) {
+      return {
+        id: item.id || `p${Date.now()}${index}`,
+        number: item.number || String(index + 1).padStart(2, "0"),
+        area: item.area || "기타",
+        tone: item.tone || "blue",
+        title: item.title || "새 체크포인트",
+        location: item.location || "위치를 입력해 주세요",
+        description: item.description || "",
+        reference: item.reference || "",
+        note: item.note || "",
+        photos: Array.isArray(item.photos) ? item.photos : [],
+        custom: Boolean(item.custom),
+        checks: (Array.isArray(item.checks) ? item.checks : []).map((check, checkIndex) => {
+          if (typeof check === "string") return { id: `${item.id || index}-${checkIndex}`, text: check, checked: false };
+          return { id: check.id || `${item.id || index}-${checkIndex}`, text: check.text || "확인 항목", checked: Boolean(check.checked) };
+        })
+      };
+    }
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (saved && Array.isArray(saved.items)) {
+          return { roomName: saved.roomName || "한라웨스턴파크 C · 403호", inspector: saved.inspector || "", items: saved.items.map(normalizeItem) };
+        }
+      } catch (error) { console.warn("저장된 체크리스트를 불러오지 못했습니다.", error); }
+      return { roomName: "한라웨스턴파크 C · 403호", inspector: "", items: seedCheckpoints.map(normalizeItem) };
+    }
+
+    // 저장 한도(브라우저 localStorage 약 5MB) 관련 상수
+    const STORAGE_LIMIT_MB = 5;
+    const STORAGE_WARN_MB = 4;
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        updateStorageHint();
+      } catch (error) {
+        // 용량 초과 시 데이터가 저장되지 않았음을 확실히 알림
+        console.warn("저장 실패", error);
+        showToast("⚠ 저장 실패! 용량이 가득 찼어요. 사진을 삭제하거나 백업 후 새 청소를 시작해 주세요.");
+        updateStorageHint(true);
+      }
+    }
+
+    // 현재 저장 용량을 계산해서 하단에 표시
+    function updateStorageHint(failed) {
+      try {
+        const bytes = new Blob([JSON.stringify(state)]).size;
+        const mb = bytes / 1024 / 1024;
+        const hint = $("#storageHint");
+        if (!hint) return;
+        const text = `저장 용량 ${mb < 0.1 ? "0.1 미만" : mb.toFixed(1)}MB / 약 ${STORAGE_LIMIT_MB}MB`;
+        if (failed) {
+          hint.textContent = `⚠ ${text} · 용량 초과로 저장되지 않았어요`;
+          hint.classList.add("warn");
+        } else if (mb >= STORAGE_WARN_MB) {
+          hint.textContent = `⚠ ${text} · 거의 가득 찼어요. 백업 저장 후 사진을 정리해 주세요`;
+          hint.classList.add("warn");
+        } else {
+          hint.textContent = text;
+          hint.classList.remove("warn");
+        }
+      } catch (error) { console.warn("용량 계산 실패", error); }
+    }
+
+    function getItem(itemId) { return state.items.find(item => item.id === itemId); }
+    function completedCount(item) { return item.checks.filter(check => check.checked).length; }
+    function isComplete(item) { return item.checks.length > 0 && completedCount(item) === item.checks.length; }
+
+    function cardMarkup(item) {
+      const done = completedCount(item);
+      const total = item.checks.length;
+      const percent = total ? Math.round(done / total * 100) : 0;
+      const checks = item.checks.map(check => `
+        <label class="check-row">
+          <input type="checkbox" data-item-id="${escapeHTML(item.id)}" data-check-id="${escapeHTML(check.id)}" ${check.checked ? "checked" : ""} />
+          <span>${escapeHTML(check.text)}</span>
+        </label>`).join("");
+      const extras = item.photos.map((photo, photoIndex) => `
+        <button class="extra-thumb" type="button" data-image-role="extra" data-item-id="${escapeHTML(item.id)}" data-photo-index="${photoIndex}" aria-label="추가 사진 크게 보기">
+          <img src="${photo}" alt="추가 기록 사진 ${photoIndex + 1}" />
+          <span class="remove-photo" data-remove-photo="true" data-item-id="${escapeHTML(item.id)}" data-photo-index="${photoIndex}" aria-label="사진 삭제">×</span>
+        </button>`).join("");
+      const reference = item.reference ? `
+        <img src="${item.reference}" alt="${escapeHTML(item.title)} 기준 사진" />
+        <span class="photo-badge">기준 사진</span>
+        <button class="photo-open" type="button" data-image-role="reference" data-item-id="${escapeHTML(item.id)}">확대해서 보기 ↗</button>` : `<div class="empty-reference">기준 사진 없이 추가된 메모 포인트</div>`;
+      return `
+        <article class="checkpoint-card ${isComplete(item) ? "complete" : ""} ${item.custom ? "custom-card" : ""}" data-item-id="${escapeHTML(item.id)}" data-search="${escapeHTML([item.title, item.area, item.location, item.description, ...item.checks.map(c => c.text)].join(" ").toLowerCase())}">
+          <div class="card-head">
+            <div class="point-number">${escapeHTML(item.number)}</div>
+            <div class="card-title-wrap">
+              <h3 class="card-title">${escapeHTML(item.title)}</h3>
+              <div class="card-subtitle">사진과 같은 위치·상태로 맞춰 주세요.</div>
+              <span class="area-tag tone-${escapeHTML(item.tone)}">${escapeHTML(item.area)}</span>
+            </div>
+            <div class="card-actions">
+              <button class="edit-card" type="button" data-edit-card="${escapeHTML(item.id)}">편집</button>
+              <button class="card-menu" type="button" data-focus-note="${escapeHTML(item.id)}" aria-label="메모 입력으로 이동" title="메모 입력">···</button>
+            </div>
+          </div>
+          <div class="reference-photo" data-image-role="reference" data-item-id="${escapeHTML(item.id)}">${reference}</div>
+          <div class="card-body">
+            <div class="field-label">LOCATION</div>
+            <div class="location">${escapeHTML(item.location)}</div>
+            ${item.description ? `<p class="description">${escapeHTML(item.description)}</p>` : ""}
+            <div class="field-label">CHECKPOINT</div>
+            <div class="checklist">${checks || `<div class="empty-state">확인 항목이 없습니다. 카드 설명을 메모하거나 새 포인트를 추가해 주세요.</div>`}</div>
+            <div class="check-progress"><span>확인 진행률</span><strong>${done}/${total}</strong></div>
+            <div class="mini-track"><div class="mini-bar" style="width:${percent}%"></div></div>
+            <div class="note-box">
+              <div class="note-head"><span>메모 · 설명 · 이상 내용</span><span class="optional">자동 저장</span></div>
+              <textarea class="note-input" data-note-id="${escapeHTML(item.id)}" placeholder="예: 컵 1개 깨짐 / 수건 2장 추가 필요 / 다음 작업자에게 전달할 내용">${escapeHTML(item.note)}</textarea>
+            </div>
+            <div class="extra-section">
+              <div class="extra-head"><span>추가 사진 <small>(${item.photos.length})</small></span><button class="add-photo" type="button" data-add-photo="${escapeHTML(item.id)}">＋ 사진 추가</button></div>
+              <input class="photo-input" type="file" accept="image/*" multiple data-photo-input="${escapeHTML(item.id)}" />
+              <div class="extra-photos">${extras}</div>
+            </div>
+          </div>
+          <div class="card-footer"><span class="status"><i class="status-dot"></i>${isComplete(item) ? "확인 완료" : "확인 진행 중"}</span><span>${item.custom ? "사용자 추가 메모" : "기준 사진 포인트"}</span></div>
+        </article>`;
+    }
+
+    function renderCards() {
+      $("#cards").innerHTML = state.items.map(cardMarkup).join("");
+      applyFilters();
+      updateProgress();
+    }
+
+    function applyFilters() {
+      const query = $("#searchInput").value.trim().toLowerCase();
+      let visible = 0;
+      $$(".checkpoint-card").forEach(card => {
+        const item = getItem(card.dataset.itemId);
+        const matchesText = !query || card.dataset.search.includes(query);
+        const matchesFilter = activeFilter === "all" || (activeFilter === "미완료" ? !isComplete(item) : activeFilter === "사용자 추가" ? item.custom : item.area.includes(activeFilter));
+        const show = matchesText && matchesFilter;
+        card.hidden = !show;
+        if (show) visible += 1;
+      });
+      $("#visibleCount").textContent = `${visible}개 포인트`;
+      if (visible === 0) {
+        if (!$("#noResults")) $("#cards").insertAdjacentHTML("beforeend", `<div id="noResults" class="empty-state">검색 결과가 없어요.<br />새 체크포인트를 추가하거나 다른 구역을 선택해 보세요.</div>`);
+      } else if ($("#noResults")) $("#noResults").remove();
+    }
+
+    function updateProgress() {
+      const total = state.items.reduce((sum, item) => sum + item.checks.length, 0);
+      const checked = state.items.reduce((sum, item) => sum + completedCount(item), 0);
+      const completed = state.items.filter(isComplete).length;
+      const remaining = total - checked;
+      const percent = total ? Math.round(checked / total * 100) : 0;
+      $("#checkedStat").textContent = `${checked}/${total}`;
+      $("#completeStat").textContent = `${completed}/${state.items.length}`;
+      $("#remainingStat").textContent = remaining;
+      $("#progressBar").style.width = `${percent}%`;
+      $("#progressPercent").textContent = `${percent}%`;
+      $("#progressCaption").textContent = percent === 0 ? "아직 시작 전이에요" : percent === 100 ? "모든 포인트 확인 완료예요 ✨" : `${remaining}개 항목이 남아 있어요`;
+      $$(".checkpoint-card").forEach(card => {
+        const item = getItem(card.dataset.itemId); if (!item) return;
+        const done = completedCount(item), totalForCard = item.checks.length;
+        const strong = $(".check-progress strong", card); const bar = $(".mini-bar", card);
+        if (strong) strong.textContent = `${done}/${totalForCard}`;
+        if (bar) bar.style.width = `${totalForCard ? done / totalForCard * 100 : 0}%`;
+        card.classList.toggle("complete", isComplete(item));
+        const status = $(".status", card); if (status) status.innerHTML = `<i class="status-dot"></i>${isComplete(item) ? "확인 완료" : "확인 진행 중"}`;
+      });
+    }
+
+    function showToast(message) {
+      const toast = $("#toast"); toast.textContent = message; toast.classList.add("show");
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    function openNewModal() {
+      $("#newModalBackdrop").hidden = false;
+      setTimeout(() => $("#newTitle").focus(), 50);
+    }
+    function closeNewModal() {
+      $("#newModalBackdrop").hidden = true;
+      $("#newCheckpointForm").reset(); pendingReference = ""; $("#referenceFileName").textContent = "사진이 없으면 메모 카드로만 추가됩니다.";
+    }
+
+    function toneForArea(area) {
+      if (area.includes("거실")) return "red";
+      if (area.includes("침실") || area.includes("욕실")) return "mint";
+      if (area.includes("주방")) return "blue";
+      return "yellow";
+    }
+
+    function openEditModal(itemId) {
+      const item = getItem(itemId); if (!item) return;
+      editingItemId = itemId; pendingEditReference = null;
+      $("#editTitle").value = item.title;
+      const areaSelect = $("#editArea");
+      if (![...areaSelect.options].some(option => option.value === item.area)) {
+        const customArea = document.createElement("option"); customArea.value = item.area; customArea.textContent = item.area; areaSelect.insertBefore(customArea, areaSelect.firstChild);
+      }
+      areaSelect.value = item.area;
+      $("#editLocation").value = item.location;
+      $("#editDescription").value = item.description;
+      $("#editChecks").value = item.checks.map(check => check.text).join("\n");
+      $("#editReference").value = "";
+      $("#editReferenceFileName").textContent = item.reference ? "기존 사진을 유지합니다." : "등록된 기준 사진이 없습니다.";
+      $("#editReferencePreview").hidden = !item.reference;
+      $("#editReferencePreviewImage").src = item.reference || "";
+      $("#editModalBackdrop").hidden = false;
+      setTimeout(() => $("#editTitle").focus(), 50);
+    }
+
+    function closeEditModal() {
+      $("#editModalBackdrop").hidden = true;
+      $("#editCheckpointForm").reset();
+      $("#editReferencePreview").hidden = true;
+      $("#editReferencePreviewImage").src = "";
+      editingItemId = null; pendingEditReference = null;
+    }
+
+    // 저장 용량 절약을 위해 사진을 최대 1000px, 품질 72%로 압축
+    function compressImage(file, maxSize = 1000) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const image = new Image();
+          image.onload = () => {
+            const ratio = Math.min(1, maxSize / Math.max(image.width, image.height));
+            const canvas = document.createElement("canvas"); canvas.width = Math.max(1, Math.round(image.width * ratio)); canvas.height = Math.max(1, Math.round(image.height * ratio));
+            const ctx = canvas.getContext("2d"); ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/jpeg", .72));
+          };
+          image.onerror = reject; image.src = reader.result;
+        };
+        reader.onerror = reject; reader.readAsDataURL(file);
+      });
+    }
+
+    function openImage(src, caption) {
+      if (!src) return;
+      $("#imageModal").src = src; $("#imageCaption").textContent = caption || "체크포인트 사진"; $("#imageModalBackdrop").hidden = false;
+    }
+    function closeImage() { $("#imageModalBackdrop").hidden = true; $("#imageModal").src = ""; }
+
+    function makeReport() {
+      const now = new Date().toLocaleString("ko-KR", { dateStyle: "medium", timeStyle: "short" });
+      const header = [`[ROOMMADE 객실 체크 결과]`, `객실: ${state.roomName}`, `담당자: ${state.inspector || "미입력"}`, `작성일: ${now}`, ""];
+      const lines = [...header];
+      state.items.forEach(item => {
+        const done = completedCount(item); const status = isComplete(item) ? "완료" : `미완료 ${item.checks.length - done}개`;
+        lines.push(`${item.number}. ${item.title} · ${status}`);
+        item.checks.filter(check => !check.checked).forEach(check => lines.push(`   □ ${check.text}`));
+        if (item.note.trim()) lines.push(`   메모: ${item.note.trim()}`);
+        if (item.photos.length) lines.push(`   추가 사진: ${item.photos.length}장`);
+      });
+      return lines.join("\n");
+    }
+
+    function downloadBackup() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob); const anchor = document.createElement("a"); anchor.href = url; anchor.download = `roommade-${(state.roomName || "checkpoint").replace(/[^가-힣a-zA-Z0-9_-]+/g, "-")}-backup.json`; anchor.click(); URL.revokeObjectURL(url); showToast("백업 파일을 저장했어요.");
+    }
+
+    async function copyReport() {
+      const report = makeReport();
+      try { await navigator.clipboard.writeText(report); showToast("체크 결과를 복사했어요. 카톡·메모에 붙여넣어 보세요."); }
+      catch (error) { window.prompt("아래 내용을 복사해 주세요.", report); }
+    }
+
+    // 새 청소 시작: 체크·메모·추가 사진만 초기화 (포인트 구성과 기준 사진은 그대로 유지)
+    function startNewCleaning() {
+      if (!confirm("새 청소를 시작할까요?\n\n✔ 체크 표시·메모·추가 사진만 초기화됩니다.\n✔ 체크포인트 구성과 기준 사진은 그대로 유지됩니다.")) return;
+      state.items.forEach(item => {
+        item.checks.forEach(check => { check.checked = false; });
+        item.note = "";
+        item.photos = [];
+      });
+      saveState(); renderCards(); showToast("새 청소를 시작했어요. 체크 상태를 초기화했습니다.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // 완전 초기화: 기본 10개 체크리스트로 되돌림 (추가 포인트·사진 모두 삭제)
+    function fullReset() {
+      if (!confirm("⚠ 완전 초기화할까요?\n\n직접 추가한 포인트, 교체한 기준 사진, 메모, 추가 사진이 모두 삭제되고 기본 체크리스트로 돌아갑니다.\n\n되돌릴 수 없으니 필요하면 먼저 '백업 저장'을 눌러 주세요.")) return;
+      state = { roomName: "한라웨스턴파크 C · 403호", inspector: "", items: seedCheckpoints.map(normalizeItem) };
+      saveState(); $("#roomName").value = state.roomName; $("#inspector").value = state.inspector; renderCards(); showToast("기본 체크리스트로 완전 초기화했어요.");
+    }
+
+    // 백업 JSON 파일 불러오기 (복원)
+    function importBackup(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (!data || !Array.isArray(data.items) || data.items.length === 0) {
+            showToast("올바른 백업 파일이 아니에요. (items 없음)");
+            return;
+          }
+          if (!confirm(`백업을 불러올까요?\n\n객실: ${data.roomName || "미입력"}\n포인트: ${data.items.length}개\n\n⚠ 현재 화면의 내용은 백업 내용으로 교체됩니다.`)) return;
+          state = { roomName: data.roomName || "한라웨스턴파크 C · 403호", inspector: data.inspector || "", items: data.items.map(normalizeItem) };
+          saveState(); $("#roomName").value = state.roomName; $("#inspector").value = state.inspector; renderCards(); showToast("백업을 불러왔어요.");
+        } catch (error) {
+          console.warn("백업 불러오기 실패", error);
+          showToast("백업 파일을 읽지 못했어요. 파일을 다시 확인해 주세요.");
+        }
+      };
+      reader.onerror = () => showToast("파일을 열지 못했어요.");
+      reader.readAsText(file);
+    }
+
+    // 갤럭시 공유 시트(카톡 등)로 결과 공유, 미지원 브라우저는 복사로 대체
+    async function shareReport() {
+      const report = makeReport();
+      if (navigator.share) {
+        try { await navigator.share({ title: "ROOMMADE 객실 체크 결과", text: report }); return; }
+        catch (error) { if (error && error.name === "AbortError") return; }
+      }
+      copyReport();
+    }
+
+    // 체크포인트 삭제 + 번호 자동 재정렬
+    function deleteCheckpoint(itemId) {
+      const item = getItem(itemId); if (!item) return;
+      if (!confirm(`"${item.title}" 포인트를 삭제할까요?\n\n이 포인트의 체크 항목·메모·사진이 함께 삭제됩니다.`)) return;
+      state.items = state.items.filter(entry => entry.id !== itemId);
+      state.items.forEach((entry, index) => { entry.number = String(index + 1).padStart(2, "0"); });
+      saveState(); renderCards(); closeEditModal(); showToast("포인트를 삭제했어요.");
+    }
+
+    $("#roomName").value = state.roomName; $("#inspector").value = state.inspector;
+    renderCards();
+
+    $("#roomName").addEventListener("input", event => { state.roomName = event.target.value; saveState(); });
+    $("#inspector").addEventListener("input", event => { state.inspector = event.target.value; saveState(); });
+    $("#searchInput").addEventListener("input", applyFilters);
+    $$(".filter-chip").forEach(button => button.addEventListener("click", () => { activeFilter = button.dataset.filter; $$(".filter-chip").forEach(chip => chip.classList.toggle("active", chip === button)); applyFilters(); }));
+    ["#newCheckpointBtn", "#quickAddBtn"].forEach(selector => $(selector).addEventListener("click", openNewModal));
+    $("#closeNewModal").addEventListener("click", closeNewModal); $("#cancelNewModal").addEventListener("click", closeNewModal);
+    $("#newModalBackdrop").addEventListener("click", event => { if (event.target === event.currentTarget) closeNewModal(); });
+    $("#closeEditModal").addEventListener("click", closeEditModal); $("#cancelEditModal").addEventListener("click", closeEditModal);
+    $("#editModalBackdrop").addEventListener("click", event => { if (event.target === event.currentTarget) closeEditModal(); });
+    $("#closeImageModal").addEventListener("click", closeImage); $("#imageModalBackdrop").addEventListener("click", event => { if (event.target === event.currentTarget) closeImage(); });
+    $("#copyReportBtn").addEventListener("click", copyReport); $("#copyReportBtnBottom").addEventListener("click", copyReport); $("#downloadBtn").addEventListener("click", downloadBackup);
+    $("#resetBtn").addEventListener("click", startNewCleaning);
+    $("#fullResetBtn").addEventListener("click", fullReset);
+    $("#shareBtn").addEventListener("click", shareReport);
+    $("#importBtn").addEventListener("click", () => $("#importFile").click());
+    $("#importFile").addEventListener("change", event => { const file = event.target.files[0]; if (file) importBackup(file); event.target.value = ""; });
+    $("#deleteCheckpointBtn").addEventListener("click", () => { if (editingItemId) deleteCheckpoint(editingItemId); });
+    updateStorageHint();
+    $("#collapseBtn").addEventListener("click", () => { const cards = $$(".checkpoint-card:not([hidden])"); const shouldCollapse = cards.some(card => card.querySelector(".card-body").hidden !== true); cards.forEach(card => card.querySelector(".card-body").hidden = shouldCollapse); $("#collapseBtn").textContent = shouldCollapse ? "⌄ 모두 펼치기" : "⌃ 모두 접기"; });
+
+    $("#suggestBtn").addEventListener("click", () => { const area = $("#newArea").value; $("#newChecks").value = suggestions[area].join("\n"); if (!$("#newDescription").value) $("#newDescription").value = `${area} 기준 사진과 같은 위치·상태로 정리합니다.`; showToast("추천 체크 항목을 넣었어요."); });
+    $("#pickReferenceBtn").addEventListener("click", () => $("#newReference").click());
+    $("#newReference").addEventListener("change", async event => { const file = event.target.files[0]; if (!file) return; pendingReference = await compressImage(file); $("#referenceFileName").textContent = file.name; });
+
+    $("#pickEditReferenceBtn").addEventListener("click", () => $("#editReference").click());
+    $("#editReference").addEventListener("change", async event => {
+      const file = event.target.files[0]; if (!file) return;
+      pendingEditReference = await compressImage(file);
+      $("#editReferenceFileName").textContent = file.name;
+      $("#editReferencePreviewImage").src = pendingEditReference;
+      $("#editReferencePreview").hidden = false;
+    });
+    $("#clearEditReferenceBtn").addEventListener("click", () => {
+      pendingEditReference = "";
+      $("#editReference").value = "";
+      $("#editReferenceFileName").textContent = "저장하면 기준 사진이 삭제됩니다.";
+      $("#editReferencePreview").hidden = true;
+    });
+
+    $("#newCheckpointForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      const title = $("#newTitle").value.trim(); if (!title) return;
+      const area = $("#newArea").value; const checks = $("#newChecks").value.split("\n").map(line => line.trim()).filter(Boolean);
+      const tone = area === "거실" ? "red" : area === "침실" || area === "욕실" ? "mint" : area === "주방" ? "blue" : "yellow";
+      const item = normalizeItem({ id: `custom-${Date.now()}`, number: String(state.items.length + 1).padStart(2, "0"), area: `사용자 추가 · ${area}`, tone, title, location: $("#newLocation").value.trim() || "위치 미입력", description: $("#newDescription").value.trim(), checks, reference: pendingReference, custom: true });
+      state.items.push(item); saveState(); renderCards(); closeNewModal(); showToast("새 체크포인트 메모를 추가했어요.");
+      setTimeout(() => $( `.checkpoint-card[data-item-id="${item.id}"]` )?.scrollIntoView({ behavior: "smooth", block: "center" }), 60);
+    });
+
+    $("#editCheckpointForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const item = getItem(editingItemId); if (!item) return;
+      const title = $("#editTitle").value.trim(); if (!title) return;
+      const area = $("#editArea").value;
+      const oldChecked = new Map(item.checks.map(check => [check.text, check.checked]));
+      const texts = $("#editChecks").value.split("\n").map(line => line.trim()).filter(Boolean);
+      item.title = title;
+      item.area = area;
+      item.tone = toneForArea(area);
+      item.location = $("#editLocation").value.trim() || "위치 미입력";
+      item.description = $("#editDescription").value.trim();
+      item.checks = texts.map((text, index) => ({ id: `${item.id}-c${Date.now()}-${index}`, text, checked: oldChecked.get(text) || false }));
+      if (pendingEditReference !== null) item.reference = pendingEditReference;
+      saveState(); renderCards(); closeEditModal(); showToast("체크포인트 내용을 수정했어요.");
+      setTimeout(() => $( `.checkpoint-card[data-item-id="${item.id}"]` )?.scrollIntoView({ behavior: "smooth", block: "center" }), 60);
+    });
+
+    $("#cards").addEventListener("change", async event => {
+      const target = event.target;
+      if (target.matches("[data-check-id]")) {
+        const item = getItem(target.dataset.itemId); const check = item?.checks.find(entry => entry.id === target.dataset.checkId); if (!check) return; check.checked = target.checked; saveState(); updateProgress(); return;
+      }
+      if (target.matches("[data-photo-input]")) {
+        const item = getItem(target.dataset.photoInput); if (!item) return;
+        const files = [...target.files]; const photos = await Promise.all(files.map(file => compressImage(file).catch(() => ""))); item.photos.push(...photos.filter(Boolean)); target.value = ""; saveState(); renderCards(); showToast(`${photos.filter(Boolean).length}장의 사진을 추가했어요.`);
+      }
+    });
+    $("#cards").addEventListener("input", event => { if (!event.target.matches("[data-note-id]")) return; const item = getItem(event.target.dataset.noteId); if (item) { item.note = event.target.value; saveState(); } });
+    $("#cards").addEventListener("click", event => {
+      const removeButton = event.target.closest("[data-remove-photo]");
+      if (removeButton) { event.preventDefault(); event.stopPropagation(); const item = getItem(removeButton.dataset.itemId); if (item) { item.photos.splice(Number(removeButton.dataset.photoIndex), 1); saveState(); renderCards(); showToast("추가 사진을 삭제했어요."); } return; }
+      const addButton = event.target.closest("[data-add-photo]");
+      if (addButton) { $( `[data-photo-input="${addButton.dataset.addPhoto}"]` )?.click(); return; }
+      const editButton = event.target.closest("[data-edit-card]");
+      if (editButton) { openEditModal(editButton.dataset.editCard); return; }
+      const focusButton = event.target.closest("[data-focus-note]");
+      if (focusButton) { $( `[data-note-id="${focusButton.dataset.focusNote}"]` )?.focus(); return; }
+      const imageTarget = event.target.closest("[data-image-role]");
+      if (imageTarget) { const item = getItem(imageTarget.dataset.itemId); if (!item) return; const source = imageTarget.dataset.imageRole === "reference" ? item.reference : item.photos[Number(imageTarget.dataset.photoIndex)]; openImage(source, `${item.number}. ${item.title}`); }
+    });
+
+    // 기준 사진 파일이 없거나 깨졌을 때: 빈 안내 화면으로 자동 교체 (앱은 계속 정상 동작)
+    $("#cards").addEventListener("error", event => {
+      const image = event.target;
+      if (!(image instanceof HTMLImageElement)) return;
+      const wrap = image.closest(".reference-photo");
+      if (wrap) {
+        wrap.innerHTML = `<div class="empty-reference">기준 사진을 찾을 수 없어요 · 편집에서 새 사진을 등록해 주세요</div>`;
+        return;
+      }
+      const thumb = image.closest(".extra-thumb");
+      if (thumb) thumb.hidden = true;
+    }, true);
+
+    document.addEventListener("keydown", event => { if (event.key === "Escape") { closeNewModal(); closeEditModal(); closeImage(); } });
+  </script>
+</body>
+</html>
