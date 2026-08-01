@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#6FA3D6" />
+<title>ROOMMADE PENT · 펜트하우스 전용</title>
+<style>
+  :root{
+    --sky:#6FA3D6; --sky-deep:#4A7FB5; --sky-soft:#E7F1FA; --sky-line:#C9DCEE; --cream:#FBF4E4; --cream-line:#EADFC4;
+    --bg:#FAF4E6; --card:#FFFDF8; --ink:#57544B; --muted:#A39D8B; --line:#EBE1CA;
+    --yellow:#F3C64F; --red:#E58077; --purple:#8B7BC7;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--ink);padding-bottom:86px;}
+  header{position:sticky;top:0;z-index:30;background:linear-gradient(135deg,#7FB0E0,#5E92C8);color:#fff;padding:14px 16px 12px;border-radius:0 0 18px 18px;}
+  header h1{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:900;letter-spacing:-.3px;}
+  .logo{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:#FFFDF8;color:#5E92C8;font-weight:900;font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,.10);}
+  header small{font-size:11px;opacity:.85;font-weight:700;}
+  .share-pill{display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.18);font-size:10px;font-weight:800;}
+  main{padding:14px 14px 0;max-width:560px;margin:0 auto;}
+  .view{display:none;}.view.active{display:block;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 2px 10px rgba(111,163,214,.10);}
+  .sectitle{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .sectitle h2{display:flex;align-items:center;font-size:14px;font-weight:900;}
+  .sectitle h2::before{content:'';display:inline-block;width:4px;height:13px;border-radius:3px;background:var(--sky);margin-right:7px;}
+  .sectitle small{font-size:11px;color:var(--muted);font-weight:700;}
+  .pill-btn{min-height:34px;padding:0 12px;border:none;border-radius:12px;background:var(--sky);color:#fff;font-size:12px;font-weight:800;}
+  .ghost-btn{min-height:34px;padding:0 12px;border:1.5px solid var(--sky-line);border-radius:12px;background:var(--sky-soft);color:var(--sky-deep);font-size:12px;font-weight:800;}
+  .danger-btn{min-height:34px;padding:0 12px;border:1px solid #F2D3CF;border-radius:12px;background:#FFF6F4;color:var(--red);font-size:12px;font-weight:800;}
+  /* 홈 요약 */
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 10px;text-align:center;}
+  .kpi b{display:block;font-size:16px;font-weight:900;color:var(--sky-deep);}
+  .kpi small{font-size:10px;color:var(--muted);font-weight:800;}
+  /* 작업 행 */
+  .job{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line);}
+  .job:last-child{border-bottom:none;}
+  .job-check{width:40px;height:40px;flex:none;border-radius:12px;border:2px solid var(--sky-line);background:var(--sky-soft);color:var(--sky-deep);font-size:17px;font-weight:900;}
+  .job-check.done{background:var(--sky);border-color:var(--sky);color:#fff;}
+  .job-main{flex:1;min-width:0;}
+  .job-main b{display:block;font-size:13.5px;font-weight:900;}
+  .job-main small{display:block;font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;word-break:keep-all;}
+  .gapbox{display:block;background:#FFF4DE;border:1px solid #F0D9A8;border-radius:9px;padding:6px 8px;margin-top:5px;color:#9C6F1D;font-weight:800;font-size:11px;white-space:normal;}
+  .assign-tag{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:99px;background:#FDECEA;color:var(--red);font-size:10px;font-weight:800;}
+  .job-side{display:flex;flex-direction:column;gap:6px;align-items:flex-end;}
+  .mini-btn{min-height:30px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-size:11px;font-weight:800;}
+  .empty{padding:22px 0;text-align:center;color:var(--muted);font-size:12px;font-weight:700;}
+  /* 달력 */
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .cal-head b{font-size:14px;font-weight:900;}
+  .cal-nav{width:34px;height:34px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:14px;font-weight:900;color:var(--sky-deep);}
+  .weekdays,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+  .weekdays span{text-align:center;font-size:10px;color:var(--muted);font-weight:800;padding:4px 0;}
+  .day{position:relative;min-height:52px;border:1px solid transparent;border-radius:10px;background:transparent;padding:4px 2px;font-family:inherit;}
+  .day .n{font-size:12px;font-weight:800;color:var(--ink);}
+  .day.other .n{color:#D9D2C0;}
+  .day.today{border-color:var(--sky);}
+  .day.sel{background:var(--sky-soft);border-color:var(--sky);}
+  .day .tag{display:block;margin-top:3px;font-size:9px;font-weight:900;color:var(--sky-deep);}
+  .day .tag.in{color:#B98A22;}
+  /* 관리비 */
+  .fee-big{background:linear-gradient(135deg,#FFF4DE,#FFFBF2);border:1.5px solid #F0D9A8;border-radius:16px;padding:16px;text-align:center;margin-bottom:12px;}
+  .fee-big b{display:block;font-size:26px;font-weight:900;color:var(--red);}
+  .fee-big small{font-size:11.5px;color:var(--muted);font-weight:800;}
+  .fee-bar{height:9px;border-radius:99px;background:#F3E9D2;overflow:hidden;margin:10px 0 4px;}
+  .fee-bar i{display:block;height:100%;background:var(--yellow);border-radius:99px;}
+  .fee-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:12.5px;font-weight:800;}
+  .fee-row:last-child{border-bottom:none;}
+  .fee-row small{color:var(--muted);font-weight:700;display:block;font-size:10.5px;margin-top:1px;}
+  .fee-row .amt{color:var(--red);font-weight:900;}
+  /* 보고서 */
+  .report-box{background:#FFFDF6;border:1px dashed var(--cream-line);border-radius:12px;padding:12px;font-size:12px;line-height:1.75;white-space:pre-wrap;word-break:break-all;color:#4A463A;}
+  /* 폼 */
+  .field{margin-bottom:10px;}
+  .field label{display:block;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:4px;}
+  .field input,.field select,.field textarea{width:100%;min-height:44px;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink);}
+  .field textarea{min-height:64px;resize:vertical;}
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  /* 모달 */
+  .modal{position:fixed;inset:0;z-index:60;display:none;align-items:flex-end;justify-content:center;background:rgba(30,50,44,.45);}
+  .modal.open{display:flex;}
+  .sheet{width:100%;max-width:560px;max-height:88vh;overflow-y:auto;background:#fff;border-radius:20px 20px 0 0;padding:18px 16px 26px;}
+  .sheet h3{font-size:15px;font-weight:900;margin-bottom:12px;}
+  .sheet-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:14px;}
+  .sheet-actions .spacer{flex:1;}
+  /* 하단 탭 */
+  nav{position:fixed;bottom:0;left:0;right:0;z-index:40;background:#fff;border-top:1px solid var(--line);display:flex;padding:6px 8px calc(8px + env(safe-area-inset-bottom));}
+  .navbtn{flex:1;border:none;background:none;padding:6px 0;font-family:inherit;color:var(--muted);font-size:10px;font-weight:800;}
+  .navbtn svg{display:block;margin:0 auto 3px;}
+  .navbtn.active{color:var(--sky-deep);}
+  .fab{position:fixed;right:16px;bottom:82px;z-index:45;width:54px;height:54px;border:none;border-radius:18px;background:var(--yellow);color:#6B4D00;font-size:24px;font-weight:900;box-shadow:0 6px 16px rgba(245,200,76,.45);}
+  .toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);z-index:99;background:#3A382F;color:#fff;padding:10px 16px;border-radius:12px;font-size:12px;font-weight:800;max-width:88vw;text-align:center;}
+  .chip-list{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1.5px solid var(--line);border-radius:12px;background:#fff;font-size:12px;font-weight:800;}
+  .chip input{width:16px;height:16px;accent-color:var(--sky);}
+  .room-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;font-weight:800;}
+  .room-row:last-child{border-bottom:none;}
+  .room-row small{display:block;font-size:10.5px;color:var(--muted);font-weight:700;margin-top:2px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="logo">RM</span>ROOMMADE PENT</h1>
+  <small>펜트하우스 전용 관리 · 4실 위탁</small><br />
+  <span class="share-pill">🔗 roommade-one과 실시간 데이터 공유</span>
+</header>
+
+<main>
+
+  <!-- ═══ 홈 ═══ -->
+  <section class="view active" data-view="home">
+    <div class="kpis">
+      <div class="kpi"><b id="kpiToday">0</b><small>오늘 청소</small></div>
+      <div class="kpi"><b id="kpiMonth">0회</b><small>이번달 청소</small></div>
+      <div class="kpi"><b id="kpiFee">-</b><small>이번달 관리비</small></div>
+    </div>
+    <div class="card">
+      <div class="sectitle"><h2>오늘의 청소</h2><small id="todayLabel"></small></div>
+      <div id="todayJobs"></div>
+    </div>
+    <div class="card">
+      <div class="sectitle"><h2>다가오는 체크인</h2><small>7일 이내</small></div>
+      <div id="upcomingIns"></div>
+    </div>
+    <div class="card">
+      <div class="sectitle"><h2>펜트하우스 객실</h2><button class="ghost-btn" id="addRoomBtn" type="button">＋ 객실</button></div>
+      <div id="roomList"></div>
+    </div>
+  </section>
+
+  <!-- ═══ 일정 ═══ -->
+  <section class="view" data-view="cal">
+    <div class="card">
+      <div class="cal-head">
+        <button class="cal-nav" id="calPrev" type="button">‹</button>
+        <b id="calTitle"></b>
+        <button class="cal-nav" id="calNext" type="button">›</button>
+      </div>
+      <div class="weekdays"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+      <div class="days" id="calDays"></div>
+    </div>
+    <div class="card">
+      <div class="sectitle"><h2 id="dayTitle">선택한 날</h2><button class="pill-btn" id="dayAddBtn" type="button">＋ 예약</button></div>
+      <div id="dayJobs"></div>
+    </div>
+  </section>
+
+  <!-- ═══ 관리비 ═══ -->
+  <section class="view" data-view="fee">
+    <div class="fee-big">
+      <small id="feeMonthLabel"></small>
+      <b id="feeAmount">-</b>
+      <div class="fee-bar"><i id="feeBarFill" style="width:0%"></i></div>
+      <small id="feeDetail"></small>
+    </div>
+    <div class="card">
+      <div class="sectitle"><h2>월별 관리비 현황</h2><button class="ghost-btn" id="feeApplyBtn" type="button">이번달 자동등록</button></div>
+      <div id="feeHistory"></div>
+    </div>
+    <div class="card">
+      <div class="sectitle"><h2>관리비 규칙</h2></div>
+      <div class="twocol">
+        <div class="field"><label>기본 금액 (원)</label><input type="number" id="cfgBase" inputmode="numeric" /></div>
+        <div class="field"><label>기본 포함 횟수</label><input type="number" id="cfgLimit" inputmode="numeric" /></div>
+      </div>
+      <div class="twocol">
+        <div class="field"><label>초과 1건당 (원)</label><input type="number" id="cfgOver" inputmode="numeric" /></div>
+        <div class="field"><label>상한 (원)</label><input type="number" id="cfgMax" inputmode="numeric" /></div>
+      </div>
+      <div class="twocol">
+        <div class="field"><label>시작월</label><input type="month" id="cfgStart" /></div>
+        <div class="field"><label>항목 이름</label><input id="cfgLabel" /></div>
+      </div>
+      <button class="pill-btn" id="cfgSaveBtn" type="button" style="width:100%;min-height:44px;">규칙 저장</button>
+      <div style="font-size:10.5px;color:var(--muted);margin-top:8px;font-weight:700;">roommade-one의 관리비 설정과 같은 저장공간을 씁니다. 여기서 바꾸면 양쪽에 적용돼요.</div>
+    </div>
+  </section>
+
+  <!-- ═══ 보고서 ═══ -->
+  <section class="view" data-view="report">
+    <div class="card">
+      <div class="sectitle"><h2>호스트 월간 보고서</h2></div>
+      <div class="field"><label>보고서 월</label><input type="month" id="reportMonth" /></div>
+      <div class="report-box" id="reportBox">월을 선택하면 보고서가 만들어져요.</div>
+      <div class="sheet-actions" style="margin-top:12px;">
+        <button class="ghost-btn" id="reportCopyBtn" type="button">📋 복사</button>
+        <button class="pill-btn" id="reportShareBtn" type="button">↗ 카톡 공유</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<button class="fab" id="fab" type="button">＋</button>
+
+<nav>
+  <button class="navbtn active" data-nav="home" type="button"><svg fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>홈</button>
+  <button class="navbtn" data-nav="cal" type="button"><svg fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>일정</button>
+  <button class="navbtn" data-nav="fee" type="button"><svg fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M7.5 9l1.8 6L12 9.8 14.7 15l1.8-6M7.5 12.5h9"/></svg>관리비</button>
+  <button class="navbtn" data-nav="report" type="button"><svg fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9.5 12h6M9.5 16h6"/></svg>보고서</button>
+</nav>
+
+<!-- 예약 등록 모달 -->
+<div class="modal" id="bookModal">
+  <div class="sheet">
+    <h3>예약 등록 (입실 기준)</h3>
+    <div class="field"><label>1️⃣ 객실</label><select id="bkRoom"></select></div>
+    <div class="twocol">
+      <div class="field"><label>2️⃣ 입실일</label><input type="date" id="bkCheckin" /></div>
+      <div class="field"><label>3️⃣ 숙박수 (박)</label><input type="number" id="bkNights" inputmode="numeric" placeholder="예: 1" /></div>
+    </div>
+    <div id="bkPreview" style="font-size:12px;color:var(--sky-deep);font-weight:800;text-align:center;margin:-2px 0 10px;"></div>
+    <div class="twocol">
+      <div class="field"><label>4️⃣ 인원</label><input type="number" id="bkGuests" inputmode="numeric" placeholder="예: 4" /></div>
+      <div class="field"><label>입실 시간</label><input type="time" id="bkTime" value="16:00" /></div>
+    </div>
+    <div class="field"><label>셋팅 메모 (자동계산에 추가)</label><input id="bkSupplies" placeholder="예: 토퍼1, 어메니티 추가" /></div>
+    <div class="field"><label>기타 메모</label><input id="bkMemo" placeholder="예: 늦은 체크아웃 요청" /></div>
+    <div class="sheet-actions">
+      <button class="ghost-btn" data-close="bookModal" type="button">취소</button>
+      <button class="pill-btn" id="bkSaveBtn" type="button">등록</button>
+    </div>
+  </div>
+</div>
+
+<!-- 청소 기록 수정 모달 -->
+<div class="modal" id="txModal">
+  <div class="sheet">
+    <h3>청소 기록</h3>
+    <input type="hidden" id="txId" />
+    <div class="twocol">
+      <div class="field"><label>청소일</label><input type="date" id="txDate" /></div>
+      <div class="field"><label>객실</label><select id="txRoom"></select></div>
+    </div>
+    <div class="twocol">
+      <div class="field"><label>퇴실 박수</label><input type="number" id="txOutN" inputmode="numeric" /></div>
+      <div class="field"><label>퇴실 인원</label><input type="number" id="txOutG" inputmode="numeric" /></div>
+    </div>
+    <div class="field"><label>다음 입실예정일 (공실 후 체크인)</label><input type="date" id="txInDate" /></div>
+    <div class="twocol">
+      <div class="field"><label>입실 박수</label><input type="number" id="txInN" inputmode="numeric" /></div>
+      <div class="field"><label>입실 인원</label><input type="number" id="txInG" inputmode="numeric" /></div>
+    </div>
+    <div class="field"><label>셋팅</label><input id="txInS" /></div>
+    <div class="field"><label>메모</label><input id="txMemo" /></div>
+    <div class="field"><label>상태</label>
+      <select id="txStatus"><option value="booked">예정</option><option value="done">완료</option><option value="cancelled">취소</option></select>
+    </div>
+    <div class="sheet-actions">
+      <button class="danger-btn" id="txDelBtn" type="button">삭제</button>
+      <span class="spacer"></span>
+      <button class="ghost-btn" data-close="txModal" type="button">취소</button>
+      <button class="pill-btn" id="txSaveBtn" type="button">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 직원 배정 모달 -->
+<div class="modal" id="assignModal">
+  <div class="sheet">
+    <h3>직원 배정</h3>
+    <input type="hidden" id="asgTxId" />
+    <div id="asgTarget" style="font-size:12.5px;font-weight:800;color:var(--sky-deep);margin-bottom:10px;"></div>
+    <div class="chip-list" id="asgList"></div>
+    <div class="sheet-actions">
+      <button class="ghost-btn" data-close="assignModal" type="button">취소</button>
+      <button class="pill-btn" id="asgSaveBtn" type="button">배정 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 객실 모달 -->
+<div class="modal" id="roomModal">
+  <div class="sheet">
+    <h3>객실 정보</h3>
+    <input type="hidden" id="rmId" />
+    <div class="field"><label>객실명</label><input id="rmName" placeholder="예: 펜트하우스 A동 101호" /></div>
+    <div class="twocol">
+      <div class="field"><label>기준 인원</label><input type="number" id="rmBase" inputmode="numeric" placeholder="예: 2" /></div>
+      <div class="field"><label>호스트명</label><input id="rmHost" /></div>
+    </div>
+    <div class="field"><label>초과 1인당 추가 셋팅 (이름+숫자, 쉼표 구분)</label><input id="rmExtra" placeholder="예: 이불1, 수건2, 어메니티1" /></div>
+    <div class="field"><label>도어락 비번 (선택)</label><input id="rmDoor" /></div>
+    <div class="sheet-actions">
+      <button class="danger-btn" id="rmDelBtn" type="button" style="display:none;">보관</button>
+      <span class="spacer"></span>
+      <button class="ghost-btn" data-close="roomModal" type="button">취소</button>
+      <button class="pill-btn" id="rmSaveBtn" type="button">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+// ═══════════════ 공통 유틸 ═══════════════
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const pad=n=>String(n).padStart(2,'0');
+const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10);};
+const ym=d=>(d||'').slice(0,7);
+const money=n=>Number(n||0).toLocaleString('ko-KR')+'원';
+const uid=p=>p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const WD=['일','월','화','수','목','금','토'];
+const md=s=>{const d=new Date(s+'T00:00:00');return (d.getMonth()+1)+'/'+d.getDate()+'('+WD[d.getDay()]+')';};
+function toast(msg){$('.toast')?.remove();const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.append(el);setTimeout(()=>el.remove(),2000);}
+
+// ═══════════════ 공유 데이터 (roommade-one·캐쉬앱과 같은 키) ═══════════════
+const BR='펜트하우스';
+const K={rooms:'룸메이드캐쉬-객실',staff:'룸메이드캐쉬-직원',tx:'룸메이드캐쉬-거래내역'};
+const MF_KEY='roommade-월관리비설정';
+let ALL={rooms:[],staff:[],tx:[]};
+
+function readAll(){
+  const g=k=>{try{return JSON.parse(localStorage.getItem(k)||'[]');}catch(e){return [];}};
+  return {rooms:g(K.rooms),staff:g(K.staff),tx:g(K.tx)};
+}
+function loadAll(){
+  ALL=readAll();
+  // 🔧 펜트하우스 기록만 자동 교정 (roommade-one과 같은 규칙)
+  ALL.tx=ALL.tx.filter(t=>t&&t.date).map(t=>{
+    if(t.branch===BR&&t.type==='income'&&t.autoGen&&t.inNights&&!t.outNights&&!t.paid&&!t.autoFee){
+      return {...t,checkinOnly:true,amount:0,taxAmount:0,netAmount:0};
+    }
+    return t;
+  });
+  // 🔧 입실 셋팅 카드 → 마지막 청소에 '공실 후 체크인'으로 이전
+  const ciCards=ALL.tx.filter(t=>t.branch===BR&&t.checkinOnly);
+  if(ciCards.length){
+    ciCards.forEach(c=>{
+      const prev=ALL.tx.filter(t=>t.type==='income'&&!t.checkinOnly&&!t.autoFee&&t.targetId===c.targetId&&t.status!=='cancelled'&&t.date<=c.date)
+        .sort((a,b)=>b.date.localeCompare(a.date))[0];
+      if(prev){
+        prev.inDate=c.inDate||c.date;
+        if(c.inNights)prev.inNights=c.inNights;
+        if(c.inGuests)prev.inGuests=c.inGuests;
+        if(c.inTime)prev.inTime=c.inTime;
+        if(c.inSupplies)prev.inSupplies=c.inSupplies;
+        c._remove=true;
+      }
+    });
+    ALL.tx=ALL.tx.filter(t=>!t._remove);
+  }
+}
+// 저장: 저장 직전 최신 데이터를 다시 읽어 다른 지점 것은 그대로 두고 펜트 것만 교체 → 충돌 방지
+function persist(){
+  try{
+    const fresh=readAll();
+    const mineTx=ALL.tx.filter(t=>t.branch===BR);
+    const mineRooms=ALL.rooms.filter(r=>r.branch===BR);
+    const mineStaff=ALL.staff.filter(s=>s.branch===BR);
+    ALL.tx=[...fresh.tx.filter(t=>t.branch!==BR),...mineTx];
+    ALL.rooms=[...fresh.rooms.filter(r=>r.branch!==BR),...mineRooms];
+    ALL.staff=[...fresh.staff.filter(s=>s.branch!==BR),...mineStaff];
+    localStorage.setItem(K.tx,JSON.stringify(ALL.tx));
+    localStorage.setItem(K.rooms,JSON.stringify(ALL.rooms));
+    localStorage.setItem(K.staff,JSON.stringify(ALL.staff));
+  }catch(e){toast('⚠️ 저장 실패 — 저장 공간을 확인해주세요');}
+}
+// 다른 탭(roommade-one)에서 데이터가 바뀌면 즉시 반영
+window.addEventListener('storage',e=>{
+  if(e.key===K.tx||e.key===K.rooms||e.key===K.staff){loadAll();render();}
+});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){loadAll();render();}});
+
+// 펜트하우스만 골라보기
+const pentRooms=()=>ALL.rooms.filter(r=>r.branch===BR&&!r.archived);
+const pentStaff=()=>ALL.staff.filter(s=>s.branch===BR&&!s.archived);
+const pentTx=()=>ALL.tx.filter(t=>t.branch===BR&&!t.autoFee&&t.status!=='cancelled');
+const roomName=id=>ALL.rooms.find(r=>r.id===id)?.name||'객실';
+const staffName=id=>ALL.staff.find(s=>s.id===id)?.name||'';
+
+// ═══════════════ 관리비 규칙 (roommade-one과 같은 설정 키) ═══════════════
+function loadCfg(){
+  let cfg=null;try{cfg=JSON.parse(localStorage.getItem(MF_KEY)||'null');}catch(e){}
+  if(!cfg)cfg={};
+  return {
+    active:cfg.active!==false, amount:Number(cfg.amount)||3200000,
+    baseCount:Number(cfg.baseCount)||50, overFee:Number(cfg.overFee)||50000,
+    maxFee:Number(cfg.maxFee)||3500000, start:cfg.start||ym(today()),
+    branch:BR, label:cfg.label||'위탁관리비'
+  };
+}
+function saveCfg(cfg){try{localStorage.setItem(MF_KEY,JSON.stringify(cfg));}catch(e){}}
+// 그 달 청소 건수 (관리비 자신 제외, 취소 제외 — roommade-one과 같은 계산)
+function monthCount(mKey){
+  return ALL.tx.filter(t=>t.branch===BR&&t.type==='income'&&!t.autoFee&&t.status!=='cancelled'&&(t.billingMonth||ym(t.date))===mKey).length;
+}
+function calcFee(cnt,cfg){
+  cfg=cfg||loadCfg();
+  let fee=cfg.amount;
+  if(cnt>cfg.baseCount)fee=cfg.amount+(cnt-cfg.baseCount)*cfg.overFee;
+  if(fee>cfg.maxFee)fee=cfg.maxFee;
+  return fee;
+}
+// 시작월~이번달 관리비 자동등록/갱신 (roommade-one과 같은 id 규칙 → 중복 없음)
+function applyFee(){
+  const cfg=loadCfg();
+  if(!cfg.start)return 0;
+  const room=pentRooms()[0];
+  let d=new Date(cfg.start+'-01T00:00:00'), now=new Date(), added=0, changed=0;
+  while(d<=now){
+    const mKey=d.getFullYear()+'-'+pad(d.getMonth()+1);
+    const cnt=monthCount(mKey);
+    const fee=calcFee(cnt,cfg);
+    const overCnt=Math.max(0,cnt-cfg.baseCount);
+    const memo='위탁관리비 ('+cnt+'회'+(overCnt>0?(' / 초과 '+overCnt+'건'):'')+(fee>=cfg.maxFee&&overCnt>0?' / 상한도달':'')+')';
+    const existing=ALL.tx.find(t=>t.autoFee===true&&(t.billingMonth===mKey||ym(t.date)===mKey)&&t.branch===BR);
+    if(!existing){
+      ALL.tx.push({
+        id:'fee_'+BR+'_'+mKey, date:mKey+'-01', billingMonth:mKey, type:'income',
+        targetId:room?room.id:'', targetName:cfg.label, branch:BR, amount:fee,
+        taxRate:0, taxAmount:0, netAmount:fee,
+        outNights:'',outGuests:'',outTime:'',inNights:'',inGuests:'',inTime:'',inSupplies:'',
+        memo:memo, paid:false, status:'done', autoFee:true, createdAt:Date.now()+added
+      });
+      added++;
+    }else if(existing.amount!==fee&&!existing.paid){
+      existing.amount=fee;existing.netAmount=fee;existing.memo=memo;changed++;
+    }
+    d.setMonth(d.getMonth()+1);
+  }
+  if(added||changed)persist();
+  return added+changed;
+}
+
+// ═══════════════ 셋팅 자동계산 (roommade-one과 동일) ═══════════════
+function calcExtraSetup(rule,over){
+  if(!rule||over<=0)return '';
+  return rule.split(',').map(function(part){
+    part=part.trim();if(!part)return '';
+    var m=part.match(/^(.*?)(\d+)\s*$/);
+    if(m){var nm=m[1].trim();var qty=parseInt(m[2],10)*over;return nm+qty;}
+    return part;
+  }).filter(Boolean).join(', ');
+}
+
+// ═══════════════ 화면 상태 ═══════════════
+let activeView='home';
+let calYear,calMonth,selectedDate=today();
+{const d=new Date();calYear=d.getFullYear();calMonth=d.getMonth();}
+
+// ═══════════════ 뒤로가기 지원 ═══════════════
+let modalStack=[],viewHistory=[],viewGuard=false,exitArmed=false;
+function openModal(id){$('#'+id).classList.add('open');modalStack.push(id);}
+function closeModal(id){$('#'+id).classList.remove('open');modalStack=modalStack.filter(m=>m!==id);}
+try{history.pushState({app:1},'');}catch(e){}
+window.addEventListener('popstate',function(){
+  while(modalStack.length){
+    const id=modalStack[modalStack.length-1];
+    const el=document.getElementById(id);
+    if(el&&el.classList.contains('open')){closeModal(id);try{history.pushState({app:1},'');}catch(e){}return;}
+    modalStack.pop();
+  }
+  const anyOpen=document.querySelector('.modal.open');
+  if(anyOpen){anyOpen.classList.remove('open');try{history.pushState({app:1},'');}catch(e){}return;}
+  if(activeView!=='home'){viewGuard=true;setView(viewHistory.pop()||'home');viewGuard=false;try{history.pushState({app:1},'');}catch(e){}return;}
+  if(!exitArmed){exitArmed=true;toast('한 번 더 누르면 앱을 나가요');try{history.pushState({app:1},'');}catch(e){}setTimeout(function(){exitArmed=false;},1700);return;}
+  try{history.back();}catch(e){}
+});
+
+function setView(v){
+  if(!viewGuard&&v!==activeView){viewHistory.push(activeView);if(viewHistory.length>20)viewHistory.shift();}
+  activeView=v;
+  $$('.view').forEach(el=>el.classList.toggle('active',el.dataset.view===v));
+  $$('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.nav===v));
+  window.scrollTo({top:0});
+  render();
+}
+
+// ═══════════════ 작업 행 그리기 ═══════════════
+function jobRow(t){
+  const done=t.status==='done';
+  let sub=[];
+  if(t.outNights||t.outGuests)sub.push('퇴실 '+(t.outNights?t.outNights+'박':'')+(t.outGuests?'/'+t.outGuests+'명':''));
+  if(t.memo)sub.push(esc(t.memo));
+  const asg=(Array.isArray(t.assignedStaffIds)?t.assignedStaffIds:[]).map(staffName).filter(Boolean);
+  // 공실 후 체크인 박스
+  let gap='';
+  const inParts=[];
+  if(t.inGuests)inParts.push(t.inGuests+'명');
+  if(t.inNights)inParts.push(t.inNights+'박');
+  if(t.inSupplies)inParts.push('셋팅 '+esc(t.inSupplies));
+  if(t.inDate&&t.inDate>t.date){
+    const g=Math.round((new Date(t.inDate+'T00:00:00')-new Date(t.date+'T00:00:00'))/86400000);
+    gap='<span class="gapbox">⏳ 공실 '+g+'일 → '+md(t.inDate)+' 체크인'+(inParts.length?' · '+inParts.join(' · '):'')+' — 미리 셋팅!</span>';
+  }else if(inParts.length){
+    sub.push('🛒 '+(t.inDate===t.date?'당일 입실 · ':'')+inParts.join(' · '));
+  }
+  return '<div class="job">'
+    +'<button class="job-check'+(done?' done':'')+'" data-done="'+t.id+'" type="button">'+(done?'✓':'')+'</button>'
+    +'<div class="job-main"><b>'+esc(t.targetName)+'</b>'
+    +(sub.length?'<small>'+sub.join(' · ')+'</small>':'')
+    +gap
+    +(asg.length?'<span class="assign-tag">👥 '+asg.map(esc).join(', ')+'</span>':'')
+    +'</div>'
+    +'<div class="job-side">'
+    +'<button class="mini-btn" data-edit="'+t.id+'" type="button">수정</button>'
+    +'<button class="mini-btn" data-assign="'+t.id+'" type="button">배정</button>'
+    +'</div></div>';
+}
+
+// ═══════════════ 홈 ═══════════════
+function renderHome(){
+  const td=today();
+  const jobs=pentTx().filter(t=>t.date===td&&!t.checkinOnly).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+  $('#kpiToday').textContent=jobs.length;
+  const mKey=ym(td), cnt=monthCount(mKey), cfg=loadCfg();
+  $('#kpiMonth').textContent=cnt+'회';
+  $('#kpiFee').textContent=(calcFee(cnt,cfg)/10000).toFixed(0)+'만';
+  $('#todayLabel').textContent=md(td);
+  $('#todayJobs').innerHTML=jobs.length?jobs.map(jobRow).join(''):'<div class="empty">오늘은 청소가 없어요 ☕</div>';
+  // 다가오는 체크인 (오늘~7일, inDate 기준)
+  const lim=new Date();lim.setDate(lim.getDate()+7);
+  const limStr=lim.getFullYear()+'-'+pad(lim.getMonth()+1)+'-'+pad(lim.getDate());
+  const ins=pentTx().filter(t=>t.inDate&&t.inDate>=td&&t.inDate<=limStr)
+    .sort((a,b)=>a.inDate.localeCompare(b.inDate));
+  $('#upcomingIns').innerHTML=ins.length?ins.map(t=>{
+    const parts=[];
+    if(t.inGuests)parts.push(t.inGuests+'명');
+    if(t.inNights)parts.push(t.inNights+'박');
+    if(t.inSupplies)parts.push('셋팅 '+esc(t.inSupplies));
+    return '<div class="job"><div class="job-main"><b>'+md(t.inDate)+' · '+esc(t.targetName)+'</b>'
+      +(parts.length?'<small>'+parts.join(' · ')+'</small>':'')
+      +(t.date<t.inDate?'<small style="color:#B98A22;font-weight:800;">셋팅은 '+md(t.date)+' 청소 때 미리!</small>':'')
+      +'</div></div>';
+  }).join(''):'<div class="empty">7일 안에 체크인 예정이 없어요</div>';
+  // 객실 목록
+  const rooms=pentRooms();
+  $('#roomList').innerHTML=rooms.length?rooms.map(r=>
+    '<div class="room-row"><div>'+esc(r.name)+'<small>기준 '+(r.baseGuests||0)+'명'+(r.extraSetup?' · 초과셋팅 '+esc(r.extraSetup):'')+'</small></div>'
+    +'<button class="mini-btn" data-room="'+r.id+'" type="button">수정</button></div>'
+  ).join(''):'<div class="empty">객실을 추가해주세요 (또는 roommade-one에서 지점을 펜트하우스로 등록)</div>';
+}
+
+// ═══════════════ 일정 달력 ═══════════════
+function renderCal(){
+  $('#calTitle').textContent=calYear+'년 '+(calMonth+1)+'월';
+  const first=new Date(calYear,calMonth,1);
+  const start=new Date(first);start.setDate(1-first.getDay());
+  let html='';
+  const txAll=pentTx();
+  for(let i=0;i<42;i++){
+    const d=new Date(start);d.setDate(start.getDate()+i);
+    const ds=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+    const items=txAll.filter(t=>t.date===ds&&!t.checkinOnly);
+    const insCnt=txAll.filter(t=>t.inDate===ds).length;
+    let tag='';
+    if(items.length)tag='<span class="tag">청소'+items.length+'</span>';
+    else if(insCnt)tag='<span class="tag in">입실</span>';
+    html+='<button class="day'+(d.getMonth()!==calMonth?' other':'')+(ds===today()?' today':'')+(ds===selectedDate?' sel':'')+'" data-date="'+ds+'" type="button">'
+      +'<span class="n">'+d.getDate()+'</span>'+tag+'</button>';
+  }
+  $('#calDays').innerHTML=html;
+  $('#dayTitle').textContent=md(selectedDate)+' 일정';
+  const dayJobs=pentTx().filter(t=>t.date===selectedDate&&!t.checkinOnly);
+  const dayIns=pentTx().filter(t=>t.inDate===selectedDate&&t.date!==selectedDate);
+  let dh=dayJobs.map(jobRow).join('');
+  dayIns.forEach(t=>{
+    dh+='<div class="job"><div class="job-main"><b>체크인 · '+esc(t.targetName)+'</b><small>'
+      +[t.inGuests?t.inGuests+'명':'',t.inNights?t.inNights+'박':'',t.inSupplies?'셋팅 '+esc(t.inSupplies):''].filter(Boolean).join(' · ')
+      +' · 셋팅은 '+md(t.date)+' 청소 때</small></div></div>';
+  });
+  $('#dayJobs').innerHTML=dh||'<div class="empty">이 날은 일정이 없어요</div>';
+}
+
+// ═══════════════ 관리비 화면 ═══════════════
+function renderFee(){
+  const cfg=loadCfg();
+  const mKey=ym(today());
+  const cnt=monthCount(mKey), fee=calcFee(cnt,cfg);
+  const overCnt=Math.max(0,cnt-cfg.baseCount);
+  $('#feeMonthLabel').textContent=mKey.replace('-','년 ')+'월 위탁관리비';
+  $('#feeAmount').textContent=money(fee);
+  $('#feeBarFill').style.width=Math.min(100,cnt/cfg.baseCount*100)+'%';
+  $('#feeDetail').textContent='청소 '+cnt+'회 / 기본 '+cfg.baseCount+'회'+(overCnt?' · 초과 '+overCnt+'건(+'+money(overCnt*cfg.overFee)+')':'')+(fee>=cfg.maxFee?' · 상한 도달':'');
+  // 최근 6개월 현황
+  let rows='';const d=new Date();
+  for(let i=0;i<6;i++){
+    const k=d.getFullYear()+'-'+pad(d.getMonth()+1);
+    const c=monthCount(k), f=calcFee(c,cfg);
+    const reg=ALL.tx.find(t=>t.autoFee&&t.branch===BR&&(t.billingMonth===k||ym(t.date)===k));
+    rows+='<div class="fee-row"><div>'+k.replace('-','.')+'<small>청소 '+c+'회'+(reg?(reg.paid?' · ✅ 입금완료':' · 등록됨'):' · 미등록')+'</small></div><span class="amt">'+money(reg?reg.amount:f)+'</span></div>';
+    d.setMonth(d.getMonth()-1);
+  }
+  $('#feeHistory').innerHTML=rows;
+  // 설정칸 채우기
+  $('#cfgBase').value=cfg.amount;$('#cfgLimit').value=cfg.baseCount;
+  $('#cfgOver').value=cfg.overFee;$('#cfgMax').value=cfg.maxFee;
+  $('#cfgStart').value=cfg.start;$('#cfgLabel').value=cfg.label;
+}
+
+// ═══════════════ 보고서 ═══════════════
+function buildReport(mKey){
+  const cfg=loadCfg();
+  const list=ALL.tx.filter(t=>t.branch===BR&&t.type==='income'&&!t.autoFee&&t.status!=='cancelled'&&(t.billingMonth||ym(t.date))===mKey)
+    .sort((a,b)=>a.date.localeCompare(b.date));
+  const cnt=list.length, fee=calcFee(cnt,cfg), overCnt=Math.max(0,cnt-cfg.baseCount);
+  let msg='🏙️ 펜트하우스 월간 보고서 ('+mKey.replace('-','년 ')+'월)\n';
+  msg+='━━━━━━━━━━━━━━\n';
+  msg+='🧹 청소 '+cnt+'회 (기본 '+cfg.baseCount+'회 포함)\n';
+  msg+='💰 '+cfg.label+': '+money(fee)+'\n';
+  msg+='  · 기본 '+money(cfg.amount)+' ('+cfg.baseCount+'회까지)\n';
+  if(overCnt)msg+='  · 초과 '+overCnt+'건 × '+money(cfg.overFee)+' = +'+money(overCnt*cfg.overFee)+'\n';
+  if(fee>=cfg.maxFee)msg+='  · 상한 '+money(cfg.maxFee)+' 적용\n';
+  msg+='━━━━━━━━━━━━━━\n📅 청소 내역\n';
+  if(list.length){
+    list.forEach(t=>{
+      msg+=md(t.date)+' '+t.targetName+(t.outNights?' · '+t.outNights+'박':'')+(t.outGuests?'/'+t.outGuests+'명':'')+(t.status==='done'?' ✅':' 🕐')+'\n';
+    });
+  }else msg+='이 달 청소 내역이 없습니다.\n';
+  msg+='━━━━━━━━━━━━━━\nROOMMADE 드림 🌿';
+  return msg;
+}
+function renderReport(){
+  const mKey=$('#reportMonth').value||ym(today());
+  $('#reportMonth').value=mKey;
+  $('#reportBox').textContent=buildReport(mKey);
+}
+
+// ═══════════════ 전체 렌더 ═══════════════
+function render(){
+  try{renderHome();}catch(e){console.error('home',e);}
+  try{renderCal();}catch(e){console.error('cal',e);}
+  try{renderFee();}catch(e){console.error('fee',e);}
+  try{renderReport();}catch(e){console.error('report',e);}
+}
+
+// ═══════════════ 예약 등록 ═══════════════
+function openBook(){
+  const rooms=pentRooms();
+  if(!rooms.length){toast('먼저 객실을 추가해주세요');openRoom('');return;}
+  $('#bkRoom').innerHTML=rooms.map(r=>'<option value="'+r.id+'">'+esc(r.name)+'</option>').join('');
+  $('#bkCheckin').value=selectedDate||today();
+  $('#bkNights').value='';$('#bkGuests').value='';$('#bkTime').value='16:00';
+  $('#bkSupplies').value='';$('#bkMemo').value='';$('#bkPreview').textContent='';
+  openModal('bookModal');
+}
+function bkPreview(){
+  const ci=$('#bkCheckin').value, n=parseInt($('#bkNights').value,10);
+  if(ci&&n>0){
+    const d=new Date(ci+'T00:00:00');d.setDate(d.getDate()+n);
+    const co=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+    $('#bkPreview').textContent='🌙 '+n+'박 → 🧹 퇴실·청소일 '+md(co);
+    return co;
+  }
+  $('#bkPreview').textContent='';return '';
+}
+function bkSave(){
+  const roomId=$('#bkRoom').value, ci=$('#bkCheckin').value;
+  const n=parseInt($('#bkNights').value,10), guests=$('#bkGuests').value.trim();
+  const room=pentRooms().find(r=>r.id===roomId);
+  const co=bkPreview();
+  if(!room){toast('객실을 선택해주세요');return;}
+  if(!ci||!(n>0)){toast('입실일과 숙박수를 넣어주세요');return;}
+  if(!guests){toast('인원을 넣어주세요');return;}
+  // 초과 인원 자동 셋팅 계산
+  const base=Number(room.baseGuests||0), over=Math.max(0,Number(guests)-base);
+  let supplies=$('#bkSupplies').value.trim();
+  if(over>0&&room.extraSetup){
+    const auto=calcExtraSetup(room.extraSetup,over);
+    supplies=auto+(supplies?', '+supplies:'');
+  }
+  const memo=$('#bkMemo').value.trim(), inTime=$('#bkTime').value;
+  // ① 퇴실일 청소 등록 (펜트는 고정관리비라 0원)
+  let clean=ALL.tx.find(t=>t.type==='income'&&!t.autoFee&&t.targetId===roomId&&t.date===co&&t.status!=='cancelled');
+  if(clean){
+    clean.outNights=String(n);clean.outGuests=guests;clean.outTime=clean.outTime||'11:00';
+    if(memo)clean.memo=memo;
+  }else{
+    clean={
+      id:uid('tx'),date:co,billingMonth:ym(co),type:'income',
+      targetId:roomId,targetName:room.name,branch:BR,
+      amount:0,taxRate:0,taxAmount:0,netAmount:0,
+      outNights:String(n),outGuests:guests,outTime:'11:00',outSupplies:'',
+      inNights:'',inGuests:'',inTime:'',inSupplies:'',
+      memo:memo,paid:false,status:co<=today()?'done':'booked',createdAt:Date.now(),autoGen:true
+    };
+    ALL.tx.push(clean);
+  }
+  // ② 입실 정보는 이 입실 이전의 마지막 청소에 부착 (공실 후 체크인 박스)
+  const prev=ALL.tx.filter(t=>t.type==='income'&&!t.checkinOnly&&!t.autoFee&&t.targetId===roomId&&t.status!=='cancelled'&&t.date<=ci)
+    .sort((a,b)=>b.date.localeCompare(a.date))[0];
+  let attach='';
+  if(prev){
+    prev.inDate=ci;prev.inNights=String(n);prev.inGuests=guests;prev.inTime=inTime;prev.inSupplies=supplies;
+    if(prev.date!==ci)attach=' · '+md(prev.date)+' 청소에 입실예정 표시';
+  }else{
+    ALL.tx.push({
+      id:uid('tx'),date:ci,billingMonth:ym(ci),type:'income',
+      targetId:roomId,targetName:room.name,branch:BR,
+      amount:0,taxRate:0,taxAmount:0,netAmount:0,checkinOnly:true,
+      inDate:ci,outNights:'',outGuests:'',outTime:'',
+      inNights:String(n),inGuests:guests,inTime:inTime,inSupplies:supplies,
+      memo:'',paid:false,status:ci<=today()?'done':'booked',createdAt:Date.now()+1,autoGen:true
+    });
+  }
+  persist();closeModal('bookModal');
+  selectedDate=ci;render();
+  toast('✅ 예약 등록! '+md(co)+' 청소 자동 생성'+attach);
+}
+
+// ═══════════════ 청소 기록 수정 ═══════════════
+function openTx(id){
+  const t=ALL.tx.find(x=>x.id===id);if(!t)return;
+  $('#txId').value=t.id;
+  $('#txDate').value=t.date;
+  $('#txRoom').innerHTML=pentRooms().map(r=>'<option value="'+r.id+'"'+(r.id===t.targetId?' selected':'')+'>'+esc(r.name)+'</option>').join('');
+  $('#txOutN').value=t.outNights||'';$('#txOutG').value=t.outGuests||'';
+  $('#txInDate').value=t.inDate||'';$('#txInN').value=t.inNights||'';$('#txInG').value=t.inGuests||'';
+  $('#txInS').value=t.inSupplies||'';$('#txMemo').value=t.memo||'';
+  $('#txStatus').value=t.status||'booked';
+  openModal('txModal');
+}
+function txSave(){
+  const id=$('#txId').value;
+  const t=ALL.tx.find(x=>x.id===id);if(!t)return;
+  const roomId=$('#txRoom').value;
+  const room=pentRooms().find(r=>r.id===roomId);
+  t.date=$('#txDate').value||t.date;
+  t.billingMonth=ym(t.date);
+  if(room){t.targetId=room.id;t.targetName=room.name;}
+  t.outNights=$('#txOutN').value.trim();t.outGuests=$('#txOutG').value.trim();
+  t.inDate=$('#txInDate').value||'';
+  t.inNights=$('#txInN').value.trim();t.inGuests=$('#txInG').value.trim();
+  t.inSupplies=$('#txInS').value.trim();t.memo=$('#txMemo').value.trim();
+  t.status=$('#txStatus').value;
+  persist();closeModal('txModal');render();toast('저장했어요');
+}
+function txDelete(){
+  const id=$('#txId').value;
+  if(!confirm('이 청소 기록을 삭제할까요?'))return;
+  ALL.tx=ALL.tx.filter(x=>x.id!==id);
+  persist();closeModal('txModal');render();toast('삭제했어요');
+}
+
+// ═══════════════ 직원 배정 ═══════════════
+function openAssign(id){
+  const t=ALL.tx.find(x=>x.id===id);if(!t)return;
+  const staff=pentStaff();
+  $('#asgTxId').value=id;
+  $('#asgTarget').textContent=md(t.date)+' · '+t.targetName;
+  const cur=Array.isArray(t.assignedStaffIds)?t.assignedStaffIds:[];
+  $('#asgList').innerHTML=staff.length?staff.map(s=>
+    '<label class="chip"><input type="checkbox" value="'+s.id+'"'+(cur.includes(s.id)?' checked':'')+' />'+esc(s.name)+'</label>'
+  ).join(''):'<div class="empty">펜트하우스 소속 직원이 없어요.<br />roommade-one 관리 탭에서 직원 지점을 펜트하우스로 등록해주세요.</div>';
+  openModal('assignModal');
+}
+function asgSave(){
+  const id=$('#asgTxId').value;
+  const t=ALL.tx.find(x=>x.id===id);if(!t)return;
+  t.assignedStaffIds=$$('#asgList input:checked').map(c=>c.value);
+  persist();closeModal('assignModal');render();toast('👥 배정 저장!');
+}
+
+// ═══════════════ 객실 관리 ═══════════════
+function openRoom(id){
+  const r=id?pentRooms().find(x=>x.id===id):null;
+  $('#rmId').value=r?r.id:'';
+  $('#rmName').value=r?r.name:'';
+  $('#rmBase').value=r?(r.baseGuests||''):'';
+  $('#rmHost').value=r?(r.hostName||''):'';
+  $('#rmExtra').value=r?(r.extraSetup||''):'';
+  $('#rmDoor').value=r?(r.doorPw||''):'';
+  $('#rmDelBtn').style.display=r?'':'none';
+  openModal('roomModal');
+}
+function rmSave(){
+  const id=$('#rmId').value, name=$('#rmName').value.trim();
+  if(!name){toast('객실명을 입력해주세요');return;}
+  const prev=id?ALL.rooms.find(x=>x.id===id):null;
+  const obj={...(prev||{}),id:id||uid('room'),name,branch:BR,price:0,tax:0,
+    baseGuests:Number($('#rmBase').value||0),hostName:$('#rmHost').value.trim(),
+    extraSetup:$('#rmExtra').value.trim(),doorPw:$('#rmDoor').value.trim()};
+  if(prev)ALL.rooms[ALL.rooms.findIndex(x=>x.id===id)]=obj;else ALL.rooms.push(obj);
+  persist();closeModal('roomModal');render();toast('객실을 저장했어요');
+}
+function rmArchive(){
+  const id=$('#rmId').value;
+  const r=ALL.rooms.find(x=>x.id===id);if(!r)return;
+  if(!confirm('"'+r.name+'" 객실을 보관 처리할까요? (기록은 유지돼요)'))return;
+  r.archived=true;
+  persist();closeModal('roomModal');render();toast('보관했어요');
+}
+
+// ═══════════════ 이벤트 연결 ═══════════════
+$$('.navbtn').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.nav)));
+$('#fab').addEventListener('click',openBook);
+$('#dayAddBtn').addEventListener('click',openBook);
+$('#addRoomBtn').addEventListener('click',()=>openRoom(''));
+$('#calPrev').addEventListener('click',()=>{calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();});
+$('#calNext').addEventListener('click',()=>{calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();});
+$('#calDays').addEventListener('click',e=>{const b=e.target.closest('.day');if(!b)return;selectedDate=b.dataset.date;renderCal();});
+$('#bkCheckin').addEventListener('change',bkPreview);
+$('#bkNights').addEventListener('input',bkPreview);
+$('#bkSaveBtn').addEventListener('click',bkSave);
+$('#txSaveBtn').addEventListener('click',txSave);
+$('#txDelBtn').addEventListener('click',txDelete);
+$('#asgSaveBtn').addEventListener('click',asgSave);
+$('#rmSaveBtn').addEventListener('click',rmSave);
+$('#rmDelBtn').addEventListener('click',rmArchive);
+$('#cfgSaveBtn').addEventListener('click',()=>{
+  const cfg=loadCfg();
+  cfg.amount=Number($('#cfgBase').value||3200000);
+  cfg.baseCount=Number($('#cfgLimit').value||50);
+  cfg.overFee=Number($('#cfgOver').value||50000);
+  cfg.maxFee=Number($('#cfgMax').value||3500000);
+  cfg.start=$('#cfgStart').value||ym(today());
+  cfg.label=$('#cfgLabel').value.trim()||'위탁관리비';
+  cfg.branch=BR;cfg.active=true;
+  saveCfg(cfg);renderFee();toast('⚙️ 규칙 저장! roommade-one에도 적용돼요');
+});
+$('#feeApplyBtn').addEventListener('click',()=>{
+  const n=applyFee();
+  render();
+  toast(n>0?('💰 관리비 '+n+'건 등록/갱신 완료'):'이미 최신 상태예요');
+});
+$('#reportMonth').addEventListener('change',renderReport);
+$('#reportCopyBtn').addEventListener('click',()=>{
+  const txt=$('#reportBox').textContent;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>toast('📋 복사됐어요! 카톡에 붙여넣기'),()=>fallbackCopy(txt));
+  }else fallbackCopy(txt);
+});
+function fallbackCopy(txt){
+  try{
+    const ta=document.createElement('textarea');ta.value=txt;document.body.append(ta);
+    ta.select();document.execCommand('copy');ta.remove();toast('📋 복사됐어요!');
+  }catch(e){toast('복사 실패 — 길게 눌러 복사해주세요');}
+}
+$('#reportShareBtn').addEventListener('click',()=>{
+  const txt=$('#reportBox').textContent;
+  if(navigator.share){navigator.share({text:txt}).catch(()=>{});}
+  else fallbackCopy(txt);
+});
+// 작업 행 버튼 (완료 토글 / 수정 / 배정 / 객실)
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.done){
+    const t=ALL.tx.find(x=>x.id===b.dataset.done);
+    if(t){t.status=t.status==='done'?'booked':'done';persist();render();}
+    return;
+  }
+  if(b.dataset.edit)return openTx(b.dataset.edit);
+  if(b.dataset.assign)return openAssign(b.dataset.assign);
+  if(b.dataset.room)return openRoom(b.dataset.room);
+  if(b.dataset.close)return closeModal(b.dataset.close);
+});
+// 배경 탭으로 모달 닫기
+$$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);}));
+
+// ═══════════════ 시작 ═══════════════
+loadAll();
+$('#reportMonth').value=ym(today());
+render();
+})();
+</script>
+</body>
+</html>
