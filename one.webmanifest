@@ -1,0 +1,13 @@
+{
+  "name": "ROOMMADE ONE",
+  "short_name": "ONE",
+  "start_url": "./roommade-one-1.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F7F5FC",
+  "theme_color": "#8B7BC7",
+  "icons": [
+    { "src": "icon-one-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-one-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
