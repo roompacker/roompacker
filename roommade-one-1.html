@@ -569,6 +569,7 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
           <div><label style="font-size:9px;color:var(--sub);font-weight:800;">인원</label><input type="text" id="txInGuests" inputmode="numeric" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;"></div>
           <div><label style="font-size:9px;color:var(--sub);font-weight:800;">시간</label><input type="time" id="txInTime" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;"></div>
         </div>
+        <div style="margin-top:7px;"><label style="font-size:9px;color:var(--sub);font-weight:800;">입실일 <span style="color:#B8A06A;">(공실 안내 계산 기준)</span></label><div style="display:flex;gap:6px;margin-top:3px;"><input type="date" id="txInDate" style="flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;"><button type="button" id="txClearIn" style="flex-shrink:0;border:1px solid #F0D9A8;background:#FFF4DE;color:#9C6F1D;border-radius:10px;padding:0 11px;font-size:10px;font-weight:800;">입실 취소</button></div></div>
         <label style="font-size:9px;color:var(--sub);font-weight:800;">준비물 (토퍼·수건 등)</label>
         <input type="text" id="txInSupplies" placeholder="예: 토퍼1, 수건3세트" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;">
       </div>
@@ -1783,11 +1784,11 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
   function openTx(type='income',date=today(),editId=''){
     txType=type;$('#txEditId').value=editId;$('#txDateInput').value=date;$('#txBillingInput').value=ym(date);$('#txMemoInput').value='';$('#txPaidInput').checked=false;$('#txStatusInput').value='booked';$('#deleteTx').style.display=editId?'block':'none';
     // 청소 스케줄 필드 초기화
-    ['txOutNights','txOutGuests','txOutTime','txOutSupplies','txInNights','txInGuests','txInTime','txInSupplies'].forEach(function(fid){ var el=$('#'+fid); if(el) el.value=''; });
+    ['txOutNights','txOutGuests','txOutTime','txOutSupplies','txInNights','txInGuests','txInTime','txInSupplies','txInDate'].forEach(function(fid){ var el=$('#'+fid); if(el) el.value=''; });
     const prefBranch=state.branch==='전체'?'영종점':state.branch;$('#txBranchInput').value=prefBranch;$('#txAmountInput').value='';
     if(editId){const t=state.transactions.find(x=>x.id===editId);if(t){txType=t.type;$('#txDateInput').value=t.date;$('#txBillingInput').value=t.billingMonth||ym(t.date);$('#txBranchInput').value=t.branch;$('#txAmountInput').value=t.amount;$('#txMemoInput').value=t.memo||'';$('#txPaidInput').checked=!!t.paid;$('#txStatusInput').value=t.status||'done';
       $('#txOutNights').value=t.outNights||t.nights||'';$('#txOutGuests').value=t.outGuests||t.guests||'';$('#txOutTime').value=t.outTime||'';$('#txOutSupplies').value=t.outSupplies||'';
-      $('#txInNights').value=t.inNights||'';$('#txInGuests').value=t.inGuests||'';$('#txInTime').value=t.inTime||'';$('#txInSupplies').value=t.inSupplies||'';
+      $('#txInNights').value=t.inNights||'';$('#txInGuests').value=t.inGuests||'';$('#txInTime').value=t.inTime||'';$('#txInSupplies').value=t.inSupplies||'';if($('#txInDate'))$('#txInDate').value=t.inDate||'';
     }}
     updateTxType();if(editId){const t=state.transactions.find(x=>x.id===editId);$('#txTargetInput').value=t.targetId}openModal('txModal')
   }
@@ -1799,10 +1800,18 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
   function saveTxForm(){
     const id=$('#txEditId').value,date=$('#txDateInput').value,branch=$('#txBranchInput').value,targetId=$('#txTargetInput').value,amount=Number($('#txAmountInput').value),memo=$('#txMemoInput').value.trim(),billingMonth=$('#txBillingInput').value||ym(date),paid=$('#txPaidInput').checked,status=$('#txStatusInput').value;
     if(!date||!targetId)return toast('날짜와 대상을 확인해주세요');const target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===targetId);if(!target)return toast('대상을 찾을 수 없어요');const taxRate=Number(target.tax||0),taxAmount=Math.round(amount*taxRate/100);
-    const sched = txType==='income' ? {
-      outNights:$('#txOutNights').value.trim(), outGuests:$('#txOutGuests').value.trim(), outTime:$('#txOutTime').value, outSupplies:$('#txOutSupplies').value.trim(),
-      inNights:$('#txInNights').value.trim(), inGuests:$('#txInGuests').value.trim(), inTime:$('#txInTime').value, inSupplies:$('#txInSupplies').value.trim()
-    } : {};
+    const sched = txType==='income' ? (function(){
+      const o={
+        outNights:$('#txOutNights').value.trim(), outGuests:$('#txOutGuests').value.trim(), outTime:$('#txOutTime').value, outSupplies:$('#txOutSupplies').value.trim(),
+        inNights:$('#txInNights').value.trim(), inGuests:$('#txInGuests').value.trim(), inTime:$('#txInTime').value, inSupplies:$('#txInSupplies').value.trim()
+      };
+      // 🔄 입실일 처리: 체크인 정보가 하나도 없으면 공실 안내(inDate)도 같이 삭제
+      const hasIn=o.inNights||o.inGuests||o.inSupplies;
+      const dv=$('#txInDate')?$('#txInDate').value:'';
+      o.inDate=hasIn?(dv||date):'';
+      if(!hasIn)o.inTime='';
+      return o;
+    })() : {};
     const obj={id:id||uid('tx'),date,billingMonth,type:txType,targetId,targetName:target.name,branch,amount,taxRate,taxAmount,netAmount:amount-taxAmount,paid,memo,status,createdAt:Date.now(),...sched};
     if(id){const i=state.transactions.findIndex(x=>x.id===id);state.transactions[i]={...state.transactions[i],...obj}}else state.transactions.push(obj);
     // 🔄 입실(예약) 정보가 있으면 → 나가는 날 청소 자동 생성
@@ -2241,6 +2250,12 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
       .filter(t=>t.type==='income'&&!t.checkinOnly&&t.targetId===roomId&&t.status!=='cancelled'&&t.date<=ci)
       .sort((a,b)=>b.date.localeCompare(a.date))[0];
     let attachMsg='';
+    // 🔄 예약 변경 대응: 같은 입실일을 가리키는 옛 공실 안내가 다른 청소 기록에 남아있으면 자동 정리
+    state.transactions.forEach(t=>{
+      if(t.type==='income'&&t.targetId===roomId&&t.inDate===ci&&t!==prevClean){
+        t.inDate='';t.inNights='';t.inGuests='';t.inTime='';t.inSupplies='';
+      }
+    });
     if(prevClean){
       prevClean.inDate=ci; prevClean.inNights=String(nights); prevClean.inGuests=guests; prevClean.inTime=inTime; prevClean.inSupplies=supplies;
       if(prevClean.date!==ci)attachMsg=' · '+prevClean.date.slice(5).replace('-','/')+' 청소에 입실예정 표시';
@@ -2400,6 +2415,7 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
   $('#txBranchInput').addEventListener('change',updateTxType);$('#txTargetInput').addEventListener('change',()=>{const id=$('#txTargetInput').value,target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===id);if(target){if(target.branch==='펜트하우스'){$('#txAmountInput').value='0';}else{$('#txAmountInput').value=target.price||target.rate||'';}}autoFillCheckout()});
   $('#txDateInput').addEventListener('change',autoFillCheckout);
   $('#saveTx').addEventListener('click',saveTxForm);$('#deleteTx').addEventListener('click',deleteTxForm);$('#saveRoom').addEventListener('click',saveRoomForm);$('#saveStaff').addEventListener('click',saveStaffForm);$('#saveSupply').addEventListener('click',saveSupplyForm);$('#deleteSupply').addEventListener('click',deleteSupplyForm);
+  {const tci=$('#txClearIn');if(tci)tci.addEventListener('click',()=>{['txInDate','txInNights','txInGuests','txInTime','txInSupplies'].forEach(f=>{const el=$('#'+f);if(el)el.value='';});toast('입실 정보를 지웠어요 — 저장하면 공실 안내도 사라져요');});}
   {const drb=$('#deleteRoomBtn');if(drb)drb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)deleteRoom(id);});const dsb=$('#deleteStaffBtn');if(dsb)dsb.addEventListener('click',()=>{const id=$('#staffEditId').value;if(id)deleteStaff(id);});const arb=$('#archiveRoomBtn');if(arb)arb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)toggleArchiveRoom(id);});const asb=$('#archiveStaffBtn');if(asb)asb.addEventListener('click',()=>{const id=$('#staffEditId').value;if(id)toggleArchiveStaff(id);});}
   {const mfb=$('#mfSave');if(mfb)mfb.addEventListener('click',saveMFForm);}
   $('#saveSetup').addEventListener('click',saveSetupForm);$('#deleteSetup').addEventListener('click',deleteSetupForm);
