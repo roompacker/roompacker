@@ -99,6 +99,20 @@
   .room-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;font-weight:800;}
   .room-row:last-child{border-bottom:none;}
   .room-row small{display:block;font-size:10.5px;color:var(--muted);font-weight:700;margin-top:2px;}
+  /* ═══ 일정 객실별 보기 ═══ */
+  .segwrap{display:flex;gap:8px;margin-bottom:12px;}
+  .segbtn{flex:1;padding:11px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-weight:800;font-size:13px;}
+  .segbtn.active{background:var(--sky);border-color:var(--sky);color:#fff;}
+  .rs-room{border:1px solid var(--line);border-radius:16px;padding:12px 13px;margin-bottom:10px;background:var(--card);}
+  .rs-room-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;}
+  .rs-room-head b{font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rs-count{flex-shrink:0;font-size:10px;font-weight:800;background:var(--sky-soft);color:var(--sky-deep);padding:4px 9px;border-radius:99px;}
+  .rs-row{display:flex;align-items:flex-start;gap:8px;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--line);padding:9px 2px;font-size:12px;color:var(--ink);font-weight:700;}
+  .rs-room .rs-row:last-child{border-bottom:none;}
+  .rs-row small{color:var(--muted);font-weight:600;}
+  .rs-row.done{color:var(--muted);}
+  .rs-row.rs-in{color:var(--sky-deep);}
+  .rs-vac{padding:7px 2px 7px 26px;font-size:11px;font-weight:800;color:#B8935A;border-bottom:1px solid var(--line);}
 </style>
 </head>
 <body>
@@ -134,7 +148,8 @@
 
   <!-- ═══ 일정 ═══ -->
   <section class="view" data-view="cal">
-    <div class="card">
+    <div class="segwrap"><button class="segbtn active" id="calModeMonth" type="button">📅 달력</button><button class="segbtn" id="calModeRooms" type="button">🏠 객실별</button></div>
+    <div class="card" id="calCard">
       <div class="cal-head">
         <button class="cal-nav" id="calPrev" type="button">‹</button>
         <b id="calTitle"></b>
@@ -143,9 +158,17 @@
       <div class="weekdays"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
       <div class="days" id="calDays"></div>
     </div>
-    <div class="card">
+    <div class="card" id="dayCard">
       <div class="sectitle"><h2 id="dayTitle">선택한 날</h2><button class="pill-btn" id="dayAddBtn" type="button">＋ 예약</button></div>
       <div id="dayJobs"></div>
+    </div>
+    <div class="card" id="roomSchedCard" style="display:none">
+      <div class="cal-head">
+        <button class="cal-nav" id="rsPrev" type="button">‹</button>
+        <b id="rsTitle"></b>
+        <button class="cal-nav" id="rsNext" type="button">›</button>
+      </div>
+      <div id="roomSchedList"></div>
     </div>
   </section>
 
@@ -568,6 +591,60 @@ function renderCal(){
   $('#dayJobs').innerHTML=dh||'<div class="empty">이 날은 일정이 없어요</div>';
 }
 
+// ═══════════════ 일정 객실별 보기 ═══════════════
+let calMode='month';
+function setCalMode(m){
+  calMode=m;
+  $('#calModeMonth').classList.toggle('active',m==='month');
+  $('#calModeRooms').classList.toggle('active',m==='rooms');
+  $('#calCard').style.display=m==='month'?'':'none';
+  $('#dayCard').style.display=m==='month'?'':'none';
+  $('#roomSchedCard').style.display=m==='rooms'?'':'none';
+  if(m==='rooms')renderRoomSched();
+}
+function renderRoomSched(){
+  const el=$('#roomSchedList');if(!el)return;
+  $('#rsTitle').textContent=calYear+'년 '+(calMonth+1)+'월';
+  const mKey=calYear+'-'+pad(calMonth+1);
+  const rooms=pentRooms(), txAll=pentTx();
+  el.innerHTML=rooms.length?rooms.map(room=>{
+    // 이 객실의 이번 달 흐름을 날짜순으로 모읍니다 (청소·입실·공실)
+    const evts=[];
+    txAll.filter(t=>t.targetId===room.id).forEach(t=>{
+      if(t.date.slice(0,7)===mKey)evts.push({d:t.date,k:t.checkinOnly?'in':'clean',t});
+      if(!t.checkinOnly&&t.inDate&&t.inDate!==t.date&&t.inDate.slice(0,7)===mKey)evts.push({d:t.inDate,k:'nextin',t});
+    });
+    evts.sort((a,b)=>a.d.localeCompare(b.d)||(a.k==='clean'?-1:1));
+    const cleanCnt=evts.filter(e=>e.k==='clean').length;
+    let rows='';
+    evts.forEach(e=>{
+      const t=e.t;
+      if(e.k==='clean'){
+        const done=t.status==='done';
+        const asg=(Array.isArray(t.assignedStaffIds)?t.assignedStaffIds:[]).map(staffName).filter(Boolean);
+        const bits=[];
+        if(t.outNights||t.outGuests)bits.push('퇴실 '+(t.outNights?t.outNights+'박':'')+(t.outGuests?'/'+t.outGuests+'명':''));
+        if(asg.length)bits.push('👥 '+asg.map(esc).join(','));
+        rows+='<button class="rs-row'+(done?' done':'')+'" data-edit="'+t.id+'" type="button"><span>'+(done?'✅':'🧹')+'</span><span>'+md(t.date)+' 청소'+(bits.length?' <small>· '+bits.join(' · ')+'</small>':'')+'</span></button>';
+        // 청소 뒤 공실이 있으면 그 줄 아래에 표시
+        if(t.inDate&&t.inDate>t.date){
+          const g=Math.round((new Date(t.inDate+'T00:00:00')-new Date(t.date+'T00:00:00'))/86400000);
+          rows+='<div class="rs-vac">⏳ 공실 '+g+'일</div>';
+        }
+      }else{
+        // 입실 (다음 체크인 또는 입실 전용 기록)
+        const parts=[];
+        if(t.inGuests)parts.push(t.inGuests+'명');
+        if(t.inNights)parts.push(t.inNights+'박');
+        if(t.inSupplies)parts.push('셋팅 '+esc(t.inSupplies));
+        const dd=e.k==='nextin'?t.inDate:t.date;
+        rows+='<button class="rs-row rs-in" data-edit="'+t.id+'" type="button"><span>🏠</span><span>'+md(dd)+' 입실'+(parts.length?' <small>· '+parts.join(' · ')+'</small>':'')+'</span></button>';
+      }
+    });
+    return '<div class="rs-room"><div class="rs-room-head"><b>'+esc(room.name)+'</b><span class="rs-count">청소 '+cleanCnt+'회</span></div>'+(rows||'<div class="empty" style="padding:8px 0;">이 달 일정 없음</div>')+'</div>';
+  }).join(''):'<div class="empty">객실을 추가해주세요</div>';
+}
+
 // ═══════════════ 관리비 화면 ═══════════════
 function renderFee(){
   const cfg=loadCfg();
@@ -626,6 +703,7 @@ function renderReport(){
 function render(){
   try{renderHome();}catch(e){console.error('home',e);}
   try{renderCal();}catch(e){console.error('cal',e);}
+  try{renderRoomSched();}catch(e){console.error('roomsched',e);}
   try{renderFee();}catch(e){console.error('fee',e);}
   try{renderReport();}catch(e){console.error('report',e);}
 }
@@ -792,8 +870,12 @@ $$('.navbtn').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.nav)))
 $('#fab').addEventListener('click',openBook);
 $('#dayAddBtn').addEventListener('click',openBook);
 $('#addRoomBtn').addEventListener('click',()=>openRoom(''));
-$('#calPrev').addEventListener('click',()=>{calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();});
-$('#calNext').addEventListener('click',()=>{calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();});
+$('#calPrev').addEventListener('click',()=>{calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();renderRoomSched();});
+$('#calNext').addEventListener('click',()=>{calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();renderRoomSched();});
+$('#rsPrev').addEventListener('click',()=>{calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();renderRoomSched();});
+$('#rsNext').addEventListener('click',()=>{calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();renderRoomSched();});
+$('#calModeMonth').addEventListener('click',()=>setCalMode('month'));
+$('#calModeRooms').addEventListener('click',()=>setCalMode('rooms'));
 $('#calDays').addEventListener('click',e=>{const b=e.target.closest('.day');if(!b)return;selectedDate=b.dataset.date;renderCal();});
 $('#bkCheckin').addEventListener('change',bkPreview);
 $('#bkNights').addEventListener('input',bkPreview);
