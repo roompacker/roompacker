@@ -39,24 +39,24 @@ body{display:flex;justify-content:center}
 .monthnav b{font-size:15px}.monthnav small{display:block;text-align:center;color:var(--muted);font-size:9px;margin-top:1px}
 
 /* ── 가로 타임라인 ── */
-.tlwrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;padding:10px 0 12px;border-radius:var(--radius)}
+.tlwrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;padding:12px 0 14px;margin-left:-14px;margin-right:-14px;border-radius:0;border-left:0;border-right:0;width:calc(100% + 28px)}
 .tlrow{display:flex;align-items:stretch}
-.tlname{position:sticky;left:0;z-index:5;flex:0 0 58px;width:58px;background:white;border-right:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--ink);padding:0 3px;text-align:center;line-height:1.2}
+.tlname{position:sticky;left:0;z-index:5;flex:0 0 50px;width:50px;background:white;border-right:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--ink);padding:0 2px;text-align:center;line-height:1.2}
 .tlname.head{color:var(--muted);font-size:10px}
 .tldays{display:flex}
-.tlday{flex:0 0 34px;width:34px;text-align:center;padding:2px 0 5px}
-.tlday .wd{font-size:8px;color:var(--muted);font-weight:800}
+.tlday{flex:0 0 40px;width:40px;text-align:center;padding:3px 0 8px}
+.tlday .wd{font-size:9px;color:var(--muted);font-weight:800}
 .tlday.sun .wd{color:var(--red)}
-.tlday .dn{display:inline-block;min-width:22px;height:22px;line-height:22px;border-radius:50%;font-size:11px;font-weight:800;margin-top:1px}
-.tlday .dn.co{line-height:18px;border:2px solid var(--red);color:var(--red)}
+.tlday .dn{display:inline-block;min-width:25px;height:25px;line-height:25px;border-radius:50%;font-size:12px;font-weight:800;margin-top:2px}
+.tlday .dn.co{line-height:21px;border:2px solid var(--red);color:var(--red)}
 .tlday .dn.today{background:var(--navy);color:white}
-.tlday .dn.cotoday{background:var(--red);color:white;line-height:22px;border:0}
-.tltrack{position:relative;height:26px;flex:0 0 auto}
+.tlday .dn.cotoday{background:var(--red);color:white;line-height:25px;border:0}
+.tltrack{position:relative;height:32px;flex:0 0 auto}
 .tlgrid{position:absolute;inset:0;display:flex;pointer-events:none}
-.tlcell{flex:0 0 34px;width:34px;border-right:1px solid #F2EFE9}
+.tlcell{flex:0 0 40px;width:40px;border-right:1px solid #F2EFE9}
 .tlcell.sun{background:#FCF9F5}
 .tlcell.now{background:#EAF3FB}
-.bar{position:absolute;top:3px;height:20px;line-height:20px;border-radius:10px;color:white;font-size:9px;font-weight:800;padding:0 6px;overflow:hidden;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.bar{position:absolute;top:4px;height:24px;line-height:24px;border-radius:12px;color:white;font-size:10px;font-weight:800;padding:0 7px;overflow:hidden;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .bar.openL{border-top-left-radius:3px;border-bottom-left-radius:3px}
 .bar.openR{border-top-right-radius:3px;border-bottom-right-radius:3px}
 .tlhint{text-align:center;font-size:10px;color:var(--muted);font-weight:700;margin-top:6px}
@@ -133,7 +133,7 @@ body{display:flex;justify-content:center}
   var allowedRoomIds = null;           // 링크로 지정된 객실만 (null이면 전체)
   var calYear = new Date().getFullYear();
   var calMonth = new Date().getMonth();
-  var DAY_W = 34;                      // 타임라인 하루 칸 너비(px)
+  var DAY_W = 40;                      // 타임라인 하루 칸 너비(px)
   var PALETTE = ['#5B8DEF','#7C6FD9','#2FA98C','#E58E33','#C05C8A','#4BA3C7'];
   var WD = ['일','월','화','수','목','금','토'];
 
