@@ -1456,10 +1456,23 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
     $('#notifyList').innerHTML=html;
     openModal('notifyModal');
   }
+  // 객실 id 목록 → "3709호 · 3506호" 형태의 짧은 이름
+  function roomNumsText(ids){
+    if(!Array.isArray(ids)||!ids.length)return '';
+    const names=ids.map(id=>{
+      const r=state.rooms.find(x=>String(x.id)===String(id));
+      if(!r)return '';
+      const m=String(r.name||'').match(/(\d{3,4})\s*호/);
+      return m?m[1]+'호':String(r.name||'');
+    }).filter(Boolean);
+    return names.join(' · ');
+  }
   function shareUpdateMsg(entry){
-    const msg=`${entry.host} 님, 객실 현황이 업데이트되었습니다. 🔔\n최신 예약·청소 일정을 아래 링크에서 확인해주세요.\n${entry.link}`;
+    const label=roomNumsText(entry.rooms);
+    const head=label?`🧹 ${label} 청소 일정 (업데이트)`:'ROOMMADE 업데이트 알림';
+    const msg=`${head}\n${entry.host} 님, 객실 현황이 업데이트되었습니다. 🔔\n최신 예약·청소 일정을 아래 링크에서 확인해주세요.\n${entry.link}`;
     if(navigator.share){
-      navigator.share({title:'ROOMMADE 업데이트 알림',text:msg,url:entry.link}).then(()=>toast('✅ 알림 전송')).catch(err=>{if(err&&err.name!=='AbortError')fallbackCopy(msg,entry.link);});
+      navigator.share({title:head,text:msg,url:entry.link}).then(()=>toast('✅ 알림 전송')).catch(err=>{if(err&&err.name!=='AbortError')fallbackCopy(msg,entry.link);});
     }else fallbackCopy(msg,entry.link);
   }
 
@@ -1571,10 +1584,12 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
         if(idx>=0)saved[idx]=entry; else saved.push(entry);
         localStorage.setItem('roommade-호스트링크',JSON.stringify(saved));
       }catch(e){}
-      const msg=`${host} 님, 객실 현황입니다.\n예약·청소·준비사항을 아래 링크에서 확인해주세요.\n${link}`;
+      const label=roomNumsText(checked);
+      const head=label?`🧹 ${label} 청소 일정`:'ROOMMADE 객실 현황';
+      const msg=`${head}\n${host} 님, 객실 현황입니다.\n예약·청소·준비사항을 아래 링크에서 확인해주세요.\n${link}`;
       closeModal('roomviewModal');
       if(navigator.share){
-        navigator.share({title:'ROOMMADE 객실 현황',text:msg,url:link}).then(()=>toast('✅ 공유 완료')).catch(err=>{if(err&&err.name!=='AbortError')fallbackCopy(msg,link);});
+        navigator.share({title:head,text:msg,url:link}).then(()=>toast('✅ 공유 완료')).catch(err=>{if(err&&err.name!=='AbortError')fallbackCopy(msg,link);});
       }else fallbackCopy(msg,link);
     }catch(e){
       console.error(e);
