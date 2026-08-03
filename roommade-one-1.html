@@ -1456,6 +1456,32 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
     $('#notifyList').innerHTML=html;
     openModal('notifyModal');
   }
+  /* ── 카톡 미리보기 카드용 '표지 파일' 목록 ──────────────────────
+     카톡은 주소 뒤 ?id=... 를 못 읽어서 카드 제목을 객실별로 못 바꿔요.
+     그래서 객실(조합)마다 작은 표지 파일을 만들어 두고, 그 파일로 링크를 만듭니다.
+     ▶ 객실이 늘면: 아래에 한 줄 추가 + 같은 이름의 h-***.html 파일을 GitHub에 올리면 끝!
+        (키는 객실 호수를 작은 숫자부터 쉼표로 이어서 적어요) */
+  const HOST_PAGES = {
+    '3709': 'h-3709.html',
+    '3506': 'h-3506.html',
+    '3606': 'h-3606.html',
+    '3708': 'h-3708.html',
+    '3506,3606,3708,3709': 'h-pent.html'   // 한라웨스턴파크 4객실 묶음
+  };
+  // 선택한 객실에 맞는 표지 파일 주소를 찾음 (없으면 기본 현황판 주소)
+  function hostBaseFor(ids){
+    try{
+      const nums=(ids||[]).map(id=>{
+        const r=state.rooms.find(x=>String(x.id)===String(id));
+        const m=r?String(r.name||'').match(/(\d{3,4})\s*호/):null;
+        return m?m[1]:'';
+      }).filter(Boolean).sort();
+      const key=nums.join(',');
+      const page=HOST_PAGES[key];
+      if(page)return CLOUD.HOST_BASE.replace(/[^/]+$/, page);
+    }catch(e){}
+    return CLOUD.HOST_BASE;
+  }
   // 객실 id 목록 → "3709호 · 3506호" 형태의 짧은 이름
   function roomNumsText(ids){
     if(!Array.isArray(ids)||!ids.length)return '';
@@ -1472,7 +1498,8 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
     const head=label?`🧹 ${label} 청소 일정 (업데이트)`:'ROOMMADE 업데이트 알림';
     // 링크만 보내서 하얀 미리보기 카드만 뜨게 합니다
     if(navigator.share){
-      navigator.share({title:head,url:entry.link}).then(()=>toast('✅ 알림 전송')).catch(err=>{if(err&&err.name!=='AbortError')fallbackCopy(entry.link,entry.link);});
+      // 주소만 보내야 하얀 카드만 떠요 (title을 넣으면 노란 말풍선이 생김)
+      navigator.share({url:entry.link}).then(()=>toast('✅ '+head+' 알림 전송')).catch(err=>{if(err&&err.name!=='AbortError')fallbackCopy(entry.link,entry.link);});
     }else fallbackCopy(entry.link,entry.link);
   }
 
@@ -1576,7 +1603,7 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
       const binId=await cloudUpload(true); // 전체 데이터를 클라우드에 올림
       // 링크엔 짧은 ID + 선택 객실만 (URL 짧음 → 아이폰 문제 없음)
       const roomsParam=encodeURIComponent(checked.join(','));
-      const link=CLOUD.HOST_BASE+'?id='+binId+'&rooms='+roomsParam;
+      const link=hostBaseFor(checked)+'?id='+binId+'&rooms='+roomsParam;
       try{
         const saved=JSON.parse(localStorage.getItem('roommade-호스트링크')||'[]');
         const idx=saved.findIndex(x=>x.host===host);
@@ -1589,7 +1616,8 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
       closeModal('roomviewModal');
       // 카톡에 하얀 미리보기 카드만 깔끔하게 뜨도록 '링크만' 보냅니다 (긴 문구를 같이 보내면 노란 말풍선이 생겨요)
       if(navigator.share){
-        navigator.share({title:head,url:link}).then(()=>toast('✅ 공유 완료')).catch(err=>{if(err&&err.name!=='AbortError')fallbackCopy(link,link);});
+        // ⚠️ title을 같이 보내면 카톡이 '제목 - 주소'를 노란 말풍선으로 또 만들어요. 주소만 보냅니다.
+        navigator.share({url:link}).then(()=>toast('✅ '+head+' 공유 완료')).catch(err=>{if(err&&err.name!=='AbortError')fallbackCopy(link,link);});
       }else fallbackCopy(link,link);
     }catch(e){
       console.error(e);
