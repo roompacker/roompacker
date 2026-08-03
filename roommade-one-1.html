@@ -1416,6 +1416,35 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
   }
 
   // 객실 현황판 — 객실별 예약·청소·준비상태 요약
+  /* 객실명 정리 도우미
+     "한라웨스턴파크C 3606호(침대2개/퀸토퍼3개)"
+       → 제목: 한라웨스턴파크C 3606호
+       → 배지: [🛏 침대 2] [🛌 퀸토퍼 3] */
+  function roomTitleOf(name){
+    return String(name||'').replace(/\s*[\(（][^)）]*[\)）]\s*/g,' ').replace(/\s+/g,' ').trim();
+  }
+  function roomSpecsOf(name){
+    const m=String(name||'').match(/[\(（]([^)）]*)[\)）]/);
+    if(!m)return [];
+    return m[1].split(/[\/,·]/).map(s=>s.trim()).filter(Boolean).map(item=>{
+      const g=item.match(/^(.*?)(\d+)\s*개?$/);   // "침대2개" → 침대 / 2
+      const label=g?g[1].trim():item, qty=g?g[2]:'';
+      let ico='📦';
+      if(/쇼파|소파/.test(label))ico='🛋';
+      else if(/토퍼/.test(label))ico='🛌';
+      else if(/침대/.test(label))ico='🛏';
+      else if(/베개/.test(label))ico='🪶';
+      else if(/수건|타월/.test(label))ico='🧺';
+      return {ico:ico,label:label,qty:qty};
+    });
+  }
+  function roomSpecsHTML(name){
+    const specs=roomSpecsOf(name);
+    if(!specs.length)return '';
+    return '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;">'+specs.map(s=>
+      `<span style="font-size:9px;font-weight:800;padding:4px 7px;border-radius:8px;background:#F1EEF7;color:#7A66A0;">${esc(s.ico)} ${esc(s.label)}${s.qty?' <b style="color:#582CA4;">'+esc(s.qty)+'</b>':''}</span>`
+    ).join('')+'</div>';
+  }
   function renderBoard(){
     $('#boardMonthTitle').textContent=monthText(boardMonth);
     const rooms=branchFilter(state.rooms).filter(r=>!r.archived);
@@ -1427,7 +1456,7 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
       if(state.branch==='전체'){const c=brName==='영종점'?'#9B7BD3':brName==='펜트하우스'?'#C0556B':'#4FB0A3';html+=`<div style="display:flex;align-items:center;gap:7px;margin:16px 2px 8px;padding-bottom:6px;border-bottom:2px solid ${c};"><b style="font-size:15px;color:${c};">📍 ${brName}</b><small style="color:var(--muted);">${brRooms.length}개 객실</small></div>`;}
       brRooms.forEach(room=>{
         const cleans=state.transactions.filter(t=>t.type==='income'&&t.targetId===room.id&&(t.billingMonth||ym(t.date))===boardMonth&&t.status!=='cancelled');
-        const ho=(room.name||'').match(/(\d+호)$/)?(room.name||'').match(/(\d+호)$/)[1]:room.name;
+        const ho=roomTitleOf(room.name)||room.name;   // 괄호 설명만 빼고 건물명+호수 표시
         const reservations=cleans.filter(t=>Number(t.inNights)>0).length;
         const done=cleans.filter(t=>t.status==='done').length;
         const prep=cleans.filter(t=>{
@@ -1435,7 +1464,7 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
           return !!t.inSupplies||(base>0&&guests>base);
         }).length;
         const hostLabel=room.hostName?`<small style="display:block;color:var(--navy);font-size:10px;margin-bottom:3px;">👤 ${esc(room.hostName)}</small>`:'';
-        html+=`<button class="card group" data-room-month="${room.id}" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;border:1px solid var(--line);padding:14px 16px;"><div style="display:flex;align-items:center;gap:11px;min-width:0;"><div style="width:42px;height:42px;border-radius:14px;background:var(--sky);display:grid;place-items:center;font-size:18px;flex-shrink:0;">🏠</div><div style="min-width:0;">${hostLabel}<b style="font-size:15px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(ho)}</b><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;"><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#F8F6FB;color:var(--navy);">예약 ${reservations}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#EDF7F4;color:#358879;">청소완료 ${done}/${cleans.length}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:${prep?'#FFF1E5':'#F8F7F9'};color:${prep?'var(--amber)':'var(--muted)'};">준비 ${prep}</span></div></div></div><span style="color:var(--muted);font-size:16px;flex-shrink:0;">›</span></button>`;
+        html+=`<button class="card group" data-room-month="${room.id}" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;border:1px solid var(--line);padding:14px 16px;"><div style="display:flex;align-items:center;gap:11px;min-width:0;"><div style="width:42px;height:42px;border-radius:14px;background:var(--sky);display:grid;place-items:center;font-size:18px;flex-shrink:0;">🏠</div><div style="min-width:0;">${hostLabel}<b style="font-size:15px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(ho)}</b>${roomSpecsHTML(room.name)}<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;"><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#F8F6FB;color:var(--navy);">예약 ${reservations}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#EDF7F4;color:#358879;">청소완료 ${done}/${cleans.length}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:${prep?'#FFF1E5':'#F8F7F9'};color:${prep?'var(--amber)':'var(--muted)'};">준비 ${prep}</span></div></div></div><span style="color:var(--muted);font-size:16px;flex-shrink:0;">›</span></button>`;
       });
     });
     $('#boardList').innerHTML=html;
