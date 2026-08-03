@@ -216,7 +216,8 @@ body{display:flex;justify-content:center}
       if (inN > 0){
         var ci = new Date(tx.date);
         var co = new Date(tx.date); co.setDate(co.getDate() + inN);
-        seen[dateStr(ci)] = 1;
+        // 한 객실의 같은 퇴실일 = 같은 손님 → 퇴실일로 중복 판단
+        seen[dateStr(co)] = 1;
         stays.push({
           checkIn: dateStr(ci), checkOut: dateStr(co), nights: inN,
           guests: tx.inGuests || '',
@@ -233,8 +234,8 @@ body{display:flex;justify-content:center}
       var outN = parseInt(tx.outNights != null && tx.outNights !== '' ? tx.outNights : tx.nights, 10);
       if (outN > 0){
         var ci = new Date(tx.date); ci.setDate(ci.getDate() - outN);
-        if (seen[dateStr(ci)]) return;
-        seen[dateStr(ci)] = 1;
+        if (seen[dateStr(new Date(tx.date))]) return;  // 이미 입실 기준으로 잡힌 손님
+        seen[dateStr(new Date(tx.date))] = 1;
         stays.push({
           checkIn: dateStr(ci), checkOut: dateStr(new Date(tx.date)), nights: outN,
           guests: (tx.outGuests != null && tx.outGuests !== '') ? tx.outGuests : (tx.guests || ''),
@@ -246,7 +247,17 @@ body{display:flex;justify-content:center}
       if (noteByCleanDate[s.checkOut]) s.note = noteByCleanDate[s.checkOut];
     });
     stays.sort(function(a,b){ return (a.checkIn||'').localeCompare(b.checkIn||''); });
-    return stays;
+
+    // 겹치는 체류 정리: 앞 손님 퇴실 전에 시작하는 기록은 걸러냄
+    var clean = [];
+    stays.forEach(function(s){
+      if (!s.checkIn || !s.checkOut) return;
+      if (s.checkOut <= s.checkIn) return;              // 날짜가 거꾸로인 잘못된 기록
+      var prev = clean[clean.length-1];
+      if (prev && s.checkIn < prev.checkOut) return;    // 앞 손님과 겹치면 제외
+      clean.push(s);
+    });
+    return clean;
   }
 
   // 이번 달 체류 + 공실 흐름
