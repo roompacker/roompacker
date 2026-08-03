@@ -1537,8 +1537,8 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
     if(!rooms.length){toast('표시할 객실이 없어요');return;}
     // 객실 체크박스 목록 생성
     const html=rooms.map(r=>{
-      const ho=(r.name||'').match(/(\d+호)$/)?(r.name||'').match(/(\d+호)$/)[1]:r.name;
-      return `<label style="display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;margin-bottom:7px;cursor:pointer;min-height:54px;"><input type="checkbox" class="rv-room-chk" value="${r.id}" data-host="${esc(r.hostName||'')}" style="width:22px;height:22px;flex-shrink:0;"><div><b style="font-size:13px;">${esc(ho)}</b>${r.hostName?` <span style="font-size:9px;color:var(--navy);background:var(--sky);padding:3px 6px;border-radius:99px;">${esc(r.hostName)}</span>`:''}<br><small style="color:var(--muted);font-size:11px;">${esc(r.name)} · ${r.branch}</small></div></label>`;
+      const ho=roomTitleOf(r.name)||r.name;   // 괄호 설명 뺀 '건물명 + 호수'
+      return `<label style="display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;margin-bottom:7px;cursor:pointer;min-height:54px;"><input type="checkbox" class="rv-room-chk" value="${r.id}" data-host="${esc(r.hostName||'')}" style="width:22px;height:22px;flex-shrink:0;"><div style="min-width:0;"><b style="font-size:13px;">${esc(ho)}</b>${r.hostName?` <span style="font-size:9px;color:var(--navy);background:var(--sky);padding:3px 6px;border-radius:99px;">${esc(r.hostName)}</span>`:''}${roomSpecsHTML(r.name)}<small style="display:block;color:var(--muted);font-size:11px;margin-top:4px;">${esc(r.branch)}</small></div></label>`;
     }).join('');
     $('#rvRoomChecks').innerHTML=html;
     $('#rvHostName').value='';
