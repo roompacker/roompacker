@@ -141,6 +141,10 @@
       <div id="upcomingIns"></div>
     </div>
     <div class="card">
+      <div class="sectitle"><h2>📅 에어비앤비 연동</h2><button class="ghost-btn" id="icalSyncBtn" type="button">🔄 동기화</button></div>
+      <div id="icalStatus" style="font-size:12px;line-height:1.7;opacity:.85;"></div>
+    </div>
+    <div class="card">
       <div class="sectitle"><h2>펜트하우스 객실</h2><button class="ghost-btn" id="addRoomBtn" type="button">＋ 객실</button></div>
       <div id="roomList"></div>
     </div>
@@ -308,6 +312,7 @@
     </div>
     <div class="field"><label>초과 1인당 추가 셋팅 (이름+숫자, 쉼표 구분)</label><input id="rmExtra" placeholder="예: 이불1, 수건2, 어메니티1" /></div>
     <div class="field"><label>도어락 비번 (선택)</label><input id="rmDoor" /></div>
+    <div class="field"><label>📅 에어비앤비 캘린더 주소 (iCal)</label><input id="rmIcal" placeholder="https://www.airbnb.co.kr/calendar/ical/....ics" /></div>
     <div class="sheet-actions">
       <button class="danger-btn" id="rmDelBtn" type="button" style="display:none;">보관</button>
       <span class="spacer"></span>
@@ -701,6 +706,7 @@ function renderReport(){
 
 // ═══════════════ 전체 렌더 ═══════════════
 function render(){
+  try{renderIcalCard();}catch(e){console.error('ical',e);}
   try{renderHome();}catch(e){console.error('home',e);}
   try{renderCal();}catch(e){console.error('cal',e);}
   try{renderRoomSched();}catch(e){console.error('roomsched',e);}
@@ -835,6 +841,141 @@ function asgSave(){
   persist();closeModal('assignModal');render();toast('👥 배정 저장!');
 }
 
+
+/* ═══════════════ 📅 에어비앤비 iCal 연동 ═══════════════
+   룸메이드원과 같은 저장소를 쓰므로, 어느 앱에서 동기화해도 양쪽에 반영됩니다 */
+const PROXY_KEY='roommade-ical-프록시';
+const SYNC_KEY='roommade-ical-마지막동기화';
+const RESULT_KEY='roommade-ical-마지막결과';
+
+function icalProxy(){try{return localStorage.getItem(PROXY_KEY)||'';}catch(e){return '';}}
+
+function parseIcal(text){
+  const out=[];
+  if(!text||text.indexOf('BEGIN:VEVENT')<0)return out;
+  const raw=String(text).replace(/\r\n/g,'\n').replace(/\r/g,'\n').replace(/\n[ \t]/g,'');
+  raw.split('BEGIN:VEVENT').slice(1).forEach(b=>{
+    const body=b.split('END:VEVENT')[0];
+    const grab=re=>{const m=body.match(re);return m?m[1].trim():'';};
+    const s=grab(/DTSTART[^:\n]*:([0-9T]+)/), e=grab(/DTEND[^:\n]*:([0-9T]+)/);
+    if(!s||!e)return;
+    const summary=grab(/SUMMARY:([^\n]*)/), desc=grab(/DESCRIPTION:([^\n]*)/), u=grab(/UID:([^\n]*)/);
+    if(/not available|blocked|unavailable|차단/i.test(summary))return;
+    const toYMD=v=>v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8);
+    const ci=toYMD(s), co=toYMD(e);
+    const nights=Math.round((new Date(co+'T00:00:00')-new Date(ci+'T00:00:00'))/86400000);
+    if(!(nights>0))return;
+    const cm=desc.match(/reservations\/details\/([A-Z0-9]+)/i);
+    out.push({ci,co,nights,uid:u||(ci+'_'+co),code:cm?cm[1]:''});
+  });
+  out.sort((a,b)=>a.ci.localeCompare(b.ci));
+  return out;
+}
+
+function fetchIcal(url){
+  const px=icalProxy().trim();
+  if(!px)return Promise.reject(new Error('중계 주소가 없어요 (룸메이드원에서 먼저 등록하세요)'));
+  return fetch(px+(px.indexOf('?')>=0?'&':'?')+'url='+encodeURIComponent(url))
+    .then(r=>{if(!r.ok)throw new Error('통신 실패 '+r.status);return r.text();})
+    .then(t=>{if(t.indexOf('BEGIN:VCALENDAR')<0)throw new Error('달력 자료가 아니에요');return t;});
+}
+
+function applyIcalBookings(room,bookings){
+  let added=0,updated=0,removed=0;
+  const rid=room.id, feed={};
+  bookings.forEach(bk=>{
+    feed[bk.uid]=1;
+    let clean=ALL.tx.find(t=>t.type==='income'&&!t.checkinOnly&&t.targetId===rid&&t.date===bk.co&&t.status!=='cancelled');
+    if(clean){
+      if(!clean.outNights){clean.outNights=String(bk.nights);updated++;}
+      if(!clean.outTime)clean.outTime='11:00';
+      if(!clean.icalUid)clean.icalUid=bk.uid;
+      if(bk.code&&!clean.bookingCode)clean.bookingCode=bk.code;
+    }else{
+      ALL.tx.push({id:uid('tx'),date:bk.co,billingMonth:ym(bk.co),type:'income',
+        targetId:rid,targetName:room.name,branch:BR,
+        amount:0,taxRate:0,taxAmount:0,netAmount:0,
+        outNights:String(bk.nights),outGuests:'',outTime:'11:00',outSupplies:'',
+        inNights:'',inGuests:'',inTime:'',inSupplies:'',
+        memo:'',paid:false,status:bk.co<=today()?'done':'booked',
+        createdAt:Date.now(),autoGen:true,icalUid:bk.uid,bookingCode:bk.code||''});
+      added++;
+    }
+  });
+  bookings.forEach(bk=>{
+    const prev=ALL.tx.filter(t=>t.type==='income'&&!t.checkinOnly&&t.targetId===rid&&t.status!=='cancelled'&&t.date<=bk.ci)
+      .sort((a,b)=>b.date.localeCompare(a.date))[0];
+    if(prev){
+      ALL.tx.forEach(t=>{if(t.targetId===rid&&t.inDate===bk.ci&&t!==prev){t.inDate='';t.inNights='';t.inGuests='';t.inTime='';t.inSupplies='';}});
+      if(prev.inDate!==bk.ci||prev.inNights!==String(bk.nights)){
+        prev.inDate=bk.ci;prev.inNights=String(bk.nights);
+        if(!prev.inTime)prev.inTime='16:00';
+        updated++;
+      }
+    }else if(!ALL.tx.find(t=>t.targetId===rid&&t.date===bk.ci&&t.checkinOnly)){
+      ALL.tx.push({id:uid('tx'),date:bk.ci,billingMonth:ym(bk.ci),type:'income',
+        targetId:rid,targetName:room.name,branch:BR,
+        amount:0,taxRate:0,taxAmount:0,netAmount:0,checkinOnly:true,
+        inDate:bk.ci,outNights:'',outGuests:'',outTime:'',
+        inNights:String(bk.nights),inGuests:'',inTime:'16:00',inSupplies:'',
+        memo:'',paid:false,status:bk.ci<=today()?'done':'booked',
+        createdAt:Date.now()+1,autoGen:true,icalUid:bk.uid});
+      added++;
+    }
+  });
+  const td=today();
+  ALL.tx=ALL.tx.filter(t=>{
+    if(t.targetId!==rid||!t.icalUid||!t.autoGen)return true;
+    if(feed[t.icalUid])return true;
+    if(t.paid||t.status==='done'||t.date<td)return true;
+    removed++;return false;
+  });
+  return {added,updated,removed};
+}
+
+function syncAllIcal(silent){
+  const rooms=pentRooms().filter(r=>(r.ical||'').trim());
+  if(!rooms.length){if(!silent)toast('iCal 주소가 등록된 객실이 없어요');return Promise.resolve();}
+  if(!icalProxy().trim()){if(!silent)toast('룸메이드원에서 중계 주소를 먼저 등록하세요');return Promise.resolve();}
+  const btn=$('#icalSyncBtn');if(btn){btn.disabled=true;btn.textContent='⏳ 동기화중';}
+  if(!silent)toast('📅 예약을 가져오는 중...');
+  let results=[],chain=Promise.resolve();
+  rooms.forEach(r=>{
+    chain=chain.then(()=>fetchIcal(r.ical)
+      .then(txt=>{const bk=parseIcal(txt);const res=applyIcalBookings(r,bk);results.push({ok:true,room:r.name,count:bk.length,...res});})
+      .catch(e=>{results.push({ok:false,room:r.name,error:e.message||String(e)});}));
+  });
+  return chain.then(()=>{
+    const ok=results.filter(r=>r.ok);
+    const add=ok.reduce((a,b)=>a+b.added,0), upd=ok.reduce((a,b)=>a+b.updated,0), del=ok.reduce((a,b)=>a+b.removed,0);
+    try{
+      localStorage.setItem(SYNC_KEY,String(Date.now()));
+      localStorage.setItem(RESULT_KEY,results.map(r=>r.ok
+        ?`✅ ${r.room} · 예약 ${r.count}건 (새로 ${r.added} / 갱신 ${r.updated}${r.removed?' / 취소 '+r.removed:''})`
+        :`❌ ${r.room} · ${r.error}`).join('\n'));
+    }catch(e){}
+    persist();render();
+    if(!silent){
+      const fail=results.filter(r=>!r.ok).length;
+      toast(fail?('⚠️ '+fail+'개 실패 — 결과를 확인하세요'):('✅ 완료! 새 예약 '+add+'건'+(upd?' · 갱신 '+upd:'')+(del?' · 취소 '+del:'')));
+    }
+    const b=$('#icalSyncBtn');if(b){b.disabled=false;b.textContent='🔄 동기화';}
+  });
+}
+
+function renderIcalCard(){
+  const box=$('#icalStatus');if(!box)return;
+  const linked=pentRooms().filter(r=>(r.ical||'').trim());
+  let html=`<div><b>연동된 객실 ${linked.length}개</b></div>`;
+  let last=0;try{last=Number(localStorage.getItem(SYNC_KEY)||0);}catch(e){}
+  if(last){const d=new Date(last);html+=`<div style="opacity:.7">🕐 마지막: ${d.getMonth()+1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}</div>`;}
+  else html+='<div style="opacity:.7">아직 동기화한 적이 없어요</div>';
+  let res='';try{res=localStorage.getItem(RESULT_KEY)||'';}catch(e){}
+  if(res)html+=`<div style="margin-top:7px;background:rgba(0,0,0,.04);border-radius:10px;padding:8px 10px;white-space:pre-line;font-size:11px;">${res.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</div>`;
+  if(!icalProxy().trim())html+='<div style="margin-top:7px;color:#C0556B;font-size:11px;">⚠️ 룸메이드원 관리 화면에서 중계 주소를 먼저 등록해주세요</div>';
+  box.innerHTML=html;
+}
+
 // ═══════════════ 객실 관리 ═══════════════
 function openRoom(id){
   const r=id?pentRooms().find(x=>x.id===id):null;
@@ -844,6 +985,7 @@ function openRoom(id){
   $('#rmHost').value=r?(r.hostName||''):'';
   $('#rmExtra').value=r?(r.extraSetup||''):'';
   $('#rmDoor').value=r?(r.doorPw||''):'';
+  $('#rmIcal').value=r?(r.ical||''):'';
   $('#rmDelBtn').style.display=r?'':'none';
   openModal('roomModal');
 }
@@ -853,7 +995,8 @@ function rmSave(){
   const prev=id?ALL.rooms.find(x=>x.id===id):null;
   const obj={...(prev||{}),id:id||uid('room'),name,branch:BR,price:0,tax:0,
     baseGuests:Number($('#rmBase').value||0),hostName:$('#rmHost').value.trim(),
-    extraSetup:$('#rmExtra').value.trim(),doorPw:$('#rmDoor').value.trim()};
+    extraSetup:$('#rmExtra').value.trim(),doorPw:$('#rmDoor').value.trim(),
+    ical:$('#rmIcal').value.trim()};
   if(prev)ALL.rooms[ALL.rooms.findIndex(x=>x.id===id)]=obj;else ALL.rooms.push(obj);
   persist();closeModal('roomModal');render();toast('객실을 저장했어요');
 }
@@ -870,6 +1013,7 @@ $$('.navbtn').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.nav)))
 $('#fab').addEventListener('click',openBook);
 $('#dayAddBtn').addEventListener('click',openBook);
 $('#addRoomBtn').addEventListener('click',()=>openRoom(''));
+$('#icalSyncBtn')?.addEventListener('click',()=>syncAllIcal(false));
 $('#calPrev').addEventListener('click',()=>{calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();renderRoomSched();});
 $('#calNext').addEventListener('click',()=>{calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();renderRoomSched();});
 $('#rsPrev').addEventListener('click',()=>{calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();renderRoomSched();});
