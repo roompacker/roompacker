@@ -888,9 +888,9 @@ function fetchIcal(url,tryNo){
     })
     .catch(e=>{
       clearTimeout(timer);
-      if(tryNo<3)return icalWait(tryNo*1500).then(()=>fetchIcal(url,tryNo+1));
+      if(tryNo<4)return icalWait(tryNo*3000).then(()=>fetchIcal(url,tryNo+1));
       const m=String(e.message||e);
-      if(/Failed to fetch|시간 초과|NetworkError|Load failed/i.test(m))throw new Error('연결이 끊겼어요 (3번 시도) — 잠시 후 다시 눌러주세요');
+      if(/Failed to fetch|시간 초과|NetworkError|Load failed/i.test(m))throw new Error('연결이 끊겼어요 (4번 시도) — 잠시 후 다시 눌러주세요');
       throw e;
     });
 }
@@ -956,7 +956,7 @@ function syncAllIcal(silent){
   if(!silent)toast('📅 예약을 가져오는 중...');
   let results=[],chain=Promise.resolve();
   rooms.forEach((r,i)=>{
-    chain=chain.then(()=>i?icalWait(1000):null).then(()=>fetchIcal(r.ical)
+    chain=chain.then(()=>i?icalWait(2000):null).then(()=>fetchIcal(r.ical)
       .then(txt=>{const bk=parseIcal(txt);const res=applyIcalBookings(r,bk);results.push({ok:true,room:r.name,count:bk.length,...res});})
       .catch(e=>{results.push({ok:false,room:r.name,error:e.message||String(e)});}));
   });
