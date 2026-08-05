@@ -1508,13 +1508,13 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
       })
       .catch(e=>{
         clearTimeout(timer);
-        if(tryNo<3){
-          // 1.5초 → 3초 쉬었다가 다시 시도
-          return icalWait(tryNo*1500).then(()=>fetchIcal(icalUrl,tryNo+1));
+        if(tryNo<4){
+          // 3초 → 6초 → 9초 쉬었다가 다시 시도 (구글 심부름꾼이 쉴 시간을 줌)
+          return icalWait(tryNo*3000).then(()=>fetchIcal(icalUrl,tryNo+1));
         }
         const msg=String(e.message||e);
         if(/Failed to fetch|시간 초과|NetworkError|Load failed/i.test(msg)){
-          throw new Error('연결이 끊겼어요 (3번 시도) — 잠시 후 다시 눌러주세요');
+          throw new Error('연결이 끊겼어요 (4번 시도) — 잠시 후 다시 눌러주세요');
         }
         throw e;
       });
@@ -1623,7 +1623,7 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
     let chain=Promise.resolve();
     rooms.forEach((r,i)=>{
       chain=chain
-        .then(()=>i?icalWait(1000):null)   // 두 번째 객실부터 1초 쉬고 진행
+        .then(()=>i?icalWait(2000):null)   // 두 번째 객실부터 2초 쉬고 진행
         .then(()=>syncIcalRoom(r))
         .then(res=>{
           results.push(res);
@@ -1632,6 +1632,20 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
     });
 
     return chain.then(()=>{
+      // 실패한 객실이 있으면 5초 쉬었다가 그 객실만 다시 시도
+      const failed=results.filter(r=>!r.ok);
+      if(!failed.length)return;
+      const b=$('#icalSyncBtn'); if(b)b.textContent='🔁 재시도중';
+      let retry=Promise.resolve(icalWait(5000));
+      failed.forEach(f=>{
+        const room=rooms.find(r=>r.name===f.room);
+        if(!room)return;
+        retry=retry.then(()=>syncIcalRoom(room)).then(res=>{
+          if(res.ok){const i=results.indexOf(f);if(i>=0)results[i]=res;}
+        });
+      });
+      return retry;
+    }).then(()=>{
       const okList=results.filter(r=>r.ok);
       const total=okList.reduce((a,b)=>a+b.added,0);
       const upd=okList.reduce((a,b)=>a+b.updated,0);
@@ -1663,7 +1677,7 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
 
     let lines=[]; let chain=Promise.resolve();
     rooms.forEach((r,i)=>{
-      chain=chain.then(()=>i?icalWait(1000):null).then(()=>fetchIcal(r.ical).then(txt=>{
+      chain=chain.then(()=>i?icalWait(2000):null).then(()=>fetchIcal(r.ical).then(txt=>{
         const bk=parseIcal(txt);
         const td=today();
         const future=bk.filter(b=>b.co>=td);
@@ -1676,6 +1690,23 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
     });
 
     chain.then(()=>{
+      // 실패한 객실이 있으면 5초 쉬었다가 그 객실만 한 번 더 확인
+      const failedIdx=[];
+      lines.forEach((l,i)=>{if(l.indexOf('❌')===0)failedIdx.push(i);});
+      if(!failedIdx.length)return;
+      if(box)box.innerHTML='<div style="padding:8px 0;">🔁 실패한 객실을 다시 확인하는 중...</div>';
+      let retry=Promise.resolve(icalWait(5000));
+      failedIdx.forEach(i=>{
+        const r=rooms[i];
+        retry=retry.then(()=>fetchIcal(r.ical).then(txt=>{
+          const bk=parseIcal(txt), td=today();
+          const future=bk.filter(b=>b.co>=td), next=future[0];
+          lines[i]=`✅ ${roomTitleOf(r.name)||r.name}\n   예약 ${bk.length}건 (앞으로 ${future.length}건)`+
+            (next?`\n   다음 예약: ${next.ci.slice(5).replace('-','/')} 입실 → ${next.co.slice(5).replace('-','/')} 청소 (${next.nights}박)`:'');
+        }).catch(()=>{}));
+      });
+      return retry;
+    }).then(()=>{
       const okCount=lines.filter(l=>l.indexOf('✅')===0).length;
       state.icalTestResult=lines.join('\n\n');
       state.icalTestAt=Date.now();
@@ -1718,12 +1749,17 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
     const td=today();
     const upcoming=state.transactions.filter(t=>t.type==='income'&&t.icalUid&&t.date>=td&&t.status!=='cancelled');
     if(upcoming.length){
+      // 객실 고유번호로 묶음 (이름을 바꾼 적이 있어도 하나로 합쳐짐)
       const byRoom={};
-      upcoming.forEach(t=>{const k=t.targetName||'';byRoom[k]=(byRoom[k]||0)+1;});
+      upcoming.forEach(t=>{
+        const room=state.rooms.find(r=>String(r.id)===String(t.targetId));
+        const k=roomTitleOf(room?room.name:(t.targetName||''))||(t.targetName||'기타');
+        byRoom[k]=(byRoom[k]||0)+1;
+      });
       const soon=upcoming.slice().sort((a,b)=>a.date.localeCompare(b.date))[0];
       html+=`<div style="margin-top:8px;background:#EAF3FB;border-radius:10px;padding:9px 11px;">`+
         `<b style="color:#2F6FAF;">📥 자동 등록된 앞으로의 일정 ${upcoming.length}건</b>`+
-        `<div style="color:var(--sub);margin-top:3px;">${Object.keys(byRoom).map(k=>esc(roomTitleOf(k)||k)+' '+byRoom[k]+'건').join(' · ')}</div>`+
+        `<div style="color:var(--sub);margin-top:3px;">${Object.keys(byRoom).map(k=>esc(k)+' '+byRoom[k]+'건').join(' · ')}</div>`+
         (soon?`<div style="color:var(--sub);margin-top:3px;">가장 가까운 일정: <b>${soon.date.slice(5).replace('-','/')}</b> ${esc(roomTitleOf(soon.targetName)||'')} ${soon.outNights?soon.outNights+'박 퇴실 청소':'셋팅'}</div>`:'')+
         `</div>`;
     }
