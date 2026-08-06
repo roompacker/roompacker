@@ -377,7 +377,7 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
         </div>
         <div class="section">
           <div class="datehead"><div><h2 id="selectedDateTitle">선택 날짜</h2><small>날짜를 누르면 그날의 업무만 정리됩니다.</small></div><div class="date-actions"><button class="primary mini" id="scheduleAddBtn">＋ 새 예약</button><button class="addclean" id="addSelectedDate">청소만</button></div></div>
-          <div class="schedule-tools"><button class="toolbtn primarytool" id="autoAssignBtn">🎯 직원 자동배치</button><button class="toolbtn" id="sendDayTimeline">💬 직원에게 보내기</button><button class="toolbtn more" id="scheduleMoreBtn">•••</button></div>
+          <div class="schedule-tools"><button class="toolbtn primarytool" id="sendDayTimeline">💬 직원에게 보내기</button><button class="toolbtn more" id="scheduleMoreBtn">•••</button></div>
           <div class="more-actions" id="scheduleMoreActions"><button id="sendStaffGroup">👥 팀별 발송</button><button id="sendDayAdmin">🧺 관리자 요약</button><button id="sendDayHost">🏠 호스트 요약</button></div>
           <div class="card" id="selectedDateList"></div>
         </div>
@@ -408,7 +408,8 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
       <div class="segment" id="settleSegment">
         <button class="segbtn active" data-settle="receivable">받을 돈</button>
         <button class="segbtn" data-settle="payable">줄 돈</button>
-        <button class="segbtn" data-settle="paid">완료 내역</button>
+        <button class="segbtn" data-settle="paid">완료</button>
+        <button class="segbtn" data-settle="monthly">📅 월별</button>
       </div>
       <div class="card settlehero">
         <small id="settleLabel">현재 받을 돈</small>
@@ -420,6 +421,17 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
         <button class="segbtn" data-settle-period="all">전체 기간</button>
       </div>
       <div id="settlementGroups"></div>
+
+      <!-- 📅 월별 정산 화면 -->
+      <div id="monthlyWrap" style="display:none;">
+        <div class="monthnav" style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:white;border:1px solid var(--line);border-radius:19px;padding:10px 12px;margin-bottom:12px;">
+          <button id="mPrev" style="border:0;background:#F1EEE8;width:36px;height:36px;border-radius:11px;color:var(--navy);font-weight:900;font-size:18px;">‹</button>
+          <div style="flex:1;text-align:center;"><b id="mLabel" style="font-size:15px;"></b><small style="display:block;color:var(--muted);font-size:9px;margin-top:1px;">객실을 누르면 날짜별로 펼쳐져요</small></div>
+          <button id="mThis" style="border:0;background:#F1EEE8;padding:0 12px;height:36px;border-radius:11px;color:var(--navy);font-weight:800;font-size:12px;">이번달</button>
+          <button id="mNext" style="border:0;background:#F1EEE8;width:36px;height:36px;border-radius:11px;color:var(--navy);font-weight:900;font-size:18px;">›</button>
+        </div>
+        <div id="monthlyBody"></div>
+      </div>
     </section>
 
     <section class="view" data-view="insight">
@@ -551,6 +563,15 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
     <div class="typegrid"><button class="typebtn active income" data-type="income">🧹 청소 수입</button><button class="typebtn expense" data-type="expense">👤 직원 지출</button></div>
     <div class="twocol"><div class="field"><label>날짜</label><input type="date" id="txDateInput" /></div><div class="field"><label>지점</label><select id="txBranchInput"><option>영종점</option><option>송도점</option><option>펜트하우스</option></select></div></div>
     <div class="field"><label id="txTargetLabel">객실</label><select id="txTargetInput"></select></div>
+    <!-- 💰 급여 자동계산 (직원 지출일 때만 보임) -->
+    <div id="payCalcBox" style="display:none;background:#F3F0F9;border:1px solid #E0D8F0;border-radius:14px;padding:11px 12px;margin-bottom:11px;">
+      <div style="font-size:12px;font-weight:800;color:var(--navy);margin-bottom:8px;">💰 급여 자동계산</div>
+      <div class="twocol">
+        <div class="field" style="margin-bottom:0;"><label id="payQtyLabel">건수</label><input type="number" id="payQtyInput" inputmode="decimal" step="0.5" placeholder="예: 3" /></div>
+        <div class="field" style="margin-bottom:0;"><label>단가</label><input type="number" id="payRateInput" inputmode="numeric" placeholder="0" /></div>
+      </div>
+      <div id="payCalcResult" style="margin-top:9px;font-size:12px;color:var(--sub);text-align:center;font-weight:700;"></div>
+    </div>
     <div class="twocol"><div class="field"><label>금액</label><input type="number" id="txAmountInput" inputmode="numeric" placeholder="0" /></div><div class="field"><label>상태</label><select id="txStatusInput"><option value="booked">예약</option><option value="done">청소완료</option><option value="cancelled">취소</option></select></div></div>
     <div class="field"><label>귀속월</label><input type="month" id="txBillingInput" /></div>
 
@@ -632,8 +653,10 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
     <div class="field"><label>이름</label><input id="staffNameInput" placeholder="예: 김실장" /></div>
     <div class="twocol"><div class="field"><label>지점</label><select id="staffBranchInput"><option>영종점</option><option>송도점</option><option>펜트하우스</option></select></div><div class="field"><label>급여 방식</label><select id="staffPayTypeInput"><option>건당</option><option>시간</option><option>당일</option><option>월급</option></select></div></div>
     <div class="twocol"><div class="field"><label>기본 단가</label><input type="number" id="staffRateInput" placeholder="17000" /></div><div class="field"><label>세금률 %</label><input type="number" step="0.1" id="staffTaxInput" placeholder="3.3" /></div></div>
+    <div class="field"><label>💳 계좌번호 (선택)</label><input id="staffBankInput" placeholder="예: 국민 123456-78-901234" /></div>
+    <div class="field"><label>📝 메모 (선택)</label><textarea id="staffMemoInput" rows="2" placeholder="예: 주말만 가능, 차량 있음" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:9px;font:inherit;resize:vertical;"></textarea></div>
     <div style="background:#F8F7FB;border:1px solid #EFEBF6;border-radius:14px;padding:12px;margin-bottom:12px;">
-      <div style="font-size:12px;font-weight:800;color:var(--navy);margin-bottom:10px;">🎯 배치 정보 (자동배치용)</div>
+      <div style="display:none;font-size:12px;font-weight:800;color:var(--navy);margin-bottom:10px;">🎯 배치 정보 (자동배치용)</div>
       <div class="field"><label>일할 수 있는 날</label><select id="staffAvailInput"><option value="불특정">불특정 (아무때나)</option><option value="주말">주말만</option><option value="주말+평일">주말+평일</option></select></div>
       <div class="twocol">
         <div class="field"><label>청소 속도 (별점)</label><select id="staffSpeedInput"><option value="3">⭐⭐⭐ 보통</option><option value="5">⭐⭐⭐⭐⭐ 매우빠름</option><option value="4">⭐⭐⭐⭐ 빠름</option><option value="2">⭐⭐ 느림</option><option value="1">⭐ 매우느림</option></select></div>
@@ -2125,8 +2148,166 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
   function ymd(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
   function fmtDateK(s,WD){ const d=new Date(s+'T00:00:00'); return (d.getMonth()+1)+'/'+d.getDate()+' ('+WD[d.getDay()]+')'; }
 
+  /* ═══════════════════════════════════════════
+     📅 월별 정산 — 그 달의 기록을 날짜까지 자세히
+     ═══════════════════════════════════════════ */
+  let settleMonth=currentYM();      // 지금 보고 있는 달
+  let monthlyOpen={};               // 펼쳐진 객실/직원 기억
+
+  function renderMonthly(){
+    const lab=$('#mLabel'); if(lab)lab.textContent=monthText(settleMonth);
+    const body=$('#monthlyBody'); if(!body)return;
+
+    // 이 달의 기록만 고르기 (취소·셋팅전용 제외)
+    const all=branchFilter(state.transactions)
+      .filter(t=>t.status!=='cancelled'&&!t.checkinOnly)
+      .filter(t=>(t.billingMonth||ym(t.date))===settleMonth);
+
+    const incomes=all.filter(t=>t.type==='income');
+    const expenses=all.filter(t=>t.type==='expense');
+    const amt=t=>Number(t.netAmount||t.amount||0);
+    const total=arr=>arr.reduce((a,b)=>a+amt(b),0);
+
+    const inc=total(incomes), exp=total(expenses), net=inc-exp;
+    const unpaidIn=total(incomes.filter(t=>!t.paid));    // 못 받은 돈
+    const unpaidOut=total(expenses.filter(t=>!t.paid));  // 안 준 돈
+
+    let html='';
+
+    // ── ① 이달 요약 ──
+    html+=`<div class="card" style="padding:15px;margin-bottom:11px;">
+      <div style="display:flex;gap:9px;margin-bottom:11px;">
+        <div style="flex:1;background:#EAF3FB;border-radius:13px;padding:11px;text-align:center;">
+          <small style="font-size:10px;color:#2F6FAF;font-weight:800;">수입</small>
+          <b style="display:block;font-size:15px;margin-top:3px;color:#2F6FAF;">${money(inc)}</b>
+        </div>
+        <div style="flex:1;background:#FDEEF0;border-radius:13px;padding:11px;text-align:center;">
+          <small style="font-size:10px;color:#C0556B;font-weight:800;">지출</small>
+          <b style="display:block;font-size:15px;margin-top:3px;color:#C0556B;">${money(exp)}</b>
+        </div>
+        <div style="flex:1;background:${net>=0?'#E8F5E9':'#FFF3E4'};border-radius:13px;padding:11px;text-align:center;">
+          <small style="font-size:10px;color:${net>=0?'#1E8449':'#B5701A'};font-weight:800;">순익</small>
+          <b style="display:block;font-size:15px;margin-top:3px;color:${net>=0?'#1E8449':'#B5701A'};">${money(net)}</b>
+        </div>
+      </div>
+      <div style="display:flex;gap:9px;font-size:12px;">
+        <div style="flex:1;padding:9px 11px;background:#F8F6F2;border-radius:11px;">
+          <span style="color:var(--muted);">아직 못 받은 돈</span>
+          <b style="display:block;margin-top:2px;color:${unpaidIn?'#C0556B':'var(--sub)'};">${money(unpaidIn)}</b>
+        </div>
+        <div style="flex:1;padding:9px 11px;background:#F8F6F2;border-radius:11px;">
+          <span style="color:var(--muted);">아직 안 준 돈</span>
+          <b style="display:block;margin-top:2px;color:${unpaidOut?'#C0556B':'var(--sub)'};">${money(unpaidOut)}</b>
+        </div>
+      </div>
+      <div style="margin-top:9px;font-size:11px;color:var(--muted);text-align:center;">
+        청소 ${incomes.length}건 · 지출 ${expenses.length}건${incomes.length?' · 건당 평균 '+money(Math.round(inc/incomes.length)):''}
+      </div>
+    </div>`;
+
+    // ── ② 객실별 (누르면 날짜별로 펼쳐짐) ──
+    html+=`<div class="sectitle" style="margin:0 4px 8px;"><h2 style="font-size:14px;margin:0;">🏠 객실별 청소 내역</h2></div>`;
+    if(!incomes.length){
+      html+=`<div class="card" style="margin-bottom:11px;">${empty('🏠','이 달에는 청소 기록이 없어요')}</div>`;
+    }else{
+      const g={};
+      incomes.forEach(t=>{const k=String(t.targetId||t.targetName||'기타');(g[k]||=[]).push(t);});
+      html+=Object.entries(g).sort((a,b)=>total(b[1])-total(a[1])).map(([key,arr])=>{
+        arr.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+        const room=state.rooms.find(r=>String(r.id)===key);
+        const name=roomTitleOf(room?room.name:(arr[0].targetName||''))||arr[0].targetName||'객실';
+        const sumA=total(arr), unpaid=total(arr.filter(t=>!t.paid));
+        const open=monthlyOpen['R'+key];
+        const badge=unpaid
+          ? `<small style="color:#C0556B;font-weight:800;">미수 ${money(unpaid)}</small>`
+          : `<small style="color:#1E8449;font-weight:800;">전액 입금 ✅</small>`;
+        return `<div class="card" style="margin-bottom:9px;overflow:hidden;">
+          <div data-monthly-toggle="R${key}" style="display:flex;align-items:center;gap:11px;padding:13px 14px;cursor:pointer;${open?'border-bottom:1px solid var(--line);':''}">
+            <div style="width:36px;height:36px;border-radius:12px;background:#EAF3FB;display:flex;align-items:center;justify-content:center;font-size:16px;">🏠</div>
+            <div style="flex:1;min-width:0;">
+              <b style="font-size:13px;display:block;">${esc(name)}</b>
+              <small style="color:var(--muted);font-size:10px;">청소 ${arr.length}건 · ${open?'접기 ▲':'날짜별 보기 ▼'}</small>
+            </div>
+            <div style="text-align:right;"><b style="font-size:14px;">${money(sumA)}</b><div>${badge}</div></div>
+          </div>
+          ${open?arr.map(t=>`<div style="display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px solid #F4F1EC;font-size:12px;">
+              <b style="width:52px;color:var(--navy);">${(t.date||'').slice(5).replace('-','/')}</b>
+              <span style="flex:1;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.memo||'')}</span>
+              <span style="font-weight:700;">${money(amt(t))}</span>
+              <span style="width:52px;text-align:right;font-size:10px;font-weight:800;color:${t.paid?'#1E8449':'#C0556B'};">${t.paid?'✅입금':'⏳미수'}</span>
+            </div>`).join(''):''}
+        </div>`;
+      }).join('');
+    }
+
+    // ── ③ 직원별 ──
+    html+=`<div class="sectitle" style="margin:14px 4px 8px;"><h2 style="font-size:14px;margin:0;">👤 직원별 지급 내역</h2></div>`;
+    if(!expenses.length){
+      html+=`<div class="card">${empty('👤','이 달에는 지출 기록이 없어요')}</div>`;
+    }else{
+      const g2={};
+      expenses.forEach(t=>{const k=String(t.targetId||t.targetName||'기타');(g2[k]||=[]).push(t);});
+      html+=Object.entries(g2).sort((a,b)=>total(b[1])-total(a[1])).map(([key,arr])=>{
+        arr.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+        const st=state.staff.find(s=>String(s.id)===key);
+        const name=st?st.name:(arr[0].targetName||'직원');
+        const sumA=total(arr), unpaid=total(arr.filter(t=>!t.paid));
+        const open=monthlyOpen['S'+key];
+        const badge=unpaid
+          ? `<small style="color:#C0556B;font-weight:800;">미지급 ${money(unpaid)}</small>`
+          : `<small style="color:#1E8449;font-weight:800;">전액 지급 ✅</small>`;
+        return `<div class="card" style="margin-bottom:9px;overflow:hidden;">
+          <div data-monthly-toggle="S${key}" style="display:flex;align-items:center;gap:11px;padding:13px 14px;cursor:pointer;${open?'border-bottom:1px solid var(--line);':''}">
+            <div style="width:36px;height:36px;border-radius:12px;background:#FDEEF0;display:flex;align-items:center;justify-content:center;font-size:16px;">👤</div>
+            <div style="flex:1;min-width:0;">
+              <b style="font-size:13px;display:block;">${esc(name)}</b>
+              <small style="color:var(--muted);font-size:10px;">${arr.length}건 · ${open?'접기 ▲':'날짜별 보기 ▼'}</small>
+            </div>
+            <div style="text-align:right;"><b style="font-size:14px;">${money(sumA)}</b><div>${badge}</div></div>
+          </div>
+          ${open?arr.map(t=>`<div style="display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px solid #F4F1EC;font-size:12px;">
+              <b style="width:48px;color:var(--navy);">${(t.date||'').slice(5).replace('-','/')}</b>
+              <span style="flex:1;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.memo||t.targetName||'')}</span>
+              <span style="font-weight:700;">${money(amt(t))}</span>
+              <span style="width:52px;text-align:right;font-size:10px;font-weight:800;color:${t.paid?'#1E8449':'#C0556B'};">${t.paid?'✅지급':'⏳미지급'}</span>
+            </div>`).join(''):''}
+        </div>`;
+      }).join('');
+    }
+
+    // ── ④ 최근 6개월 비교 ──
+    const months=[];for(let i=5;i>=0;i--)months.push(shiftMonth(settleMonth,-i));
+    const rows=months.map(m=>{
+      const a=branchFilter(state.transactions).filter(t=>t.status!=='cancelled'&&!t.checkinOnly&&(t.billingMonth||ym(t.date))===m);
+      const i2=a.filter(t=>t.type==='income'), e2=a.filter(t=>t.type==='expense');
+      return {m,inc:total(i2),exp:total(e2),jobs:i2.length};
+    });
+    html+=`<div class="sectitle" style="margin:14px 4px 8px;"><h2 style="font-size:14px;margin:0;">📊 최근 6개월 비교</h2></div>
+      <div class="card" style="padding:6px 14px 12px;">
+      ${rows.map(r=>{
+        const isNow=r.m===settleMonth;
+        return `<div data-monthly-jump="${r.m}" style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #F4F1EC;font-size:12px;cursor:pointer;${isNow?'font-weight:800;':''}">
+          <b style="width:52px;color:${isNow?'var(--navy)':'var(--sub)'};">${Number(r.m.slice(5))}월</b>
+          <span style="width:40px;color:var(--muted);font-size:11px;">${r.jobs}건</span>
+          <span style="flex:1;text-align:right;color:#2F6FAF;">${money(r.inc)}</span>
+          <span style="width:78px;text-align:right;color:#C0556B;">-${money(r.exp)}</span>
+          <span style="width:82px;text-align:right;font-weight:800;">${money(r.inc-r.exp)}</span>
+        </div>`;
+      }).join('')}
+      <div style="margin-top:8px;font-size:10px;color:var(--muted);text-align:center;">누르면 그 달로 이동해요 · 수입 / 지출 / 순익 순서</div>
+      </div>`;
+
+    body.innerHTML=html;
+  }
+
   function renderSettlement(){
-    $$('.segbtn[data-settle]').forEach(b=>b.classList.toggle('active',b.dataset.settle===settleMode));let list=branchFilter(state.transactions).filter(t=>t.status!=='cancelled'&&!t.checkinOnly);
+    $$('.segbtn[data-settle]').forEach(b=>b.classList.toggle('active',b.dataset.settle===settleMode));
+    // 📅 월별 모드일 때는 전용 화면으로 전환
+    const isMonthly=settleMode==='monthly';
+    const mw=$('#monthlyWrap'); if(mw)mw.style.display=isMonthly?'block':'none';
+    ['#settlementGroups','.settlehero'].forEach(s=>{const el=document.querySelector(s);if(el)el.style.display=isMonthly?'none':'';});
+    const per=document.querySelector('[data-settle-period]'); if(per&&per.parentElement)per.parentElement.style.display=isMonthly?'none':'';
+    if(isMonthly){renderMonthly();return;}let list=branchFilter(state.transactions).filter(t=>t.status!=='cancelled'&&!t.checkinOnly);
     let type,paid,label,desc;if(settleMode==='receivable'){type='income';paid=false;label='현재 받을 돈';desc='미수금은 객실별로 묶어서 보여드려요.'}else if(settleMode==='payable'){type='expense';paid=false;label='현재 줄 돈';desc='직원별 미지급 금액을 바로 처리할 수 있어요.'}else{type=null;paid=true;label='완료된 정산';desc='입금·지급이 끝난 내역입니다.'}
     list=list.filter(t=>(!type||t.type===type)&&!!t.paid===paid);
     // 기간 필터 (이번 달 / 전체)
@@ -2151,7 +2332,7 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
 
   function renderManage(){
     const allRooms=branchFilter(state.rooms).slice().sort((a,b)=>(a.order??9999)-(b.order??9999)),staff=branchFilter(state.staff);const rooms=allRooms.filter(r=>!r.archived);const archivedRooms=allRooms.filter(r=>r.archived);let roomHtml=rooms.length?rooms.map((r,idx)=>`<div class="entity drag-room" data-room-card="${r.id}" style="touch-action:pan-y;"><div class="entityico">🏠</div><div class="entitymain"><b>${esc(r.name)}</b><small>${r.branch}${r.hostName?' · 호스트 '+esc(r.hostName):''} · 기본 ${money(r.price)}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join(''):empty('🏠','등록된 객실이 없어요');if(archivedRooms.length){roomHtml+=`<button id="toggleArchived" style="width:100%;margin-top:10px;padding:10px;border:1px dashed #D0C8B8;border-radius:12px;background:#F6F4F9;color:var(--muted);font-size:12px;font-weight:700;">📦 보관된 객실 ${archivedRooms.length}개 ${state._showArchived?'숨기기 ▲':'보기 ▼'}</button>`;if(state._showArchived){roomHtml+='<div style="margin-top:8px;">'+archivedRooms.map(r=>`<div class="entity" style="opacity:.6;"><div class="entityico">📦</div><div class="entitymain"><b>${esc(r.name)}</b><small>보관됨 · ${r.branch}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join('')+'</div>';}}$('#roomList').innerHTML=roomHtml;
-    const actStaff=staff.filter(s=>!s.archived);const arcStaff=staff.filter(s=>s.archived);let staffHtml=actStaff.length?actStaff.map(s=>`<div class="entity" data-staff-card="${s.id}"><div class="entityico">👤</div><div class="entitymain"><b>${esc(s.name)}</b><small>${s.branch} · ${s.payType} ${money(s.rate)}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join(''):empty('👥','등록된 직원이 없어요');if(arcStaff.length){staffHtml+=`<button id="toggleArchivedStaff" style="width:100%;margin-top:10px;padding:10px;border:1px dashed #D0C8B8;border-radius:12px;background:#F6F4F9;color:var(--muted);font-size:12px;font-weight:700;">📦 보관된 직원 ${arcStaff.length}명 ${state._showArchivedStaff?'숨기기 ▲':'보기 ▼'}</button>`;if(state._showArchivedStaff){staffHtml+='<div style="margin-top:8px;">'+arcStaff.map(s=>`<div class="entity" style="opacity:.6;"><div class="entityico">📦</div><div class="entitymain"><b>${esc(s.name)}</b><small>보관됨 · ${s.branch}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join('')+'</div>';}}$('#staffList').innerHTML=staffHtml;
+    const actStaff=staff.filter(s=>!s.archived);const arcStaff=staff.filter(s=>s.archived);let staffHtml=actStaff.length?actStaff.map(s=>`<div class="entity" data-staff-card="${s.id}"><div class="entityico">👤</div><div class="entitymain"><b>${esc(s.name)}</b><small>${s.branch} · ${s.payType} ${money(s.rate)}${s.bank?' · 💳 '+esc(s.bank):''}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join(''):empty('👥','등록된 직원이 없어요');if(arcStaff.length){staffHtml+=`<button id="toggleArchivedStaff" style="width:100%;margin-top:10px;padding:10px;border:1px dashed #D0C8B8;border-radius:12px;background:#F6F4F9;color:var(--muted);font-size:12px;font-weight:700;">📦 보관된 직원 ${arcStaff.length}명 ${state._showArchivedStaff?'숨기기 ▲':'보기 ▼'}</button>`;if(state._showArchivedStaff){staffHtml+='<div style="margin-top:8px;">'+arcStaff.map(s=>`<div class="entity" style="opacity:.6;"><div class="entityico">📦</div><div class="entitymain"><b>${esc(s.name)}</b><small>보관됨 · ${s.branch}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join('')+'</div>';}}$('#staffList').innerHTML=staffHtml;
     // 비품 목록 (지점 필터, 구입 필요 강조)
     const sup=(state.supplies||[]).filter(x=>state.branch==='전체'||x.branch===state.branch||x.branch==='공용');
     $('#supplyList').innerHTML=sup.length?sup.map(x=>{
@@ -2233,6 +2414,39 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
     $$('.typebtn').forEach(b=>b.classList.toggle('active',b.dataset.type===txType));$('#txTargetLabel').textContent=txType==='income'?'객실':'직원';$('#txPaidText').textContent=txType==='income'?'입금 완료':'지급 완료';$('#txModalTitle').textContent=txType==='income'?'청소 수입 등록':'직원 지출 등록';
     var schedBox=$('#txScheduleBox'); if(schedBox) schedBox.style.display = txType==='income' ? 'block' : 'none';
     const branch=$('#txBranchInput').value,list=(txType==='income'?state.rooms:state.staff).filter(x=>x.branch===branch&&!x.archived);$('#txTargetInput').innerHTML='<option value="">선택하세요</option>'+list.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
+    updatePayCalc();
+  }
+
+  /* 💰 급여 자동계산
+     직원을 고르면 그 직원의 급여 방식(건당/시간/당일/월급)에 맞춰
+     '건수' 또는 '시간'을 입력받아 금액을 자동으로 채웁니다 */
+  function updatePayCalc(){
+    const box=$('#payCalcBox'); if(!box)return;
+    if(txType!=='expense'){box.style.display='none';return;}
+    const staff=state.staff.find(s=>String(s.id)===String($('#txTargetInput').value));
+    if(!staff){box.style.display='none';return;}
+    box.style.display='block';
+    const unit={'건당':'건수','시간':'시간','당일':'일수','월급':'개월'}[staff.payType]||'수량';
+    const lab=$('#payQtyLabel'); if(lab)lab.textContent=unit+' (숫자만)';
+    const rateEl=$('#payRateInput');
+    if(rateEl&&!rateEl.value)rateEl.value=staff.rate||'';
+    calcPay();
+  }
+  function calcPay(){
+    const staff=state.staff.find(s=>String(s.id)===String($('#txTargetInput').value));
+    if(!staff)return;
+    const qty=Number($('#payQtyInput').value||0);
+    const rate=Number($('#payRateInput').value||staff.rate||0);
+    const res=$('#payCalcResult');
+    if(!qty||!rate){if(res)res.textContent='숫자를 넣으면 금액이 자동으로 계산돼요';return;}
+    const gross=Math.round(qty*rate);
+    const taxRate=Number(staff.tax||0);
+    const tax=Math.round(gross*taxRate/100);
+    const net=gross-tax;
+    $('#txAmountInput').value=gross;   // 금액칸 자동 입력
+    const unit={'건당':'건','시간':'시간','당일':'일','월급':'개월'}[staff.payType]||'개';
+    if(res)res.innerHTML=`${qty}${unit} × ${money(rate)} = <b style="color:var(--navy);">${money(gross)}</b>`+
+      (taxRate?`<br><span style="font-size:11px;color:var(--muted);">세금 ${taxRate}% 떼면 실지급 ${money(net)}</span>`:'');
   }
   function saveTxForm(){
     const id=$('#txEditId').value,date=$('#txDateInput').value,branch=$('#txBranchInput').value,targetId=$('#txTargetInput').value,amount=Number($('#txAmountInput').value),memo=$('#txMemoInput').value.trim(),billingMonth=$('#txBillingInput').value||ym(date),paid=$('#txPaidInput').checked,status=$('#txStatusInput').value;
@@ -2481,7 +2695,7 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
     save();closeModal('roomModal');render();
     toast(r.archived?('📦 "'+r.name+'" 보관됨 (메뉴에서 숨김)'):('📤 "'+r.name+'" 다시 표시됨'));
   }
-  function openStaff(id=''){const s=state.staff.find(x=>x.id===id);$('#staffEditId').value=id;$('#staffNameInput').value=s?.name||'';$('#staffBranchInput').value=s?.branch||(state.branch==='전체'?'영종점':state.branch);$('#staffPayTypeInput').value=s?.payType||'건당';$('#staffRateInput').value=s?.rate||'';$('#staffTaxInput').value=s?.tax??3.3;
+  function openStaff(id=''){const s=state.staff.find(x=>x.id===id);$('#staffEditId').value=id;$('#staffNameInput').value=s?.name||'';$('#staffBranchInput').value=s?.branch||(state.branch==='전체'?'영종점':state.branch);$('#staffPayTypeInput').value=s?.payType||'건당';$('#staffRateInput').value=s?.rate||'';$('#staffTaxInput').value=s?.tax??3.3;$('#staffBankInput').value=s?.bank||'';$('#staffMemoInput').value=s?.memo||'';
     // 배치 정보 채우기
     if($('#staffAvailInput'))$('#staffAvailInput').value=s?.avail||'불특정';
     if($('#staffSpeedInput'))$('#staffSpeedInput').value=String(s?.speed||3);
@@ -2493,7 +2707,7 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
       $('#staffSkillRooms').innerHTML=rms.length?rms.map(r=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:12px;"><input type="checkbox" class="skill-room-chk" value="${r.id}" ${skills.includes(r.id)?'checked':''} style="width:18px;height:18px;flex-shrink:0;" />${esc(r.name)}</label>`).join(''):'<div style="font-size:11px;color:var(--muted);text-align:center;padding:8px;">등록된 객실이 없어요</div>';
     }
     const dsb=$('#deleteStaffBtn');if(dsb)dsb.style.display=id?'block':'none';const asb=$('#archiveStaffBtn');if(asb){asb.style.display=id?'block':'none';if(s&&s.archived){asb.textContent='📤 보관 해제 (메뉴에 다시 표시)';asb.style.background='#D5F5E3';asb.style.color='#1E8449';asb.style.borderColor='#A9DFBF';}else{asb.textContent='📦 이 직원 보관 (메뉴에서 숨김)';asb.style.background='#FDF0D5';asb.style.color='#B8860B';asb.style.borderColor='#F0D890';}}openModal('staffModal')}
-  function saveStaffForm(){const id=$('#staffEditId').value,name=$('#staffNameInput').value.trim(),branch=$('#staffBranchInput').value,payType=$('#staffPayTypeInput').value,rate=Number($('#staffRateInput').value),tax=Number($('#staffTaxInput').value||0);if(!name||!rate)return toast('이름과 기본 단가를 입력해주세요');const avail=$('#staffAvailInput')?$('#staffAvailInput').value:'불특정';const speed=Number($('#staffSpeedInput')?$('#staffSpeedInput').value:3);const quality=Number($('#staffQualityInput')?$('#staffQualityInput').value:3);const solo=$('#staffSoloInput')?$('#staffSoloInput').value:'단독';const skillRooms=[...document.querySelectorAll('.skill-room-chk:checked')].map(c=>c.value);const prev=id?state.staff.find(x=>x.id===id):null;const obj={id:id||uid('staff'),name,branch,payType,rate,tax,avail,speed,quality,solo,skillRooms,archived:prev?prev.archived:false};if(id)state.staff[state.staff.findIndex(x=>x.id===id)]=obj;else state.staff.push(obj);save();closeModal('staffModal');render();toast('직원을 저장했어요')}
+  function saveStaffForm(){const id=$('#staffEditId').value,name=$('#staffNameInput').value.trim(),branch=$('#staffBranchInput').value,payType=$('#staffPayTypeInput').value,rate=Number($('#staffRateInput').value),tax=Number($('#staffTaxInput').value||0);if(!name||!rate)return toast('이름과 기본 단가를 입력해주세요');const avail=$('#staffAvailInput')?$('#staffAvailInput').value:'불특정';const speed=Number($('#staffSpeedInput')?$('#staffSpeedInput').value:3);const quality=Number($('#staffQualityInput')?$('#staffQualityInput').value:3);const solo=$('#staffSoloInput')?$('#staffSoloInput').value:'단독';const skillRooms=[...document.querySelectorAll('.skill-room-chk:checked')].map(c=>c.value);const prev=id?state.staff.find(x=>x.id===id):null;const bank=$('#staffBankInput')?$('#staffBankInput').value.trim():'';const memo=$('#staffMemoInput')?$('#staffMemoInput').value.trim():'';const obj={id:id||uid('staff'),name,branch,payType,rate,tax,bank,memo,avail,speed,quality,solo,skillRooms,archived:prev?prev.archived:false};if(id)state.staff[state.staff.findIndex(x=>x.id===id)]=obj;else state.staff.push(obj);save();closeModal('staffModal');render();toast('직원을 저장했어요')}
 
   // 🎯 직원 자동 배치 — 우선순위: ①가능스케줄 ②페이 낮은순 ③품질 높은순 ④숙련객실
   function autoAssignStaff(dateStr){
@@ -2826,7 +3040,6 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
     if(b.id==='sendDayHost')dayHostMsg(selectedDate);
     if(b.id==='sendStaffGroup'){openStaffSend(selectedDate);return;}
     if(b.dataset.sendGroup!=null){sendGroupMsg(Number(b.dataset.sendGroup));return;}
-    if(b.id==='autoAssignBtn'){autoAssignStaff(selectedDate);return;}
     if(b.id==='assignConfirm'){confirmAssign();return;}
     if(b.dataset.notifyIdx!=null){let saved=[];try{saved=JSON.parse(localStorage.getItem('roommade-호스트링크')||'[]');}catch(e){}const entry=saved[Number(b.dataset.notifyIdx)];if(entry){closeModal('notifyModal');shareUpdateMsg(entry);}return;}
     if(b.dataset.notifyAll){let saved=[];try{saved=JSON.parse(localStorage.getItem('roommade-호스트링크')||'[]');}catch(e){}closeModal('notifyModal');const allMsg=saved.map(s=>s.host+' 님: '+s.link).join('\n\n');const msg='객실 현황이 업데이트되었습니다. 🔔\n\n'+allMsg;if(navigator.share){navigator.share({text:msg}).catch(()=>{});}else fallbackCopy(msg,'');return;}
@@ -2865,6 +3078,19 @@ body{font-family:Pretendard,"SUIT",-apple-system,BlinkMacSystemFont,"Segoe UI",s
    const bg=$('#bookGuests');if(bg)bg.addEventListener('input',updateBookPreview);}
   {const nu=$('#notifyUpdate');if(nu)nu.addEventListener('click',sendUpdateNotify);}
   const rvm=$('#rvMakeLink');if(rvm)rvm.addEventListener('click',buildRoomviewLink);
+  // 💰 급여 자동계산 이벤트
+  const tti=$('#txTargetInput');if(tti)tti.addEventListener('change',()=>{const r=$('#payRateInput');if(r)r.value='';updatePayCalc();});
+  ['#payQtyInput','#payRateInput'].forEach(s=>{const el=$(s);if(el)el.addEventListener('input',calcPay);});
+  // 📅 월별 정산 이벤트
+  const mp=$('#mPrev');if(mp)mp.addEventListener('click',()=>{settleMonth=shiftMonth(settleMonth,-1);renderMonthly();});
+  const mn=$('#mNext');if(mn)mn.addEventListener('click',()=>{settleMonth=shiftMonth(settleMonth,1);renderMonthly();});
+  const mt=$('#mThis');if(mt)mt.addEventListener('click',()=>{settleMonth=currentYM();renderMonthly();toast('이번 달로 이동');});
+  document.addEventListener('click',function(ev){
+    const tog=ev.target.closest('[data-monthly-toggle]');
+    if(tog){const k=tog.dataset.monthlyToggle;monthlyOpen[k]=!monthlyOpen[k];renderMonthly();return;}
+    const jmp=ev.target.closest('[data-monthly-jump]');
+    if(jmp){settleMonth=jmp.dataset.monthlyJump;renderMonthly();window.scrollTo({top:0,behavior:'smooth'});return;}
+  });
   // 📅 iCal 연동 이벤트
   const icb=$('#icalSyncBtn');if(icb)icb.addEventListener('click',()=>syncAllIcal(false));
   const ictb=$('#icalTestBtn');if(ictb)ictb.addEventListener('click',testIcal);
