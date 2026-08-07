@@ -10,7 +10,37 @@
 <meta name="theme-color" content="#ECE6F8" />
 <meta name="google" content="notranslate" />
 <meta name="robots" content="notranslate" />
-<link rel="manifest" href="one.webmanifest" />
+<link rel="manifest" id="appManifest" />
+<script>
+/* 🏠 홈 화면 설치 설정
+   외부 파일(one.webmanifest)을 쓰면 그 파일이 옛 주소를 가리킬 때 아이콘이 깨져요.
+   그래서 '지금 열려 있는 주소'를 그대로 시작 주소로 만들어 넣습니다. */
+(function(){
+  try{
+    var here=location.href.split('?')[0].split('#')[0];
+    var m={
+      name:'ROOMMADE ONE', short_name:'ROOMMADE',
+      description:'Smart Cleaning Ops',
+      start_url:here, scope:'./',
+      display:'standalone', orientation:'portrait',
+      background_color:'#EDEEE7', theme_color:'#2C5C87', lang:'ko',
+      icons:[
+        {src:'icon-one-192.png',sizes:'192x192',type:'image/png',purpose:'any maskable'},
+        {src:'icon-one-512.png',sizes:'512x512',type:'image/png',purpose:'any maskable'}
+      ]
+    };
+    var blob=new Blob([JSON.stringify(m)],{type:'application/manifest+json'});
+    document.getElementById('appManifest').href=URL.createObjectURL(blob);
+  }catch(e){console.error('manifest',e);}
+  // 옛 버전이 남긴 캐시가 있으면 정리 (홈 아이콘이 옛 화면을 띄우는 것 방지)
+  try{
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});});
+    }
+    if(window.caches&&caches.keys){caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});});}
+  }catch(e){}
+})();
+</script>
 <link rel="apple-touch-icon" href="icon-one-192.png" />
 <title>ROOMMADE ONE</title>
 <style>
@@ -437,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v10.1</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v10.2</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
