@@ -214,8 +214,11 @@ body{display:flex;justify-content:center}
       if (tx.memo) noteByCleanDate[dateStr(new Date(tx.date))] = tx.memo;
       var inN = parseInt(tx.inNights, 10);
       if (inN > 0){
-        var ci = new Date(tx.date);
-        var co = new Date(tx.date); co.setDate(co.getDate() + inN);
+        // ⚠️ 입실일은 청소일과 다를 수 있어요 (공실이 낀 경우)
+        //    사장님앱이 inDate에 실제 입실일을 넣어주므로 그것을 먼저 씁니다.
+        var ciSrc = tx.inDate || tx.date;
+        var ci = new Date(ciSrc);
+        var co = new Date(ciSrc); co.setDate(co.getDate() + inN);
         // 한 객실의 같은 퇴실일 = 같은 손님 → 퇴실일로 중복 판단
         seen[dateStr(co)] = 1;
         stays.push({
