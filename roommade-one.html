@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v10.2</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v10.3</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1490,42 +1490,51 @@ h1,h2,h3{color:var(--n-ink)}
     const name=roomTitleOf(t.targetName||room.name)||t.targetName||'객실';
     const specs=roomSpecsOf(room.name||'');
     const L=[];
-    L.push('┌──────────────');
-    L.push('│ 【'+idx+'】 '+name);
+    // 카톡은 글자 폭이 제각각이라 세로줄(│) 박스가 삐뚤어져요.
+    // 그래서 위아래 구분선만 쓰는 방식으로 만듭니다.
+    L.push('━━━━━━━━━━━━━━');
+    L.push('【'+idx+'】 '+name);
 
-    // 누가
     const who=Array.isArray(t.assignedStaffNames)&&t.assignedStaffNames.length
       ? t.assignedStaffNames.join(', ')
       : (opts.staffNames||'');
-    if(who)L.push('│ 👤 담당: '+who);
-
-    // 출입 정보
+    if(who)L.push('👤 담당 : '+who);
     if(room.doorPw||room.supplyPw){
-      L.push('│ 🔑 도어락 '+(room.doorPw||'-')+(room.supplyPw?'  📦 비품함 '+room.supplyPw:''));
+      L.push('🔑 도어락 '+(room.doorPw||'-')+(room.supplyPw?'   📦 비품함 '+room.supplyPw:''));
     }
 
-    L.push('│');
-    L.push('│ ▸ 어떻게');
+    L.push('');
+    L.push('▸ 작업 순서');
 
-    // ① 퇴실 정리
-    if(t.outNights||t.outGuests||t.outSupplies){
-      L.push('│   ① 퇴실 정리 — '+(t.outNights?t.outNights+'박':'')+(t.outGuests?' '+t.outGuests+'명':'')+(t.outTime?' ('+t.outTime+' 퇴실)':''));
-      if(t.outSupplies)L.push('│      쓴 물품: '+t.outSupplies);
+    // ① 퇴실 정리 (직원용은 '쓴 물품' 생략 — 치우기만 하면 되니까)
+    if(t.outNights||t.outGuests){
+      L.push('  ① 퇴실 정리   '+(t.outNights?t.outNights+'박':'')+(t.outGuests?' '+t.outGuests+'명':'')+(t.outTime?'  ('+t.outTime+' 퇴실)':''));
     }
+    if(t.outSupplies&&!opts.hideOutSupplies){
+      L.push('      쓴 물품 : '+t.outSupplies);
+    }
+
     // ② 청소
-    L.push('│   ② 청소 — 기본 청소'+(specs.length?' / 비치: '+specs.map(s=>s.label+(s.qty?' '+s.qty:'')).join(', '):''));
-    // ③ 입실 셋팅
+    L.push('  ② 청소        기본 청소'+(specs.length?'  /  비치 '+specs.map(s=>s.label+(s.qty?' '+s.qty:'')).join(', '):''));
+
+    // ③ 입실 셋팅 — 준비 비품 강조
     if(t.inNights){
       const g=Number(t.inGuests||0), base=Number(room.baseGuests||0);
       const over=(base&&g>base)?(g-base):0;
-      L.push('│   ③ 입실 셋팅 — '+t.inNights+'박 '+(t.inGuests||'-')+'명'+(t.inTime?' ('+t.inTime+' 입실)':''));
-      if(t.inSupplies)L.push('│      준비물: '+t.inSupplies);
+      L.push('  ③ 입실 셋팅   '+t.inNights+'박 '+(t.inGuests||'-')+'명'+(t.inTime?'  ('+t.inTime+' 입실)':''));
+      const prep=[];
+      if(t.inSupplies)prep.push(t.inSupplies);
       if(over>0){
         const auto=calcExtraSetup(room.extraSetup||'', over);
-        L.push('│      ⚠️ '+over+'명 초과'+(auto?' → 추가 '+auto:''));
+        if(auto)prep.push(auto+' (초과 '+over+'명분)');
+      }
+      if(prep.length){
+        L.push('');
+        L.push('🛒 준비할 비품');
+        prep.forEach(x=>L.push('    · '+x));
       }
     }else{
-      L.push('│   ③ 입실 셋팅 — 없음 (청소 후 공실)');
+      L.push('  ③ 입실 셋팅   없음 (청소 후 공실)');
     }
 
     // 확인사항
@@ -1534,14 +1543,15 @@ h1,h2,h3{color:var(--n-ink)}
     if(t.outTime&&t.outTime>'11:00')chk.push('레이트체크아웃 '+t.outTime+' — 그 후 시작');
     if(!t.inNights)chk.push('다음 입실 없음 — 커튼/전등 정리');
     if(t.inNights&&!t.inGuests)chk.push('입실 인원 미확인 — 사장님께 문의');
+    if(t.memo)chk.push(t.memo);
     if(chk.length){
-      L.push('│');
-      L.push('│ ▸ 확인사항');
-      chk.forEach(c=>L.push('│   • '+c));
+      L.push('');
+      L.push('⚠️ 확인사항');
+      chk.forEach(c=>L.push('    · '+c));
     }
-    L.push('└──────────────');
     return L.join('\n');
   }
+
 
   // 직원용 텍스트 (담당 객실만)
   function staffMsgText(rooms, staffNames, dateStr){
@@ -1549,7 +1559,7 @@ h1,h2,h3{color:var(--n-ink)}
     if(staffNames)L.push('👤 '+staffNames+' 님');
     L.push('');
     rooms.forEach((t,i)=>{
-      L.push(roomBoxText(t, i+1, {staffNames:staffNames}));
+      L.push(roomBoxText(t, i+1, {staffNames:staffNames, hideOutSupplies:true}));
       L.push('');
     });
     L.push('※ 끝나면 완료 사진 보내주세요 🙏');
@@ -1592,7 +1602,7 @@ h1,h2,h3{color:var(--n-ink)}
     if(!list.length){toast('이 날짜에 청소 일정이 없어요');return;}
     const L=['🧹 '+dateText(dateStr)+' 청소 '+list.length+'건',''];
     list.forEach((t,i)=>{
-      L.push(roomBoxText(t, i+1, {}));
+      L.push(roomBoxText(t, i+1, {hideOutSupplies:true}));
       L.push('');
     });
     // 그날 전체 확인사항 요약
@@ -1627,7 +1637,12 @@ h1,h2,h3{color:var(--n-ink)}
       g.rooms.forEach(t=>{
         n++;
         const room=state.rooms.find(r=>r.id===t.targetId)||{};
-        L.push('【'+n+'】 '+(t.targetName||room.name)+(t.branch==='펜트하우스'?' 🌿':''));
+        L.push('━━━━━━━━━━━━━━');
+        L.push('【'+n+'】 '+(roomTitleOf(t.targetName||room.name)||t.targetName)+(t.branch==='펜트하우스'?' 🌿':''));
+        // 관리자용에는 출입 비번도 함께 (현장 확인·대응용)
+        if(room.doorPw||room.supplyPw){
+          L.push('🔑 도어락 '+(room.doorPw||'-')+(room.supplyPw?'   📦 비품함 '+room.supplyPw:''));
+        }
         if(t.outNights||t.outGuests) L.push('🚪 퇴실 '+(t.outNights||'-')+'박 '+(t.outGuests||'-')+'명'+(t.outTime?' '+t.outTime:''));
         if(t.outSupplies){L.push('🧺 사용 물품 '+t.outSupplies);addStock(t.outSupplies);}
         if(t.inNights){
@@ -1642,7 +1657,7 @@ h1,h2,h3{color:var(--n-ink)}
       });
       if(g.staff.length){
         L.push('👤 담당: '+g.staff.map(s=>s.targetName).join(', '));
-        L.push('─────');
+        L.push('');
       }
     });
     shareText(L.join('\n').trim());
