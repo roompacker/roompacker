@@ -5,23 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>🧹 3506호 청소 일정</title>
 
-<!-- 카카오톡·문자 미리보기 카드에 표시되는 정보 (여기 글자가 카드 제목이 됩니다) -->
+<!-- 카카오톡 미리보기 카드 정보 -->
 <meta property="og:title" content="🧹 3506호 청소 일정" />
 <meta property="og:description" content="체크인·체크아웃과 청소 일정을 달력으로 확인하세요." />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="ROOMMADE" />
 <meta name="description" content="체크인·체크아웃과 청소 일정을 달력으로 확인하세요." />
-<meta name="theme-color" content="#2F6FAF" />
-
+<meta name="theme-color" content="#2C5C87" />
 <style>
-  html,body{margin:0;height:100%;background:#F8F5F0;
-    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Pretendard,"Segoe UI",sans-serif;
-    display:flex;align-items:center;justify-content:center;color:#65707E}
-  .box{text-align:center}
-  .box .ico{font-size:40px;margin-bottom:14px}
-  .box b{display:block;font-size:16px;color:#243140;margin-bottom:6px}
+  html,body{margin:0;height:100%;background:#EDEEE7;
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Pretendard,sans-serif;
+    display:flex;align-items:center;justify-content:center;color:#7C8894}
+  .box{text-align:center} .box .ico{font-size:40px;margin-bottom:14px}
+  .box b{display:block;font-size:16px;color:#2E3D4F;margin-bottom:6px}
   .box small{font-size:12px}
-  .box a{display:inline-block;margin-top:16px;color:#2F6FAF;font-size:12px;font-weight:700}
+  .box a{display:inline-block;margin-top:16px;color:#2C5C87;font-size:12px;font-weight:700}
 </style>
 </head>
 <body>
@@ -31,16 +29,18 @@
   <small>잠시만 기다려주세요...</small>
   <div><a id="manualLink" href="roommade-host.html">눌러서 바로 열기</a></div>
 </div>
-
 <script>
 (function(){
   'use strict';
-  // 이 파일은 '표지' 역할만 합니다.
-  // 주소 뒤에 붙은 ?id=...&rooms=... 을 그대로 들고 진짜 현황판으로 넘어갑니다.
-  var target = 'roommade-host.html' + (location.search || '');
-  var a = document.getElementById('manualLink');
-  if (a) a.href = target;
-  // 뒤로가기 눌렀을 때 이 표지로 다시 돌아오지 않도록 replace 사용
+  /* 이 파일은 '표지' 역할입니다.
+     주소를 짧게 유지하려고 공유 ID와 객실 정보를 안에 넣어뒀어요.
+     (주소가 길면 카카오톡이 미리보기 카드를 안 만들어요) */
+  var ID='roommade-main-share';
+  var ROOMS='room_1782047488047_3u3mc';
+  var q=location.search||'';                       // 주소 뒤에 값이 붙어 오면 그걸 우선 사용
+  if(!q) q='?id='+ID+'&rooms='+encodeURIComponent(ROOMS);
+  var target='roommade-host.html'+q;
+  var a=document.getElementById('manualLink'); if(a)a.href=target;
   setTimeout(function(){ location.replace(target); }, 60);
 })();
 </script>

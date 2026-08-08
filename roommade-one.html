@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v10.3</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v10.4</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -2261,8 +2261,10 @@ h1,h2,h3{color:var(--n-ink)}
   // 클라우드 업로드 (Firebase Realtime DB)
   async function cloudUpload(silent){
     const data=buildCloudData();
+    // 🔒 공유 ID 고정: 저장소가 비워져도 늘 같은 ID를 써서 호스트 링크가 안 깨지게
+    const FIXED_SHARE_ID='roommade-main-share';
     let binId=localStorage.getItem(CLOUD.BIN_KEY);
-    if(!binId){ binId=makeShareId(); }
+    if(!binId){ binId=FIXED_SHARE_ID; try{localStorage.setItem(CLOUD.BIN_KEY,binId);}catch(e){} }
     const res=await fetch(CLOUD.DB_URL+'/shares/'+binId+'.json',{method:'PUT',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(data)});
