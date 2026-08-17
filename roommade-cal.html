@@ -1,0 +1,3031 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f4f3ee" />
+  <title>ROOMMADE Calendar · 룸메이드 예약 달력</title>
+
+  <!-- ===== 앱(PWA) 설정 : 홈 화면에 설치하면 앱처럼 실행됩니다 ===== -->
+  <link rel="manifest" href="./roommade-cal-manifest.json" />
+  <meta name="description" content="에어비앤비 예약과 청소 일정을 한 화면에서 관리하는 룸메이드 운영 앱" />
+  <meta name="application-name" content="룸메이드 달력" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="룸메이드 달력" />
+  <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAEPElEQVR42u3dTW4TSxSAUVfJe0BhwFYisYvMWBoz7wLJW8kgFqsII4+I3W33z62qe84QiB7t3K9vNfFLyqExL69vnweGdTmfSkt/n2LYyRxFMfRkjqEYfDKHUAw+mUMoBp/MIRSDT+YQquGnJ2vPWDH4ZN4G1fCTeRtUw0/mCKrhJ3ME1fCTOYJq+MkcQTX8ZI6gGn4yR1ANP5kjKBmH/+PP7/9+7fvPX+mGJMPrMPXFsuqTfv/XvQ5jq5nu/lOf3Cyf/Eyvw9QMV8OfK4KMr8O9WU5xBHr0kzlqBF6HmQH4Vx9Gc2umq5eGzKq7P5m3gA2ADeDuT9YtYANgA7j7k3UL2ACkVlrZANneg0LsG++ub5Ir0cNv8IkK4XI+laPBJ9p1FiJCOBp8ModQDT+thjBUAIafFuel7PEAbPhp9QG5Gn4ybwJfCCO12nO92AI2ALQYgLs/PcyTDYAN4O5P1i1gA2ADgABAACAAEAAIAAQAAgABgABAACAAEAAIAAQAAgAB3BL57bDpx55zcoy6OP/bJC3cII/RFysEIk8Gx1YuXggGP2UAng9I8xAMAgABgABAACAAEAAIAAQAAgABgABAACAAEAAIAAQAAgABgABAACAAmOmY+eJvfS+irb9Fy8ePb1//d9//Dnm9NkBHwz/1e1sN/9Tv9Xq9NkBHg//Vn1vr7jh3uK9/bq1tEHW9NgAIoM+7/9rHg2eONmsch6KuVwCDDP8qH7tgkBd9bND1CgAEAAIAAYAAQACxlnyBZ9HHLviC1qKPDbpeAQwWwRrD8Mwgr/GV4KjrFQB0It17geb+VMq174TXO/rUF7fWfkdo1PXaAB0fh7YchnsDvuXboaOu1wYY9MF472eCnq/XBgABgABAACAAEAAIAAQAAgABgABAACAAEAAIAAQAAgABgABAACAAEAAIAAQAAgABgABAABAaQLYfwkz7c7JJAL4LMb3MlSMQjkCOQWQ8/mwagGMQPcxTzVA57v6eAeh2+Lc8TWwawL2/uC1AC8rL69vnqHXT/7Fn6/moLbwAtoHhj7o57hLAnAsRQa7Bb+XzvcsR6JkhdzTKdbeP+vzvGoA7Pa3d/HYPQAS0tPVDAhACrRx5QwMQAdHPeuEBCMHgC0AQhl4AsD9vhkMAIAAQACQL4HI+FS8DGV3Op2ID4AgEAgABQMIAPAiT8QHYBsAG8BIgAMcgEh5/bABsgFtlwOh3fxsAG2CqEBj17m8DYAPMLQVGu/vbANgAjxYDo9z9JzeACBh5+B2BcARaWhD0evefvQFEwIjD/9ARSASMNvwPPwOIgJGG/6mHYBEwyvA/FYAIGGX4nw5ABIww/IsCEAG9D//iAERAz8N/OBwOqw6vH7ZBL4O/2gawDeh1+FffALYBvQz+5gEIgR5OFbsdWYRAi8fp3c/sQqCl58jQh1YxEDH0zQQgCsMe7R/LD+ed+lsO8wAAAABJRU5ErkJggg==" />
+  <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAEPElEQVR42u3dTW4TSxSAUVfJe0BhwFYisYvMWBoz7wLJW8kgFqsII4+I3W33z62qe84QiB7t3K9vNfFLyqExL69vnweGdTmfSkt/n2LYyRxFMfRkjqEYfDKHUAw+mUMoBp/MIRSDT+YQquGnJ2vPWDH4ZN4G1fCTeRtUw0/mCKrhJ3ME1fCTOYJq+MkcQTX8ZI6gGn4yR1ANP5kjKBmH/+PP7/9+7fvPX+mGJMPrMPXFsuqTfv/XvQ5jq5nu/lOf3Cyf/Eyvw9QMV8OfK4KMr8O9WU5xBHr0kzlqBF6HmQH4Vx9Gc2umq5eGzKq7P5m3gA2ADeDuT9YtYANgA7j7k3UL2ACkVlrZANneg0LsG++ub5Ir0cNv8IkK4XI+laPBJ9p1FiJCOBp8ModQDT+thjBUAIafFuel7PEAbPhp9QG5Gn4ybwJfCCO12nO92AI2ALQYgLs/PcyTDYAN4O5P1i1gA2ADgABAACAAEAAIAAQAAgABgABAACAAEAAIAAQAAgAB3BL57bDpx55zcoy6OP/bJC3cII/RFysEIk8Gx1YuXggGP2UAng9I8xAMAgABgABAACAAEAAIAAQAAgABgABAACAAEAAIAAQAAgABgABAACAAmOmY+eJvfS+irb9Fy8ePb1//d9//Dnm9NkBHwz/1e1sN/9Tv9Xq9NkBHg//Vn1vr7jh3uK9/bq1tEHW9NgAIoM+7/9rHg2eONmsch6KuVwCDDP8qH7tgkBd9bND1CgAEAAIAAYAAQACxlnyBZ9HHLviC1qKPDbpeAQwWwRrD8Mwgr/GV4KjrFQB0It17geb+VMq174TXO/rUF7fWfkdo1PXaAB0fh7YchnsDvuXboaOu1wYY9MF472eCnq/XBgABgABAACAAEAAIAAQAAgABgABAACAAEAAIAAQAAgABgABAACAAEAAIAAQAAgABgABAABAaQLYfwkz7c7JJAL4LMb3MlSMQjkCOQWQ8/mwagGMQPcxTzVA57v6eAeh2+Lc8TWwawL2/uC1AC8rL69vnqHXT/7Fn6/moLbwAtoHhj7o57hLAnAsRQa7Bb+XzvcsR6JkhdzTKdbeP+vzvGoA7Pa3d/HYPQAS0tPVDAhACrRx5QwMQAdHPeuEBCMHgC0AQhl4AsD9vhkMAIAAQACQL4HI+FS8DGV3Op2ID4AgEAgABQMIAPAiT8QHYBsAG8BIgAMcgEh5/bABsgFtlwOh3fxsAG2CqEBj17m8DYAPMLQVGu/vbANgAjxYDo9z9JzeACBh5+B2BcARaWhD0evefvQFEwIjD/9ARSASMNvwPPwOIgJGG/6mHYBEwyvA/FYAIGGX4nw5ABIww/IsCEAG9D//iAERAz8N/OBwOqw6vH7ZBL4O/2gawDeh1+FffALYBvQz+5gEIgR5OFbsdWYRAi8fp3c/sQqCl58jQh1YxEDH0zQQgCsMe7R/LD+ed+lsO8wAAAABJRU5ErkJggg==" />
+  <style>
+    :root {
+      /* 따뜻한 아이보리 + 잉크 네이비 + 코랄 포인트의 최신 톤 */
+      --ink: #24313d;
+      --muted: #87919d;
+      --line: #e9e7e2;
+      --blue: #2f688c;
+      --blue-deep: #193f59;
+      --blue-soft: #e7f0f6;
+      --coral: #ff5d70;
+      --coral-soft: #fff0f2;
+      --yellow: #f0c85f;
+      --green: #4f6e79;
+      --surface: #fffdf9;
+      --page: #f4f3ee;
+      --shadow: 0 18px 42px rgba(47, 57, 67, .10);
+      --radius-xl: 28px;
+    }
+
+    * { box-sizing: border-box; }
+    html { min-width: 320px; background: var(--page); }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      background: var(--page);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { border: 0; cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 3px solid rgba(35, 90, 159, .23);
+      outline-offset: 2px;
+    }
+
+    .app-shell {
+      width: min(100%, 520px);
+      min-height: 100dvh;
+      margin: 0 auto;
+      padding: max(18px, env(safe-area-inset-top)) 18px calc(110px + env(safe-area-inset-bottom));
+    }
+
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .brand-lockup { display: flex; align-items: center; min-width: 0; gap: 10px; }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      color: #fff;
+      background: linear-gradient(145deg, #347ba2, #193f59);
+      box-shadow: 0 8px 16px rgba(25, 63, 89, .20);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: -.08em;
+    }
+    .brand-copy { min-width: 0; }
+    .brand-copy b { display: block; font-size: 15px; letter-spacing: -.04em; }
+    .brand-copy span { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; font-weight: 700; }
+    .top-actions { display: flex; align-items: center; gap: 8px; }
+    .sync-status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 5px 7px;
+      border-radius: 999px;
+      color: #6f7b82;
+      background: #eceeea;
+      font-size: 9px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .sync-status.online { color: #4f6e79; background: #e3eceb; }
+    .sync-status.syncing { color: #866d2d; background: #fff1c9; }
+    .sync-status.offline { color: #7d8589; background: #eceeea; }
+    .icon-btn {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(216, 224, 238, .85);
+      border-radius: 15px;
+      color: var(--blue);
+      background: rgba(255, 255, 255, .86);
+      box-shadow: 0 7px 20px rgba(50, 77, 118, .06);
+      font-size: 20px;
+    }
+    .avatar {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      color: var(--blue-deep);
+      background: #dcecff;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .property-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; }
+    .property-picker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 0;
+      color: var(--ink);
+      background: transparent;
+      font-size: 25px;
+      font-weight: 900;
+      letter-spacing: -.07em;
+    }
+    .property-picker small { color: var(--blue); font-size: 15px; letter-spacing: 0; }
+    .property-picker.locked { color: var(--blue-deep); cursor: default; }
+    .property-picker.locked small { color: #9aa5ac; }
+    .property-meta { color: var(--muted); font-size: 12px; font-weight: 700; text-align: right; white-space: nowrap; }
+
+    .month-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 28px 2px 14px; }
+    .month-toolbar h1 { margin: 0; font-size: 23px; letter-spacing: -.07em; }
+    .month-controls { display: flex; align-items: center; gap: 7px; }
+    .text-btn { padding: 8px 4px; color: var(--blue); background: transparent; font-size: 14px; font-weight: 900; }
+    .round-btn {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      color: #6c7583;
+      background: rgba(255, 255, 255, .72);
+      font-size: 23px;
+      line-height: 1;
+    }
+
+    .legend-wrap { display: grid; gap: 10px; margin: 0 0 17px; }
+    /* 색상 안내는 기본으로 숨기고, ? 버튼을 누를 때만 펼칩니다 */
+    .legend-card { display: none; }
+    .legend-card.show { display: block; animation: legendOpen .18s ease-out; }
+    @keyframes legendOpen {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .legend-card.show { animation: none; }
+    }
+    .legend-btn { font-size: 19px; font-weight: 900; }
+    .legend-btn.active { color: #fff; background: var(--blue-deep); }
+    .legend-close {
+      width: 26px;
+      height: 26px;
+      margin: -4px -4px -4px 0;
+      border-radius: 9px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .legend-card, .filter-card {
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, .92);
+      border-radius: 18px;
+      background: rgba(255, 253, 249, .78);
+      box-shadow: 0 8px 22px rgba(64, 70, 75, .045);
+    }
+    .filter-card { background: rgba(255, 255, 255, .54); }
+    .guide-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 2px 9px; }
+    .guide-head b { color: var(--ink); font-size: 12px; font-weight: 900; letter-spacing: -.03em; }
+    .guide-kicker { color: var(--blue); font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+    .guide-note { color: var(--muted); font-size: 10px; font-weight: 800; }
+    .legend-row { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+    .legend-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 29px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #ebe7df;
+      color: #687482;
+      background: #fffdf9;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--coral); }
+    .dot.gray { background: #a4adba; }
+    .dot.navy { background: var(--blue-deep); }
+    .dot.yellow { background: var(--yellow); }
+    .checkout-key { width: 15px; height: 15px; border: 3px solid var(--coral); border-radius: 50%; background: transparent; }
+    .filter-row { display: flex; gap: 7px; overflow-x: auto; padding: 1px 0 2px; scrollbar-width: none; }
+    .filter-row::-webkit-scrollbar { display: none; }
+    .filter-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 34px;
+      flex: 0 0 auto;
+      padding: 8px 12px;
+      border: 1px solid #e3e6e8;
+      border-radius: 11px;
+      color: #6f7984;
+      background: #fffdfb;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .filter-pill.active { border-color: var(--blue-deep); color: #fff; background: var(--blue-deep); box-shadow: 0 7px 14px rgba(25, 63, 89, .16); }
+    .filter-dot { width: 7px; height: 7px; border-radius: 50%; background: #b8c0c7; }
+    .filter-dot.all { background: var(--blue); }
+    .filter-dot.airbnb { background: var(--coral); }
+    .filter-dot.direct { background: #a4adba; }
+    .filter-dot.booking { background: var(--blue-deep); }
+    .filter-dot.blocked { background: var(--yellow); }
+    .filter-pill.active .filter-dot { background: rgba(255, 255, 255, .9); }
+
+    .calendar-card {
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.8);
+      border-radius: var(--radius-xl);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .weekdays, .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .weekdays { border-bottom: 1px solid var(--line); }
+    .weekday { padding: 15px 0 12px; color: #a2a9b5; font-size: 12px; font-weight: 900; text-align: center; }
+    .weekday:first-child { color: var(--coral); }
+    .weekday:last-child { color: var(--blue); }
+    .calendar-grid { background: var(--line); gap: 1px; }
+    .day-cell {
+      position: relative;
+      min-width: 0;
+      min-height: 83px;
+      padding: 8px 4px 4px;
+      background: #fff;
+      transition: background .16s ease;
+    }
+    .day-cell:hover { background: #fbfdff; }
+    .day-cell.outside { min-height: 26px; background: #fbfcfe; }
+    .day-cell.selected { background: #f0f7fa; box-shadow: inset 0 0 0 2px #73c4d8; z-index: 2; }
+    .day-cell.today .day-number { color: var(--blue); background: var(--blue-soft); }
+    .day-number {
+      display: grid;
+      place-items: center;
+      width: 27px;
+      height: 27px;
+      margin: 0 auto 4px;
+      border-radius: 50%;
+      color: #525d6d;
+      font-size: 14px;
+      font-weight: 900;
+    }
+    .day-number.checkout { border: 3px solid var(--coral); color: #4f5968; background: #fff; }
+    .day-number.sunday { color: var(--coral); }
+    .day-number.saturday { color: var(--blue); }
+    .day-events { display: grid; gap: 4px; }
+    .event-chip {
+      display: block;
+      overflow: hidden;
+      min-height: 20px;
+      padding: 4px 6px;
+      border-radius: 7px;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 900;
+      line-height: 12px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .event-chip.airbnb { background: var(--coral); }
+    .event-chip.direct { color: #fff; background: #9ba6b4; }
+    .event-chip.booking { background: var(--blue-deep); }
+    .event-chip.blocked { color: #735d21; background: #f8d77f; }
+    .event-chip.continuation { opacity: .92; }
+    .event-more { color: #9aa4b3; font-size: 10px; font-weight: 900; text-align: center; }
+
+    .day-panel { margin-top: 22px; }
+    .day-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 3px 11px; }
+    .day-panel-heading h2 { margin: 0; font-size: 18px; letter-spacing: -.06em; }
+    .day-panel-heading span { color: var(--muted); font-size: 12px; font-weight: 800; }
+    .day-stack { display: grid; gap: 10px; }
+    .booking-card {
+      padding: 17px;
+      border: 1px solid rgba(255,255,255,.92);
+      border-radius: 21px;
+      background: rgba(255, 255, 255, .93);
+      box-shadow: 0 12px 30px rgba(57, 80, 119, .08);
+    }
+    .booking-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .booking-title { display: flex; align-items: center; min-width: 0; gap: 9px; }
+    .booking-title .dot { flex: 0 0 auto; }
+    .booking-title b { overflow: hidden; font-size: 17px; letter-spacing: -.05em; text-overflow: ellipsis; white-space: nowrap; }
+    .channel-badge { flex: 0 0 auto; padding: 6px 9px; border-radius: 999px; color: var(--blue); background: var(--blue-soft); font-size: 11px; font-weight: 900; }
+    .booking-route { display: flex; align-items: center; gap: 7px; margin: 12px 0 9px 18px; color: #4f5a6a; font-size: 13px; font-weight: 800; }
+    .route-arrow { color: var(--blue); font-size: 18px; }
+    .booking-meta { display: flex; flex-wrap: wrap; gap: 5px 12px; margin-left: 18px; color: var(--muted); font-size: 12px; font-weight: 700; }
+    .booking-meta span { display: inline-flex; align-items: center; gap: 4px; }
+    .supplies { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 0 18px; }
+    .supply { padding: 6px 8px; border-radius: 8px; color: #526079; background: #f3f6fb; font-size: 11px; font-weight: 800; }
+    .booking-actions { display: flex; gap: 8px; margin: 15px 0 0 18px; }
+    .secondary-btn, .primary-btn {
+      min-height: 37px;
+      padding: 9px 13px;
+      border-radius: 11px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .secondary-btn { color: #667286; background: #f1f4f8; }
+    .primary-btn { color: #fff; background: var(--blue); box-shadow: 0 8px 16px rgba(47, 104, 140, .18); }
+    .primary-btn:disabled { opacity: .62; cursor: default; box-shadow: none; }
+    .empty-state { padding: 26px 18px; border: 1px dashed #cdd8e8; border-radius: 20px; color: var(--muted); background: rgba(255,255,255,.55); text-align: center; }
+    .empty-state strong { display: block; margin-bottom: 4px; color: #566378; font-size: 14px; }
+    .empty-state span { font-size: 12px; font-weight: 700; }
+
+    .app-view[hidden] { display: none !important; }
+    .cleaning-view { margin-top: 4px; }
+    .cleaning-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 24px 2px 14px; }
+    .cleaning-head h2 { margin: 0; font-size: 24px; letter-spacing: -.08em; }
+    .cleaning-head p { margin: 5px 0 0; color: var(--muted); font-size: 11px; font-weight: 800; }
+    .cleaning-date { flex: 0 0 auto; color: var(--blue); font-size: 12px; font-weight: 900; text-align: right; }
+    .cleaning-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .cleaning-stat { padding: 12px 10px; border: 1px solid rgba(255,255,255,.9); border-radius: 16px; background: rgba(255,253,249,.86); box-shadow: 0 8px 20px rgba(64,70,75,.045); }
+    .cleaning-stat b { display: block; color: var(--blue-deep); font-size: 20px; letter-spacing: -.05em; }
+    .cleaning-stat span { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; font-weight: 900; }
+    .task-filters { display: flex; gap: 7px; overflow-x: auto; margin: 0 0 12px; padding: 2px 0 3px; scrollbar-width: none; }
+    .task-filters::-webkit-scrollbar { display: none; }
+    .task-filter { flex: 0 0 auto; min-height: 32px; padding: 7px 11px; border: 1px solid #e2e5e6; border-radius: 10px; color: #75808a; background: rgba(255,255,255,.6); font-size: 11px; font-weight: 900; }
+    .task-filter.active { border-color: var(--blue-deep); color: #fff; background: var(--blue-deep); }
+    .cleaning-list { display: grid; gap: 10px; }
+    .task-card { padding: 16px; border: 1px solid rgba(255,255,255,.94); border-radius: 21px; background: rgba(255,255,255,.94); box-shadow: 0 12px 30px rgba(57,80,119,.08); }
+    .task-card.done { background: #f7faf8; }
+    .task-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .task-place { min-width: 0; }
+    .task-place b { display: block; overflow: hidden; color: var(--ink); font-size: 17px; letter-spacing: -.06em; text-overflow: ellipsis; white-space: nowrap; }
+    .task-place span { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; font-weight: 800; }
+    .status-badge { flex: 0 0 auto; padding: 6px 9px; border-radius: 999px; color: #8b6e21; background: #fff1c9; font-size: 10px; font-weight: 900; }
+    .status-badge.in_progress { color: var(--blue); background: var(--blue-soft); }
+    .status-badge.done { color: #4f6e79; background: #e3eceb; }
+    .task-route { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 12px; color: #687482; font-size: 11px; font-weight: 800; }
+    .task-route span { display: inline-flex; align-items: center; gap: 4px; }
+    .task-supplies { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+    .task-supply { padding: 6px 8px; border-radius: 8px; color: #526079; background: #f3f6fb; font-size: 10px; font-weight: 800; }
+    .task-progress { display: flex; align-items: center; gap: 8px; margin-top: 13px; }
+    .progress-track { overflow: hidden; flex: 1; height: 7px; border-radius: 999px; background: #edf0ed; }
+    .progress-track i { display: block; height: 100%; border-radius: inherit; background: var(--blue); }
+    .task-progress span { color: var(--muted); font-size: 10px; font-weight: 900; white-space: nowrap; }
+    .task-actions { display: flex; gap: 7px; margin-top: 14px; }
+    .task-actions button { min-height: 36px; padding: 8px 11px; border-radius: 10px; font-size: 11px; font-weight: 900; }
+    .task-open { flex: 1; color: #5d6b78; background: #f1f4f7; }
+    .task-start { color: #fff; background: var(--blue); }
+    .task-start.done-action { color: #4f6e79; background: #e3eceb; }
+
+    .cleaning-dialog { max-height: min(820px, calc(100dvh - 24px)); overflow: auto; }
+    .task-dialog-meta { margin: -6px 0 15px; padding: 11px 12px; border-radius: 14px; color: #5e6e7b; background: #f3f6f4; font-size: 11px; font-weight: 800; line-height: 1.55; }
+    .task-dialog-meta b { color: var(--blue-deep); }
+    .checklist-groups { display: grid; gap: 10px; }
+    .check-group { padding: 12px; border: 1px solid #e8e7e1; border-radius: 15px; background: #fffdf9; }
+    .check-group h4 { margin: 0 0 8px; color: var(--ink); font-size: 13px; letter-spacing: -.04em; }
+    .check-list { display: grid; gap: 7px; }
+    .check-item { display: flex; align-items: center; gap: 8px; color: #61707b; font-size: 11px; font-weight: 800; line-height: 1.35; }
+    .check-item input { width: 17px; height: 17px; flex: 0 0 auto; accent-color: var(--blue); }
+    .check-item input:disabled { opacity: .82; }
+    .photo-panel { margin-top: 12px; padding: 13px; border: 1px dashed #b7cdd5; border-radius: 16px; background: #f5fafb; }
+    .photo-panel h4 { margin: 0; color: var(--blue-deep); font-size: 13px; }
+    .photo-panel p { margin: 4px 0 10px; color: var(--muted); font-size: 10px; font-weight: 700; }
+    .photo-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .photo-group { min-width: 0; padding: 9px; border: 1px solid rgba(183,205,213,.62); border-radius: 12px; background: rgba(255,255,255,.6); }
+    .photo-group h5 { margin: 0 0 7px; color: var(--blue-deep); font-size: 11px; }
+    .photo-add { display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 32px; padding: 7px 8px; border-radius: 9px; color: #fff; background: var(--blue); font-size: 10px; font-weight: 900; cursor: pointer; }
+    .photo-add input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    .photo-add.readonly { color: var(--blue); background: #e3eef2; cursor: default; }
+    .photo-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-top: 8px; }
+    .photo-thumb { position: relative; overflow: hidden; aspect-ratio: 1; border-radius: 8px; color: #71808a; background: #edf3f4; }
+    .photo-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .photo-thumb span { position: absolute; inset: 0; display: grid; place-items: center; padding: 3px; font-size: 9px; font-weight: 800; text-align: center; }
+    .photo-count { display: block; margin-top: 7px; color: #839098; font-size: 9px; font-weight: 800; }
+    .photo-empty { color: #95a1a8; font-size: 10px; font-weight: 800; }
+    .dialog-progress { margin: 0 0 12px; color: var(--blue); font-size: 11px; font-weight: 900; }
+
+    .report-view { margin-top: 4px; }
+    .report-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 24px 2px 14px; }
+    .report-head h2 { margin: 0; font-size: 24px; letter-spacing: -.08em; }
+    .report-head p { margin: 5px 0 0; color: var(--muted); font-size: 11px; font-weight: 800; }
+    .report-date { flex: 0 0 auto; color: var(--blue); font-size: 12px; font-weight: 900; text-align: right; }
+    .report-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 13px; }
+    .report-stat { padding: 12px 10px; border: 1px solid rgba(255,255,255,.9); border-radius: 16px; background: rgba(255,253,249,.86); box-shadow: 0 8px 20px rgba(64,70,75,.045); }
+    .report-stat b { display: block; color: var(--blue-deep); font-size: 20px; letter-spacing: -.05em; }
+    .report-stat span { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; font-weight: 900; }
+    .report-list { display: grid; gap: 10px; }
+    .report-card { padding: 16px; border: 1px solid rgba(255,255,255,.94); border-radius: 21px; background: rgba(255,255,255,.94); box-shadow: 0 12px 30px rgba(57,80,119,.08); }
+    .report-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .report-card-head h3 { margin: 0; color: var(--ink); font-size: 17px; letter-spacing: -.06em; }
+    .report-card-head p { margin: 4px 0 0; color: var(--muted); font-size: 11px; font-weight: 800; }
+    .report-complete { flex: 0 0 auto; padding: 6px 9px; border-radius: 999px; color: #4f6e79; background: #e3eceb; font-size: 10px; font-weight: 900; }
+    .report-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 13px; color: #687482; font-size: 11px; font-weight: 800; }
+    .report-meta span { display: inline-flex; align-items: center; gap: 4px; }
+    .report-note { margin-top: 10px; padding: 9px 10px; border-radius: 10px; color: #65737c; background: #f5f6f3; font-size: 11px; font-weight: 800; line-height: 1.45; }
+    .report-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .report-photo-group { min-width: 0; }
+    .report-photo-group h4 { margin: 0 0 6px; color: var(--blue-deep); font-size: 10px; }
+    .report-photo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+    .report-photo { overflow: hidden; aspect-ratio: 1; border-radius: 7px; color: #89959c; background: #edf3f4; }
+    .report-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .report-photo.empty { display: grid; place-items: center; padding: 5px; font-size: 9px; font-weight: 800; text-align: center; }
+    .report-actions { display: flex; gap: 7px; margin-top: 14px; }
+    .report-actions button { min-height: 36px; padding: 8px 10px; border-radius: 10px; font-size: 11px; font-weight: 900; }
+    .report-open { flex: 1; color: #5d6b78; background: #f1f4f7; }
+    .report-share { color: #fff; background: var(--blue); }
+
+    .trial-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 17px;
+      padding: 15px 16px;
+      border-radius: 18px;
+      color: #fff;
+      background: linear-gradient(130deg, #193f59, #347ba2);
+      box-shadow: 0 14px 26px rgba(25, 63, 89, .17);
+    }
+    .trial-card strong { display: block; font-size: 13px; }
+    .trial-card span { display: block; margin-top: 3px; color: #d9eaff; font-size: 11px; font-weight: 700; }
+    .trial-card button { padding: 9px 11px; border-radius: 10px; color: var(--blue-deep); background: #fff; font-size: 11px; font-weight: 900; white-space: nowrap; }
+
+    .plan-dialog { max-height: min(780px, calc(100dvh - 28px)); overflow: auto; }
+    .plan-intro { margin: -6px 0 17px; color: var(--muted); font-size: 12px; font-weight: 700; line-height: 1.55; }
+    .plan-grid { display: grid; gap: 10px; }
+    .plan-card {
+      position: relative;
+      padding: 15px;
+      border: 1px solid #e6e5df;
+      border-radius: 18px;
+      background: #fffdf9;
+    }
+    .plan-card.featured { border-color: #9cc4d5; background: #f3f8fa; box-shadow: 0 8px 18px rgba(47, 104, 140, .10); }
+    .plan-card h4 { margin: 0; color: var(--ink); font-size: 15px; letter-spacing: -.04em; }
+    .plan-card p { margin: 5px 0 10px; color: var(--muted); font-size: 11px; font-weight: 700; }
+    .plan-price { color: var(--blue-deep); font-size: 20px; font-weight: 950; letter-spacing: -.06em; }
+    .plan-price small { color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: 0; }
+    .plan-badge { position: absolute; top: 12px; right: 12px; padding: 5px 7px; border-radius: 999px; color: var(--blue-deep); background: #dcecf2; font-size: 10px; font-weight: 900; }
+    .plan-list { display: flex; flex-wrap: wrap; gap: 5px; margin: 12px 0; }
+    .plan-list span { padding: 6px 7px; border-radius: 8px; color: #596b78; background: #f1f3f1; font-size: 10px; font-weight: 800; }
+    .plan-card .subscribe-btn { width: 100%; min-height: 36px; border-radius: 10px; color: var(--blue-deep); background: #e8f1f4; font-size: 11px; font-weight: 900; }
+    .plan-card.featured .subscribe-btn { color: #fff; background: var(--blue); }
+    .plan-footnote { margin: 13px 0 0; color: #9a9d9a; font-size: 10px; font-weight: 700; text-align: center; }
+
+    .account-dialog { max-height: min(760px, calc(100dvh - 28px)); overflow: auto; }
+    .account-summary { margin: -5px 0 16px; padding: 12px; border-radius: 14px; color: #5d6c78; background: #f4f5f2; font-size: 12px; font-weight: 800; line-height: 1.5; }
+    .account-summary b { color: var(--blue-deep); }
+    .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .role-card { display: grid; gap: 5px; min-height: 132px; padding: 13px; border: 1px solid #e6e5df; border-radius: 17px; color: var(--ink); background: #fffdf9; text-align: left; }
+    .role-card.active { border-color: #88b8cd; background: #f1f8fa; box-shadow: 0 7px 16px rgba(47, 104, 140, .10); }
+    .role-icon { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 10px; color: var(--blue-deep); background: var(--blue-soft); font-size: 17px; }
+    .role-card b { font-size: 13px; letter-spacing: -.04em; }
+    .role-card span { color: var(--muted); font-size: 10px; font-weight: 700; line-height: 1.45; }
+    .role-permission { margin-top: auto; color: var(--blue); font-size: 10px; font-style: normal; font-weight: 900; }
+    .role-card.role-locked { opacity: .58; cursor: not-allowed; }
+    .account-footnote { margin: 14px 0 0; color: #9a9d9a; font-size: 10px; font-weight: 700; text-align: center; }
+    .account-actions { justify-content: space-between; margin-top: 16px; }
+
+    .login-dialog { width: min(calc(100% - 28px), 410px); }
+    .login-dialog::backdrop { background: rgba(24, 40, 67, .52); }
+    .login-brand { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: 14px; border-radius: 16px; color: #fff; background: linear-gradient(145deg, #347ba2, #193f59); box-shadow: 0 10px 20px rgba(25,63,89,.18); font-size: 14px; font-weight: 950; letter-spacing: -.08em; }
+    .login-dialog h3 { margin: 0; font-size: 23px; letter-spacing: -.08em; }
+    .login-intro { margin: 6px 0 18px; color: var(--muted); font-size: 11px; font-weight: 700; line-height: 1.5; }
+    .login-form { display: grid; gap: 11px; }
+    .login-form .primary-btn { width: 100%; min-height: 44px; margin-top: 3px; }
+    .login-error { padding: 9px 10px; border-radius: 10px; color: #a54856; background: var(--coral-soft); font-size: 11px; font-weight: 800; line-height: 1.4; }
+    .login-error[hidden] { display: none; }
+    .login-help { margin: 13px 0 0; color: #98a09f; font-size: 10px; font-weight: 700; line-height: 1.5; text-align: center; }
+
+    .bottom-nav {
+      position: fixed;
+      z-index: 10;
+      right: 50%;
+      bottom: max(12px, env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      width: min(calc(100% - 28px), 488px);
+      transform: translateX(50%);
+      padding: 8px;
+      border: 1px solid rgba(255,255,255,.8);
+      border-radius: 22px;
+      background: rgba(255,255,255,.92);
+      box-shadow: 0 14px 36px rgba(48, 71, 108, .17);
+      backdrop-filter: blur(18px);
+    }
+    .nav-btn { display: grid; place-items: center; gap: 3px; padding: 7px 3px; border-radius: 15px; color: #9aa4b2; background: transparent; font-size: 10px; font-weight: 800; }
+    .nav-btn i { font-style: normal; font-size: 20px; line-height: 20px; }
+    .nav-btn.active { color: var(--blue); background: var(--blue-soft); }
+
+    dialog { width: min(calc(100% - 28px), 480px); padding: 0; border: 0; border-radius: 25px; color: var(--ink); background: #fff; box-shadow: 0 24px 60px rgba(22, 42, 75, .25); }
+    dialog::backdrop { background: rgba(24, 40, 67, .38); backdrop-filter: blur(4px); }
+    .dialog-inner { padding: 22px; }
+    .dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 18px; }
+    .dialog-head h3 { margin: 0; font-size: 20px; letter-spacing: -.06em; }
+    .close-btn { width: 32px; height: 32px; border-radius: 10px; color: #758195; background: #f2f5f9; font-size: 18px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .field { display: grid; gap: 6px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { color: #778398; font-size: 11px; font-weight: 900; }
+    .field input, .field select, .field textarea { width: 100%; min-height: 43px; padding: 10px 11px; border: 1px solid #dfe6ef; border-radius: 12px; color: var(--ink); background: #fbfcfe; font-size: 13px; }
+    .field textarea { min-height: 74px; resize: vertical; }
+    .dialog-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 19px; }
+    .property-menu { position: fixed; z-index: 20; top: 84px; left: 18px; right: 18px; display: none; padding: 8px; border: 1px solid #dfe8f5; border-radius: 18px; background: #fff; box-shadow: 0 18px 42px rgba(29, 57, 97, .18); }
+    .property-menu.open { display: grid; gap: 4px; }
+    .property-option { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-radius: 12px; color: #59677b; background: transparent; text-align: left; font-size: 13px; font-weight: 800; }
+    .property-option:hover, .property-option.active { color: var(--blue); background: var(--blue-soft); }
+    .toast { position: fixed; z-index: 30; left: 50%; bottom: 96px; max-width: calc(100% - 42px); padding: 11px 14px; border-radius: 12px; color: #fff; background: rgba(24,34,51,.9); font-size: 12px; font-weight: 800; opacity: 0; pointer-events: none; transform: translate(-50%, 10px); transition: .22s ease; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    /* Galaxy·iPhone 세로 화면용 압축 레이아웃 */
+    @media (max-width: 430px) {
+      body { overflow-x: hidden; }
+      .app-shell { padding: 13px 14px calc(92px + env(safe-area-inset-bottom)); }
+      .brand-mark { width: 38px; height: 38px; border-radius: 12px; }
+      .brand-copy b { font-size: 14px; }
+      .brand-copy span { font-size: 10px; }
+      .icon-btn { width: 40px; height: 40px; border-radius: 13px; }
+      .avatar { width: 34px; height: 34px; font-size: 11px; }
+      .sync-status { min-height: 21px; padding: 4px 6px; font-size: 8px; }
+      .property-row { margin-top: 17px; }
+      .property-picker { font-size: 23px; }
+      .month-toolbar { margin: 20px 2px 8px; }
+      .month-toolbar h1 { font-size: 21px; }
+      .round-btn { width: 38px; height: 38px; }
+      .legend-wrap { gap: 6px; margin-bottom: 11px; }
+      .legend-card { padding: 7px 8px; border-radius: 14px; }
+      .guide-head { margin-bottom: 5px; }
+      .guide-head b { font-size: 10px; }
+      .guide-kicker { font-size: 8px; }
+      .guide-note { font-size: 9px; }
+      .legend-row { gap: 4px; }
+      .legend-pill { min-height: 23px; padding: 4px 6px; border-radius: 8px; font-size: 10px; }
+      .legend-pill .dot { width: 8px; height: 8px; }
+      .checkout-key { width: 12px; height: 12px; border-width: 2px; }
+      .filter-card { padding: 8px; border-radius: 14px; }
+      .filter-pill { min-height: 30px; padding: 6px 9px; font-size: 10px; }
+      .calendar-card { border-radius: 22px; }
+      .weekday { padding: 11px 0 9px; font-size: 11px; }
+      .day-cell { min-height: 70px; padding: 5px 3px 3px; }
+      .day-number { width: 24px; height: 24px; font-size: 12px; }
+      .day-number.checkout { border-width: 2px; }
+      .event-chip { min-height: 18px; padding: 3px 4px; border-radius: 6px; font-size: 9px; line-height: 11px; }
+      .day-panel { margin-top: 15px; }
+      .day-panel-heading h2 { font-size: 16px; }
+      .day-panel-heading span { font-size: 10px; }
+      .cleaning-head { margin-top: 17px; }
+      .cleaning-head h2 { font-size: 21px; }
+      .cleaning-summary { gap: 6px; }
+      .cleaning-stat { padding: 10px 8px; border-radius: 13px; }
+      .cleaning-stat b { font-size: 18px; }
+      .cleaning-stat span { font-size: 9px; }
+      .task-card { padding: 14px; border-radius: 18px; }
+      .task-place b { font-size: 15px; }
+      .task-actions button { font-size: 10px; }
+      .report-head { margin-top: 17px; }
+      .report-head h2 { font-size: 21px; }
+      .report-summary { gap: 6px; }
+      .report-stat { padding: 10px 8px; border-radius: 13px; }
+      .report-stat b { font-size: 18px; }
+      .report-stat span { font-size: 9px; }
+      .report-card { padding: 14px; border-radius: 18px; }
+      .bottom-nav { width: calc(100% - 20px); padding: 6px; border-radius: 20px; }
+      .nav-btn { padding: 6px 2px; font-size: 9px; }
+      .nav-btn i { font-size: 18px; }
+    }
+
+    @media (max-width: 370px) {
+      .guide-note { display: none; }
+      .legend-pill { padding: 4px 5px; font-size: 9px; }
+      .filter-pill { padding-left: 8px; padding-right: 8px; font-size: 9px; }
+    }
+
+    @media (min-width: 700px) {
+      .app-shell { padding-top: 36px; }
+      .property-menu { left: calc(50% - 330px); right: calc(50% - 330px); }
+      .calendar-card { border-radius: 30px; }
+      .day-cell { min-height: 95px; padding-left: 7px; padding-right: 7px; }
+      .event-chip { font-size: 11px; }
+    }
+
+    /* ===== 앱 설치 안내 배너 ===== */
+    .install-bar {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-top: 16px;
+      padding: 12px 12px 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .install-bar.show { display: flex; }
+    .install-bar .install-copy { flex: 1; min-width: 0; }
+    .install-bar .install-copy b { display: block; font-size: 13px; letter-spacing: -.03em; }
+    .install-bar .install-copy span { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 700; }
+    .install-cta {
+      flex: 0 0 auto;
+      padding: 10px 14px;
+      border-radius: 13px;
+      color: #fff;
+      background: var(--blue-deep);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+    }
+    .install-close {
+      flex: 0 0 auto;
+      width: 32px;
+      height: 32px;
+      border-radius: 11px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 15px;
+      font-weight: 800;
+    }
+    /* ===== 관리(객실·직원·계정) 화면 ===== */
+    .manage-head { margin: 22px 0 14px; }
+    .manage-head h2 { margin: 0; font-size: 21px; font-weight: 900; letter-spacing: -.05em; }
+    .manage-head p { margin: 5px 0 0; color: var(--muted); font-size: 11.5px; font-weight: 700; line-height: 1.5; }
+    .manage-tabs { display: flex; gap: 6px; padding: 5px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255, 255, 255, .6); }
+    .manage-tab { flex: 1; min-height: 38px; border-radius: 12px; color: var(--muted); background: transparent; font-size: 12.5px; font-weight: 800; }
+    .manage-tab.active { color: #fff; background: var(--blue-deep); }
+    .manage-list { display: grid; gap: 10px; margin-top: 14px; }
+    .manage-card { padding: 14px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); box-shadow: 0 8px 22px rgba(64, 70, 75, .045); }
+    .manage-card .mc-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .manage-card h3 { margin: 0; font-size: 15.5px; font-weight: 900; letter-spacing: -.04em; }
+    .manage-badge { flex: 0 0 auto; padding: 5px 9px; border-radius: 999px; color: var(--blue-deep); background: var(--blue-soft); font-size: 10px; font-weight: 900; }
+    .manage-badge.off { color: #8a8f96; background: #eceeea; }
+    .manage-badge.warn { color: #866d2d; background: #fff1c9; }
+    .manage-meta { display: flex; flex-wrap: wrap; gap: 5px 12px; margin-top: 10px; color: var(--muted); font-size: 11.5px; font-weight: 700; }
+    .manage-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .mini-btn { flex: 1; min-height: 38px; border: 1px solid var(--line); border-radius: 12px; color: var(--blue-deep); background: #fff; font-size: 12px; font-weight: 800; }
+    .mini-btn.danger { color: var(--coral); border-color: #ffd9de; background: var(--coral-soft); }
+    .add-btn { width: 100%; min-height: 48px; margin-top: 12px; border-radius: 16px; color: #fff; background: var(--blue-deep); font-size: 13.5px; font-weight: 800; }
+    .manage-empty { padding: 28px 16px; border: 1px dashed #ddd8cf; border-radius: 18px; color: var(--muted); background: rgba(255, 255, 255, .5); font-size: 12px; font-weight: 700; text-align: center; line-height: 1.6; }
+    .manage-hint { margin: 12px 2px 0; color: var(--muted); font-size: 10.5px; font-weight: 700; line-height: 1.7; }
+    .room-check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 8px; }
+    .room-check { display: flex; align-items: center; gap: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink); font-size: 12px; font-weight: 700; }
+    .assign-list { display: grid; gap: 8px; }
+    .assign-intro { margin: 0 0 12px; color: var(--muted); font-size: 12px; font-weight: 700; line-height: 1.6; }
+    .assign-option { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 50px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; color: var(--ink); background: #fff; font-size: 13px; font-weight: 800; text-align: left; }
+    .assign-option.active { color: #fff; background: var(--blue-deep); border-color: var(--blue-deep); }
+    .assign-option small { font-size: 10.5px; font-weight: 700; opacity: .72; }
+  </style>
+
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <div class="brand-mark">RM</div>
+        <div class="brand-copy">
+          <b>ROOMMADE</b>
+          <span id="roleLabel">전체 운영 · 예약 · 정산</span>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" id="syncBtn" aria-label="예약 새로고침">↻</button>
+        <span class="sync-status offline" id="syncStatus" title="서버가 연결되지 않아 브라우저에 저장합니다.">로컬 저장</span>
+        <button class="avatar" id="accountBtn" title="계정·역할">광우</button>
+      </div>
+    </header>
+
+    <!-- 앱 설치 안내 배너 : 설치되지 않은 상태에서만 보입니다 -->
+    <section class="install-bar" id="installBar" aria-label="앱 설치 안내">
+      <div class="install-copy">
+        <b>홈 화면에 앱으로 추가</b>
+        <span>주소창 없이 앱처럼 열리고, 인터넷이 끊겨도 달력을 볼 수 있어요.</span>
+      </div>
+      <button class="install-cta" id="installBtn" type="button">설치</button>
+      <button class="install-close" id="installClose" type="button" aria-label="설치 안내 닫기">✕</button>
+    </section>
+
+    <div id="calendarView" class="app-view">
+    <section class="property-row">
+      <button class="property-picker" id="propertyBtn" aria-expanded="false">송도1807 <small>⌄</small></button>
+      <div class="property-meta" id="propertyMeta">전체 객실 · 예약 25건</div>
+    </section>
+
+    <section class="month-toolbar">
+      <h1 id="monthTitle">2026년 8월</h1>
+      <div class="month-controls">
+        <button class="round-btn legend-btn" id="legendBtn" type="button" aria-expanded="false" aria-controls="legendCard" aria-label="예약 색상 안내 보기">?</button>
+        <button class="text-btn" id="todayBtn">오늘</button>
+        <button class="round-btn" id="prevBtn" aria-label="이전 달">‹</button>
+        <button class="round-btn" id="nextBtn" aria-label="다음 달">›</button>
+      </div>
+    </section>
+
+    <section class="legend-wrap" aria-label="예약 구분과 일정 필터">
+      <div class="legend-card" id="legendCard">
+        <div class="guide-head">
+          <b><span class="guide-kicker">Guide</span> · 색상 안내</b>
+          <button class="legend-close" id="legendClose" type="button" aria-label="색상 안내 닫기">✕</button>
+        </div>
+        <div class="legend-row">
+          <span class="legend-pill"><i class="dot"></i>에어비앤비</span>
+          <span class="legend-pill"><i class="dot gray"></i>직접 추가</span>
+          <span class="legend-pill"><i class="dot navy"></i>부킹닷컴</span>
+          <span class="legend-pill"><i class="checkout-key"></i>체크아웃</span>
+        </div>
+      </div>
+      <div class="filter-card">
+        <div class="guide-head">
+          <b><span class="guide-kicker">View</span> · 일정 필터</b>
+          <span class="guide-note">보고 싶은 일정만 선택</span>
+        </div>
+        <div class="filter-row" id="filterRow">
+          <button class="filter-pill active" data-filter="all"><i class="filter-dot all"></i>전체 일정</button>
+          <button class="filter-pill" data-filter="airbnb"><i class="filter-dot airbnb"></i>에어비앤비</button>
+          <button class="filter-pill" data-filter="direct"><i class="filter-dot direct"></i>직접 추가</button>
+          <button class="filter-pill" data-filter="booking"><i class="filter-dot booking"></i>부킹닷컴</button>
+          <button class="filter-pill" data-filter="blocked"><i class="filter-dot blocked"></i>휴무·잠금</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="calendar-card" aria-label="월간 예약 달력">
+      <div class="weekdays">
+        <div class="weekday">일</div><div class="weekday">월</div><div class="weekday">화</div>
+        <div class="weekday">수</div><div class="weekday">목</div><div class="weekday">금</div><div class="weekday">토</div>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </section>
+
+    <section class="day-panel">
+      <div class="day-panel-heading">
+        <h2 id="selectedDateTitle">8월 8일 (토)</h2>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="selectedDateSummary">체크인 1건 · 체크아웃 0건</span>
+          <button class="primary-btn" id="addReservationBtn" type="button" style="min-height:32px;padding:7px 10px;">＋ 추가</button>
+        </div>
+      </div>
+      <div class="day-stack" id="dayStack"></div>
+    </section>
+
+    <section class="trial-card">
+      <div>
+        <strong id="trialCardTitle">ROOMMADE Pro · 14일 무료 체험</strong>
+        <span id="trialCardText">팀 공유 · 사진 보고 · 자동 알림까지</span>
+      </div>
+      <button id="planBtn">요금제 보기</button>
+    </section>
+    </div>
+
+    <section id="cleaningView" class="cleaning-view app-view" hidden aria-label="청소업무">
+      <div class="cleaning-head">
+        <div>
+          <h2 id="cleaningTitle">오늘 청소업무</h2>
+          <p id="cleaningSubtitle">배정된 객실과 체크리스트를 한곳에서 관리하세요.</p>
+        </div>
+        <div class="cleaning-date" id="cleaningDate">2026. 08. 08<br />토요일</div>
+      </div>
+      <div class="cleaning-summary" id="cleaningSummary"></div>
+      <div class="task-filters" id="taskFilters">
+        <button class="task-filter active" data-task-filter="all">전체</button>
+        <button class="task-filter" data-task-filter="pending">대기</button>
+        <button class="task-filter" data-task-filter="in_progress">진행 중</button>
+        <button class="task-filter" data-task-filter="done">완료</button>
+      </div>
+      <div class="cleaning-list" id="cleaningTaskList"></div>
+    </section>
+
+    <section id="reportView" class="report-view app-view" hidden aria-label="청소 보고서">
+      <div class="report-head">
+        <div>
+          <h2 id="reportTitle">청소 보고서</h2>
+          <p id="reportSubtitle">완료된 객실의 전·후 사진과 작업 기록입니다.</p>
+        </div>
+        <div class="report-date" id="reportDate">2026. 08. 08<br />완료 기록</div>
+      </div>
+      <div class="report-summary" id="reportSummary"></div>
+      <div class="report-list" id="reportList"></div>
+    </section>
+    <section id="manageView" class="manage-view app-view" hidden aria-label="객실·직원·계정 관리">
+      <div class="manage-head">
+        <h2 id="manageTitle">객실 관리</h2>
+        <p id="manageSubtitle">객실을 등록하면 예약 추가와 직원 배정에 바로 사용됩니다.</p>
+      </div>
+      <div class="manage-tabs" id="manageTabs">
+        <button class="manage-tab active" data-manage-tab="rooms" type="button">객실</button>
+        <button class="manage-tab" data-manage-tab="staff" type="button">직원</button>
+        <button class="manage-tab" data-manage-tab="accounts" type="button">계정</button>
+      </div>
+      <div class="manage-list" id="manageList"></div>
+      <button class="add-btn" id="manageAddBtn" type="button">＋ 새로 추가</button>
+      <p class="manage-hint" id="manageHint"></p>
+    </section>
+  </main>
+
+
+  <nav class="bottom-nav" aria-label="주 메뉴">
+    <button class="nav-btn active" data-view="calendar" data-nav="일정"><i>▦</i><span>일정</span></button>
+    <button class="nav-btn" data-view="cleaning" data-nav="청소업무"><i>✓</i><span>청소업무</span></button>
+    <button class="nav-btn" data-view="manage" data-nav="관리"><i>⌂</i><span>관리</span></button>
+    <button class="nav-btn" data-view="report" data-nav="보고서"><i>▤</i><span>보고서</span></button>
+  </nav>
+
+  <div class="property-menu" id="propertyMenu" role="menu">
+    <button class="property-option active" data-property="송도1807">송도1807 <span>현재 객실</span></button>
+    <button class="property-option" data-property="송도1808">송도1808 <span>예약 4건</span></button>
+    <button class="property-option" data-property="영종3606">영종3606 <span>예약 7건</span></button>
+  </div>
+
+  <dialog id="reservationDialog">
+    <form class="dialog-inner" id="reservationForm" method="dialog">
+      <div class="dialog-head">
+        <h3>예약 일정 추가</h3>
+        <button class="close-btn" type="button" id="closeDialog" aria-label="닫기">×</button>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label for="reservationType">예약 유형</label>
+          <select id="reservationType">
+            <option value="direct">직접 추가</option>
+            <option value="airbnb">에어비앤비</option>
+            <option value="booking">부킹닷컴</option>
+            <option value="blocked">휴무·잠금</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="guestName">예약명</label>
+          <input id="guestName" placeholder="예: 김민수 / 에어비앤비" required />
+        </div>
+        <div class="field">
+          <label for="reservationRoom">객실</label>
+          <select id="reservationRoom"></select>
+        </div>
+        <div class="field">
+          <label for="reservationStaff">담당 청소자</label>
+          <select id="reservationStaff"></select>
+        </div>
+        <div class="field">
+          <label for="startDate">체크인 날짜</label>
+          <input id="startDate" type="date" required />
+        </div>
+        <div class="field">
+          <label for="endDate">체크아웃 날짜</label>
+          <input id="endDate" type="date" required />
+        </div>
+        <div class="field">
+          <label for="checkInTime">체크인</label>
+          <input id="checkInTime" type="time" value="16:00" />
+        </div>
+        <div class="field">
+          <label for="checkOutTime">체크아웃</label>
+          <input id="checkOutTime" type="time" value="11:00" />
+        </div>
+        <div class="field">
+          <label for="guestCount">숙박 인원</label>
+          <input id="guestCount" type="number" min="0" value="2" />
+        </div>
+        <div class="field">
+          <label for="suppliesInput">셋팅 물품</label>
+          <input id="suppliesInput" placeholder="수건 8, 토퍼 1" />
+        </div>
+        <div class="field full">
+          <label for="noteInput">메모</label>
+          <textarea id="noteInput" placeholder="청소자에게 전달할 내용을 적어주세요."></textarea>
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="secondary-btn" type="button" id="cancelDialog">취소</button>
+        <button class="primary-btn" type="submit">일정 저장</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="planDialog" class="plan-dialog">
+    <div class="dialog-inner">
+      <div class="dialog-head">
+        <h3>ROOMMADE 구독</h3>
+        <button class="close-btn" type="button" id="closePlanDialog" aria-label="닫기">×</button>
+      </div>
+      <p class="plan-intro">객실 수와 운영 방식에 맞는 플랜을 선택하세요.<br />모든 플랜은 14일 무료 체험으로 시작합니다.</p>
+      <div class="plan-grid">
+        <article class="plan-card">
+          <h4>호스트 Solo</h4>
+          <p>내 객실 예약과 청소 일정 관리</p>
+          <div class="plan-price">19,900원 <small>/ 월</small></div>
+          <div class="plan-list"><span>객실 3개</span><span>예약 달력</span><span>청소 체크</span></div>
+          <button class="subscribe-btn" data-plan="호스트 Solo">이 플랜으로 시작</button>
+        </article>
+        <article class="plan-card featured">
+          <span class="plan-badge">가장 많이 선택</span>
+          <h4>Team 운영</h4>
+          <p>직원 배정과 사진 보고까지 한 번에</p>
+          <div class="plan-price">49,900원 <small>/ 월</small></div>
+          <div class="plan-list"><span>객실 15개</span><span>팀원 5명</span><span>사진 보고</span><span>카카오 공유</span></div>
+          <button class="subscribe-btn" data-plan="Team 운영">14일 무료 체험 시작</button>
+        </article>
+        <article class="plan-card">
+          <h4>Operator</h4>
+          <p>여러 호스트를 관리하는 청소 운영사</p>
+          <div class="plan-price">99,000원 <small>/ 월</small></div>
+          <div class="plan-list"><span>객실 50개</span><span>호스트 공유</span><span>운영 리포트</span></div>
+          <button class="subscribe-btn" data-plan="Operator">상담 후 시작</button>
+        </article>
+      </div>
+      <p class="plan-footnote">14일 체험 상태는 서버에 저장됩니다. 실제 카드 결제는 사업자·결제 연동 단계에서 연결합니다.</p>
+    </div>
+  </dialog>
+
+  <dialog id="loginDialog" class="login-dialog">
+    <form class="dialog-inner login-form" id="loginForm">
+      <div class="login-brand">RM</div>
+      <h3>ROOMMADE Manager</h3>
+      <p class="login-intro">계정에 따라 보이는 객실과 사용할 수 있는 기능이 달라집니다.</p>
+      <div class="field">
+        <label for="loginUsername">사용자 선택</label>
+        <select id="loginUsername"></select>
+      </div>
+      <div class="field">
+        <label for="loginPin">PIN</label>
+        <input id="loginPin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="숫자 4자리 이상" required />
+      </div>
+      <div class="login-error" id="loginError" hidden></div>
+      <button class="primary-btn" type="submit">로그인</button>
+      <p class="login-help">처음 PIN은 모두 1234입니다. 로그인 후 관리 → 계정에서 꼭 바꿔주세요.</p>
+    </form>
+  </dialog>
+
+  <dialog id="accountDialog" class="account-dialog">
+    <div class="dialog-inner">
+      <div class="dialog-head">
+        <h3>내 계정 · 권한</h3>
+        <button class="close-btn" type="button" id="closeAccountDialog" aria-label="닫기">×</button>
+      </div>
+      <div class="account-summary" id="accountSummary"></div>
+      <div class="manage-list" id="accountPermList"></div>
+      <button class="add-btn" id="goAccountsBtn" type="button" hidden>계정 · 권한 관리하기</button>
+      <div class="dialog-footer account-actions">
+        <button class="secondary-btn" type="button" id="logoutBtn">로그아웃</button>
+        <button class="primary-btn" type="button" id="closeAccountFooter">닫기</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="cleaningDialog" class="cleaning-dialog">
+    <div class="dialog-inner">
+      <div class="dialog-head">
+        <h3 id="cleaningDialogTitle">청소 체크리스트</h3>
+        <button class="close-btn" type="button" id="closeCleaningDialog" aria-label="닫기">×</button>
+      </div>
+      <div id="cleaningDialogBody"></div>
+      <div class="dialog-footer" id="cleaningDialogFooter"></div>
+    </div>
+  </dialog>
+
+  <dialog id="roomDialog">
+    <form class="dialog-inner" id="roomForm">
+      <div class="dialog-head">
+        <h3 id="roomDialogTitle">객실 추가</h3>
+        <button class="close-btn" type="button" id="closeRoomDialog" aria-label="닫기">×</button>
+      </div>
+      <div class="form-grid">
+        <div class="field full">
+          <label for="roomName">객실 이름 *</label>
+          <input id="roomName" placeholder="예: 송도1807" required />
+        </div>
+        <div class="field">
+          <label for="roomBranch">지점</label>
+          <input id="roomBranch" placeholder="예: 송도점" />
+        </div>
+        <div class="field">
+          <label for="roomHost">호스트</label>
+          <input id="roomHost" placeholder="예: 광우" />
+        </div>
+        <div class="field">
+          <label for="roomDoor">도어락 번호</label>
+          <input id="roomDoor" placeholder="예: 1234*" />
+        </div>
+        <div class="field">
+          <label for="roomMinutes">청소 소요(분)</label>
+          <input id="roomMinutes" type="number" min="0" value="90" />
+        </div>
+        <div class="field full">
+          <label for="roomSupplies">기본 셋팅 물품</label>
+          <input id="roomSupplies" placeholder="수건 8, 토퍼 1" />
+        </div>
+        <div class="field full">
+          <label for="roomNote">메모</label>
+          <textarea id="roomNote" placeholder="주차 안내, 특이사항 등"></textarea>
+        </div>
+        <div class="field full">
+          <label class="room-check"><input id="roomActive" type="checkbox" checked /><span>운영 중인 객실</span></label>
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="secondary-btn" type="button" id="roomDeleteBtn">삭제</button>
+        <button class="primary-btn" type="submit">저장</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="staffDialog">
+    <form class="dialog-inner" id="staffForm">
+      <div class="dialog-head">
+        <h3 id="staffDialogTitle">직원 추가</h3>
+        <button class="close-btn" type="button" id="closeStaffDialog" aria-label="닫기">×</button>
+      </div>
+      <div class="form-grid">
+        <div class="field full">
+          <label for="staffName">이름 *</label>
+          <input id="staffName" placeholder="예: 김과장" required />
+        </div>
+        <div class="field">
+          <label for="staffPhone">연락처</label>
+          <input id="staffPhone" type="tel" inputmode="tel" placeholder="010-0000-0000" />
+        </div>
+        <div class="field">
+          <label for="staffBranch">담당 지점</label>
+          <input id="staffBranch" placeholder="예: 송도점" />
+        </div>
+        <div class="field">
+          <label for="staffRole">직무</label>
+          <select id="staffRole">
+            <option value="cleaner">청소자</option>
+            <option value="manager">실장</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="staffPay">1회 정산금(원)</label>
+          <input id="staffPay" type="number" min="0" step="1000" value="0" />
+        </div>
+        <div class="field full">
+          <label for="staffMemo">메모</label>
+          <textarea id="staffMemo" placeholder="근무 가능 요일, 특이사항 등"></textarea>
+        </div>
+        <div class="field full">
+          <label class="room-check"><input id="staffActive" type="checkbox" checked /><span>현재 근무 중</span></label>
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="secondary-btn" type="button" id="staffDeleteBtn">삭제</button>
+        <button class="primary-btn" type="submit">저장</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="accountEditDialog">
+    <form class="dialog-inner" id="accountForm">
+      <div class="dialog-head">
+        <h3 id="accountDialogTitle">계정 추가</h3>
+        <button class="close-btn" type="button" id="closeAccountEditDialog" aria-label="닫기">×</button>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label for="accountUsername">로그인 아이디 *</label>
+          <input id="accountUsername" placeholder="예: host2" autocapitalize="off" required />
+        </div>
+        <div class="field">
+          <label for="accountName">이름 *</label>
+          <input id="accountName" placeholder="예: 김대표" required />
+        </div>
+        <div class="field">
+          <label for="accountPin">PIN (4자리 이상) *</label>
+          <input id="accountPin" type="password" inputmode="numeric" maxlength="12" required />
+        </div>
+        <div class="field">
+          <label for="accountRole">권한</label>
+          <select id="accountRole">
+            <option value="operator">운영자 · 전체 권한</option>
+            <option value="manager">실장 · 배정까지</option>
+            <option value="host">호스트 · 내 객실만</option>
+            <option value="cleaner">청소자 · 배정 업무만</option>
+          </select>
+        </div>
+        <div class="field full" id="accountStaffField">
+          <label for="accountStaff">연결할 직원 (청소자용)</label>
+          <select id="accountStaff"></select>
+        </div>
+        <div class="field full" id="accountRoomsField">
+          <label>볼 수 있는 객실 (호스트용)</label>
+          <div class="room-check-grid" id="accountRoomsGrid"></div>
+        </div>
+        <div class="field full">
+          <label class="room-check"><input id="accountActive" type="checkbox" checked /><span>로그인 허용</span></label>
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="secondary-btn" type="button" id="accountDeleteBtn">삭제</button>
+        <button class="primary-btn" type="submit">저장</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="assignDialog">
+    <div class="dialog-inner">
+      <div class="dialog-head">
+        <h3>청소 직원 배정</h3>
+        <button class="close-btn" type="button" id="closeAssignDialog" aria-label="닫기">×</button>
+      </div>
+      <p class="assign-intro" id="assignIntro"></p>
+      <div class="assign-list" id="assignList"></div>
+      <div class="dialog-footer">
+        <button class="secondary-btn" type="button" id="assignClearBtn">배정 해제</button>
+        <button class="primary-btn" type="button" id="assignCloseBtn">닫기</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    const STORAGE_KEY = 'roommade-calendar-events-v1';
+    const SUBSCRIPTION_KEY = 'roommade-subscription-v1';
+    const ROLE_KEY = 'roommade-role-v1';
+    const CLEANING_KEY = 'roommade-cleaning-v1';
+    const API_BASE = typeof window !== 'undefined' && window.ROOMMADE_API_BASE
+      ? String(window.ROOMMADE_API_BASE).replace(/\/$/, '')
+      : '';
+    const API_STATE_PATH = '/api/state';
+    const API_HEALTH_PATH = '/api/health';
+    const API_ME_PATH = '/api/auth/me';
+    const API_LOGIN_PATH = '/api/auth/login';
+    const API_LOGOUT_PATH = '/api/auth/logout';
+    const API_SUBSCRIPTION_PATH = '/api/subscription';
+    const CHECKLIST_TEMPLATE = [
+      { id: 'prep', title: '준비·기록', items: [['whole-photo', '청소 전 객실 전체 사진'], ['damage-note', '오염·파손·분실 여부 기록']] },
+      { id: 'bedroom', title: '침실', items: [['bedding', '침구·베개커버 교체'], ['topper', '토퍼·베개 위치와 셋팅 확인'], ['dust', '침대 밑·카펫·창틀 먼지 제거']] },
+      { id: 'bathroom', title: '욕실', items: [['bath-fixtures', '변기·세면대·거울 물자국 제거'], ['towels', '수건 수량과 비품 셋팅'], ['drain', '배수·냄새·바닥 물기 확인']] },
+      { id: 'kitchen', title: '주방', items: [['sink', '싱크대·가스레인지·전자레인지'], ['fridge', '냉장고 안 음식물·냄새 확인'], ['trash', '쓰레기·음식물 처리']] },
+      { id: 'final', title: '최종 점검', items: [['supplies', '소모품·객실 비품 보충'], ['lock', '창문·문단속·냉난방 확인'], ['after-photo', '청소 후 대표 사진 등록']] }
+    ];
+    const seededEvents = [
+      { id: 'a1', type: 'airbnb', label: '에어비앤비', start: '2026-08-08', end: '2026-08-09', checkIn: '16:00', checkOut: '11:00', guests: 4, code: 'HMWV8KWXD9', supplies: ['수건 8', '토퍼 1'], note: '체크인 전 객실 사진 확인', host: '광우', property: '송도1807', assigneeId: '김과장', status: 'in_progress' },
+      { id: 'a2', type: 'airbnb', label: '에어비앤비', start: '2026-08-10', end: '2026-08-11', checkIn: '15:00', checkOut: '11:00', guests: 2, code: 'HM2D8NQ4LP', supplies: ['수건 4'], note: '', host: '광우', property: '송도1807', assigneeId: '박지연' },
+      { id: 'a3', type: 'airbnb', label: '에어비앤비', start: '2026-08-13', end: '2026-08-14', checkIn: '16:00', checkOut: '11:00', guests: 3, code: 'HM9J3KX20A', supplies: ['수건 6'], note: '', host: '광우', property: '송도1807', assigneeId: '김과장', status: 'done', completedAt: '2026-08-13T14:25:00+09:00' },
+      { id: 'a4', type: 'airbnb', label: '에어비앤비', start: '2026-08-14', end: '2026-08-16', checkIn: '16:00', checkOut: '11:00', guests: 5, code: 'HM55LQJ8R2', supplies: ['수건 10', '토퍼 1'], note: '연박 후 침구 교체', host: '광우', property: '송도1807', assigneeId: '박지연' },
+      { id: 'a5', type: 'airbnb', label: '에어비앤비', start: '2026-08-15', end: '2026-08-17', checkIn: '15:00', checkOut: '11:00', guests: 4, code: 'HM0B7C4H1K', supplies: ['수건 8'], note: '', host: '광우', property: '송도1807', assigneeId: '김과장' },
+      { id: 'a6', type: 'airbnb', label: '에어비앤비', start: '2026-08-20', end: '2026-08-21', checkIn: '16:00', checkOut: '11:00', guests: 2, code: 'HM3F2T8N6Z', supplies: ['수건 4'], note: '', host: '광우', property: '송도1807', assigneeId: '박지연' },
+      { id: 'd1', type: 'direct', label: '직접 추가', start: '2026-08-22', end: '2026-08-27', checkIn: '15:00', checkOut: '11:00', guests: 2, code: '직접예약', supplies: ['수건 4'], note: '장박 관리', host: '김대표', property: '영종3606', assigneeId: '박지연' },
+      { id: 'b1', type: 'booking', label: '부킹닷컴', start: '2026-08-25', end: '2026-08-28', checkIn: '16:00', checkOut: '11:00', guests: 3, code: 'BK-2026-0825', supplies: ['수건 6'], note: '', host: '김대표', property: '영종3606', assigneeId: '김과장' },
+      { id: 'x1', type: 'blocked', label: '휴무·잠금', start: '2026-08-30', end: '2026-08-31', checkIn: '', checkOut: '', guests: 0, code: '운영자 잠금', supplies: [], note: '개인 일정', host: '광우', property: '송도1807', assigneeId: '' }
+    ];
+
+    const seededById = Object.fromEntries(seededEvents.map((event) => [event.id, event]));
+    function normalizeEvents(rawEvents, hydrateSeed = true) {
+      return (Array.isArray(rawEvents) ? rawEvents : []).filter((event) => event && event.id).map((event) => ({
+        ...(hydrateSeed ? seededById[event.id] : {}),
+        ...event,
+        host: Object.prototype.hasOwnProperty.call(event, 'host') ? event.host : hydrateSeed ? seededById[event.id]?.host || '광우' : '',
+        property: Object.prototype.hasOwnProperty.call(event, 'property') ? event.property : hydrateSeed ? seededById[event.id]?.property || '송도1807' : '',
+        assigneeId: Object.prototype.hasOwnProperty.call(event, 'assigneeId') ? event.assigneeId : hydrateSeed ? seededById[event.id]?.assigneeId || '' : '',
+        status: event.status || (hydrateSeed ? seededById[event.id]?.status || 'pending' : 'pending')
+      }));
+    }
+    let events = normalizeEvents(JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || seededEvents);
+    let viewDate = new Date(2026, 7, 1);
+    let selectedDate = '2026-08-08';
+    let activeFilter = 'all';
+    let currentProperty = '송도1807';
+    let subscription = JSON.parse(localStorage.getItem(SUBSCRIPTION_KEY) || 'null') || { plan: '', trial: false };
+    let currentRole = localStorage.getItem(ROLE_KEY) || 'operator';
+    let cleaningState = JSON.parse(localStorage.getItem(CLEANING_KEY) || 'null') || {};
+    let cleaningFilter = 'all';
+    let activeCleaningEventId = '';
+    let cleaningDialogMode = 'view';
+    let serverOnline = false;
+    let syncTimer = null;
+    let authMode = 'local';
+    let currentUser = { id: 'local-demo', username: 'operator', name: '광우', role: currentRole, properties: [], local: true };
+
+    const $ = (selector) => document.querySelector(selector);
+    const calendarGrid = $('#calendarGrid');
+    const dayStack = $('#dayStack');
+    const dialog = $('#reservationDialog');
+    const planDialog = $('#planDialog');
+    const loginDialog = $('#loginDialog');
+    const accountDialog = $('#accountDialog');
+    const cleaningDialog = $('#cleaningDialog');
+
+    /* =====================================================
+       객실 · 직원 · 계정 데이터 (모두 이 휴대폰에 저장됩니다)
+       ===================================================== */
+    const ROOMS_KEY = 'roommade-calendar-rooms-v1';
+    const STAFF_KEY = 'roommade-calendar-staff-v1';
+    const ACCOUNTS_KEY = 'roommade-calendar-accounts-v1';
+    const SESSION_KEY = 'roommade-calendar-session-v1';
+
+    function loadJson(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        return parsed === null || parsed === undefined ? fallback : parsed;
+      } catch (error) {
+        console.log('저장값 읽기 실패:', key, error);
+        return fallback;
+      }
+    }
+
+    function saveJson(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (error) {
+        console.log('저장 실패:', key, error);
+      }
+    }
+
+    const seedRooms = [
+      { name: '송도1807', branch: '송도점', host: '광우', doorCode: '', minutes: 90, supplies: '수건 8, 토퍼 1', note: '', active: true },
+      { name: '송도1808', branch: '송도점', host: '광우', doorCode: '', minutes: 90, supplies: '수건 4', note: '', active: true },
+      { name: '영종3606', branch: '영종점', host: '김대표', doorCode: '', minutes: 100, supplies: '수건 6', note: '', active: true }
+    ];
+    const seedStaff = [
+      { name: '김과장', phone: '', branch: '송도점', role: 'cleaner', pay: 0, memo: '', active: true },
+      { name: '박지연', phone: '', branch: '영종점', role: 'cleaner', pay: 0, memo: '', active: true }
+    ];
+    const seedAccounts = [
+      { username: 'operator', name: '광우', pin: '1234', role: 'operator', rooms: [], staffName: '', active: true },
+      { username: 'manager', name: '김실장', pin: '1234', role: 'manager', rooms: [], staffName: '', active: true },
+      { username: 'host', name: '김대표', pin: '1234', role: 'host', rooms: ['영종3606'], staffName: '', active: true },
+      { username: 'cleaner', name: '김과장', pin: '1234', role: 'cleaner', rooms: [], staffName: '김과장', active: true }
+    ];
+
+    let rooms = loadJson(ROOMS_KEY, null) || seedRooms.map((room) => ({ ...room }));
+    let staffList = loadJson(STAFF_KEY, null) || seedStaff.map((person) => ({ ...person }));
+    let accounts = loadJson(ACCOUNTS_KEY, null) || seedAccounts.map((account) => ({ ...account }));
+    let session = loadJson(SESSION_KEY, null);
+    let loggedIn = false;
+
+    const saveRooms = () => saveJson(ROOMS_KEY, rooms);
+    const saveStaff = () => saveJson(STAFF_KEY, staffList);
+    const saveAccounts = () => saveJson(ACCOUNTS_KEY, accounts);
+    const saveSession = () => saveJson(SESSION_KEY, session);
+
+    const findAccount = (username) => accounts.find((account) => account.username === username) || null;
+    const findRoom = (name) => rooms.find((room) => room.name === name) || null;
+    const findStaff = (name) => staffList.find((person) => person.name === name) || null;
+    const activeRooms = () => rooms.filter((room) => room.active !== false);
+    const activeCleaners = () => staffList.filter((person) => person.active !== false && person.role !== 'manager');
+    const roleLabelOf = (role) => ({ operator: '운영자', manager: '실장', host: '호스트', cleaner: '청소자' })[role] || '사용자';
+
+    const canManageRooms = () => currentRole === 'operator';
+    const canManageStaff = () => currentRole === 'operator';
+    const canManageAccounts = () => currentRole === 'operator';
+    const canAssign = () => currentRole === 'operator' || currentRole === 'manager';
+    const canEditReservation = () => currentRole === 'operator';
+
+    // 이전에 로그인한 계정이 있으면 그대로 이어서 사용합니다.
+    (function restoreSession() {
+      try {
+        const account = session && session.username ? findAccount(session.username) : null;
+        if (account && account.active !== false) {
+          loggedIn = true;
+          currentUser = { ...account, local: true };
+          currentRole = account.role;
+        } else {
+          session = null;
+        }
+      } catch (error) {
+        console.log('로그인 정보 복원 실패:', error);
+        session = null;
+      }
+    })();
+
+    /* ===== 관리 화면에서 쓰는 요소 ===== */
+    const manageView = $('#manageView');
+    const manageList = $('#manageList');
+    const roomDialog = $('#roomDialog');
+    const staffDialog = $('#staffDialog');
+    const accountEditDialog = $('#accountEditDialog');
+    const assignDialog = $('#assignDialog');
+
+    let manageTab = 'rooms';
+    let editingRoom = null;
+    let editingStaff = null;
+    let editingAccount = null;
+    let assignTargetId = '';
+
+
+    const roleMeta = {
+      operator: { label: '운영자', subtitle: '전체 운영 · 예약 · 정산', property: '전체 객실', nav: ['일정', '청소업무', '관리', '보고서'] },
+      manager: { label: '실장', subtitle: '전체 일정 · 직원 배정', property: '전체 객실', nav: ['일정', '청소업무', '객실·직원', '보고서'] },
+      host: { label: '호스트', subtitle: '내 객실 · 예약 · 청소현황', property: '내 객실', nav: ['일정', '청소현황', '내 객실', '보고서'] },
+      cleaner: { label: '청소자', subtitle: '배정 업무 · 사진 보고', property: '오늘 배정', nav: ['일정', '오늘업무', '내 객실', '사진보고'] }
+    };
+
+    const pad = (n) => String(n).padStart(2, '0');
+    const keyOf = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    const dateFromKey = (key) => { const [y, m, d] = key.split('-').map(Number); return new Date(y, m - 1, d); };
+    const formatMonth = (date) => `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
+    const formatKoreanDate = (key) => {
+      const date = dateFromKey(key);
+      const week = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
+      return `${date.getMonth() + 1}월 ${date.getDate()}일 (${week})`;
+    };
+    const inRange = (key, start, end) => key >= start && key <= end;
+    const canSeeEvent = (event) => {
+      if (currentRole === 'host') {
+        const myRooms = currentUser?.rooms || [];
+        if (event.type === 'blocked') return false;
+        return myRooms.length ? myRooms.includes(event.property) : event.host === (currentUser?.name || '');
+      }
+      if (currentRole === 'cleaner') {
+        const me = currentUser?.staffName || currentUser?.name || '';
+        return event.assigneeId === me;
+      }
+      return true;
+    };
+    const visibleEvents = () => events.filter((event) => canSeeEvent(event) && (activeFilter === 'all' || event.type === activeFilter));
+    const eventsOn = (key) => visibleEvents().filter((event) => inRange(key, event.start, event.end));
+
+    function setSyncStatus(label, state = 'offline', title = '') {
+      const status = $('#syncStatus');
+      if (!status) return;
+      status.textContent = label;
+      status.className = `sync-status ${state}`;
+      status.title = title || (state === 'online' ? '서버에 저장 중입니다.' : state === 'syncing' ? '서버와 동기화 중입니다.' : '서버가 연결되지 않아 브라우저에 저장합니다.');
+    }
+
+    async function apiRequest(path, options = {}) {
+      if (typeof fetch !== 'function' || typeof window === 'undefined' || window.location.protocol === 'file:') return null;
+      try {
+        const response = await fetch(`${API_BASE}${path}`, {
+          ...options,
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+        });
+        const payload = await response.json().catch(() => ({}));
+        return response.ok ? payload : { ...payload, _status: response.status };
+      } catch (error) {
+        return null;
+      }
+    }
+
+    async function saveStateToServer() {
+      if (!serverOnline) return false;
+      setSyncStatus('저장 중', 'syncing');
+      const result = await apiRequest(API_STATE_PATH, {
+        method: 'POST',
+        body: JSON.stringify({ events, cleaningState })
+      });
+      if (result?._status === 401) {
+        setSyncStatus('로그인 필요', 'offline', '로그인 후 서버 저장을 사용할 수 있습니다.');
+        openLoginDialog();
+        return false;
+      }
+      if (result?._status === 403) {
+        setSyncStatus('읽기 전용', 'online', '운영자만 예약을 저장할 수 있습니다.');
+        return false;
+      }
+      if (!result?.ok) {
+        serverOnline = false;
+        setSyncStatus('로컬 저장', 'offline');
+        return false;
+      }
+      setSyncStatus('서버 저장', 'online');
+      return true;
+    }
+
+    function queueServerSync() {
+      if (!serverOnline) return;
+      clearTimeout(syncTimer);
+      syncTimer = setTimeout(() => { void saveStateToServer(); }, 350);
+    }
+
+    async function syncWithServer() {
+      setSyncStatus('연결 중', 'syncing');
+      const health = await apiRequest(API_HEALTH_PATH);
+      if (!health?.ok) {
+        serverOnline = false;
+        setSyncStatus('로컬 저장', 'offline');
+        return false;
+      }
+      const remote = await apiRequest(API_STATE_PATH);
+      if (remote?._status === 401) {
+        setSyncStatus('로그인 필요', 'offline', '로그인 후 서버 저장을 사용할 수 있습니다.');
+        openLoginDialog();
+        return false;
+      }
+      if (!remote) {
+        serverOnline = false;
+        setSyncStatus('로컬 저장', 'offline');
+        return false;
+      }
+      serverOnline = true;
+      const remoteEvents = normalizeEvents(remote.events, false);
+      const remoteCleaning = remote.cleaningState && typeof remote.cleaningState === 'object' ? remote.cleaningState : {};
+      if (remoteEvents.length || Object.keys(remoteCleaning).length) {
+        events = remoteEvents.length ? remoteEvents : events;
+        cleaningState = Object.keys(remoteCleaning).length ? remoteCleaning : cleaningState;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+        localStorage.setItem(CLEANING_KEY, JSON.stringify(cleaningState));
+        renderCalendar();
+        renderDayPanel();
+        if (!$('#cleaningView').hidden) renderCleaningView();
+        if (!$('#reportView').hidden) renderReportView();
+        setSyncStatus('서버 동기화', 'online');
+        return true;
+      }
+      if (currentUser?.server && currentRole !== 'operator') {
+        events = [];
+        cleaningState = {};
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+        localStorage.setItem(CLEANING_KEY, JSON.stringify(cleaningState));
+        renderCalendar();
+        renderDayPanel();
+        if (!$('#cleaningView').hidden) renderCleaningView();
+        if (!$('#reportView').hidden) renderReportView();
+        setSyncStatus('서버 대기', 'online', '운영자 계정에서 먼저 객실과 일정을 등록하세요.');
+        return false;
+      }
+      return saveStateToServer();
+    }
+
+    async function loadSubscriptionFromServer() {
+      if (!serverOnline || !currentUser?.server) return;
+      const remote = await apiRequest(API_SUBSCRIPTION_PATH);
+      if (remote?.ok && remote.subscription) {
+        subscription = remote.subscription;
+        localStorage.setItem(SUBSCRIPTION_KEY, JSON.stringify(subscription));
+        renderSubscriptionCard();
+      }
+    }
+
+    function saveEvents() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+      queueServerSync();
+    }
+
+    function saveCleaningState() {
+      localStorage.setItem(CLEANING_KEY, JSON.stringify(cleaningState));
+      queueServerSync();
+    }
+
+    function getChecklistState(event) {
+      const existing = cleaningState[event.id] || { items: {}, photos: [], photoSets: { before: [], after: [] } };
+      existing.items = existing.items || {};
+      existing.photos = Array.isArray(existing.photos) ? existing.photos : [];
+      if (!existing.photoSets || typeof existing.photoSets !== 'object') existing.photoSets = { before: [], after: [] };
+      existing.photoSets.before = Array.isArray(existing.photoSets.before) ? existing.photoSets.before : [];
+      existing.photoSets.after = Array.isArray(existing.photoSets.after) ? existing.photoSets.after : [];
+      if (!existing.photoSets.before.length && !existing.photoSets.after.length && existing.photos.length) {
+        existing.photoSets.after = existing.photos.map((photo) => typeof photo === 'string' ? { name: photo, data: '' } : photo);
+      }
+      CHECKLIST_TEMPLATE.forEach((group) => group.items.forEach(([itemId]) => {
+        if (typeof existing.items[itemId] !== 'boolean') existing.items[itemId] = event.status === 'done';
+      }));
+      existing.photos = [...existing.photoSets.before, ...existing.photoSets.after].map((photo) => typeof photo === 'string' ? photo : photo.name).filter(Boolean);
+      cleaningState[event.id] = existing;
+      return existing;
+    }
+
+    function checklistStats(event) {
+      const state = getChecklistState(event);
+      const total = CHECKLIST_TEMPLATE.reduce((sum, group) => sum + group.items.length, 0);
+      const done = CHECKLIST_TEMPLATE.reduce((sum, group) => sum + group.items.filter(([itemId]) => state.items[itemId]).length, 0);
+      return { done, total, percent: total ? Math.round(done / total * 100) : 0 };
+    }
+
+    function statusLabel(status) {
+      return status === 'done' ? '완료' : status === 'in_progress' ? '진행 중' : '대기';
+    }
+
+    function showCalendarView() {
+      $('#calendarView').hidden = false;
+      $('#cleaningView').hidden = true;
+      $('#reportView').hidden = true;
+    }
+
+    function showCleaningView(focus = 'all') {
+      $('#calendarView').hidden = true;
+      $('#cleaningView').hidden = false;
+      $('#reportView').hidden = true;
+      if (focus === '사진보고') cleaningFilter = 'done';
+      if (focus === '청소업무' || focus === '오늘업무' || focus === '배정객실' || focus === '준비사항') cleaningFilter = 'all';
+      renderCleaningView();
+    }
+
+    function showReportView() {
+      $('#calendarView').hidden = true;
+      $('#cleaningView').hidden = true;
+      $('#reportView').hidden = false;
+      renderReportView();
+    }
+
+    function formatCompletedAt(event) {
+      const raw = event.completedAt || `${event.end}T14:30:00`;
+      const date = new Date(raw);
+      if (Number.isNaN(date.getTime())) return `${event.end.replaceAll('-', '.')}`;
+      return `${date.getFullYear()}. ${pad(date.getMonth() + 1)}. ${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    function photoItem(photo) {
+      return typeof photo === 'string' ? { name: photo, data: '' } : (photo || { name: '', data: '' });
+    }
+
+    function reportPhotoMarkup(photos) {
+      if (!photos.length) return '<div class="report-photo empty">사진 없음</div>';
+      return photos.slice(0, 6).map((photo) => {
+        const item = photoItem(photo);
+        return item.data ? `<div class="report-photo"><img src="${escapeHtml(item.data)}" alt="${escapeHtml(item.name)}" /></div>` : `<div class="report-photo empty">📷<br />${escapeHtml(item.name)}</div>`;
+      }).join('');
+    }
+
+    function reportText(event) {
+      const state = getChecklistState(event);
+      const beforeCount = state.photoSets.before.length;
+      const afterCount = state.photoSets.after.length;
+      return `[룸메이드] ${event.property || '객실'} 청소 완료했습니다.\n청소일자: ${event.end}\n작업자: ${event.assigneeId || '룸메이드'}\n완료시간: ${formatCompletedAt(event)}\n특이사항: ${event.note || '없음'}\n전·후 사진: 청소 전 ${beforeCount}장 / 청소 후 ${afterCount}장`;
+    }
+
+    async function shareReport(eventId) {
+      const event = events.find((item) => item.id === eventId);
+      if (!event) return;
+      const text = reportText(event);
+      const shareLog = await apiRequest(`/api/reports/${encodeURIComponent(eventId)}/share`, {
+        method: 'POST',
+        body: JSON.stringify({ channel: 'kakao', text })
+      });
+      if (shareLog?.sent) {
+        showToast('카카오톡으로 보고서를 전송했습니다.');
+        return;
+      }
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: `${event.property} 청소 완료 보고`, text });
+          showToast(shareLog?.logged ? '공유 시트로 보고서를 보냈습니다.' : '보고서를 공유했습니다.');
+          return;
+        }
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(text);
+          showToast('카카오톡에 붙여넣을 보고서 문구를 복사했습니다.');
+          return;
+        }
+      } catch (error) {
+        if (error?.name === 'AbortError') return;
+      }
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      textarea.remove();
+      showToast('카카오톡에 붙여넣을 보고서 문구를 복사했습니다.');
+    }
+
+    function renderReportView() {
+      const reports = events.filter((event) => event.type !== 'blocked' && event.status === 'done' && canSeeEvent(event));
+      const beforeTotal = reports.reduce((sum, event) => sum + getChecklistState(event).photoSets.before.length, 0);
+      const afterTotal = reports.reduce((sum, event) => sum + getChecklistState(event).photoSets.after.length, 0);
+      const title = currentRole === 'host' ? '내 객실 보고서' : currentRole === 'cleaner' ? '내 작업 보고서' : '청소 보고서';
+      const subtitle = currentRole === 'host' ? '내 객실의 완료된 청소 보고만 확인합니다.' : currentRole === 'cleaner' ? '완료한 객실의 작업 기록입니다.' : '완료된 객실의 전·후 사진과 작업 기록입니다.';
+      $('#reportTitle').textContent = title;
+      $('#reportSubtitle').textContent = subtitle;
+      $('#reportDate').innerHTML = `${reports.length ? reports.length + '건' : '0건'}<br />완료 기록`;
+      $('#reportSummary').innerHTML = `<div class="report-stat"><b>${reports.length}</b><span>완료 객실</span></div><div class="report-stat"><b>${beforeTotal}</b><span>청소 전 사진</span></div><div class="report-stat"><b>${afterTotal}</b><span>청소 후 사진</span></div>`;
+      const list = $('#reportList');
+      if (!reports.length) {
+        list.innerHTML = '<div class="empty-state"><strong>완료된 청소 보고서가 없습니다</strong><span>청소가 완료되면 이곳에서 전·후 사진과 보고 내용을 확인할 수 있습니다.</span></div>';
+        return;
+      }
+      list.innerHTML = reports.map((event) => {
+        const state = getChecklistState(event);
+        const stats = checklistStats(event);
+        const note = event.note ? `<div class="report-note">특이사항 · ${escapeHtml(event.note)}</div>` : '';
+        return `<article class="report-card">
+          <div class="report-card-head"><div><h3>${escapeHtml(event.property || '객실 미지정')}</h3><p>${escapeHtml(event.label)} · ${event.end}</p></div><span class="report-complete">✓ 청소 완료</span></div>
+          <div class="report-meta"><span>👤 작업자 ${escapeHtml(event.assigneeId || '룸메이드')}</span><span>🕒 ${formatCompletedAt(event)}</span><span>✓ 체크 ${stats.done}/${stats.total}</span></div>
+          ${note}
+          <div class="report-photos"><div class="report-photo-group"><h4>청소 전 · ${state.photoSets.before.length}장</h4><div class="report-photo-grid">${reportPhotoMarkup(state.photoSets.before)}</div></div><div class="report-photo-group"><h4>청소 후 · ${state.photoSets.after.length}장</h4><div class="report-photo-grid">${reportPhotoMarkup(state.photoSets.after)}</div></div></div>
+          <div class="report-actions"><button class="report-open" data-report-open="${event.id}">상세 보고서</button><button class="report-share" data-report-share="${event.id}">카톡 공유</button></div>
+        </article>`;
+      }).join('');
+      list.querySelectorAll('[data-report-open]').forEach((button) => button.addEventListener('click', () => openCleaningDialog(button.dataset.reportOpen, 'view')));
+      list.querySelectorAll('[data-report-share]').forEach((button) => button.addEventListener('click', () => shareReport(button.dataset.reportShare)));
+    }
+
+    function renderCleaningView() {
+      const allTasks = events.filter((event) => event.type !== 'blocked' && canSeeEvent(event));
+      const filteredTasks = cleaningFilter === 'all' ? allTasks : allTasks.filter((event) => event.status === cleaningFilter);
+      const pending = allTasks.filter((event) => event.status === 'pending').length;
+      const inProgress = allTasks.filter((event) => event.status === 'in_progress').length;
+      const done = allTasks.filter((event) => event.status === 'done').length;
+      const roleTitle = currentRole === 'cleaner' ? '오늘 배정업무' : currentRole === 'host' ? '내 객실 청소현황' : '청소업무';
+      const roleSubtitle = currentRole === 'cleaner' ? '배정된 객실의 체크리스트와 사진 보고를 완료하세요.' : currentRole === 'host' ? '내 객실의 청소 진행과 완료 보고를 확인하세요.' : '객실별 청소 진행상태와 사진 보고를 관리하세요.';
+      const today = dateFromKey(selectedDate);
+      const week = ['일', '월', '화', '수', '목', '금', '토'][today.getDay()];
+      $('#cleaningTitle').textContent = roleTitle;
+      $('#cleaningSubtitle').textContent = roleSubtitle;
+      $('#cleaningDate').innerHTML = `${today.getFullYear()}. ${pad(today.getMonth() + 1)}. ${pad(today.getDate())}<br />${week}요일`;
+      $('#cleaningSummary').innerHTML = `<div class="cleaning-stat"><b>${allTasks.length}</b><span>전체 업무</span></div><div class="cleaning-stat"><b>${pending + inProgress}</b><span>진행 중</span></div><div class="cleaning-stat"><b>${done}</b><span>완료</span></div>`;
+      document.querySelectorAll('.task-filter').forEach((button) => button.classList.toggle('active', button.dataset.taskFilter === cleaningFilter));
+      const list = $('#cleaningTaskList');
+      if (!filteredTasks.length) {
+        list.innerHTML = `<div class="empty-state"><strong>표시할 청소업무가 없습니다</strong><span>다른 상태를 선택하거나 운영자에게 배정을 요청하세요.</span></div>`;
+        return;
+      }
+      list.innerHTML = filteredTasks.map((event) => {
+        const stats = checklistStats(event);
+        const photoState = getChecklistState(event);
+        const safeProperty = escapeHtml(event.property || '객실 미지정');
+        const safeLabel = escapeHtml(event.label);
+        const assignment = currentRole === 'host' ? '룸메이드 청소 보고' : event.assigneeId ? `청소자 · ${escapeHtml(event.assigneeId)}` : '청소자 미배정';
+        const dateText = `${event.start.slice(5).replace('-', '/')} → ${event.end.slice(5).replace('-', '/')} · ${nightsBetween(event.start, event.end)}박`;
+        let actions = '';
+        if (currentRole === 'cleaner') {
+          const openLabel = event.status === 'done' ? '보고서 보기' : '체크리스트 작성';
+          actions = `<button class="task-open" data-task-open="${event.id}">${openLabel}</button>${event.status === 'pending' ? `<button class="task-start" data-task-action="start" data-id="${event.id}">업무 시작</button>` : event.status === 'in_progress' ? `<button class="task-start" data-task-action="complete" data-id="${event.id}">완료 처리</button>` : ''}`;
+        } else if (currentRole === 'operator') {
+          actions = `<button class="task-open" data-task-open="${event.id}">체크리스트 보기</button><button class="task-start" data-task-action="inspect" data-id="${event.id}">${event.assigneeId ? escapeHtml(event.assigneeId) + ' 배정됨' : '직원 배정'}</button>`;
+        } else {
+          actions = `<button class="task-open" data-task-open="${event.id}">${currentRole === 'host' ? '청소 보고 확인' : '업무 상세 보기'}</button>`;
+        }
+        return `<article class="task-card ${event.status === 'done' ? 'done' : ''}">
+          <div class="task-card-head"><div class="task-place"><b>${safeProperty}</b><span>${safeLabel} · ${assignment}</span></div><span class="status-badge ${event.status}">${statusLabel(event.status)}</span></div>
+          <div class="task-route"><span>🕒 ${dateText}</span><span>👤 ${event.guests || 0}명</span><span>${event.status === 'done' ? '✓ 완료 보고' : '◷ ' + (event.checkOut || '11:00') + ' 체크아웃'}</span><span>📷 전 ${photoState.photoSets.before.length} · 후 ${photoState.photoSets.after.length}</span></div>
+          ${event.supplies?.length ? `<div class="task-supplies">${event.supplies.map((supply) => `<span class="task-supply">${escapeHtml(supply)}</span>`).join('')}</div>` : ''}
+          <div class="task-progress"><div class="progress-track"><i style="width:${stats.percent}%"></i></div><span>체크 ${stats.done}/${stats.total}</span></div>
+          <div class="task-actions">${actions}</div>
+        </article>`;
+      }).join('');
+      list.querySelectorAll('[data-task-open]').forEach((button) => button.addEventListener('click', () => openCleaningDialog(button.dataset.taskOpen, currentRole === 'cleaner' || currentRole === 'operator' ? 'edit' : 'view')));
+      list.querySelectorAll('[data-task-action]').forEach((button) => button.addEventListener('click', () => {
+        const event = events.find((item) => item.id === button.dataset.id);
+        if (!event) return;
+        if (button.dataset.taskAction === 'start') { event.status = 'in_progress'; saveEvents(); renderCleaningView(); showToast('청소업무를 시작했습니다.'); }
+        if (button.dataset.taskAction === 'complete') { openCleaningDialog(event.id, 'edit'); }
+        if (button.dataset.taskAction === 'inspect') { openAssignDialog(event.id); }
+      }));
+    }
+
+    function renderPhotoGrid(photos) {
+      if (!photos.length) return '<span class="photo-empty">사진 없음</span>';
+      return photos.map((photo) => {
+        const item = photoItem(photo);
+        return item.data ? `<div class="photo-thumb"><img src="${escapeHtml(item.data)}" alt="${escapeHtml(item.name)}" /></div>` : `<div class="photo-thumb"><span>📷<br />${escapeHtml(item.name)}</span></div>`;
+      }).join('');
+    }
+
+    function photoBucketMarkup(bucket, label, photos, readonly) {
+      const input = readonly ? '' : `<label class="photo-add" for="${bucket}PhotoInput">＋ 사진 추가<input id="${bucket}PhotoInput" type="file" accept="image/*" multiple /></label>`;
+      return `<div class="photo-group"><h5>${label} · ${photos.length}장</h5>${input}<div class="photo-list" id="${bucket}PhotoList">${renderPhotoGrid(photos)}</div></div>`;
+    }
+
+    function compressPhotoFile(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const image = new Image();
+          image.onload = () => {
+            const maxSize = 720;
+            const ratio = Math.min(1, maxSize / Math.max(image.width, image.height));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(image.width * ratio));
+            canvas.height = Math.max(1, Math.round(image.height * ratio));
+            canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+            resolve({ name: file.name, data: canvas.toDataURL('image/jpeg', .78) });
+          };
+          image.onerror = () => resolve({ name: file.name, data: String(reader.result || '') });
+          image.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function addPhotoFiles(event, bucket, state) {
+      const files = Array.from(event.target.files || []);
+      if (!files.length) return;
+      Promise.all(files.map(compressPhotoFile)).then((items) => {
+        state.photoSets[bucket] = [...state.photoSets[bucket], ...items];
+        state.photos = [...state.photoSets.before, ...state.photoSets.after].map((photo) => photo.name);
+        saveCleaningState();
+        const list = $(`#${bucket}PhotoList`);
+      if (list) list.innerHTML = renderPhotoGrid(state.photoSets[bucket]);
+        const heading = list?.parentElement?.querySelector('h5');
+        if (heading) heading.textContent = `${bucket === 'before' ? '청소 전' : '청소 후'} · ${state.photoSets[bucket].length}장`;
+        showToast(`${files.length}장의 ${bucket === 'before' ? '청소 전' : '청소 후'} 사진을 추가했습니다.`);
+      });
+      event.target.value = '';
+    }
+
+    function openCleaningDialog(eventId, mode = 'view') {
+      const event = events.find((item) => item.id === eventId);
+      if (!event) return;
+      activeCleaningEventId = eventId;
+      cleaningDialogMode = mode;
+      const readonly = mode === 'view';
+      const state = getChecklistState(event);
+      const stats = checklistStats(event);
+      $('#cleaningDialogTitle').textContent = `${event.property || '객실'} · 청소 체크리스트`;
+      const note = currentRole === 'host' ? '' : event.note ? `<br />메모 · ${escapeHtml(event.note)}` : '';
+      $('#cleaningDialogBody').innerHTML = `<div class="task-dialog-meta"><b>${escapeHtml(event.label)} · ${statusLabel(event.status)}</b><br />${event.start.slice(5).replace('-', '/')} → ${event.end.slice(5).replace('-', '/')} · ${event.assigneeId ? '청소자 ' + escapeHtml(event.assigneeId) : '청소자 미배정'}${note}</div><div class="dialog-progress" id="checklistProgress">체크리스트 ${stats.done}/${stats.total} 완료</div><div class="checklist-groups">${CHECKLIST_TEMPLATE.map((group) => `<section class="check-group"><h4>${group.title}</h4><div class="check-list">${group.items.map(([itemId, label]) => `<label class="check-item"><input type="checkbox" data-check-id="${itemId}" ${state.items[itemId] ? 'checked' : ''} ${readonly ? 'disabled' : ''} /><span>${label}</span></label>`).join('')}</div></section>`).join('')}</div><div class="photo-panel"><h4>전·후 사진 보고</h4><p>${readonly ? '등록된 사진과 완료 상태를 확인합니다.' : '청소 전·후 사진을 선택해 보고서에 남깁니다.'}</p><div class="photo-columns">${photoBucketMarkup('before', '청소 전', state.photoSets.before, readonly)}${photoBucketMarkup('after', '청소 후', state.photoSets.after, readonly)}</div></div>`;
+      $('#cleaningDialogFooter').innerHTML = readonly ? '<button class="secondary-btn" type="button" id="closeCleaningFooter">닫기</button>' : `<button class="secondary-btn" type="button" id="saveChecklistBtn">체크리스트 저장</button>${currentRole === 'cleaner' ? '<button class="primary-btn" type="button" id="completeCleaningBtn">저장·완료 처리</button>' : ''}`;
+      if (typeof cleaningDialog.showModal === 'function') cleaningDialog.showModal(); else cleaningDialog.setAttribute('open', '');
+      document.querySelectorAll('[data-check-id]').forEach((input) => input.addEventListener('change', () => {
+        state.items[input.dataset.checkId] = input.checked;
+        saveCleaningState();
+        const next = checklistStats(event);
+        $('#checklistProgress').textContent = `체크리스트 ${next.done}/${next.total} 완료`;
+      }));
+      $('#beforePhotoInput')?.addEventListener('change', (inputEvent) => addPhotoFiles(inputEvent, 'before', state));
+      $('#afterPhotoInput')?.addEventListener('change', (inputEvent) => addPhotoFiles(inputEvent, 'after', state));
+      $('#saveChecklistBtn')?.addEventListener('click', () => saveCleaningDialog(false));
+      $('#completeCleaningBtn')?.addEventListener('click', () => saveCleaningDialog(true));
+      $('#closeCleaningFooter')?.addEventListener('click', closeCleaningDialog);
+    }
+
+    function saveCleaningDialog(complete) {
+      const event = events.find((item) => item.id === activeCleaningEventId);
+      if (!event) return;
+      saveCleaningState();
+      if (complete) { event.status = 'done'; event.completedAt = new Date().toISOString(); saveEvents(); }
+      closeCleaningDialog();
+      renderCleaningView();
+      renderDayPanel();
+      if (!$('#reportView').hidden) renderReportView();
+      showToast(complete ? '청소 완료와 사진 보고를 저장했습니다.' : '체크리스트를 저장했습니다.');
+    }
+
+    function closeCleaningDialog() { if (typeof cleaningDialog.close === 'function') cleaningDialog.close(); else cleaningDialog.removeAttribute('open'); }
+
+    function renderCalendar() {
+      $('#monthTitle').textContent = formatMonth(viewDate);
+      calendarGrid.innerHTML = '';
+      const year = viewDate.getFullYear();
+      const month = viewDate.getMonth();
+      const firstDay = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+      const todayKey = keyOf(new Date());
+
+      for (let i = 0; i < firstDay; i += 1) {
+        const blank = document.createElement('div');
+        blank.className = 'day-cell outside';
+        calendarGrid.appendChild(blank);
+      }
+
+      for (let day = 1; day <= totalDays; day += 1) {
+        const key = `${year}-${pad(month + 1)}-${pad(day)}`;
+        const date = dateFromKey(key);
+        const dayEvents = eventsOn(key);
+        const checkout = visibleEvents().some((event) => event.end === key);
+        const cell = document.createElement('button');
+        cell.type = 'button';
+        cell.className = `day-cell${key === selectedDate ? ' selected' : ''}${key === todayKey ? ' today' : ''}`;
+        cell.setAttribute('aria-label', `${formatKoreanDate(key)} 일정 ${dayEvents.length}건`);
+        cell.innerHTML = `
+          <span class="day-number ${date.getDay() === 0 ? 'sunday' : ''} ${date.getDay() === 6 ? 'saturday' : ''} ${checkout ? 'checkout' : ''}">${day}</span>
+          <span class="day-events"></span>
+        `;
+        const eventContainer = cell.querySelector('.day-events');
+        dayEvents.slice(0, 2).forEach((event) => {
+          const chip = document.createElement('span');
+          chip.className = `event-chip ${event.type}${event.start !== key ? ' continuation' : ''}`;
+          chip.textContent = event.start === key ? event.label : '· ' + event.label;
+          eventContainer.appendChild(chip);
+        });
+        if (dayEvents.length > 2) {
+          const more = document.createElement('span');
+          more.className = 'event-more';
+          more.textContent = `+${dayEvents.length - 2}건`;
+          eventContainer.appendChild(more);
+        }
+        cell.addEventListener('click', () => {
+          selectedDate = key;
+          renderCalendar();
+          renderDayPanel();
+        });
+        calendarGrid.appendChild(cell);
+      }
+    }
+
+    function renderDayPanel() {
+      const selectedEvents = eventsOn(selectedDate);
+      const checkoutCount = visibleEvents().filter((event) => event.end === selectedDate).length;
+      const checkinCount = visibleEvents().filter((event) => event.start === selectedDate).length;
+      $('#selectedDateTitle').textContent = formatKoreanDate(selectedDate);
+      $('#selectedDateSummary').textContent = `체크인 ${checkinCount}건 · 체크아웃 ${checkoutCount}건`;
+      dayStack.innerHTML = '';
+
+      if (!selectedEvents.length) {
+        dayStack.innerHTML = `<div class="empty-state"><strong>등록된 일정이 없습니다</strong><span>오른쪽 아래 추가 버튼 대신 상단 달력에서 + 기능을 연결할 수 있습니다.</span></div>`;
+        return;
+      }
+
+      selectedEvents.forEach((event) => {
+        const card = document.createElement('article');
+        const isCheckout = event.end === selectedDate;
+        const isCheckin = event.start === selectedDate;
+        const route = event.type === 'blocked' ? '운영자 잠금 일정' : `${event.start.slice(5).replace('-', '/')} → ${event.end.slice(5).replace('-', '/')} · ${nightsBetween(event.start, event.end)}박`;
+        const details = event.type === 'blocked'
+          ? `<span>🔒 ${currentRole === 'operator' ? (event.note || '청소 일정 없음') : '운영자 잠금 일정'}</span>`
+          : currentRole === 'host'
+            ? `<span>👤 ${event.guests || 0}명</span><span>🕒 ${isCheckin ? '체크인 ' + event.checkIn : '체크아웃 ' + event.checkOut}</span><span>✓ 준비 ${event.supplies?.length || 0}종</span>`
+            : currentRole === 'cleaner'
+              ? `<span>👤 ${event.guests || 0}명</span><span>🕒 ${isCheckin ? '체크인 ' + event.checkIn : '체크아웃 ' + event.checkOut}</span><span>${event.status === 'done' ? '✓ 완료' : '◷ 청소 대기'}</span>`
+              : `<span>👤 ${event.guests || 0}명</span><span>🕒 ${isCheckin ? '체크인 ' + event.checkIn : '체크아웃 ' + event.checkOut}</span><span>⌕ ${event.code || '예약번호 없음'}</span><span>👷 ${event.assigneeId || '미배정'}</span>`;
+        const noteHtml = event.note && currentRole !== 'host' ? `<div class="booking-meta" style="margin-top:10px;color:#526079;">메모 · ${escapeHtml(event.note)}</div>` : '';
+        const cleanerDone = event.status === 'done';
+        const actionHtml = event.type === 'blocked' ? '' : currentRole === 'operator'
+          ? `<div class="booking-actions"><button class="secondary-btn report-btn" data-id="${event.id}">사진 보고</button><button class="primary-btn assign-btn" data-id="${event.id}">${event.assigneeId ? escapeHtml(event.assigneeId + ' 배정됨') : '청소자 배정'}</button></div>`
+          : currentRole === 'cleaner'
+            ? `<div class="booking-actions"><button class="secondary-btn report-btn" data-id="${event.id}">사진 보고</button><button class="primary-btn done-btn" data-id="${event.id}" ${cleanerDone ? 'disabled' : ''}>${cleanerDone ? '완료됨' : '완료 처리'}</button></div>`
+            : `<div class="booking-actions"><button class="secondary-btn report-btn" data-id="${event.id}">${currentRole === 'host' ? '청소 보고 확인' : '보고서 보기'}</button></div>`;
+        card.className = 'booking-card';
+        card.innerHTML = `
+          <div class="booking-head">
+            <div class="booking-title"><i class="dot ${event.type === 'direct' ? 'gray' : event.type === 'booking' ? 'navy' : event.type === 'blocked' ? 'yellow' : ''}"></i><b>${escapeHtml(event.label)}</b></div>
+            <span class="channel-badge">${isCheckin ? '체크인' : isCheckout ? '체크아웃' : '숙박 중'}</span>
+          </div>
+          <div class="booking-route">${escapeHtml(route)} <span class="route-arrow">→</span></div>
+          <div class="booking-meta">${details}</div>
+          ${event.supplies && event.supplies.length ? `<div class="supplies">${event.supplies.map((s) => `<span class="supply">${escapeHtml(s)}</span>`).join('')}</div>` : ''}
+          ${noteHtml}
+          ${actionHtml}
+        `;
+        dayStack.appendChild(card);
+      });
+
+      dayStack.querySelectorAll('.assign-btn').forEach((button) => button.addEventListener('click', () => openAssignDialog(button.dataset.id)));
+      dayStack.querySelectorAll('.done-btn').forEach((button) => button.addEventListener('click', () => {
+        const event = events.find((item) => item.id === button.dataset.id);
+        if (!event) return;
+        openCleaningDialog(event.id, 'edit');
+      }));
+      dayStack.querySelectorAll('.report-btn').forEach((button) => button.addEventListener('click', () => openCleaningDialog(button.dataset.id, currentRole === 'cleaner' || currentRole === 'operator' ? 'edit' : 'view')));
+    }
+
+    function nightsBetween(start, end) {
+      const diff = dateFromKey(end) - dateFromKey(start);
+      return Math.max(1, Math.round(diff / 86400000));
+    }
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
+    }
+
+    function openReservationDialog() {
+      $('#startDate').value = selectedDate;
+      const nextDay = dateFromKey(selectedDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      $('#endDate').value = keyOf(nextDay);
+      $('#guestName').value = '';
+      $('#suppliesInput').value = '';
+      $('#noteInput').value = '';
+      if (typeof dialog.showModal === 'function') dialog.showModal();
+      else dialog.setAttribute('open', '');
+    }
+
+    function closeDialog() { if (typeof dialog.close === 'function') dialog.close(); else dialog.removeAttribute('open'); }
+
+    function openPlanDialog() {
+      if (typeof planDialog.showModal === 'function') planDialog.showModal();
+      else planDialog.setAttribute('open', '');
+    }
+
+    function closePlanDialog() { if (typeof planDialog.close === 'function') planDialog.close(); else planDialog.removeAttribute('open'); }
+
+    function openLoginDialog(message = '') {
+      const error = $('#loginError');
+      if (error) {
+        error.textContent = message;
+        error.hidden = !message;
+      }
+      if (typeof loginDialog.showModal === 'function' && !loginDialog.open) loginDialog.showModal();
+      else loginDialog.setAttribute('open', '');
+    }
+
+    function closeLoginDialog() { if (typeof loginDialog.close === 'function') loginDialog.close(); else loginDialog.removeAttribute('open'); }
+
+    function updateAccountDialog() {
+      const user = currentUser || { name: '광우', username: 'operator', role: currentRole };
+      const role = roleMeta[user.role]?.label || '미리보기';
+      const access = user.server ? '서버 권한 적용 중' : '브라우저 미리보기 모드';
+      $('#accountSummary').innerHTML = `현재 로그인: <b>${escapeHtml(user.name || '광우')}</b> · ${role}<br />${access} · 역할에 따라 보이는 객실과 메뉴가 달라집니다.`;
+      document.querySelectorAll('.role-card').forEach((card) => {
+        card.classList.toggle('active', card.dataset.role === currentRole);
+        card.disabled = Boolean(user.server);
+        card.classList.toggle('role-locked', Boolean(user.server));
+      });
+      $('#logoutBtn').hidden = !user.server;
+    }
+
+    function openAccountDialog() {
+      updateAccountDialog();
+      if (typeof accountDialog.showModal === 'function') accountDialog.showModal();
+      else accountDialog.setAttribute('open', '');
+    }
+
+    function closeAccountDialog() { if (typeof accountDialog.close === 'function') accountDialog.close(); else accountDialog.removeAttribute('open'); }
+
+    async function logout() {
+      if (!currentUser?.server) {
+        closeAccountDialog();
+        showToast('브라우저 미리보기에서는 로그아웃이 필요하지 않습니다.');
+        return;
+      }
+      await apiRequest(API_LOGOUT_PATH, { method: 'POST' });
+      authMode = 'server';
+      serverOnline = true;
+      currentUser = { id: 'local-demo', username: 'operator', name: '광우', role: 'operator', properties: [], local: true };
+      currentRole = 'operator';
+      events = [];
+      cleaningState = {};
+      subscription = { plan: '', trial: false };
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(CLEANING_KEY);
+      localStorage.removeItem(SUBSCRIPTION_KEY);
+      applyRole('operator', false);
+      renderSubscriptionCard();
+      closeAccountDialog();
+      setSyncStatus('로그인 필요', 'offline', '로그인 후 서버 저장을 사용할 수 있습니다.');
+      openLoginDialog();
+    }
+
+    function applyRole(role, notify = true) {
+      if (currentUser?.server && currentUser.role !== role) {
+        showToast('실제 계정 역할은 운영자가 설정합니다.');
+        return;
+      }
+      currentRole = role;
+      localStorage.setItem(ROLE_KEY, role);
+      const meta = roleMeta[role];
+      const restrictedProperty = role === 'host' || role === 'cleaner';
+      const visibleCount = events.filter((event) => canSeeEvent(event)).length;
+      $('#roleLabel').textContent = meta.subtitle;
+      $('#propertyMeta').textContent = role === 'host' ? `권한 객실 · ${visibleCount}건` : role === 'cleaner' ? `오늘 배정 · ${visibleCount}건` : meta.property;
+      $('#propertyBtn').innerHTML = `${role === 'host' ? '내 객실' : role === 'cleaner' ? '오늘 배정' : currentProperty} <small>⌄</small>`;
+      $('#propertyBtn').disabled = restrictedProperty;
+      $('#propertyBtn').classList.toggle('locked', restrictedProperty);
+      $('#propertyMenu').classList.toggle('open', false);
+      $('#syncBtn').style.display = role === 'operator' ? 'grid' : 'none';
+      $('#addReservationBtn').style.display = role === 'operator' ? '' : 'none';
+      activeFilter = 'all';
+      document.querySelectorAll('.filter-pill').forEach((button) => button.classList.toggle('active', button.dataset.filter === 'all'));
+      document.querySelectorAll('.nav-btn').forEach((button, index) => {
+        button.dataset.nav = meta.nav[index];
+        button.querySelector('span').textContent = meta.nav[index];
+      });
+      renderCalendar();
+      renderDayPanel();
+      if (!$('#cleaningView').hidden) renderCleaningView();
+      if (!$('#reportView').hidden) renderReportView();
+      if (notify) showToast(`${meta.label} 화면으로 전환했습니다.`);
+    }
+
+    function renderSubscriptionCard() {
+      const trialing = subscription?.trial || subscription?.status === 'trialing';
+      if (trialing && subscription.plan) {
+        $('#trialCardTitle').textContent = `${subscription.plan} · 무료 체험 중`;
+        $('#trialCardText').textContent = '14일 동안 팀 공유와 사진 보고를 사용해보세요.';
+        return;
+      }
+      $('#trialCardTitle').textContent = 'ROOMMADE Pro · 14일 무료 체험';
+      $('#trialCardText').textContent = '팀 공유 · 사진 보고 · 자동 알림까지';
+    }
+
+    async function startTrial(plan) {
+      let savedOnServer = false;
+      if (currentUser?.server && serverOnline) {
+        const result = await apiRequest(API_SUBSCRIPTION_PATH, { method: 'POST', body: JSON.stringify({ plan }) });
+        if (result?.ok && result.subscription) {
+          subscription = result.subscription;
+          savedOnServer = true;
+        } else if (result?._status === 401) {
+          openLoginDialog('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
+          return;
+        }
+      }
+      if (!savedOnServer) subscription = { plan, trial: true, status: 'trialing', startedAt: new Date().toISOString() };
+      localStorage.setItem(SUBSCRIPTION_KEY, JSON.stringify(subscription));
+      closePlanDialog();
+      renderSubscriptionCard();
+      showToast(savedOnServer ? `${plan} 무료 체험을 서버에 저장했습니다.` : `${plan} 14일 무료 체험을 시작했습니다.`);
+    }
+
+    async function handleLoginSubmit(event) {
+      event.preventDefault();
+      const button = $('#loginForm button[type="submit"]');
+      const error = $('#loginError');
+      if (button) button.disabled = true;
+      if (error) error.hidden = true;
+      setSyncStatus('로그인 중', 'syncing');
+      const result = await apiRequest(API_LOGIN_PATH, {
+        method: 'POST',
+        body: JSON.stringify({ username: $('#loginUsername').value, pin: $('#loginPin').value })
+      });
+      if (!result?.ok) {
+        if (button) button.disabled = false;
+        setSyncStatus('로그인 필요', 'offline');
+        openLoginDialog(result?.error || '로그인에 실패했습니다.');
+        return;
+      }
+      authMode = 'server';
+      serverOnline = true;
+      currentUser = { ...result.user, server: true };
+      currentRole = currentUser.role;
+      localStorage.setItem(ROLE_KEY, currentRole);
+      closeLoginDialog();
+      applyRole(currentRole, false);
+      await loadSubscriptionFromServer();
+      await syncWithServer();
+      if (button) button.disabled = false;
+      showToast(`${currentUser.name}님으로 로그인했습니다.`);
+    }
+
+    async function bootApp() {
+      applyRole(currentRole, false);
+      renderSubscriptionCard();
+      const health = await apiRequest(API_HEALTH_PATH);
+      if (!health?.ok) {
+        authMode = 'local';
+        serverOnline = false;
+        currentUser = { id: 'local-demo', username: 'operator', name: '광우', role: currentRole, properties: [], local: true };
+        setSyncStatus('로컬 저장', 'offline');
+        return;
+      }
+      authMode = 'server';
+      serverOnline = true;
+      const session = await apiRequest(API_ME_PATH);
+      if (session?.ok) {
+        currentUser = { ...session.user, server: true };
+        currentRole = currentUser.role;
+        localStorage.setItem(ROLE_KEY, currentRole);
+        applyRole(currentRole, false);
+        await loadSubscriptionFromServer();
+        await syncWithServer();
+        return;
+      }
+      setSyncStatus('로그인 필요', 'offline', '로그인 후 서버 저장을 사용할 수 있습니다.');
+      openLoginDialog();
+    }
+
+    function showToast(message) {
+      const toast = $('#toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove('show'), 2300);
+    }
+
+    function setFilter(filter) {
+      activeFilter = filter;
+      document.querySelectorAll('.filter-pill').forEach((button) => button.classList.toggle('active', button.dataset.filter === filter));
+      renderCalendar();
+      renderDayPanel();
+    }
+
+    $('#prevBtn').addEventListener('click', () => { viewDate.setMonth(viewDate.getMonth() - 1); selectedDate = keyOf(new Date(viewDate.getFullYear(), viewDate.getMonth(), 1)); renderCalendar(); renderDayPanel(); });
+    $('#nextBtn').addEventListener('click', () => { viewDate.setMonth(viewDate.getMonth() + 1); selectedDate = keyOf(new Date(viewDate.getFullYear(), viewDate.getMonth(), 1)); renderCalendar(); renderDayPanel(); });
+    $('#todayBtn').addEventListener('click', () => { viewDate = new Date(); viewDate.setDate(1); selectedDate = keyOf(new Date()); renderCalendar(); renderDayPanel(); showToast('오늘 날짜로 이동했습니다.'); });
+    $('#syncBtn').addEventListener('click', async () => {
+      const synced = await syncWithServer();
+      showToast(synced ? '서버 일정과 동기화했습니다.' : '브라우저 저장 상태를 확인했습니다.');
+    });
+    $('#planBtn').addEventListener('click', openPlanDialog);
+    $('#closePlanDialog').addEventListener('click', closePlanDialog);
+    document.querySelectorAll('.subscribe-btn').forEach((button) => button.addEventListener('click', () => startTrial(button.dataset.plan)));
+    $('#loginForm').addEventListener('submit', handleLoginSubmit);
+    $('#accountBtn').addEventListener('click', openAccountDialog);
+    $('#closeAccountDialog').addEventListener('click', closeAccountDialog);
+    $('#closeAccountFooter').addEventListener('click', closeAccountDialog);
+    $('#logoutBtn').addEventListener('click', logout);
+    $('#closeCleaningDialog').addEventListener('click', closeCleaningDialog);
+    document.querySelectorAll('.task-filter').forEach((button) => button.addEventListener('click', () => {
+      cleaningFilter = button.dataset.taskFilter;
+      renderCleaningView();
+    }));
+    document.querySelectorAll('.role-card').forEach((button) => button.addEventListener('click', () => {
+      if (currentUser?.server) {
+        showToast('실제 계정 역할은 운영자가 설정합니다.');
+        return;
+      }
+      applyRole(button.dataset.role);
+      closeAccountDialog();
+    }));
+    $('#addReservationBtn').addEventListener('click', openReservationDialog);
+    $('#propertyBtn').addEventListener('click', () => {
+      const menu = $('#propertyMenu');
+      const open = menu.classList.toggle('open');
+      $('#propertyBtn').setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.querySelectorAll('.property-option').forEach((button) => button.addEventListener('click', () => {
+      currentProperty = button.dataset.property;
+      $('#propertyBtn').innerHTML = `${currentProperty} <small>⌄</small>`;
+      document.querySelectorAll('.property-option').forEach((item) => item.classList.toggle('active', item === button));
+      $('#propertyMenu').classList.remove('open');
+      showToast(`${currentProperty} 객실로 전환했습니다.`);
+    }));
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('#propertyBtn') && !event.target.closest('#propertyMenu')) $('#propertyMenu').classList.remove('open');
+    });
+    document.querySelectorAll('.filter-pill').forEach((button) => button.addEventListener('click', () => setFilter(button.dataset.filter)));
+    document.querySelectorAll('.nav-btn').forEach((button) => button.addEventListener('click', () => {
+      document.querySelectorAll('.nav-btn').forEach((item) => item.classList.toggle('active', item === button));
+      const view = button.dataset.view;
+      if (view === 'cleaning') showCleaningView(button.dataset.nav);
+      else if (view === 'manage') showManageView();
+      else if (view === 'report') showReportView();
+      else showCalendarView();
+    }));
+    $('#closeDialog').addEventListener('click', closeDialog);
+    $('#cancelDialog').addEventListener('click', closeDialog);
+    $('#reservationForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const start = $('#startDate').value;
+      const end = $('#endDate').value;
+      if (!start || !end || end <= start) { showToast('체크아웃 날짜를 체크인 이후로 선택해주세요.'); return; }
+      const type = $('#reservationType').value;
+      const newEvent = {
+        id: `custom-${Date.now()}`,
+        type,
+        label: type === 'airbnb' ? '에어비앤비' : type === 'booking' ? '부킹닷컴' : type === 'blocked' ? '휴무·잠금' : '직접 추가',
+        start,
+        end,
+        checkIn: $('#checkInTime').value,
+        checkOut: $('#checkOutTime').value,
+        guests: Number($('#guestCount').value || 0),
+        code: $('#guestName').value.trim(),
+        supplies: $('#suppliesInput').value.split(',').map((item) => item.trim()).filter(Boolean),
+        note: $('#noteInput').value.trim(),
+        host: findRoom($('#reservationRoom').value)?.host || currentUser?.name || '광우',
+        property: $('#reservationRoom').value || currentProperty,
+        assigneeId: $('#reservationStaff').value || '',
+        status: 'pending'
+      };
+      events.push(newEvent);
+      saveEvents();
+      selectedDate = start;
+      viewDate = dateFromKey(start);
+      viewDate.setDate(1);
+      closeDialog();
+      renderCalendar();
+      renderDayPanel();
+      showToast('새 예약 일정을 저장했습니다.');
+    });
+
+    // 빠른 추가는 달력의 빈 영역을 두 번 누르는 방식으로도 열 수 있습니다.
+    calendarGrid.addEventListener('dblclick', (event) => {
+      if (currentRole !== 'operator') { showToast('예약 추가는 운영자만 사용할 수 있습니다.'); return; }
+      const cell = event.target.closest('.day-cell:not(.outside)');
+      if (!cell) return;
+      const number = cell.querySelector('.day-number')?.textContent;
+      if (!number) return;
+      selectedDate = `${viewDate.getFullYear()}-${pad(viewDate.getMonth() + 1)}-${pad(Number(number))}`;
+      openReservationDialog();
+    });
+
+    applyRole(currentRole, false);
+    renderSubscriptionCard();
+    renderCalendar();
+    renderDayPanel();
+    void bootApp();
+
+    /* =====================================================
+       색상 안내 열고 닫기 (기본은 숨김 상태)
+       ===================================================== */
+    const LEGEND_KEY = 'roommade-calendar-legend-open-v1';
+    const legendBtn = $('#legendBtn');
+    const legendCard = $('#legendCard');
+    const legendClose = $('#legendClose');
+
+    function setLegendOpen(open, remember = true) {
+      try {
+        if (!legendCard || !legendBtn) return;
+        legendCard.classList.toggle('show', open);
+        legendBtn.classList.toggle('active', open);
+        legendBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        legendBtn.setAttribute('aria-label', open ? '예약 색상 안내 닫기' : '예약 색상 안내 보기');
+        if (remember) localStorage.setItem(LEGEND_KEY, open ? 'yes' : 'no');
+      } catch (error) {
+        console.log('색상 안내 표시 실패:', error);
+      }
+    }
+
+    if (legendBtn) {
+      legendBtn.addEventListener('click', () => {
+        const isOpen = legendCard.classList.contains('show');
+        setLegendOpen(!isOpen);
+      });
+    }
+    if (legendClose) {
+      legendClose.addEventListener('click', () => setLegendOpen(false));
+    }
+
+    // 앱을 켤 때는 숨김 상태로 시작하고, 이전에 열어둔 기록이 있으면 그대로 보여줍니다.
+    setLegendOpen(localStorage.getItem(LEGEND_KEY) === 'yes', false);
+
+    /* =====================================================
+       앱(PWA) 기능 : 홈 화면 설치 + 오프라인 + 자동 업데이트
+       ===================================================== */
+    const INSTALL_HIDE_KEY = 'roommade-calendar-install-hide-v1';
+    const installBar = $('#installBar');
+    const installBtn = $('#installBtn');
+    const installClose = $('#installClose');
+    let deferredPrompt = null;
+
+    // 이미 앱으로 실행 중인지 확인
+    function isStandalone() {
+      try {
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function updateInstallBar() {
+      if (!installBar) return;
+      const hidden = localStorage.getItem(INSTALL_HIDE_KEY) === 'yes';
+      if (isStandalone() || hidden) installBar.classList.remove('show');
+      else installBar.classList.add('show');
+    }
+
+    // 크롬이 "설치 가능" 신호를 보낼 때 저장해 둡니다.
+    window.addEventListener('beforeinstallprompt', (event) => {
+      try {
+        event.preventDefault();
+        deferredPrompt = event;
+        updateInstallBar();
+      } catch (error) {
+        console.log('설치 준비 실패:', error);
+      }
+    });
+
+    if (installBtn) {
+      installBtn.addEventListener('click', async () => {
+        try {
+          if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const choice = await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            if (choice && choice.outcome === 'accepted') {
+              installBar.classList.remove('show');
+              showToast('홈 화면에 앱이 추가되었습니다.');
+            } else {
+              showToast('설치를 취소했습니다. 언제든 다시 설치할 수 있어요.');
+            }
+            return;
+          }
+          showToast('브라우저 오른쪽 위 ⋮ 메뉴 → "홈 화면에 추가"를 눌러주세요.');
+        } catch (error) {
+          console.log('설치 실행 실패:', error);
+          showToast('설치를 시작하지 못했습니다. ⋮ 메뉴에서 "홈 화면에 추가"를 눌러주세요.');
+        }
+      });
+    }
+
+    if (installClose) {
+      installClose.addEventListener('click', () => {
+        try {
+          localStorage.setItem(INSTALL_HIDE_KEY, 'yes');
+          installBar.classList.remove('show');
+        } catch (error) {
+          console.log('설치 배너 숨기기 실패:', error);
+        }
+      });
+    }
+
+    window.addEventListener('appinstalled', () => {
+      try {
+        deferredPrompt = null;
+        installBar.classList.remove('show');
+        showToast('설치 완료! 홈 화면 아이콘으로 열어보세요.');
+      } catch (error) {
+        console.log('설치 완료 처리 실패:', error);
+      }
+    });
+
+    // 인터넷 연결 상태 알림
+    window.addEventListener('offline', () => showToast('인터넷이 끊겼습니다. 입력한 내용은 휴대폰에 그대로 저장됩니다.'));
+    window.addEventListener('online', () => showToast('인터넷이 다시 연결되었습니다.'));
+
+    // 서비스워커 등록 (오프라인 저장 + 업데이트 확인)
+    async function registerServiceWorker() {
+      if (!('serviceWorker' in navigator)) return;
+      try {
+        const registration = await navigator.serviceWorker.register('./roommade-cal-sw.js', { scope: './roommade-cal' });
+
+        // 새 버전이 준비되면 알려주고 바로 적용합니다.
+        registration.addEventListener('updatefound', () => {
+          const nextWorker = registration.installing;
+          if (!nextWorker) return;
+          nextWorker.addEventListener('statechange', () => {
+            if (nextWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              showToast('새 버전이 준비됐어요. 잠시 후 자동으로 새로고침됩니다.');
+              nextWorker.postMessage({ type: 'SKIP_WAITING' });
+            }
+          });
+        });
+
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return;
+          refreshing = true;
+          window.location.reload();
+        });
+      } catch (error) {
+        console.log('서비스워커 등록 실패:', error);
+      }
+    }
+
+    updateInstallBar();
+    window.addEventListener('load', () => { void registerServiceWorker(); });
+
+    /* =====================================================
+       업그레이드 : 로그인 · 객실관리 · 직원배정
+       ===================================================== */
+
+    function openDialogSafe(target) {
+      if (!target) return;
+      try {
+        if (typeof target.showModal === 'function' && !target.open) target.showModal();
+        else target.setAttribute('open', '');
+      } catch (error) {
+        console.log('창 열기 실패:', error);
+        target.setAttribute('open', '');
+      }
+    }
+
+    function closeDialogSafe(target) {
+      if (!target) return;
+      try {
+        if (typeof target.close === 'function' && target.open) target.close();
+        else target.removeAttribute('open');
+      } catch (error) {
+        console.log('창 닫기 실패:', error);
+        target.removeAttribute('open');
+      }
+    }
+
+    function countEventsOfRoom(name) {
+      return events.filter((event) => event.property === name).length;
+    }
+
+    function countJobsOfStaff(name) {
+      return events.filter((event) => event.assigneeId === name).length;
+    }
+
+    function roomsForCurrentUser() {
+      if (currentRole === 'host') {
+        const mine = currentUser?.rooms || [];
+        return mine.length ? rooms.filter((room) => mine.includes(room.name)) : rooms.filter((room) => room.host === currentUser?.name);
+      }
+      if (currentRole === 'cleaner') {
+        const me = currentUser?.staffName || currentUser?.name;
+        const names = [...new Set(events.filter((event) => event.assigneeId === me).map((event) => event.property))];
+        return rooms.filter((room) => names.includes(room.name));
+      }
+      return rooms;
+    }
+
+    /* ---------- 화면 전환 (관리 화면 포함) ---------- */
+    function showCalendarView() {
+      $('#calendarView').hidden = false;
+      $('#cleaningView').hidden = true;
+      $('#reportView').hidden = true;
+      if (manageView) manageView.hidden = true;
+    }
+
+    function showCleaningView(focus = 'all') {
+      $('#calendarView').hidden = true;
+      $('#cleaningView').hidden = false;
+      $('#reportView').hidden = true;
+      if (manageView) manageView.hidden = true;
+      cleaningFilter = focus === '사진보고' ? 'done' : 'all';
+      renderCleaningView();
+    }
+
+    function showReportView() {
+      $('#calendarView').hidden = true;
+      $('#cleaningView').hidden = true;
+      $('#reportView').hidden = false;
+      if (manageView) manageView.hidden = true;
+      renderReportView();
+    }
+
+    function showManageView(tab) {
+      $('#calendarView').hidden = true;
+      $('#cleaningView').hidden = true;
+      $('#reportView').hidden = true;
+      if (!manageView) return;
+      manageView.hidden = false;
+      if (tab) manageTab = tab;
+      renderManageView();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function setNavActive(view) {
+      document.querySelectorAll('.nav-btn').forEach((button) => button.classList.toggle('active', button.dataset.view === view));
+    }
+
+    /* ---------- 객실 선택 메뉴 ---------- */
+    function renderPropertyMenu() {
+      const menu = $('#propertyMenu');
+      if (!menu) return;
+      const list = activeRooms();
+      menu.innerHTML = list.length
+        ? list.map((room) => `<button class="property-option ${room.name === currentProperty ? 'active' : ''}" type="button" data-property="${escapeHtml(room.name)}">${escapeHtml(room.name)} <span>예약 ${countEventsOfRoom(room.name)}건</span></button>`).join('')
+        : '<button class="property-option" type="button" data-property="">등록된 객실이 없습니다 <span>관리에서 추가</span></button>';
+      menu.querySelectorAll('.property-option').forEach((button) => button.addEventListener('click', () => {
+        menu.classList.remove('open');
+        if (!button.dataset.property) { showManageView('rooms'); setNavActive('manage'); return; }
+        currentProperty = button.dataset.property;
+        $('#propertyBtn').innerHTML = `${escapeHtml(currentProperty)} <small>⌄</small>`;
+        renderPropertyMenu();
+        showToast(`${currentProperty} 객실로 전환했습니다.`);
+      }));
+    }
+
+    /* ---------- 관리 화면 ---------- */
+    function visibleManageTabs() {
+      if (canManageAccounts()) return ['rooms', 'staff', 'accounts'];
+      if (currentRole === 'manager') return ['rooms', 'staff'];
+      return ['rooms'];
+    }
+
+    function renderManageView() {
+      if (!manageView || !manageList) return;
+      const allowed = visibleManageTabs();
+      if (!allowed.includes(manageTab)) manageTab = allowed[0];
+      document.querySelectorAll('.manage-tab').forEach((button) => {
+        const tab = button.dataset.manageTab;
+        button.hidden = !allowed.includes(tab);
+        button.classList.toggle('active', tab === manageTab);
+      });
+      if (manageTab === 'rooms') renderRoomList();
+      else if (manageTab === 'staff') renderStaffList();
+      else renderAccountList();
+    }
+
+    function renderRoomList() {
+      const editable = canManageRooms();
+      const list = roomsForCurrentUser();
+      $('#manageTitle').textContent = editable ? '객실 관리' : '객실 정보';
+      $('#manageSubtitle').textContent = editable
+        ? '객실을 등록하면 예약 추가와 직원 배정에 바로 사용됩니다.'
+        : '내가 볼 수 있는 객실 정보입니다. 수정은 운영자만 가능합니다.';
+      $('#manageHint').textContent = editable ? '객실 이름을 바꾸면 기존 예약의 객실 이름도 함께 바뀝니다.' : '';
+      $('#manageAddBtn').hidden = !editable;
+      $('#manageAddBtn').textContent = '＋ 객실 추가';
+      if (!list.length) {
+        manageList.innerHTML = `<div class="manage-empty"><strong>등록된 객실이 없습니다</strong><br />${editable ? '아래 버튼으로 첫 객실을 추가해보세요.' : '운영자가 객실을 등록하면 여기에 표시됩니다.'}</div>`;
+        return;
+      }
+      manageList.innerHTML = list.map((room) => {
+        const badge = room.active === false ? '<span class="manage-badge off">운영 중지</span>' : `<span class="manage-badge">${escapeHtml(room.branch || '지점 미지정')}</span>`;
+        const meta = [
+          `👤 호스트 ${escapeHtml(room.host || '미지정')}`,
+          room.doorCode ? `🔑 ${escapeHtml(room.doorCode)}` : '',
+          room.minutes ? `🧹 ${room.minutes}분` : '',
+          `📅 예약 ${countEventsOfRoom(room.name)}건`,
+          room.supplies ? `🧺 ${escapeHtml(room.supplies)}` : ''
+        ].filter(Boolean).map((text) => `<span>${text}</span>`).join('');
+        const actions = editable
+          ? `<div class="manage-actions"><button class="mini-btn" type="button" data-room-edit="${escapeHtml(room.name)}">수정</button><button class="mini-btn danger" type="button" data-room-del="${escapeHtml(room.name)}">삭제</button></div>`
+          : '';
+        return `<article class="manage-card"><div class="mc-top"><h3>${escapeHtml(room.name)}</h3>${badge}</div><div class="manage-meta">${meta}</div>${room.note ? `<div class="manage-meta"><span>📝 ${escapeHtml(room.note)}</span></div>` : ''}${actions}</article>`;
+      }).join('');
+      manageList.querySelectorAll('[data-room-edit]').forEach((button) => button.addEventListener('click', () => openRoomDialog(button.dataset.roomEdit)));
+      manageList.querySelectorAll('[data-room-del]').forEach((button) => button.addEventListener('click', () => deleteRoom(button.dataset.roomDel)));
+    }
+
+    function renderStaffList() {
+      const editable = canManageStaff();
+      $('#manageTitle').textContent = editable ? '직원 관리' : '직원 정보';
+      $('#manageSubtitle').textContent = '여기에 등록된 직원이 예약 화면의 배정 목록에 나타납니다.';
+      $('#manageHint').textContent = editable ? '직원 이름을 바꾸면 이미 배정된 예약의 담당자 이름도 함께 바뀝니다.' : '';
+      $('#manageAddBtn').hidden = !editable;
+      $('#manageAddBtn').textContent = '＋ 직원 추가';
+      if (!staffList.length) {
+        manageList.innerHTML = '<div class="manage-empty"><strong>등록된 직원이 없습니다</strong><br />직원을 추가하면 청소 배정을 할 수 있습니다.</div>';
+        return;
+      }
+      manageList.innerHTML = staffList.map((person) => {
+        const badge = person.active === false
+          ? '<span class="manage-badge off">휴직</span>'
+          : `<span class="manage-badge">${person.role === 'manager' ? '실장' : '청소자'}</span>`;
+        const meta = [
+          person.branch ? `📍 ${escapeHtml(person.branch)}` : '',
+          person.phone ? `📞 ${escapeHtml(person.phone)}` : '',
+          `🧹 배정 ${countJobsOfStaff(person.name)}건`,
+          Number(person.pay) > 0 ? `💰 회당 ${Number(person.pay).toLocaleString()}원` : ''
+        ].filter(Boolean).map((text) => `<span>${text}</span>`).join('');
+        const actions = editable
+          ? `<div class="manage-actions"><button class="mini-btn" type="button" data-staff-edit="${escapeHtml(person.name)}">수정</button><button class="mini-btn danger" type="button" data-staff-del="${escapeHtml(person.name)}">삭제</button></div>`
+          : '';
+        return `<article class="manage-card"><div class="mc-top"><h3>${escapeHtml(person.name)}</h3>${badge}</div><div class="manage-meta">${meta}</div>${person.memo ? `<div class="manage-meta"><span>📝 ${escapeHtml(person.memo)}</span></div>` : ''}${actions}</article>`;
+      }).join('');
+      manageList.querySelectorAll('[data-staff-edit]').forEach((button) => button.addEventListener('click', () => openStaffDialog(button.dataset.staffEdit)));
+      manageList.querySelectorAll('[data-staff-del]').forEach((button) => button.addEventListener('click', () => deleteStaff(button.dataset.staffDel)));
+    }
+
+    function renderAccountList() {
+      $('#manageTitle').textContent = '계정 · 권한 관리';
+      $('#manageSubtitle').textContent = '계정마다 보이는 객실과 사용할 수 있는 기능이 달라집니다.';
+      $('#manageHint').textContent = 'PIN은 이 휴대폰 안에만 저장되는 화면 잠금용입니다. 인터넷을 통한 완전한 보안이 필요하면 서버 연동이 필요합니다.';
+      $('#manageAddBtn').hidden = false;
+      $('#manageAddBtn').textContent = '＋ 계정 추가';
+      manageList.innerHTML = accounts.map((account) => {
+        const badge = account.active === false
+          ? '<span class="manage-badge off">로그인 차단</span>'
+          : `<span class="manage-badge">${roleLabelOf(account.role)}</span>`;
+        const roomText = account.role === 'host'
+          ? (account.rooms?.length ? account.rooms.join(', ') : '전체 객실 중 본인 호스트 객실')
+          : account.role === 'cleaner' ? `연결 직원 ${escapeHtml(account.staffName || '없음')}` : '전체 객실';
+        const meta = [
+          `🆔 ${escapeHtml(account.username)}`,
+          `🏠 ${escapeHtml(roomText)}`,
+          account.username === currentUser?.username ? '✅ 현재 로그인 중' : ''
+        ].filter(Boolean).map((text) => `<span>${text}</span>`).join('');
+        return `<article class="manage-card"><div class="mc-top"><h3>${escapeHtml(account.name)}</h3>${badge}</div><div class="manage-meta">${meta}</div><div class="manage-actions"><button class="mini-btn" type="button" data-account-edit="${escapeHtml(account.username)}">수정</button><button class="mini-btn danger" type="button" data-account-del="${escapeHtml(account.username)}">삭제</button></div></article>`;
+      }).join('');
+      manageList.querySelectorAll('[data-account-edit]').forEach((button) => button.addEventListener('click', () => openAccountEditDialog(button.dataset.accountEdit)));
+      manageList.querySelectorAll('[data-account-del]').forEach((button) => button.addEventListener('click', () => deleteAccount(button.dataset.accountDel)));
+    }
+
+    /* ---------- 객실 추가·수정·삭제 ---------- */
+    function openRoomDialog(name) {
+      if (!canManageRooms()) { showToast('객실 수정은 운영자만 가능합니다.'); return; }
+      editingRoom = name || null;
+      const room = name ? findRoom(name) : null;
+      $('#roomDialogTitle').textContent = room ? '객실 수정' : '객실 추가';
+      $('#roomName').value = room?.name || '';
+      $('#roomBranch').value = room?.branch || '';
+      $('#roomHost').value = room?.host || '';
+      $('#roomDoor').value = room?.doorCode || '';
+      $('#roomMinutes').value = room?.minutes ?? 90;
+      $('#roomSupplies').value = room?.supplies || '';
+      $('#roomNote').value = room?.note || '';
+      $('#roomActive').checked = room ? room.active !== false : true;
+      $('#roomDeleteBtn').hidden = !room;
+      openDialogSafe(roomDialog);
+    }
+
+    function deleteRoom(name) {
+      try {
+        const used = countEventsOfRoom(name);
+        const message = used
+          ? `${name} 객실을 삭제할까요?\n이 객실로 등록된 예약 ${used}건은 그대로 남습니다.`
+          : `${name} 객실을 삭제할까요?`;
+        if (!window.confirm(message)) return;
+        rooms = rooms.filter((room) => room.name !== name);
+        accounts.forEach((account) => { account.rooms = (account.rooms || []).filter((item) => item !== name); });
+        saveRooms();
+        saveAccounts();
+        if (currentProperty === name) currentProperty = activeRooms()[0]?.name || '';
+        renderManageView();
+        renderPropertyMenu();
+        showToast(`${name} 객실을 삭제했습니다.`);
+      } catch (error) {
+        console.log('객실 삭제 실패:', error);
+      }
+    }
+
+    /* ---------- 직원 추가·수정·삭제 ---------- */
+    function openStaffDialog(name) {
+      if (!canManageStaff()) { showToast('직원 수정은 운영자만 가능합니다.'); return; }
+      editingStaff = name || null;
+      const person = name ? findStaff(name) : null;
+      $('#staffDialogTitle').textContent = person ? '직원 수정' : '직원 추가';
+      $('#staffName').value = person?.name || '';
+      $('#staffPhone').value = person?.phone || '';
+      $('#staffBranch').value = person?.branch || '';
+      $('#staffRole').value = person?.role || 'cleaner';
+      $('#staffPay').value = person?.pay || 0;
+      $('#staffMemo').value = person?.memo || '';
+      $('#staffActive').checked = person ? person.active !== false : true;
+      $('#staffDeleteBtn').hidden = !person;
+      openDialogSafe(staffDialog);
+    }
+
+    function deleteStaff(name) {
+      try {
+        const jobs = countJobsOfStaff(name);
+        const message = jobs
+          ? `${name} 직원을 삭제할까요?\n배정된 예약 ${jobs}건은 '미배정'으로 바뀝니다.`
+          : `${name} 직원을 삭제할까요?`;
+        if (!window.confirm(message)) return;
+        staffList = staffList.filter((person) => person.name !== name);
+        events.forEach((event) => { if (event.assigneeId === name) { event.assigneeId = ''; event.assignee = ''; } });
+        accounts.forEach((account) => { if (account.staffName === name) account.staffName = ''; });
+        saveStaff();
+        saveAccounts();
+        saveEvents();
+        renderManageView();
+        renderCalendar();
+        renderDayPanel();
+        showToast(`${name} 직원을 삭제했습니다.`);
+      } catch (error) {
+        console.log('직원 삭제 실패:', error);
+      }
+    }
+
+    /* ---------- 계정 추가·수정·삭제 ---------- */
+    function renderAccountFormOptions(account) {
+      const staffSelect = $('#accountStaff');
+      staffSelect.innerHTML = '<option value="">연결 안 함</option>' + staffList.map((person) => `<option value="${escapeHtml(person.name)}">${escapeHtml(person.name)}</option>`).join('');
+      staffSelect.value = account?.staffName || '';
+      const grid = $('#accountRoomsGrid');
+      grid.innerHTML = rooms.length
+        ? rooms.map((room) => `<label class="room-check"><input type="checkbox" data-account-room="${escapeHtml(room.name)}" ${account?.rooms?.includes(room.name) ? 'checked' : ''} /><span>${escapeHtml(room.name)}</span></label>`).join('')
+        : '<span class="manage-hint">먼저 객실을 등록해주세요.</span>';
+      toggleAccountFields($('#accountRole').value);
+    }
+
+    function toggleAccountFields(role) {
+      $('#accountRoomsField').hidden = role !== 'host';
+      $('#accountStaffField').hidden = role !== 'cleaner';
+    }
+
+    function openAccountEditDialog(username) {
+      if (!canManageAccounts()) { showToast('계정 관리는 운영자만 가능합니다.'); return; }
+      editingAccount = username || null;
+      const account = username ? findAccount(username) : null;
+      $('#accountDialogTitle').textContent = account ? '계정 수정' : '계정 추가';
+      $('#accountUsername').value = account?.username || '';
+      $('#accountName').value = account?.name || '';
+      $('#accountPin').value = account?.pin || '';
+      $('#accountRole').value = account?.role || 'host';
+      $('#accountActive').checked = account ? account.active !== false : true;
+      $('#accountDeleteBtn').hidden = !account;
+      renderAccountFormOptions(account);
+      openDialogSafe(accountEditDialog);
+    }
+
+    function deleteAccount(username) {
+      try {
+        const account = findAccount(username);
+        if (!account) return;
+        if (account.username === currentUser?.username) { showToast('지금 로그인 중인 계정은 삭제할 수 없습니다.'); return; }
+        const operators = accounts.filter((item) => item.role === 'operator' && item.active !== false);
+        if (account.role === 'operator' && operators.length <= 1) { showToast('운영자 계정은 최소 1개가 필요합니다.'); return; }
+        if (!window.confirm(`${account.name}(${account.username}) 계정을 삭제할까요?`)) return;
+        accounts = accounts.filter((item) => item.username !== username);
+        saveAccounts();
+        renderManageView();
+        showToast('계정을 삭제했습니다.');
+      } catch (error) {
+        console.log('계정 삭제 실패:', error);
+      }
+    }
+
+    /* ---------- 직원 배정 ---------- */
+    function openAssignDialog(eventId) {
+      if (!canAssign()) { showToast('배정은 운영자와 실장만 할 수 있습니다.'); return; }
+      const target = events.find((item) => item.id === eventId);
+      if (!target) return;
+      assignTargetId = eventId;
+      $('#assignIntro').innerHTML = `${escapeHtml(target.property || '객실 미지정')} · ${target.start.slice(5).replace('-', '/')} → ${target.end.slice(5).replace('-', '/')}<br />현재 담당: <b>${escapeHtml(target.assigneeId || '미배정')}</b>`;
+      const list = activeCleaners();
+      $('#assignList').innerHTML = list.length
+        ? list.map((person) => `<button class="assign-option ${person.name === target.assigneeId ? 'active' : ''}" type="button" data-assign="${escapeHtml(person.name)}"><span>${escapeHtml(person.name)}</span><small>${escapeHtml(person.branch || '지점 미지정')} · 이번 달 ${countJobsOfStaff(person.name)}건</small></button>`).join('')
+        : '<div class="manage-empty"><strong>등록된 직원이 없습니다</strong><br />관리 → 직원에서 먼저 추가해주세요.</div>';
+      $('#assignList').querySelectorAll('[data-assign]').forEach((button) => button.addEventListener('click', () => assignStaff(button.dataset.assign)));
+      openDialogSafe(assignDialog);
+    }
+
+    function assignStaff(name) {
+      try {
+        const target = events.find((item) => item.id === assignTargetId);
+        if (!target) return;
+        target.assigneeId = name;
+        target.assignee = name ? `${name} 배정됨` : '';
+        saveEvents();
+        closeDialogSafe(assignDialog);
+        renderCalendar();
+        renderDayPanel();
+        if (!$('#cleaningView').hidden) renderCleaningView();
+        showToast(name ? `${name}님에게 배정했습니다.` : '배정을 해제했습니다.');
+      } catch (error) {
+        console.log('배정 실패:', error);
+      }
+    }
+
+    /* ---------- 로그인 ---------- */
+    function showLoginError(message) {
+      const error = $('#loginError');
+      if (!error) return;
+      error.textContent = message || '';
+      error.hidden = !message;
+    }
+
+    function renderLoginAccounts() {
+      const select = $('#loginUsername');
+      if (!select) return;
+      const list = accounts.filter((account) => account.active !== false);
+      select.innerHTML = list.map((account) => `<option value="${escapeHtml(account.username)}">${roleLabelOf(account.role)} · ${escapeHtml(account.name)}</option>`).join('');
+      if (session?.username) select.value = session.username;
+    }
+
+    function openLoginDialog(message = '') {
+      renderLoginAccounts();
+      showLoginError(message);
+      const pin = $('#loginPin');
+      if (pin) pin.value = '';
+      openDialogSafe(loginDialog);
+    }
+
+    function closeLoginDialog() { closeDialogSafe(loginDialog); }
+
+    function handleLoginSubmit(event) {
+      event.preventDefault();
+      try {
+        const username = $('#loginUsername').value;
+        const pin = $('#loginPin').value.trim();
+        const account = findAccount(username);
+        if (!account || account.active === false) { showLoginError('사용할 수 없는 계정입니다.'); return; }
+        if (String(account.pin) !== pin) { showLoginError('PIN이 올바르지 않습니다.'); return; }
+        session = { username: account.username, loginAt: new Date().toISOString() };
+        saveSession();
+        loggedIn = true;
+        currentUser = { ...account, local: true };
+        showLoginError('');
+        $('#loginPin').value = '';
+        closeLoginDialog();
+        applyRole(account.role, false);
+        showCalendarView();
+        setNavActive('calendar');
+        showToast(`${account.name}님, 반갑습니다.`);
+      } catch (error) {
+        console.log('로그인 실패:', error);
+        showLoginError('로그인 중 문제가 생겼습니다. 다시 시도해주세요.');
+      }
+    }
+
+    function logout() {
+      try {
+        session = null;
+        localStorage.removeItem(SESSION_KEY);
+        loggedIn = false;
+        closeAccountDialog();
+        openLoginDialog('');
+        showToast('로그아웃했습니다.');
+      } catch (error) {
+        console.log('로그아웃 실패:', error);
+      }
+    }
+
+    function updateAccountDialog() {
+      const user = currentUser || {};
+      $('#accountSummary').innerHTML = `현재 로그인: <b>${escapeHtml(user.name || '')}</b> · ${roleLabelOf(currentRole)}<br />아이디 ${escapeHtml(user.username || '-')} · 이 휴대폰에 저장된 계정으로 로그인 중입니다.`;
+      const permissions = {
+        operator: ['예약 추가·수정', '객실·직원·계정 관리', '청소 배정과 보고 확인'],
+        manager: ['전체 일정 보기', '청소 직원 배정', '보고서 확인'],
+        host: ['내 객실 예약 보기', '청소 진행·완료 보고 확인'],
+        cleaner: ['배정된 청소업무 보기', '체크리스트와 사진 보고']
+      }[currentRole] || [];
+      $('#accountPermList').innerHTML = `<article class="manage-card"><div class="mc-top"><h3>사용 가능한 기능</h3><span class="manage-badge">${roleLabelOf(currentRole)}</span></div><div class="manage-meta">${permissions.map((text) => `<span>✓ ${text}</span>`).join('')}</div></article>`;
+      const goButton = $('#goAccountsBtn');
+      if (goButton) goButton.hidden = !canManageAccounts();
+      $('#logoutBtn').hidden = false;
+    }
+
+    /* ---------- 역할 적용 (권한별 화면) ---------- */
+    function applyRole(role, notify = true) {
+      currentRole = role;
+      localStorage.setItem(ROLE_KEY, role);
+      const meta = roleMeta[role] || roleMeta.operator;
+      const restricted = role === 'host' || role === 'cleaner';
+      const visibleCount = events.filter((event) => canSeeEvent(event)).length;
+      $('#roleLabel').textContent = meta.subtitle;
+      $('#propertyMeta').textContent = restricted
+        ? `${role === 'host' ? '권한 객실' : '배정 업무'} · ${visibleCount}건`
+        : `객실 ${activeRooms().length}개 · 예약 ${events.length}건`;
+      $('#propertyBtn').innerHTML = `${role === 'host' ? '내 객실' : role === 'cleaner' ? '오늘 배정' : escapeHtml(currentProperty || '객실 선택')} <small>⌄</small>`;
+      $('#propertyBtn').disabled = restricted;
+      $('#propertyBtn').classList.toggle('locked', restricted);
+      $('#propertyMenu').classList.remove('open');
+      $('#syncBtn').style.display = role === 'operator' ? 'grid' : 'none';
+      $('#addReservationBtn').style.display = canEditReservation() ? '' : 'none';
+      const avatar = $('#accountBtn');
+      if (avatar) avatar.textContent = String(currentUser?.name || '광우').slice(0, 3);
+      activeFilter = 'all';
+      document.querySelectorAll('.filter-pill').forEach((button) => button.classList.toggle('active', button.dataset.filter === 'all'));
+      document.querySelectorAll('.nav-btn').forEach((button, index) => {
+        const label = meta.nav[index] || button.dataset.nav;
+        button.dataset.nav = label;
+        const text = button.querySelector('span');
+        if (text) text.textContent = label;
+      });
+      renderPropertyMenu();
+      renderCalendar();
+      renderDayPanel();
+      if (!$('#cleaningView').hidden) renderCleaningView();
+      if (!$('#reportView').hidden) renderReportView();
+      if (manageView && !manageView.hidden) renderManageView();
+      if (notify) showToast(`${meta.label} 화면으로 전환했습니다.`);
+    }
+
+    /* ---------- 예약 추가 창 (객실·담당자 선택 포함) ---------- */
+    function openReservationDialog() {
+      if (!canEditReservation()) { showToast('예약 추가는 운영자만 가능합니다.'); return; }
+      $('#startDate').value = selectedDate;
+      const nextDay = dateFromKey(selectedDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      $('#endDate').value = keyOf(nextDay);
+      $('#guestName').value = '';
+      $('#suppliesInput').value = '';
+      $('#noteInput').value = '';
+      const roomSelect = $('#reservationRoom');
+      roomSelect.innerHTML = activeRooms().map((room) => `<option value="${escapeHtml(room.name)}">${escapeHtml(room.name)}</option>`).join('') || '<option value="">등록된 객실 없음</option>';
+      roomSelect.value = currentProperty || activeRooms()[0]?.name || '';
+      const staffSelect = $('#reservationStaff');
+      staffSelect.innerHTML = '<option value="">나중에 배정</option>' + activeCleaners().map((person) => `<option value="${escapeHtml(person.name)}">${escapeHtml(person.name)}</option>`).join('');
+      staffSelect.value = '';
+      const room = findRoom(roomSelect.value);
+      if (room?.supplies) $('#suppliesInput').value = room.supplies;
+      openDialogSafe(dialog);
+    }
+
+    /* ---------- 화면 연결 ---------- */
+    document.querySelectorAll('.manage-tab').forEach((button) => button.addEventListener('click', () => {
+      manageTab = button.dataset.manageTab;
+      renderManageView();
+    }));
+
+    $('#manageAddBtn').addEventListener('click', () => {
+      if (manageTab === 'rooms') openRoomDialog(null);
+      else if (manageTab === 'staff') openStaffDialog(null);
+      else openAccountEditDialog(null);
+    });
+
+    $('#closeRoomDialog').addEventListener('click', () => closeDialogSafe(roomDialog));
+    $('#roomDeleteBtn').addEventListener('click', () => {
+      if (!editingRoom) return;
+      closeDialogSafe(roomDialog);
+      deleteRoom(editingRoom);
+    });
+    $('#roomForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      try {
+        const name = $('#roomName').value.trim();
+        if (!name) { showToast('객실 이름을 입력해주세요.'); return; }
+        if (rooms.some((room) => room.name === name && room.name !== editingRoom)) { showToast('같은 이름의 객실이 이미 있습니다.'); return; }
+        const data = {
+          name,
+          branch: $('#roomBranch').value.trim(),
+          host: $('#roomHost').value.trim(),
+          doorCode: $('#roomDoor').value.trim(),
+          minutes: Number($('#roomMinutes').value || 0),
+          supplies: $('#roomSupplies').value.trim(),
+          note: $('#roomNote').value.trim(),
+          active: $('#roomActive').checked
+        };
+        if (editingRoom) {
+          const index = rooms.findIndex((room) => room.name === editingRoom);
+          rooms[index] = { ...rooms[index], ...data };
+          if (editingRoom !== name) {
+            events.forEach((item) => { if (item.property === editingRoom) item.property = name; });
+            accounts.forEach((account) => { account.rooms = (account.rooms || []).map((item) => (item === editingRoom ? name : item)); });
+            if (currentProperty === editingRoom) currentProperty = name;
+            saveEvents();
+            saveAccounts();
+          }
+        } else {
+          rooms.push(data);
+          if (!currentProperty) currentProperty = name;
+        }
+        saveRooms();
+        closeDialogSafe(roomDialog);
+        renderManageView();
+        renderPropertyMenu();
+        renderCalendar();
+        renderDayPanel();
+        showToast(editingRoom ? '객실 정보를 저장했습니다.' : '새 객실을 추가했습니다.');
+      } catch (error) {
+        console.log('객실 저장 실패:', error);
+        showToast('저장 중 문제가 생겼습니다.');
+      }
+    });
+
+    $('#closeStaffDialog').addEventListener('click', () => closeDialogSafe(staffDialog));
+    $('#staffDeleteBtn').addEventListener('click', () => {
+      if (!editingStaff) return;
+      closeDialogSafe(staffDialog);
+      deleteStaff(editingStaff);
+    });
+    $('#staffForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      try {
+        const name = $('#staffName').value.trim();
+        if (!name) { showToast('직원 이름을 입력해주세요.'); return; }
+        if (staffList.some((person) => person.name === name && person.name !== editingStaff)) { showToast('같은 이름의 직원이 이미 있습니다.'); return; }
+        const data = {
+          name,
+          phone: $('#staffPhone').value.trim(),
+          branch: $('#staffBranch').value.trim(),
+          role: $('#staffRole').value,
+          pay: Number($('#staffPay').value || 0),
+          memo: $('#staffMemo').value.trim(),
+          active: $('#staffActive').checked
+        };
+        if (editingStaff) {
+          const index = staffList.findIndex((person) => person.name === editingStaff);
+          staffList[index] = { ...staffList[index], ...data };
+          if (editingStaff !== name) {
+            events.forEach((item) => { if (item.assigneeId === editingStaff) { item.assigneeId = name; item.assignee = `${name} 배정됨`; } });
+            accounts.forEach((account) => { if (account.staffName === editingStaff) account.staffName = name; });
+            saveEvents();
+            saveAccounts();
+          }
+        } else {
+          staffList.push(data);
+        }
+        saveStaff();
+        closeDialogSafe(staffDialog);
+        renderManageView();
+        renderCalendar();
+        renderDayPanel();
+        showToast(editingStaff ? '직원 정보를 저장했습니다.' : '새 직원을 추가했습니다.');
+      } catch (error) {
+        console.log('직원 저장 실패:', error);
+        showToast('저장 중 문제가 생겼습니다.');
+      }
+    });
+
+    $('#closeAccountEditDialog').addEventListener('click', () => closeDialogSafe(accountEditDialog));
+    $('#accountRole').addEventListener('change', () => toggleAccountFields($('#accountRole').value));
+    $('#accountDeleteBtn').addEventListener('click', () => {
+      if (!editingAccount) return;
+      closeDialogSafe(accountEditDialog);
+      deleteAccount(editingAccount);
+    });
+    $('#accountForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      try {
+        const username = $('#accountUsername').value.trim().toLowerCase();
+        const name = $('#accountName').value.trim();
+        const pin = $('#accountPin').value.trim();
+        if (!username || !name) { showToast('아이디와 이름을 입력해주세요.'); return; }
+        if (pin.length < 4) { showToast('PIN은 4자리 이상으로 정해주세요.'); return; }
+        if (accounts.some((account) => account.username === username && account.username !== editingAccount)) { showToast('이미 사용 중인 아이디입니다.'); return; }
+        const role = $('#accountRole').value;
+        const selectedRooms = [...document.querySelectorAll('[data-account-room]')].filter((box) => box.checked).map((box) => box.dataset.accountRoom);
+        const data = {
+          username,
+          name,
+          pin,
+          role,
+          rooms: role === 'host' ? selectedRooms : [],
+          staffName: role === 'cleaner' ? $('#accountStaff').value : '',
+          active: $('#accountActive').checked
+        };
+        if (editingAccount) {
+          const index = accounts.findIndex((account) => account.username === editingAccount);
+          const operators = accounts.filter((account) => account.role === 'operator' && account.active !== false);
+          if (accounts[index].role === 'operator' && role !== 'operator' && operators.length <= 1) { showToast('운영자 계정은 최소 1개가 필요합니다.'); return; }
+          accounts[index] = { ...accounts[index], ...data };
+          if (currentUser?.username === editingAccount) {
+            currentUser = { ...accounts[index], local: true };
+            session = { username, loginAt: new Date().toISOString() };
+            saveSession();
+            applyRole(accounts[index].role, false);
+          }
+        } else {
+          accounts.push(data);
+        }
+        saveAccounts();
+        closeDialogSafe(accountEditDialog);
+        renderManageView();
+        showToast(editingAccount ? '계정을 저장했습니다.' : '새 계정을 추가했습니다.');
+      } catch (error) {
+        console.log('계정 저장 실패:', error);
+        showToast('저장 중 문제가 생겼습니다.');
+      }
+    });
+
+    $('#closeAssignDialog').addEventListener('click', () => closeDialogSafe(assignDialog));
+    $('#assignCloseBtn').addEventListener('click', () => closeDialogSafe(assignDialog));
+    $('#assignClearBtn').addEventListener('click', () => assignStaff(''));
+
+    const goAccountsBtn = $('#goAccountsBtn');
+    if (goAccountsBtn) {
+      goAccountsBtn.addEventListener('click', () => {
+        closeAccountDialog();
+        showManageView('accounts');
+        setNavActive('manage');
+      });
+    }
+
+    // 로그인하지 않은 상태에서는 창을 닫지 못하게 막습니다.
+    if (loginDialog) {
+      loginDialog.addEventListener('cancel', (event) => {
+        if (!loggedIn) event.preventDefault();
+      });
+    }
+
+    const reservationRoomSelect = $('#reservationRoom');
+    if (reservationRoomSelect) {
+      reservationRoomSelect.addEventListener('change', () => {
+        const room = findRoom(reservationRoomSelect.value);
+        if (room?.supplies) $('#suppliesInput').value = room.supplies;
+      });
+    }
+
+    /* ---------- 서버 대신 휴대폰 저장만 사용 ---------- */
+    async function bootApp() {
+      renderSubscriptionCard();
+      setSyncStatus('휴대폰 저장', 'offline', '입력한 내용은 이 휴대폰 안에 저장됩니다.');
+    }
+
+    /* ---------- 첫 실행 ---------- */
+    renderLoginAccounts();
+    renderPropertyMenu();
+    if (loggedIn) {
+      applyRole(currentRole, false);
+    } else {
+      openLoginDialog('');
+    }
+  </script>
+</body>
+</html>
