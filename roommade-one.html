@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v10.4</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v10.6</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -666,9 +666,14 @@ h1,h2,h3{color:var(--n-ink)}
       <div class="section">
         <div class="sectitle"><h2>💰 월 고정 관리비 (자동등록)</h2></div>
         <div class="card formcard">
-          <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">펜트하우스 위탁관리비: 50회까지 기본금액, 51회부터 건당 5만원 추가, 350만원 상한. 청소 건수에 따라 매월 자동 계산돼요.</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px;" id="mfRuleText">청소 건수에 따라 매월 자동 계산돼요.</div>
           <div class="field"><label>지점</label><select id="mfBranch"><option>펜트하우스</option><option>송도점</option><option>영종점</option></select></div>
-          <div class="field"><label>기본 금액 (50회까지, 원)</label><input type="number" id="mfAmount" placeholder="예: 3200000" /></div>
+          <div class="field"><label>기본 금액 (기준 건수까지, 원)</label><input type="number" id="mfAmount" placeholder="예: 3200000" /></div>
+          <div class="twocol">
+            <div class="field"><label>기준 건수</label><input type="number" id="mfBaseCount" placeholder="예: 50" /></div>
+            <div class="field"><label>초과 1건당 (원)</label><input type="number" id="mfOverFee" placeholder="예: 50000" /></div>
+          </div>
+          <div class="field"><label>🚫 상한 금액 (이 금액 넘으면 고정)</label><input type="number" id="mfMaxFee" placeholder="예: 3800000" /></div>
           <div class="field"><label>항목 이름</label><input id="mfLabel" placeholder="예: 위탁관리비 (4실 48회 기준)" value="위탁관리비" /></div>
           <div class="twocol">
             <div class="field"><label>시작 월</label><input type="month" id="mfStart" /></div>
@@ -2903,6 +2908,20 @@ h1,h2,h3{color:var(--n-ink)}
   function renderMFGauge(){
     const box=$('#mfGauge'); if(!box)return;
     const cfg=loadMF();
+    // 규칙 설명을 지금 설정값에 맞춰 자동으로 다시 씁니다
+    try{
+      const rt=$('#mfRuleText');
+      if(rt){
+        if(cfg&&cfg.active){
+          rt.innerHTML=esc(cfg.branch||'')+' '+esc(cfg.label||'위탁관리비')+' : '+
+            (cfg.baseCount||50)+'회까지 '+money(cfg.amount||0)+', '+
+            ((cfg.baseCount||50)+1)+'회부터 건당 '+money(cfg.overFee||50000)+' 추가, '+
+            '<b style="color:var(--navy);">'+money(cfg.maxFee||3500000)+' 상한</b>. 매월 자동 계산돼요.';
+        }else{
+          rt.textContent='자동등록을 켜면 청소 건수에 따라 매월 자동 계산돼요.';
+        }
+      }
+    }catch(e){}
     if(!cfg||!cfg.active){box.innerHTML='';return;}
     const BASE_LIMIT=cfg.baseCount||50, BASE_FEE=cfg.amount||3200000;
     const OVER_FEE=cfg.overFee||50000, MAX_FEE=cfg.maxFee||3500000;
@@ -3003,6 +3022,9 @@ h1,h2,h3{color:var(--n-ink)}
       if($('#mfBranch'))$('#mfBranch').value=cfg.branch||'펜트하우스';
       if($('#mfAmount'))$('#mfAmount').value=cfg.amount||'';
       if($('#mfLabel'))$('#mfLabel').value=cfg.label||'위탁관리비';
+      if($('#mfBaseCount'))$('#mfBaseCount').value=cfg.baseCount||50;
+      if($('#mfOverFee'))$('#mfOverFee').value=cfg.overFee||50000;
+      if($('#mfMaxFee'))$('#mfMaxFee').value=cfg.maxFee||3500000;
       if($('#mfStart'))$('#mfStart').value=cfg.start||'';
       if($('#mfActive'))$('#mfActive').value=cfg.active?'1':'0';
     }
@@ -3020,8 +3042,14 @@ h1,h2,h3{color:var(--n-ink)}
     const label=$('#mfLabel').value.trim()||'위탁관리비';
     const start=$('#mfStart').value;
     const active=$('#mfActive').value==='1';
+    // 기준 건수 · 초과 단가 · 상한 (비워두면 기존값 유지)
+    const prev=loadMF()||{};
+    const baseCount=Number($('#mfBaseCount').value||0)||prev.baseCount||50;
+    const overFee=Number($('#mfOverFee').value||0)||prev.overFee||50000;
+    const maxFee=Number($('#mfMaxFee').value||0)||prev.maxFee||3500000;
     if(active&&(!amount||!start)){ toast('금액과 시작월을 입력해주세요'); return; }
-    saveMF({branch,amount,label,start,active});
+    if(maxFee<amount){ toast('상한이 기본금액보다 작아요'); return; }
+    saveMF({branch,amount,label,start,active,baseCount,overFee,maxFee});
     const added=applyMonthlyFee();
     fillMFForm();
     toast(added>0?('✅ 저장 + '+added+'개월 관리비 자동등록'):'✅ 저장됐어요');
