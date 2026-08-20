@@ -154,18 +154,35 @@
     }
 
     .legend-wrap { display: grid; gap: 10px; margin: 0 0 17px; }
-    /* 색상 안내는 기본으로 숨기고, ? 버튼을 누를 때만 펼칩니다 */
-    .legend-card { display: none; }
-    .legend-card.show { display: block; animation: legendOpen .18s ease-out; }
+    /* 색상 안내 : 한 줄로 접어두고 눌러서 펼칩니다 */
+    .legend-line { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+    .legend-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 32px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, .66);
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+    }
+    .legend-toggle .legend-dots { display: inline-flex; align-items: center; gap: 3px; }
+    .legend-toggle .legend-dots .dot { width: 8px; height: 8px; }
+    .legend-caret { font-size: 11px; font-weight: 900; line-height: 1; transition: transform .18s ease; }
+    .legend-toggle[aria-expanded="true"] { color: var(--blue-deep); background: var(--blue-soft); }
+    .legend-toggle[aria-expanded="true"] .legend-caret { transform: rotate(180deg); }
+    .legend-row[hidden] { display: none; }
+    .legend-row { animation: legendOpen .18s ease-out; }
     @keyframes legendOpen {
       from { opacity: 0; transform: translateY(-6px); }
       to { opacity: 1; transform: translateY(0); }
     }
     @media (prefers-reduced-motion: reduce) {
-      .legend-card.show { animation: none; }
+      .legend-row { animation: none; }
     }
-    .legend-btn { font-size: 19px; font-weight: 900; }
-    .legend-btn.active { color: #fff; background: var(--blue-deep); }
     .legend-close {
       width: 26px;
       height: 26px;
@@ -176,7 +193,7 @@
       font-size: 13px;
       font-weight: 800;
     }
-    .legend-card, .filter-card {
+    .filter-card-only, .filter-card {
       padding: 12px;
       border: 1px solid rgba(255, 255, 255, .92);
       border-radius: 18px;
@@ -546,7 +563,7 @@
       .month-toolbar h1 { font-size: 21px; }
       .round-btn { width: 38px; height: 38px; }
       .legend-wrap { gap: 6px; margin-bottom: 11px; }
-      .legend-card { padding: 7px 8px; border-radius: 14px; }
+      .legend-toggle { min-height: 29px; padding: 5px 9px; font-size: 10.5px; }
       .guide-head { margin-bottom: 5px; }
       .guide-head b { font-size: 10px; }
       .guide-kicker { font-size: 8px; }
@@ -684,6 +701,10 @@
     .pv-nav:disabled { opacity: .28; }
     .pv-name { flex: 1; min-width: 0; color: #cfd6de; font-size: 11px; font-weight: 700; text-align: center; line-height: 1.5; }
     .report-photo img, .photo-thumb img { cursor: zoom-in; }
+    .add-btn.ghost { color: var(--blue-deep); background: #fff; border: 1px solid var(--line); }
+    .guide-steps p { margin: 0 0 10px; color: var(--ink); font-size: 12.5px; font-weight: 700; line-height: 1.65; }
+    .guide-steps b { color: var(--blue-deep); }
+    .guide-steps textarea { width: 100%; margin: 4px 0 8px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: #f7f7f4; color: #4a5561; font-size: 10.5px; font-family: ui-monospace, monospace; }
   </style>
 
 </head>
@@ -723,7 +744,6 @@
     <section class="month-toolbar">
       <h1 id="monthTitle">2026년 8월</h1>
       <div class="month-controls">
-        <button class="round-btn legend-btn" id="legendBtn" type="button" aria-expanded="false" aria-controls="legendCard" aria-label="예약 색상 안내 보기">?</button>
         <button class="text-btn" id="todayBtn">오늘</button>
         <button class="round-btn" id="prevBtn" aria-label="이전 달">‹</button>
         <button class="round-btn" id="nextBtn" aria-label="다음 달">›</button>
@@ -731,16 +751,17 @@
     </section>
 
     <section class="legend-wrap" aria-label="예약 구분과 일정 필터">
-      <div class="legend-card" id="legendCard">
-        <div class="guide-head">
-          <b><span class="guide-kicker">Guide</span> · 색상 안내</b>
-          <button class="legend-close" id="legendClose" type="button" aria-label="색상 안내 닫기">✕</button>
-        </div>
-        <div class="legend-row">
+      <div class="legend-line" id="legendCard">
+        <button class="legend-toggle" id="legendBtn" type="button" aria-expanded="false" aria-controls="legendItems" aria-label="예약 색상 안내 열기">
+          <span class="legend-dots"><i class="dot"></i><i class="dot gray"></i><i class="dot navy"></i></span>
+          <span class="legend-toggle-text">색상 안내</span>
+          <span class="legend-caret" aria-hidden="true">⌄</span>
+        </button>
+        <div class="legend-row" id="legendItems" hidden>
           <span class="legend-pill"><i class="dot"></i>에어비앤비</span>
           <span class="legend-pill"><i class="dot gray"></i>직접 추가</span>
           <span class="legend-pill"><i class="dot navy"></i>부킹닷컴</span>
-          <span class="legend-pill"><i class="checkout-key"></i>체크아웃</span>
+          <span class="legend-pill"><i class="checkout-key"></i>체크아웃일</span>
         </div>
       </div>
       <div class="filter-card">
@@ -827,6 +848,7 @@
       </div>
       <div class="manage-list" id="manageList"></div>
       <button class="add-btn" id="manageAddBtn" type="button">＋ 새로 추가</button>
+      <button class="add-btn ghost" id="icalSettingsBtn" type="button" hidden>🔄 iCal 자동 연동 설정</button>
       <p class="manage-hint" id="manageHint"></p>
     </section>
   </main>
@@ -1019,6 +1041,10 @@
           <input id="roomMinutes" type="number" min="0" value="90" />
         </div>
         <div class="field full">
+          <label for="roomIcal">iCal 주소 (에어비앤비·부킹닷컴 달력 링크)</label>
+          <input id="roomIcal" placeholder="https://www.airbnb.com/calendar/ical/....ics" inputmode="url" />
+        </div>
+        <div class="field full">
           <label for="roomSupplies">기본 셋팅 물품</label>
           <input id="roomSupplies" placeholder="수건 8, 토퍼 1" />
         </div>
@@ -1140,6 +1166,61 @@
       <div class="dialog-footer">
         <button class="secondary-btn" type="button" id="assignClearBtn">배정 해제</button>
         <button class="primary-btn" type="button" id="assignCloseBtn">닫기</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="icalDialog">
+    <div class="dialog-inner">
+      <div class="dialog-head">
+        <h3>iCal 자동 연동 설정</h3>
+        <button class="close-btn" type="button" id="closeIcalDialog" aria-label="닫기">×</button>
+      </div>
+      <p class="assign-intro">에어비앤비·부킹닷컴의 달력 주소(iCal)를 객실마다 넣어두면, 예약이 자동으로 들어옵니다.</p>
+
+      <div class="field full">
+        <label for="proxyUrl">개인 프록시 주소 (권장)</label>
+        <input id="proxyUrl" placeholder="https://script.google.com/macros/s/..../exec" inputmode="url" />
+      </div>
+      <p class="manage-hint">비워두면 무료 공용 프록시를 사용합니다. 공용은 자주 끊기니 구글 개인 프록시를 권장합니다. 아래 안내를 참고하세요.</p>
+
+      <div class="manage-actions">
+        <button class="mini-btn" type="button" id="proxyTestBtn">연결 테스트</button>
+        <button class="mini-btn" type="button" id="proxySaveBtn">주소 저장</button>
+      </div>
+
+      <label class="room-check" style="margin-top:12px;">
+        <input id="icalAutoSync" type="checkbox" />
+        <span>앱을 켤 때 자동으로 동기화</span>
+      </label>
+
+      <div class="manage-list" id="icalRoomList"></div>
+
+      <div class="dialog-footer">
+        <button class="secondary-btn" type="button" id="icalGuideBtn">프록시 만드는 법</button>
+        <button class="primary-btn" type="button" id="icalSyncNowBtn">지금 동기화</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="icalGuideDialog">
+    <div class="dialog-inner">
+      <div class="dialog-head">
+        <h3>구글 개인 프록시 만들기</h3>
+        <button class="close-btn" type="button" id="closeIcalGuide" aria-label="닫기">×</button>
+      </div>
+      <div class="guide-steps">
+        <p><b>1.</b> 크롬에서 <b>script.google.com</b> 접속 → 구글 로그인</p>
+        <p><b>2.</b> <b>새 프로젝트</b> 누르기</p>
+        <p><b>3.</b> 화면의 코드를 모두 지우고, 아래 코드를 붙여넣기</p>
+        <textarea id="proxyCode" readonly rows="4"></textarea>
+        <button class="mini-btn" type="button" id="copyProxyCode">코드 복사</button>
+        <p><b>4.</b> 오른쪽 위 <b>배포 → 새 배포</b> → 유형 <b>웹 앱</b> 선택</p>
+        <p><b>5.</b> 액세스 권한을 반드시 <b>모든 사용자</b>로 변경 → <b>배포</b> → 권한 허용</p>
+        <p><b>6.</b> 나온 주소(...../exec)를 복사해서 위 칸에 붙여넣고 <b>주소 저장</b></p>
+      </div>
+      <div class="dialog-footer">
+        <button class="primary-btn" type="button" id="closeIcalGuideFooter">확인</button>
       </div>
     </div>
   </dialog>
@@ -2186,10 +2267,7 @@
     $('#prevBtn').addEventListener('click', () => { viewDate.setMonth(viewDate.getMonth() - 1); selectedDate = keyOf(new Date(viewDate.getFullYear(), viewDate.getMonth(), 1)); renderCalendar(); renderDayPanel(); });
     $('#nextBtn').addEventListener('click', () => { viewDate.setMonth(viewDate.getMonth() + 1); selectedDate = keyOf(new Date(viewDate.getFullYear(), viewDate.getMonth(), 1)); renderCalendar(); renderDayPanel(); });
     $('#todayBtn').addEventListener('click', () => { viewDate = new Date(); viewDate.setDate(1); selectedDate = keyOf(new Date()); renderCalendar(); renderDayPanel(); showToast('오늘 날짜로 이동했습니다.'); });
-    $('#syncBtn').addEventListener('click', async () => {
-      const synced = await syncWithServer();
-      showToast(synced ? '서버 일정과 동기화했습니다.' : '브라우저 저장 상태를 확인했습니다.');
-    });
+    $('#syncBtn').addEventListener('click', () => { void syncAllIcal(true); });
     $('#planBtn').addEventListener('click', openPlanDialog);
     $('#closePlanDialog').addEventListener('click', closePlanDialog);
     document.querySelectorAll('.subscribe-btn').forEach((button) => button.addEventListener('click', () => startTrial(button.dataset.plan)));
@@ -2301,18 +2379,16 @@
     /* =====================================================
        색상 안내 열고 닫기 (기본은 숨김 상태)
        ===================================================== */
-    const LEGEND_KEY = 'roommade-calendar-legend-open-v1';
+const LEGEND_KEY = 'roommade-calendar-legend-open-v1';
     const legendBtn = $('#legendBtn');
-    const legendCard = $('#legendCard');
-    const legendClose = $('#legendClose');
+    const legendItems = $('#legendItems');
 
     function setLegendOpen(open, remember = true) {
       try {
-        if (!legendCard || !legendBtn) return;
-        legendCard.classList.toggle('show', open);
-        legendBtn.classList.toggle('active', open);
+        if (!legendItems || !legendBtn) return;
+        legendItems.hidden = !open;
         legendBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-        legendBtn.setAttribute('aria-label', open ? '예약 색상 안내 닫기' : '예약 색상 안내 보기');
+        legendBtn.setAttribute('aria-label', open ? '예약 색상 안내 닫기' : '예약 색상 안내 열기');
         if (remember) localStorage.setItem(LEGEND_KEY, open ? 'yes' : 'no');
       } catch (error) {
         console.log('색상 안내 표시 실패:', error);
@@ -2320,16 +2396,10 @@
     }
 
     if (legendBtn) {
-      legendBtn.addEventListener('click', () => {
-        const isOpen = legendCard.classList.contains('show');
-        setLegendOpen(!isOpen);
-      });
-    }
-    if (legendClose) {
-      legendClose.addEventListener('click', () => setLegendOpen(false));
+      legendBtn.addEventListener('click', () => setLegendOpen(legendItems.hidden));
     }
 
-    // 앱을 켤 때는 숨김 상태로 시작하고, 이전에 열어둔 기록이 있으면 그대로 보여줍니다.
+    // 앱을 켤 때는 접힌 상태로 시작하고, 이전에 펼쳐뒀으면 그대로 보여줍니다.
     setLegendOpen(localStorage.getItem(LEGEND_KEY) === 'yes', false);
 
     /* =====================================================
@@ -2584,6 +2654,7 @@
       $('#manageHint').textContent = editable ? '객실 이름을 바꾸면 기존 예약의 객실 이름도 함께 바뀝니다.' : '';
       $('#manageAddBtn').hidden = !editable;
       $('#manageAddBtn').textContent = '＋ 객실 추가';
+      $('#icalSettingsBtn').hidden = !editable;
       if (!list.length) {
         manageList.innerHTML = `<div class="manage-empty"><strong>등록된 객실이 없습니다</strong><br />${editable ? '아래 버튼으로 첫 객실을 추가해보세요.' : '운영자가 객실을 등록하면 여기에 표시됩니다.'}</div>`;
         return;
@@ -2595,6 +2666,7 @@
           room.doorCode ? `🔑 ${escapeHtml(room.doorCode)}` : '',
           room.minutes ? `🧹 ${room.minutes}분` : '',
           `📅 예약 ${countEventsOfRoom(room.name)}건`,
+          room.ical ? '🔄 iCal 연동' : '',
           room.supplies ? `🧺 ${escapeHtml(room.supplies)}` : ''
         ].filter(Boolean).map((text) => `<span>${text}</span>`).join('');
         const actions = editable
@@ -2613,6 +2685,7 @@
       $('#manageHint').textContent = editable ? '직원 이름을 바꾸면 이미 배정된 예약의 담당자 이름도 함께 바뀝니다.' : '';
       $('#manageAddBtn').hidden = !editable;
       $('#manageAddBtn').textContent = '＋ 직원 추가';
+      $('#icalSettingsBtn').hidden = true;
       if (!staffList.length) {
         manageList.innerHTML = '<div class="manage-empty"><strong>등록된 직원이 없습니다</strong><br />직원을 추가하면 청소 배정을 할 수 있습니다.</div>';
         return;
@@ -2642,6 +2715,7 @@
       $('#manageHint').textContent = 'PIN은 이 휴대폰 안에만 저장되는 화면 잠금용입니다. 인터넷을 통한 완전한 보안이 필요하면 서버 연동이 필요합니다.';
       $('#manageAddBtn').hidden = false;
       $('#manageAddBtn').textContent = '＋ 계정 추가';
+      $('#icalSettingsBtn').hidden = true;
       manageList.innerHTML = accounts.map((account) => {
         const badge = account.active === false
           ? '<span class="manage-badge off">로그인 차단</span>'
@@ -2671,6 +2745,7 @@
       $('#roomHost').value = room?.host || '';
       $('#roomDoor').value = room?.doorCode || '';
       $('#roomMinutes').value = room?.minutes ?? 90;
+      $('#roomIcal').value = room?.ical || '';
       $('#roomSupplies').value = room?.supplies || '';
       $('#roomNote').value = room?.note || '';
       $('#roomActive').checked = room ? room.active !== false : true;
@@ -3029,6 +3104,7 @@
           host: $('#roomHost').value.trim(),
           doorCode: $('#roomDoor').value.trim(),
           minutes: Number($('#roomMinutes').value || 0),
+          ical: $('#roomIcal').value.trim(),
           supplies: $('#roomSupplies').value.trim(),
           note: $('#roomNote').value.trim(),
           active: $('#roomActive').checked
@@ -3267,6 +3343,290 @@
     $('#photoViewer').addEventListener('click', (event) => {
       if (event.target === $('#photoViewer')) closeDialogSafe($('#photoViewer'));
     });
+
+
+    /* =====================================================
+       iCal 자동 연동 (에어비앤비 · 부킹닷컴)
+       ===================================================== */
+    const PROXY_KEY = 'roommade-calendar-proxy-v1';
+    const ICAL_AUTO_KEY = 'roommade-calendar-ical-auto-v1';
+    const ICAL_LAST_KEY = 'roommade-calendar-ical-last-v1';
+
+    const PROXY_CODE = "function doGet(e){var u=e.parameter.url;if(!u)return ContentService.createTextOutput('url required');try{var r=UrlFetchApp.fetch(u,{muteHttpExceptions:true});return ContentService.createTextOutput(r.getContentText()).setMimeType(ContentService.MimeType.TEXT)}catch(err){return ContentService.createTextOutput('ERROR:'+err.message)}}";
+
+    const getProxyUrl = () => localStorage.getItem(PROXY_KEY) || '';
+
+    // 주소를 불러올 통로 목록 (개인 프록시 우선)
+    function buildProxyList(target) {
+      const list = [];
+      const personal = getProxyUrl();
+      if (personal) list.push({ name: '개인 프록시', url: personal + (personal.includes('?') ? '&' : '?') + 'url=' + encodeURIComponent(target) });
+      list.push({ name: '공용1', url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent(target) });
+      list.push({ name: '공용2', url: 'https://corsproxy.io/?url=' + encodeURIComponent(target) });
+      list.push({ name: '공용3', url: 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(target) });
+      return list;
+    }
+
+    async function fetchIcalText(target) {
+      let lastError = null;
+      for (const proxy of buildProxyList(target)) {
+        try {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 20000);
+          const response = await fetch(proxy.url, { signal: controller.signal, cache: 'no-store' });
+          clearTimeout(timer);
+          if (!response.ok) throw new Error(proxy.name + ' 응답 오류 ' + response.status);
+          const text = await response.text();
+          if (!text.includes('BEGIN:VCALENDAR')) throw new Error(proxy.name + ' 달력 형식이 아님');
+          return text;
+        } catch (error) {
+          lastError = error;
+          console.log('[ical] 실패:', proxy.name, error?.message || error);
+        }
+      }
+      throw lastError || new Error('불러오기 실패');
+    }
+
+    // ICS 날짜(20260820 또는 20260820T150000Z)를 2026-08-20 형태로 바꿉니다.
+    function icalDate(value) {
+      const raw = String(value || '').trim();
+      const match = raw.match(/(\d{4})(\d{2})(\d{2})/);
+      return match ? `${match[1]}-${match[2]}-${match[3]}` : '';
+    }
+
+    function parseIcal(text) {
+      const unfolded = String(text).replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '');
+      const lines = unfolded.split(/\r?\n/);
+      const list = [];
+      let current = null;
+      lines.forEach((line) => {
+        if (line.startsWith('BEGIN:VEVENT')) { current = {}; return; }
+        if (line.startsWith('END:VEVENT')) {
+          if (current && current.start && current.end) list.push(current);
+          current = null;
+          return;
+        }
+        if (!current) return;
+        const splitAt = line.indexOf(':');
+        if (splitAt < 0) return;
+        const key = line.slice(0, splitAt).toUpperCase();
+        const value = line.slice(splitAt + 1).trim();
+        if (key.startsWith('DTSTART')) current.start = icalDate(value);
+        else if (key.startsWith('DTEND')) current.end = icalDate(value);
+        else if (key.startsWith('UID')) current.uid = value;
+        else if (key.startsWith('SUMMARY')) current.summary = value;
+        else if (key.startsWith('DESCRIPTION')) current.description = value.replace(/\\n/g, ' ');
+        else if (key.startsWith('STATUS')) current.status = value.toUpperCase();
+      });
+      return list.filter((item) => item.status !== 'CANCELLED');
+    }
+
+    function channelOfUrl(url) {
+      const lower = String(url || '').toLowerCase();
+      if (lower.includes('airbnb')) return 'airbnb';
+      if (lower.includes('booking')) return 'booking';
+      return 'direct';
+    }
+
+    // 에어비앤비의 '예약 불가' 항목은 휴무로 처리합니다.
+    function isBlockedSummary(summary) {
+      const lower = String(summary || '').toLowerCase();
+      return lower.includes('not available') || lower.includes('blocked') || lower.includes('unavailable') || lower.includes('예약 불가');
+    }
+
+    function guestCodeOf(item) {
+      const source = `${item.summary || ''} ${item.description || ''}`;
+      // 에어비앤비 예약번호는 보통 10자리입니다.
+      const match = source.match(/reservations\/details\/([A-Z0-9]{10})/)
+        || source.match(/reservations\/details\/([A-Z0-9]{6,14})/)
+        || source.match(/\b([A-Z0-9]{9,12})\b/);
+      return match ? match[1] : '';
+    }
+
+    function mergeIcalEvents(room, list) {
+      const channel = channelOfUrl(room.ical);
+      const prefix = `ical-${room.name}-`;
+      const seen = new Set();
+      let added = 0;
+      let updated = 0;
+
+      list.forEach((item) => {
+        const uid = item.uid || `${item.start}-${item.end}`;
+        const id = prefix + uid;
+        seen.add(id);
+        const blocked = isBlockedSummary(item.summary);
+        const base = {
+          id,
+          source: 'ical',
+          type: blocked ? 'blocked' : channel,
+          label: blocked ? '휴무·잠금' : channel === 'airbnb' ? '에어비앤비' : channel === 'booking' ? '부킹닷컴' : '직접 추가',
+          start: item.start,
+          end: item.end,
+          property: room.name,
+          host: room.host || '',
+          code: guestCodeOf(item)
+        };
+        const existing = events.find((event) => event.id === id);
+        if (existing) {
+          const changed = existing.start !== base.start || existing.end !== base.end || existing.type !== base.type;
+          Object.assign(existing, base, {
+            // 사람이 직접 넣은 값은 그대로 둡니다.
+            checkIn: existing.checkIn || '16:00',
+            checkOut: existing.checkOut || '11:00',
+            guests: existing.guests || 0,
+            supplies: existing.supplies || (room.supplies ? room.supplies.split(',').map((s) => s.trim()).filter(Boolean) : []),
+            note: existing.note || '',
+            assigneeId: existing.assigneeId || '',
+            status: existing.status || 'pending'
+          });
+          if (changed) updated += 1;
+        } else {
+          events.push({
+            ...base,
+            checkIn: '16:00',
+            checkOut: '11:00',
+            guests: 0,
+            supplies: room.supplies ? room.supplies.split(',').map((s) => s.trim()).filter(Boolean) : [],
+            note: '',
+            assigneeId: '',
+            status: 'pending'
+          });
+          added += 1;
+        }
+      });
+
+      // 달력에서 사라진 예약(취소)은 지웁니다.
+      const before = events.length;
+      events = events.filter((event) => !(event.source === 'ical' && event.id.startsWith(prefix) && !seen.has(event.id)));
+      return { added, updated, removed: before - events.length };
+    }
+
+    async function syncAllIcal(manual = true) {
+      const targets = rooms.filter((room) => room.ical && room.active !== false);
+      if (!targets.length) {
+        if (manual) showToast('iCal 주소가 등록된 객실이 없습니다. 관리 → 객실에서 주소를 넣어주세요.');
+        return;
+      }
+      setSyncStatus('동기화 중', 'syncing', 'iCal 예약을 불러오는 중입니다.');
+      if (manual) showToast(`${targets.length}개 객실의 예약을 불러오는 중입니다...`);
+
+      let added = 0;
+      let updated = 0;
+      let removed = 0;
+      const failed = [];
+
+      for (const room of targets) {
+        try {
+          const text = await fetchIcalText(room.ical);
+          const result = mergeIcalEvents(room, parseIcal(text));
+          added += result.added;
+          updated += result.updated;
+          removed += result.removed;
+        } catch (error) {
+          console.log('[ical] 객실 실패:', room.name, error?.message || error);
+          failed.push(room.name);
+        }
+      }
+
+      saveEvents();
+      localStorage.setItem(ICAL_LAST_KEY, new Date().toISOString());
+      renderCalendar();
+      renderDayPanel();
+      if (!$('#cleaningView').hidden) renderCleaningView();
+      if (manageView && !manageView.hidden) renderManageView();
+      renderIcalRoomList();
+
+      if (failed.length === targets.length) {
+        setSyncStatus('연동 실패', 'offline', 'iCal 주소를 불러오지 못했습니다.');
+        showToast('예약을 불러오지 못했습니다. 개인 프록시 주소를 설정하면 안정적으로 연동됩니다.');
+        return;
+      }
+      setSyncStatus('iCal 연동됨', 'online', `마지막 동기화 ${new Date().toLocaleString('ko-KR')}`);
+      const summary = `새 예약 ${added}건 · 변경 ${updated}건 · 취소 ${removed}건`;
+      showToast(failed.length ? `${summary} (실패: ${failed.join(', ')})` : summary);
+    }
+
+    function renderIcalRoomList() {
+      const list = $('#icalRoomList');
+      if (!list) return;
+      const last = localStorage.getItem(ICAL_LAST_KEY);
+      const lastText = last ? `마지막 동기화 ${new Date(last).toLocaleString('ko-KR')}` : '아직 동기화한 적 없음';
+      const rows = rooms.map((room) => {
+        const linked = Boolean(room.ical);
+        const count = events.filter((event) => event.source === 'ical' && event.property === room.name).length;
+        return `<article class="manage-card"><div class="mc-top"><h3>${escapeHtml(room.name)}</h3><span class="manage-badge ${linked ? '' : 'off'}">${linked ? channelOfUrl(room.ical) === 'airbnb' ? '에어비앤비' : channelOfUrl(room.ical) === 'booking' ? '부킹닷컴' : '연결됨' : '주소 없음'}</span></div><div class="manage-meta"><span>${linked ? `🔄 불러온 예약 ${count}건` : '관리 → 객실 수정에서 iCal 주소를 넣어주세요'}</span></div></article>`;
+      }).join('');
+      list.innerHTML = `<p class="manage-hint">${lastText}</p>` + (rows || '<div class="manage-empty">등록된 객실이 없습니다.</div>');
+    }
+
+    function openIcalDialog() {
+      if (!canManageRooms()) { showToast('iCal 설정은 운영자만 가능합니다.'); return; }
+      $('#proxyUrl').value = getProxyUrl();
+      $('#icalAutoSync').checked = localStorage.getItem(ICAL_AUTO_KEY) === 'yes';
+      renderIcalRoomList();
+      openDialogSafe($('#icalDialog'));
+    }
+
+    $('#icalSettingsBtn').addEventListener('click', openIcalDialog);
+    $('#closeIcalDialog').addEventListener('click', () => closeDialogSafe($('#icalDialog')));
+    $('#icalSyncNowBtn').addEventListener('click', () => { void syncAllIcal(true); });
+    $('#icalAutoSync').addEventListener('change', () => {
+      localStorage.setItem(ICAL_AUTO_KEY, $('#icalAutoSync').checked ? 'yes' : 'no');
+      showToast($('#icalAutoSync').checked ? '앱을 켤 때 자동으로 동기화합니다.' : '자동 동기화를 껐습니다.');
+    });
+
+    $('#proxySaveBtn').addEventListener('click', () => {
+      try {
+        const value = $('#proxyUrl').value.trim();
+        localStorage.setItem(PROXY_KEY, value);
+        showToast(value ? '개인 프록시 주소를 저장했습니다.' : '공용 프록시를 사용합니다.');
+      } catch (error) {
+        console.log('프록시 저장 실패:', error);
+      }
+    });
+
+    $('#proxyTestBtn').addEventListener('click', async () => {
+      const button = $('#proxyTestBtn');
+      const original = button.textContent;
+      try {
+        button.disabled = true;
+        button.textContent = '확인 중...';
+        const value = $('#proxyUrl').value.trim();
+        localStorage.setItem(PROXY_KEY, value);
+        const sample = rooms.find((room) => room.ical)?.ical;
+        if (!sample) { showToast('먼저 객실에 iCal 주소를 하나 넣어주세요.'); return; }
+        await fetchIcalText(sample);
+        showToast('연결 성공! 이제 예약이 자동으로 들어옵니다.');
+      } catch (error) {
+        console.log('프록시 테스트 실패:', error);
+        showToast('연결에 실패했습니다. 주소 끝이 /exec 인지, 액세스 권한이 모든 사용자인지 확인해주세요.');
+      } finally {
+        button.disabled = false;
+        button.textContent = original;
+      }
+    });
+
+    $('#icalGuideBtn').addEventListener('click', () => {
+      $('#proxyCode').value = PROXY_CODE;
+      openDialogSafe($('#icalGuideDialog'));
+    });
+    $('#closeIcalGuide').addEventListener('click', () => closeDialogSafe($('#icalGuideDialog')));
+    $('#closeIcalGuideFooter').addEventListener('click', () => closeDialogSafe($('#icalGuideDialog')));
+    $('#copyProxyCode').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(PROXY_CODE);
+        showToast('코드를 복사했습니다. script.google.com 화면에 붙여넣으세요.');
+      } catch (error) {
+        $('#proxyCode').select();
+        document.execCommand('copy');
+        showToast('코드를 복사했습니다.');
+      }
+    });
+
+    // 앱을 켤 때 자동 동기화 (설정을 켠 경우에만)
+    if (loggedIn && currentRole === 'operator' && localStorage.getItem(ICAL_AUTO_KEY) === 'yes') {
+      window.setTimeout(() => { void syncAllIcal(false); }, 1500);
+    }
 
     /* ---------- 첫 실행 ---------- */
     renderLoginAccounts();
