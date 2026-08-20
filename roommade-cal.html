@@ -665,6 +665,9 @@
     .assign-option { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 50px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; color: var(--ink); background: #fff; font-size: 13px; font-weight: 800; text-align: left; }
     .assign-option.active { color: #fff; background: var(--blue-deep); border-color: var(--blue-deep); }
     .assign-option small { font-size: 10.5px; font-weight: 700; opacity: .72; }
+    .task-actions .task-open.danger { color: var(--coral); border-color: #ffd9de; background: var(--coral-soft); }
+    .report-share.photo { color: #fff; background: var(--blue-deep); }
+    .report-share:disabled { opacity: .45; }
   </style>
 
 </head>
@@ -829,7 +832,7 @@
   <dialog id="reservationDialog">
     <form class="dialog-inner" id="reservationForm" method="dialog">
       <div class="dialog-head">
-        <h3>예약 일정 추가</h3>
+        <h3 id="reservationDialogTitle">예약 일정 추가</h3>
         <button class="close-btn" type="button" id="closeDialog" aria-label="닫기">×</button>
       </div>
       <div class="form-grid">
@@ -884,6 +887,7 @@
         </div>
       </div>
       <div class="dialog-footer">
+        <button class="secondary-btn" type="button" id="reservationDeleteBtn" hidden>삭제</button>
         <button class="secondary-btn" type="button" id="cancelDialog">취소</button>
         <button class="primary-btn" type="submit">일정 저장</button>
       </div>
@@ -1293,6 +1297,7 @@
     let editingStaff = null;
     let editingAccount = null;
     let assignTargetId = '';
+    let editingEventId = null;
 
 
     const roleMeta = {
@@ -1527,6 +1532,80 @@
       return `[룸메이드] ${event.property || '객실'} 청소 완료했습니다.\n청소일자: ${event.end}\n작업자: ${event.assigneeId || '룸메이드'}\n완료시간: ${formatCompletedAt(event)}\n특이사항: ${event.note || '없음'}\n전·후 사진: 청소 전 ${beforeCount}장 / 청소 후 ${afterCount}장`;
     }
 
+    /* ---------- 사진까지 함께 공유하기 ---------- */
+    // 저장된 사진(data:image/...)을 파일로 바꿔주는 함수입니다.
+    function dataUrlToFile(dataUrl, fileName) {
+      const [meta, base64] = String(dataUrl).split(',');
+      const mime = (meta.match(/data:(.*?);/) || [])[1] || 'image/jpeg';
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+      const ext = mime.includes('png') ? 'png' : mime.includes('webp') ? 'webp' : 'jpg';
+      return new File([bytes], `${fileName}.${ext}`, { type: mime });
+    }
+
+    function reportPhotoFiles(event) {
+      const files = [];
+      try {
+        const state = getChecklistState(event);
+        const collect = (photos, prefix) => {
+          photos.forEach((photo, index) => {
+            const item = photoItem(photo);
+            if (item.data && item.data.startsWith('data:image')) {
+              files.push(dataUrlToFile(item.data, `${prefix}_${index + 1}`));
+            }
+          });
+        };
+        collect(state.photoSets.before, 'before');
+        collect(state.photoSets.after, 'after');
+      } catch (error) {
+        console.log('사진 변환 실패:', error);
+      }
+      return files.slice(0, 10);
+    }
+
+    function photoFileCount(event) {
+      try {
+        const state = getChecklistState(event);
+        return [...state.photoSets.before, ...state.photoSets.after]
+          .filter((photo) => photoItem(photo).data?.startsWith('data:image')).length;
+      } catch (error) {
+        return 0;
+      }
+    }
+
+    async function shareReportPhotos(eventId, button) {
+      const event = events.find((item) => item.id === eventId);
+      if (!event) return;
+      const originalLabel = button ? button.textContent : '';
+      try {
+        if (button) { button.disabled = true; button.textContent = '준비 중...'; }
+        const files = reportPhotoFiles(event);
+        if (!files.length) { showToast('공유할 사진이 없습니다. 사진을 먼저 올려주세요.'); return; }
+
+        const text = reportText(event);
+        // 카톡은 사진과 글을 같이 보내면 글이 빠질 수 있어서, 글은 먼저 복사해둡니다.
+        try {
+          if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+        } catch (error) {
+          console.log('문구 복사 실패:', error);
+        }
+
+        if (navigator.canShare && navigator.canShare({ files })) {
+          await navigator.share({ files, title: `${event.property || '객실'} 청소 완료 보고`, text });
+          showToast(`사진 ${files.length}장을 보냈습니다. 보고 문구는 복사해뒀으니 붙여넣기 하세요.`);
+          return;
+        }
+        showToast('이 브라우저는 사진 공유를 지원하지 않습니다. 상세 보고서에서 사진을 길게 눌러 저장해주세요.');
+      } catch (error) {
+        if (error?.name === 'AbortError') return;
+        console.log('사진 공유 실패:', error);
+        showToast('사진 공유에 실패했습니다. 사진 수를 줄여서 다시 시도해주세요.');
+      } finally {
+        if (button) { button.disabled = false; button.textContent = originalLabel; }
+      }
+    }
+
     async function shareReport(eventId) {
       const event = events.find((item) => item.id === eventId);
       if (!event) return;
@@ -1588,11 +1667,12 @@
           <div class="report-meta"><span>👤 작업자 ${escapeHtml(event.assigneeId || '룸메이드')}</span><span>🕒 ${formatCompletedAt(event)}</span><span>✓ 체크 ${stats.done}/${stats.total}</span></div>
           ${note}
           <div class="report-photos"><div class="report-photo-group"><h4>청소 전 · ${state.photoSets.before.length}장</h4><div class="report-photo-grid">${reportPhotoMarkup(state.photoSets.before)}</div></div><div class="report-photo-group"><h4>청소 후 · ${state.photoSets.after.length}장</h4><div class="report-photo-grid">${reportPhotoMarkup(state.photoSets.after)}</div></div></div>
-          <div class="report-actions"><button class="report-open" data-report-open="${event.id}">상세 보고서</button><button class="report-share" data-report-share="${event.id}">카톡 공유</button></div>
+          <div class="report-actions"><button class="report-open" data-report-open="${event.id}">상세 보고서</button><button class="report-share" data-report-share="${event.id}">글 공유</button>${photoFileCount(event) ? `<button class="report-share photo" data-report-photos="${event.id}">사진 공유 · ${photoFileCount(event)}장</button>` : ''}</div>
         </article>`;
       }).join('');
       list.querySelectorAll('[data-report-open]').forEach((button) => button.addEventListener('click', () => openCleaningDialog(button.dataset.reportOpen, 'view')));
       list.querySelectorAll('[data-report-share]').forEach((button) => button.addEventListener('click', () => shareReport(button.dataset.reportShare)));
+      list.querySelectorAll('[data-report-photos]').forEach((button) => button.addEventListener('click', () => shareReportPhotos(button.dataset.reportPhotos, button)));
     }
 
     function renderCleaningView() {
@@ -1627,7 +1707,7 @@
           const openLabel = event.status === 'done' ? '보고서 보기' : '체크리스트 작성';
           actions = `<button class="task-open" data-task-open="${event.id}">${openLabel}</button>${event.status === 'pending' ? `<button class="task-start" data-task-action="start" data-id="${event.id}">업무 시작</button>` : event.status === 'in_progress' ? `<button class="task-start" data-task-action="complete" data-id="${event.id}">완료 처리</button>` : ''}`;
         } else if (currentRole === 'operator') {
-          actions = `<button class="task-open" data-task-open="${event.id}">체크리스트 보기</button><button class="task-start" data-task-action="inspect" data-id="${event.id}">${event.assigneeId ? escapeHtml(event.assigneeId) + ' 배정됨' : '직원 배정'}</button>`;
+          actions = `<button class="task-open" data-task-open="${event.id}">체크리스트 보기</button><button class="task-start" data-task-action="inspect" data-id="${event.id}">${event.assigneeId ? escapeHtml(event.assigneeId) + ' 배정됨' : '직원 배정'}</button><button class="task-open" data-task-action="edit" data-id="${event.id}">일정 수정</button><button class="task-open danger" data-task-action="delete" data-id="${event.id}">삭제</button>`;
         } else {
           actions = `<button class="task-open" data-task-open="${event.id}">${currentRole === 'host' ? '청소 보고 확인' : '업무 상세 보기'}</button>`;
         }
@@ -1646,6 +1726,8 @@
         if (button.dataset.taskAction === 'start') { event.status = 'in_progress'; saveEvents(); renderCleaningView(); showToast('청소업무를 시작했습니다.'); }
         if (button.dataset.taskAction === 'complete') { openCleaningDialog(event.id, 'edit'); }
         if (button.dataset.taskAction === 'inspect') { openAssignDialog(event.id); }
+        if (button.dataset.taskAction === 'edit') { openReservationDialog(event.id); }
+        if (button.dataset.taskAction === 'delete') { deleteEvent(event.id); }
       }));
     }
 
@@ -1816,8 +1898,11 @@
               : `<span>👤 ${event.guests || 0}명</span><span>🕒 ${isCheckin ? '체크인 ' + event.checkIn : '체크아웃 ' + event.checkOut}</span><span>⌕ ${event.code || '예약번호 없음'}</span><span>👷 ${event.assigneeId || '미배정'}</span>`;
         const noteHtml = event.note && currentRole !== 'host' ? `<div class="booking-meta" style="margin-top:10px;color:#526079;">메모 · ${escapeHtml(event.note)}</div>` : '';
         const cleanerDone = event.status === 'done';
-        const actionHtml = event.type === 'blocked' ? '' : currentRole === 'operator'
-          ? `<div class="booking-actions"><button class="secondary-btn report-btn" data-id="${event.id}">사진 보고</button><button class="primary-btn assign-btn" data-id="${event.id}">${event.assigneeId ? escapeHtml(event.assigneeId + ' 배정됨') : '청소자 배정'}</button></div>`
+        const manageHtml = currentRole === 'operator'
+          ? `<div class="booking-actions"><button class="mini-btn edit-btn" data-id="${event.id}">일정 수정</button><button class="mini-btn danger del-btn" data-id="${event.id}">일정 삭제</button></div>`
+          : '';
+        const actionHtml = event.type === 'blocked' ? manageHtml : currentRole === 'operator'
+          ? `<div class="booking-actions"><button class="secondary-btn report-btn" data-id="${event.id}">사진 보고</button><button class="primary-btn assign-btn" data-id="${event.id}">${event.assigneeId ? escapeHtml(event.assigneeId + ' 배정됨') : '청소자 배정'}</button></div>` + manageHtml
           : currentRole === 'cleaner'
             ? `<div class="booking-actions"><button class="secondary-btn report-btn" data-id="${event.id}">사진 보고</button><button class="primary-btn done-btn" data-id="${event.id}" ${cleanerDone ? 'disabled' : ''}>${cleanerDone ? '완료됨' : '완료 처리'}</button></div>`
             : `<div class="booking-actions"><button class="secondary-btn report-btn" data-id="${event.id}">${currentRole === 'host' ? '청소 보고 확인' : '보고서 보기'}</button></div>`;
@@ -1837,6 +1922,8 @@
       });
 
       dayStack.querySelectorAll('.assign-btn').forEach((button) => button.addEventListener('click', () => openAssignDialog(button.dataset.id)));
+      dayStack.querySelectorAll('.edit-btn').forEach((button) => button.addEventListener('click', () => openReservationDialog(button.dataset.id)));
+      dayStack.querySelectorAll('.del-btn').forEach((button) => button.addEventListener('click', () => deleteEvent(button.dataset.id)));
       dayStack.querySelectorAll('.done-btn').forEach((button) => button.addEventListener('click', () => {
         const event = events.find((item) => item.id === button.dataset.id);
         if (!event) return;
@@ -2126,8 +2213,9 @@
       const end = $('#endDate').value;
       if (!start || !end || end <= start) { showToast('체크아웃 날짜를 체크인 이후로 선택해주세요.'); return; }
       const type = $('#reservationType').value;
+      const editing = editingEventId ? events.find((item) => item.id === editingEventId) : null;
       const newEvent = {
-        id: `custom-${Date.now()}`,
+        id: editing ? editing.id : `custom-${Date.now()}`,
         type,
         label: type === 'airbnb' ? '에어비앤비' : type === 'booking' ? '부킹닷컴' : type === 'blocked' ? '휴무·잠금' : '직접 추가',
         start,
@@ -2141,17 +2229,25 @@
         host: findRoom($('#reservationRoom').value)?.host || currentUser?.name || '광우',
         property: $('#reservationRoom').value || currentProperty,
         assigneeId: $('#reservationStaff').value || '',
-        status: 'pending'
+        status: editing ? editing.status : 'pending'
       };
-      events.push(newEvent);
+      if (editing) {
+        const index = events.findIndex((item) => item.id === editing.id);
+        events[index] = { ...editing, ...newEvent };
+      } else {
+        events.push(newEvent);
+      }
       saveEvents();
       selectedDate = start;
       viewDate = dateFromKey(start);
       viewDate.setDate(1);
+      const wasEditing = Boolean(editing);
+      editingEventId = null;
       closeDialog();
       renderCalendar();
       renderDayPanel();
-      showToast('새 예약 일정을 저장했습니다.');
+      if (!$('#cleaningView').hidden) renderCleaningView();
+      showToast(wasEditing ? '일정을 수정했습니다.' : '새 예약 일정을 저장했습니다.');
     });
 
     // 빠른 추가는 달력의 빈 영역을 두 번 누르는 방식으로도 열 수 있습니다.
@@ -2806,25 +2902,70 @@
       if (notify) showToast(`${meta.label} 화면으로 전환했습니다.`);
     }
 
-    /* ---------- 예약 추가 창 (객실·담당자 선택 포함) ---------- */
-    function openReservationDialog() {
-      if (!canEditReservation()) { showToast('예약 추가는 운영자만 가능합니다.'); return; }
-      $('#startDate').value = selectedDate;
-      const nextDay = dateFromKey(selectedDate);
-      nextDay.setDate(nextDay.getDate() + 1);
-      $('#endDate').value = keyOf(nextDay);
-      $('#guestName').value = '';
-      $('#suppliesInput').value = '';
-      $('#noteInput').value = '';
+    /* ---------- 예약 창 (추가 · 수정 겸용) ---------- */
+    function openReservationDialog(eventId) {
+      if (!canEditReservation()) { showToast('예약 수정은 운영자만 가능합니다.'); return; }
+      const target = eventId ? events.find((item) => item.id === eventId) : null;
+      editingEventId = target ? target.id : null;
+      $('#reservationDialogTitle').textContent = target ? '예약 일정 수정' : '예약 일정 추가';
+      $('#reservationDeleteBtn').hidden = !target;
+
       const roomSelect = $('#reservationRoom');
       roomSelect.innerHTML = activeRooms().map((room) => `<option value="${escapeHtml(room.name)}">${escapeHtml(room.name)}</option>`).join('') || '<option value="">등록된 객실 없음</option>';
-      roomSelect.value = currentProperty || activeRooms()[0]?.name || '';
       const staffSelect = $('#reservationStaff');
       staffSelect.innerHTML = '<option value="">나중에 배정</option>' + activeCleaners().map((person) => `<option value="${escapeHtml(person.name)}">${escapeHtml(person.name)}</option>`).join('');
-      staffSelect.value = '';
-      const room = findRoom(roomSelect.value);
-      if (room?.supplies) $('#suppliesInput').value = room.supplies;
+
+      if (target) {
+        $('#reservationType').value = target.type || 'direct';
+        $('#guestName').value = target.code || target.label || '';
+        roomSelect.value = target.property || currentProperty || '';
+        staffSelect.value = target.assigneeId || '';
+        $('#startDate').value = target.start;
+        $('#endDate').value = target.end;
+        $('#checkInTime').value = target.checkIn || '16:00';
+        $('#checkOutTime').value = target.checkOut || '11:00';
+        $('#guestCount').value = target.guests || 0;
+        $('#suppliesInput').value = (target.supplies || []).join(', ');
+        $('#noteInput').value = target.note || '';
+      } else {
+        $('#reservationType').value = 'direct';
+        $('#startDate').value = selectedDate;
+        const nextDay = dateFromKey(selectedDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+        $('#endDate').value = keyOf(nextDay);
+        $('#guestName').value = '';
+        $('#checkInTime').value = '16:00';
+        $('#checkOutTime').value = '11:00';
+        $('#guestCount').value = 2;
+        $('#noteInput').value = '';
+        roomSelect.value = currentProperty || activeRooms()[0]?.name || '';
+        staffSelect.value = '';
+        $('#suppliesInput').value = findRoom(roomSelect.value)?.supplies || '';
+      }
       openDialogSafe(dialog);
+    }
+
+    /* ---------- 일정 삭제 ---------- */
+    function deleteEvent(eventId) {
+      try {
+        if (!canEditReservation()) { showToast('일정 삭제는 운영자만 가능합니다.'); return; }
+        const target = events.find((item) => item.id === eventId);
+        if (!target) return;
+        const title = `${target.property || '객실 미지정'} · ${target.start.slice(5).replace('-', '/')} ~ ${target.end.slice(5).replace('-', '/')}`;
+        if (!window.confirm(`이 일정을 삭제할까요?\n\n${title}\n${target.label || ''}\n\n삭제하면 되돌릴 수 없습니다.`)) return;
+        events = events.filter((item) => item.id !== eventId);
+        saveEvents();
+        if (editingEventId === eventId) editingEventId = null;
+        closeDialogSafe(dialog);
+        renderCalendar();
+        renderDayPanel();
+        if (!$('#cleaningView').hidden) renderCleaningView();
+        if (!$('#reportView').hidden) renderReportView();
+        showToast('일정을 삭제했습니다.');
+      } catch (error) {
+        console.log('일정 삭제 실패:', error);
+        showToast('삭제 중 문제가 생겼습니다.');
+      }
     }
 
     /* ---------- 화면 연결 ---------- */
@@ -2983,6 +3124,12 @@
         showToast('저장 중 문제가 생겼습니다.');
       }
     });
+
+    $('#reservationDeleteBtn').addEventListener('click', () => {
+      if (editingEventId) deleteEvent(editingEventId);
+    });
+    $('#cancelDialog').addEventListener('click', () => { editingEventId = null; });
+    $('#closeDialog').addEventListener('click', () => { editingEventId = null; });
 
     $('#closeAssignDialog').addEventListener('click', () => closeDialogSafe(assignDialog));
     $('#assignCloseBtn').addEventListener('click', () => closeDialogSafe(assignDialog));

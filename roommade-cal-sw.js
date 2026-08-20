@@ -4,7 +4,7 @@
    ※ 이 파일은 roommade-cal 로 시작하는 주소만 담당합니다.
       (기존 RoomPacker 앱의 sw.js 와 서로 부딪히지 않습니다)
    ========================================================= */
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v5';
 const CACHE_NAME = 'roommade-cal-' + CACHE_VERSION;
 const APP_PAGE = '/roompacker/roommade-cal.html';
 
