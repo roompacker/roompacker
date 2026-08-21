@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v10.6</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v10.8</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -856,7 +856,9 @@ h1,h2,h3{color:var(--n-ink)}
     <div class="twocol"><div class="field"><label>세금률 %</label><input type="number" step="0.1" id="roomTaxInput" placeholder="0" /></div><div class="field"><label>기본 인원</label><input type="number" id="roomBaseGuests" placeholder="예: 4" /></div></div>
     <div class="twocol"><div class="field"><label>도어락 비번</label><input id="roomDoorPw" placeholder="예: 37098877*" /></div><div class="field"><label>비품함 비번</label><input id="roomSupplyPw" placeholder="예: 998" /></div></div>
     <div style="font-size:11px;color:var(--muted);margin:-4px 0 8px;">💡 기본 인원보다 많으면 체크인 준비에 '추가 셋팅 필요'로 표시돼요</div>
-    <div class="field"><label>1명 초과당 추가 셋팅 (선택)</label><input id="roomExtraSetup" placeholder="예: 토퍼1, 베개1, 수건2" /></div>
+    <div class="field"><label>🛒 기본 셋팅 (기본 인원까지)</label><input id="roomBaseSetup" placeholder="예: 수건8, 생수4, 쿠키4" /></div>
+    <div class="field"><label>＋ 1명 초과당 추가 셋팅</label><input id="roomExtraSetup" placeholder="예: 토퍼1, 베개1, 수건2" /></div>
+    <div style="font-size:11px;color:var(--muted);margin:-4px 0 10px;line-height:1.6;">💡 기본 4명 · 기본셋팅 <b>수건8</b> · 초과당 <b>수건2</b> 로 두면<br>6명 입실 시 → <b>수건12</b> 로 자동 합산돼요 (8 + 2×2)</div>
     <div class="field"><label>📅 에어비앤비 캘린더 주소 (iCal)</label><input id="roomIcalInput" placeholder="https://www.airbnb.co.kr/calendar/ical/....ics" /></div>
     <div style="font-size:11px;color:var(--muted);margin:-4px 0 8px;">💡 에어비앤비 앱 → 달력 → 설정 → 캘린더 내보내기에서 복사하세요. 넣으면 예약이 자동으로 들어와요</div>
     <div style="font-size:11px;color:var(--muted);margin:-4px 0 8px;">💡 입실 인원이 기본보다 많으면 초과 인원수만큼 자동 계산돼요 (예: 2명 초과 → 토퍼2, 수건4)</div>
@@ -1362,6 +1364,53 @@ h1,h2,h3{color:var(--n-ink)}
   }
   // 초과 인원에 따라 추가 셋팅 자동 계산
   // 규칙 "토퍼1, 수건2"  + 초과 2명  →  "토퍼2, 수건4"
+  /* 🛒 기본 셋팅 + 초과분을 품목별로 합쳐서 계산
+     예) 기본 '수건8, 생수4' / 초과당 '수건2, 토퍼1' / 2명 초과
+         → '수건12, 생수4, 토퍼2'   (수건 8+2×2=12)
+     · 이름이 같은 품목은 수량을 더합니다
+     · 숫자가 없는 항목(예: '침구교체')은 그대로 한 번만 넣습니다 */
+  function parseSetupParts(text){
+    const out=[];
+    // 괄호 안의 쉼표는 나누지 않습니다: '수건8(수납장4, 바구니4)' 를 한 덩어리로
+    const chunks=[]; let buf='', depth=0;
+    String(text||'').split('').forEach(function(ch){
+      if(ch==='('||ch==='（')depth++;
+      if(ch===')'||ch==='）')depth=Math.max(0,depth-1);
+      if(ch===','&&depth===0){ chunks.push(buf); buf=''; }
+      else buf+=ch;
+    });
+    if(buf.trim())chunks.push(buf);
+    chunks.forEach(function(part){
+      part=String(part).trim(); if(!part)return;
+      // 괄호 안 설명은 그대로 살립니다: '수건10(수납장4)' → 이름 '수건', 수량 10, 꼬리 '(수납장4)'
+      const m=part.match(/^(.*?)(\d+)\s*(\(.*\))?$/);
+      if(m && m[1].trim()){
+        out.push({name:m[1].trim(), qty:parseInt(m[2],10), tail:(m[3]||'').trim(), raw:part});
+      }else{
+        out.push({name:part, qty:null, tail:'', raw:part});
+      }
+    });
+    return out;
+  }
+
+  function mergeSetup(baseText, extraText, over){
+    const list=[];   // 순서를 지키려고 배열로 관리
+    function add(name, qty, tail){
+      const found=list.find(x=>x.name===name);
+      if(found){
+        if(qty!=null)found.qty=(found.qty||0)+qty;
+        if(tail&&!found.tail)found.tail=tail;
+      }else{
+        list.push({name:name, qty:qty, tail:tail||''});
+      }
+    }
+    parseSetupParts(baseText).forEach(p=>add(p.name,p.qty,p.tail));
+    if(over>0){
+      parseSetupParts(extraText).forEach(p=>add(p.name, p.qty!=null?p.qty*over:null, p.tail));
+    }
+    return list.map(x=>x.name+(x.qty!=null?x.qty:'')+(x.tail?x.tail:'')).join(', ');
+  }
+
   function calcExtraSetup(rule, over){
     if(!rule || over<=0) return '';
     return rule.split(',').map(function(part){
@@ -1495,8 +1544,6 @@ h1,h2,h3{color:var(--n-ink)}
     const name=roomTitleOf(t.targetName||room.name)||t.targetName||'객실';
     const specs=roomSpecsOf(room.name||'');
     const L=[];
-    // 카톡은 글자 폭이 제각각이라 세로줄(│) 박스가 삐뚤어져요.
-    // 그래서 위아래 구분선만 쓰는 방식으로 만듭니다.
     L.push('━━━━━━━━━━━━━━');
     L.push('【'+idx+'】 '+name);
 
@@ -1508,46 +1555,55 @@ h1,h2,h3{color:var(--n-ink)}
       L.push('🔑 도어락 '+(room.doorPw||'-')+(room.supplyPw?'   📦 비품함 '+room.supplyPw:''));
     }
 
-    L.push('');
-    L.push('▸ 작업 순서');
-
-    // ① 퇴실 정리 (직원용은 '쓴 물품' 생략 — 치우기만 하면 되니까)
-    if(t.outNights||t.outGuests){
-      L.push('  ① 퇴실 정리   '+(t.outNights?t.outNights+'박':'')+(t.outGuests?' '+t.outGuests+'명':'')+(t.outTime?'  ('+t.outTime+' 퇴실)':''));
+    /* ⏰ 시간 한 줄로 정리
+       기준시간(퇴실 11:00 / 입실 16:00)과 다를 때만 ⚡레이트·얼리 표시 */
+    const outT=t.outTime||'';
+    const inT=t.inNights?(t.inTime||''):'';
+    const timeBits=[];
+    if(outT)timeBits.push(outT+' 퇴실'+(outT>'11:00'?' ⚡레이트':''));
+    if(inT)timeBits.push(inT+' 입실'+(inT<'16:00'?' ⚡얼리':''));
+    if(!t.inNights){
+      // 다음 입실이 없으면 '공실'로 한 줄만
+      L.push('');
+      L.push('🚪 '+(outT?outT+' 퇴실'+(outT>'11:00'?' ⚡레이트':''):'퇴실')+'   →   다음 입실 없음 (공실)');
+    }else if(timeBits.length){
+      L.push('');
+      L.push('🚪 '+timeBits.join('   →   '));
     }
-    if(t.outSupplies&&!opts.hideOutSupplies){
-      L.push('      쓴 물품 : '+t.outSupplies);
-    }
 
-    // ② 청소
-    L.push('  ② 청소        기본 청소'+(specs.length?'  /  비치 '+specs.map(s=>s.label+(s.qty?' '+s.qty:'')).join(', '):''));
-
-    // ③ 입실 셋팅 — 준비 비품 강조
+    /* 🛒 셋팅할 것만 */
     if(t.inNights){
       const g=Number(t.inGuests||0), base=Number(room.baseGuests||0);
       const over=(base&&g>base)?(g-base):0;
-      L.push('  ③ 입실 셋팅   '+t.inNights+'박 '+(t.inGuests||'-')+'명'+(t.inTime?'  ('+t.inTime+' 입실)':''));
-      const prep=[];
-      if(t.inSupplies)prep.push(t.inSupplies);
-      if(over>0){
-        const auto=calcExtraSetup(room.extraSetup||'', over);
-        if(auto)prep.push(auto+' (초과 '+over+'명분)');
+      /* 준비물 결정 순서
+         ① 이 예약에 직접 적어둔 준비물이 있으면 그것을 우선 사용
+         ② 없으면 객실의 '기본 셋팅 + 초과당 추가'를 합산해서 자동 계산 */
+      let prepText='';
+      if(t.inSupplies){
+        prepText=t.inSupplies;
+        if(over>0){
+          const auto=calcExtraSetup(room.extraSetup||'', over);
+          if(auto)prepText=mergeSetup(t.inSupplies, room.extraSetup||'', over);
+        }
+      }else{
+        prepText=mergeSetup(room.baseSetup||'', room.extraSetup||'', over);
       }
-      if(prep.length){
-        L.push('');
-        L.push('🛒 준비할 비품');
-        prep.forEach(x=>L.push('    · '+x));
+      L.push('');
+      if(prepText){
+        L.push('🛒 셋팅할 것  ('+t.inNights+'박 '+(t.inGuests||'-')+'명'+(over>0?' · 초과 '+over+'명 포함':'')+')');
+        L.push('    · '+prepText);
+      }else{
+        L.push('🛒 셋팅  '+t.inNights+'박 '+(t.inGuests||'-')+'명 · 기본 셋팅');
       }
-    }else{
-      L.push('  ③ 입실 셋팅   없음 (청소 후 공실)');
+      if(specs.length){
+        L.push('    · 비치 : '+specs.map(s=>s.label+(s.qty?' '+s.qty:'')).join(', '));
+      }
     }
 
-    // 확인사항
+    // 확인사항 (시간은 위에 이미 표시했으므로 그 외의 것만)
     const chk=[];
-    if(t.inNights&&t.inTime&&t.inTime<'16:00')chk.push('얼리체크인 '+t.inTime+' — 시간 맞춰 마무리');
-    if(t.outTime&&t.outTime>'11:00')chk.push('레이트체크아웃 '+t.outTime+' — 그 후 시작');
-    if(!t.inNights)chk.push('다음 입실 없음 — 커튼/전등 정리');
     if(t.inNights&&!t.inGuests)chk.push('입실 인원 미확인 — 사장님께 문의');
+    if(!t.inNights)chk.push('커튼·전등 정리 후 마무리');
     if(t.memo)chk.push(t.memo);
     if(chk.length){
       L.push('');
@@ -1556,6 +1612,7 @@ h1,h2,h3{color:var(--n-ink)}
     }
     return L.join('\n');
   }
+
 
 
   // 직원용 텍스트 (담당 객실만)
@@ -2811,7 +2868,7 @@ h1,h2,h3{color:var(--n-ink)}
     save();closeModal('txModal');toast('기록을 저장했어요'+autoMsg);render();
   }
   function deleteTxForm(){const id=$('#txEditId').value;if(!id)return;if(confirm('이 기록을 삭제할까요?')){state.transactions=state.transactions.filter(x=>x.id!==id);save();closeModal('txModal');render();toast('삭제했어요')}}
-  function openRoom(id=''){const r=state.rooms.find(x=>x.id===id);$('#roomEditId').value=id;$('#roomNameInput').value=r?.name||'';$('#roomHostInput').value=r?.hostName||'';$('#roomBranchInput').value=r?.branch||(state.branch==='전체'?'영종점':state.branch);$('#roomPriceInput').value=r?.price||'';$('#roomTaxInput').value=r?.tax||'';$('#roomBaseGuests').value=r?.baseGuests||'';$('#roomExtraSetup').value=r?.extraSetup||'';$('#roomDoorPw').value=r?.doorPw||'';$('#roomSupplyPw').value=r?.supplyPw||'';$('#roomIcalInput').value=r?.ical||'';const drb=$('#deleteRoomBtn');if(drb)drb.style.display=id?'block':'none';const arb=$('#archiveRoomBtn');if(arb){arb.style.display=id?'block':'none';if(r&&r.archived){arb.textContent='📤 보관 해제 (메뉴에 다시 표시)';arb.style.background='#E2F4EA';arb.style.color='#4FA97D';arb.style.borderColor='#9FD9BC';}else{arb.textContent='📦 이 객실 보관 (메뉴에서 숨김)';arb.style.background='#FDF3D6';arb.style.color='#C4922E';arb.style.borderColor='#F2E3AA';}}openModal('roomModal')}
+  function openRoom(id=''){const r=state.rooms.find(x=>x.id===id);$('#roomEditId').value=id;$('#roomNameInput').value=r?.name||'';$('#roomHostInput').value=r?.hostName||'';$('#roomBranchInput').value=r?.branch||(state.branch==='전체'?'영종점':state.branch);$('#roomPriceInput').value=r?.price||'';$('#roomTaxInput').value=r?.tax||'';$('#roomBaseGuests').value=r?.baseGuests||'';$('#roomExtraSetup').value=r?.extraSetup||'';$('#roomBaseSetup').value=r?.baseSetup||'';$('#roomDoorPw').value=r?.doorPw||'';$('#roomSupplyPw').value=r?.supplyPw||'';$('#roomIcalInput').value=r?.ical||'';const drb=$('#deleteRoomBtn');if(drb)drb.style.display=id?'block':'none';const arb=$('#archiveRoomBtn');if(arb){arb.style.display=id?'block':'none';if(r&&r.archived){arb.textContent='📤 보관 해제 (메뉴에 다시 표시)';arb.style.background='#E2F4EA';arb.style.color='#4FA97D';arb.style.borderColor='#9FD9BC';}else{arb.textContent='📦 이 객실 보관 (메뉴에서 숨김)';arb.style.background='#FDF3D6';arb.style.color='#C4922E';arb.style.borderColor='#F2E3AA';}}openModal('roomModal')}
   // 객실 삭제 (길게 누르기)
   function deleteRoom(id){
     const r=state.rooms.find(x=>x.id===id);
@@ -2825,7 +2882,7 @@ h1,h2,h3{color:var(--n-ink)}
     state.transactions=state.transactions.filter(t=>t.targetId!==id);
     closeModal('roomModal');save();render();toast('🗑️ "'+r.name+'" 삭제됐어요');
   }
-  function saveRoomForm(){const id=$('#roomEditId').value,name=$('#roomNameInput').value.trim(),hostName=$('#roomHostInput').value.trim(),branch=$('#roomBranchInput').value,price=Number($('#roomPriceInput').value),tax=Number($('#roomTaxInput').value||0),baseGuests=Number($('#roomBaseGuests').value||0),extraSetup=$('#roomExtraSetup').value.trim(),doorPw=$('#roomDoorPw').value.trim(),supplyPw=$('#roomSupplyPw').value.trim(),ical=$('#roomIcalInput').value.trim();if(!name||!price)return toast('객실명과 기본 청소비를 입력해주세요');const prev=state.rooms.find(x=>x.id===id)||{};const obj={...prev,id:id||uid('room'),name,hostName,branch,price,tax,baseGuests,extraSetup,doorPw,supplyPw,ical};if(id)state.rooms[state.rooms.findIndex(x=>x.id===id)]=obj;else state.rooms.push(obj);save();closeModal('roomModal');render();toast('객실을 저장했어요')}
+  function saveRoomForm(){const id=$('#roomEditId').value,name=$('#roomNameInput').value.trim(),hostName=$('#roomHostInput').value.trim(),branch=$('#roomBranchInput').value,price=Number($('#roomPriceInput').value),tax=Number($('#roomTaxInput').value||0),baseGuests=Number($('#roomBaseGuests').value||0),extraSetup=$('#roomExtraSetup').value.trim(),baseSetup=$('#roomBaseSetup').value.trim(),doorPw=$('#roomDoorPw').value.trim(),supplyPw=$('#roomSupplyPw').value.trim(),ical=$('#roomIcalInput').value.trim();if(!name||!price)return toast('객실명과 기본 청소비를 입력해주세요');const prev=state.rooms.find(x=>x.id===id)||{};const obj={...prev,id:id||uid('room'),name,hostName,branch,price,tax,baseGuests,extraSetup,baseSetup,doorPw,supplyPw,ical};if(id)state.rooms[state.rooms.findIndex(x=>x.id===id)]=obj;else state.rooms.push(obj);save();closeModal('roomModal');render();toast('객실을 저장했어요')}
 
   // ── 비품 ──
   let supplyReceiptData='';
