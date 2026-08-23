@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Firebase 탐색기 v1</title>
+<style>
+:root{
+  --cream:#EDEEE7; --navy:#1D4468; --paper:#F7F8F4;
+  --line:rgba(29,68,104,.18); --muted:rgba(29,68,104,.62);
+  --ok:#2E7D5B; --bad:#C2543D;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--cream);color:var(--navy);
+  font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;padding-bottom:50px;
+}
+.head{padding:24px 18px 18px;border-bottom:1px solid var(--line);}
+.ver{
+  display:inline-block;background:var(--navy);color:var(--cream);
+  font-size:11px;font-weight:800;letter-spacing:.1em;padding:4px 10px;border-radius:999px;margin-bottom:11px;
+}
+.head h1{font-size:20px;font-weight:800;margin:0 0 8px;}
+.head p{font-size:13px;line-height:1.65;color:var(--muted);margin:0;}
+
+.sec{padding:22px 18px 0;}
+.sec h2{font-size:14px;font-weight:800;margin:0 0 11px;}
+.field{margin-bottom:11px;}
+.field label{display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;}
+.field input{
+  width:100%;padding:13px;border:1px solid var(--line);border-radius:11px;
+  background:#fff;color:var(--navy);font-family:inherit;font-size:13.5px;
+}
+.field input:focus{outline:2px solid var(--navy);outline-offset:-1px;}
+.big{
+  width:100%;border:none;border-radius:13px;background:var(--navy);color:var(--cream);
+  font-family:inherit;font-size:15px;font-weight:800;padding:16px;cursor:pointer;margin-top:8px;
+}
+.big.alt{background:#fff;color:var(--navy);border:1.5px solid var(--navy);}
+.big:active{opacity:.82;}
+.big[disabled]{opacity:.5;}
+.big:focus-visible{outline:3px solid var(--navy);outline-offset:2px;}
+
+#out{
+  background:#fff;border:1px solid var(--line);border-radius:13px;
+  padding:14px;font-size:12px;line-height:1.75;margin-top:14px;
+  min-height:150px;max-height:65vh;overflow:auto;
+  white-space:pre-wrap;word-break:break-all;font-family:'Courier New',monospace;
+}
+.note{
+  margin:24px 18px 0;padding:14px 16px;border-radius:12px;
+  background:rgba(29,68,104,.06);font-size:12.5px;line-height:1.75;color:var(--muted);
+}
+</style>
+</head>
+<body>
+
+<header class="head">
+  <span class="ver">SCAN v1</span>
+  <h1>Firebase 탐색기</h1>
+  <p>룸메이드원이 어떤 설정으로 어디에 예약을 저장하는지 찾아냅니다. 비밀번호나 열쇠 값은 가려서 표시합니다.</p>
+</header>
+
+<section class="sec">
+  <h2>1. 분석할 파일</h2>
+  <div class="field">
+    <label for="file">파일 이름</label>
+    <input id="file" type="text" value="roommade-one.html">
+  </div>
+  <button class="big" id="run1" type="button">파일 분석하기</button>
+</section>
+
+<section class="sec">
+  <h2>2. 저장 위치 접속 테스트</h2>
+  <div class="field">
+    <label for="base">Firebase 주소</label>
+    <input id="base" type="text" value="https://roompacker-48249-default-rtdb.asia-southeast1.firebasedatabase.app">
+  </div>
+  <button class="big" id="run2" type="button">위치 하나씩 두드려보기</button>
+  <button class="big alt" id="copy" type="button">결과 복사</button>
+</section>
+
+<div class="sec">
+  <div id="out">여기에 결과가 나옵니다.</div>
+</div>
+
+<p class="note">
+  1번을 먼저 누르고, 결과가 나오면 2번을 누르세요. 두 결과를 모두 복사해서 클로에게 보내주시면 됩니다.
+</p>
+
+<script>
+/* ============================================
+   1. 출력
+   ============================================ */
+var out = [];
+
+function p(msg){
+  try{
+    out.push(msg);
+    document.getElementById('out').textContent = out.join('\n');
+    var box = document.getElementById('out');
+    box.scrollTop = box.scrollHeight;
+  }catch(e){}
+}
+function clear(){ out = []; document.getElementById('out').textContent = ''; }
+
+// 열쇠값 가리기
+function mask(s){
+  try{
+    s = String(s);
+    if (s.length <= 8) return '****';
+    return s.slice(0,4) + '****' + s.slice(-3) + ' (길이 ' + s.length + ')';
+  }catch(e){ return '****'; }
+}
+
+/* ============================================
+   2. 파일 분석
+   ============================================ */
+var FOUND_PATHS = [];
+var FOUND_DB = '';
+
+function analyze(){
+  var btn = document.getElementById('run1');
+  var file = (document.getElementById('file').value || '').trim();
+  clear();
+  p('=== 1. 파일 분석 ===');
+  p('파일: ' + file);
+
+  btn.disabled = true;
+  btn.textContent = '분석 중...';
+
+  fetch(file, { cache:'no-store' }).then(function(r){
+    p('응답: HTTP ' + r.status);
+    if (!r.ok) throw new Error('파일을 못 읽었습니다');
+    return r.text();
+  }).then(function(html){
+    p('파일 크기: ' + Math.round(html.length/1024) + ' KB');
+    p('');
+
+    // firebase 단어가 있는지
+    var cnt = (html.match(/firebase/gi) || []).length;
+    p('firebase 라는 단어: ' + cnt + '번 등장');
+    if (cnt === 0) p('  → 이 파일은 Firebase를 안 쓰는 것 같습니다');
+    p('');
+
+    // 데이터베이스 주소
+    p('[데이터베이스 주소]');
+    var urls = html.match(/https:\/\/[a-zA-Z0-9._-]+\.(firebaseio\.com|firebasedatabase\.app)[^"'\s]*/g);
+    if (urls){
+      var uniq = {};
+      urls.forEach(function(u){ uniq[u] = 1; });
+      Object.keys(uniq).forEach(function(u){
+        p('  ' + u);
+        if (!FOUND_DB) FOUND_DB = u.replace(/\/$/,'');
+      });
+      if (FOUND_DB) document.getElementById('base').value = FOUND_DB;
+    } else p('  없음');
+    p('');
+
+    // 설정 항목
+    p('[설정 항목]');
+    var fields = ['apiKey','authDomain','databaseURL','projectId','storageBucket','messagingSenderId','appId'];
+    var any = false;
+    fields.forEach(function(f){
+      var m = html.match(new RegExp(f + '\\s*[:=]\\s*[`"\']([^`"\']+)[`"\']'));
+      if (m){
+        any = true;
+        if (f === 'apiKey' || f === 'appId') p('  ' + f + ' : ' + mask(m[1]));
+        else p('  ' + f + ' : ' + m[1]);
+      }
+    });
+    if (!any) p('  못 찾음 (설정이 다른 모양이거나 다른 파일에 있음)');
+    p('');
+
+    // 저장 위치
+    p('[저장 위치 (ref 경로)]');
+    var paths = {};
+    var m, re;
+    re = /\.ref\(\s*[`"']([^`"']+)[`"']/g;
+    while ((m = re.exec(html)) !== null) paths[m[1]] = 1;
+    re = /ref\(\s*\w+\s*,\s*[`"']([^`"']+)[`"']/g;
+    while ((m = re.exec(html)) !== null) paths[m[1]] = 1;
+    re = /firebasedatabase\.app\/([a-zA-Z0-9_\-\/]+)\.json/g;
+    while ((m = re.exec(html)) !== null) paths[m[1]] = 1;
+    re = /firebaseio\.com\/([a-zA-Z0-9_\-\/]+)\.json/g;
+    while ((m = re.exec(html)) !== null) paths[m[1]] = 1;
+
+    FOUND_PATHS = Object.keys(paths);
+    if (FOUND_PATHS.length) FOUND_PATHS.forEach(function(k){ p('  ' + k); });
+    else p('  못 찾음');
+    p('');
+
+    // 로그인 방식
+    p('[로그인 방식]');
+    if (/signInAnonymously/.test(html))            p('  익명 로그인 사용');
+    if (/signInWithEmailAndPassword/.test(html))   p('  이메일 로그인 사용');
+    if (/signInWithCustomToken/.test(html))        p('  토큰 로그인 사용');
+    if (!/signIn/.test(html))                      p('  로그인 코드 없음 (그냥 읽고 쓰는 방식)');
+    p('');
+
+    // 다른 파일 참조
+    p('[불러오는 다른 파일]');
+    var srcs = {};
+    re = /<script[^>]+src\s*=\s*["']([^"']+)["']/gi;
+    while ((m = re.exec(html)) !== null) srcs[m[1]] = 1;
+    var sk = Object.keys(srcs);
+    if (sk.length) sk.slice(0,15).forEach(function(s){ p('  ' + s); });
+    else p('  없음 (코드가 파일 안에 다 있음)');
+
+    p('');
+    p('=== 1번 끝. 이제 2번을 눌러주세요 ===');
+  }).catch(function(err){
+    p('분석 실패: ' + err.message);
+    p('→ 파일 이름이 맞는지 확인해 주세요.');
+  }).then(function(){
+    btn.disabled = false;
+    btn.textContent = '파일 분석하기';
+  });
+}
+
+/* ============================================
+   3. 위치 접속 테스트
+   ============================================ */
+var GUESS = ['', 'events','calendarEvents','calendar','calendar/events','bookings','reservations',
+             'roommade','roommade/events','roommadeOne','one','data','rooms','staff',
+             'roommade-calendar-events-v1','roompacker','roompacker/events'];
+
+function probeAll(){
+  var btn = document.getElementById('run2');
+  var base = (document.getElementById('base').value || '').trim().replace(/\/$/,'');
+
+  p('');
+  p('=== 2. 저장 위치 두드려보기 ===');
+  p('주소: ' + base);
+  p('');
+
+  // 파일에서 찾은 경로를 먼저
+  var list = [];
+  FOUND_PATHS.forEach(function(x){ if (list.indexOf(x) < 0) list.push(x); });
+  GUESS.forEach(function(x){ if (list.indexOf(x) < 0) list.push(x); });
+
+  btn.disabled = true;
+  btn.textContent = '확인 중...';
+
+  var i = 0;
+  function next(){
+    if (i >= list.length){
+      p('');
+      p('=== 2번 끝. 결과 복사해서 클로에게 보내주세요 ===');
+      btn.disabled = false;
+      btn.textContent = '위치 하나씩 두드려보기';
+      return;
+    }
+    var path = list[i++];
+    var label = path === '' ? '(맨 위층)' : path;
+    var url = base + '/' + (path ? path + '.json' : '.json') + '?shallow=true';
+
+    fetch(url).then(function(r){
+      if (r.status === 200){
+        return r.json().then(function(d){
+          var n = (d && typeof d === 'object') ? Object.keys(d).length : (d === null ? 0 : 1);
+          if (d === null) p('  ' + label + ' → 200 열림 (비어 있음)');
+          else p('  ' + label + ' → 200 열림 ★ 항목 ' + n + '개');
+        }).catch(function(){
+          p('  ' + label + ' → 200 열림');
+        });
+      }
+      if (r.status === 401) p('  ' + label + ' → 401 잠김');
+      else if (r.status === 404) p('  ' + label + ' → 404 없음');
+      else p('  ' + label + ' → ' + r.status);
+    }).catch(function(err){
+      p('  ' + label + ' → 접속 실패 (' + err.message + ')');
+    }).then(next);
+  }
+  next();
+}
+
+/* ============================================
+   4. 복사
+   ============================================ */
+function copyOut(){
+  try{
+    var text = out.join('\n');
+    if (!text){ alert('먼저 분석을 실행해 주세요.'); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ alert('복사했습니다.'); })
+        .catch(function(){ alert('복사 실패. 화면을 캡처해 주세요.'); });
+    } else alert('복사 기능을 쓸 수 없습니다. 화면을 캡처해 주세요.');
+  }catch(e){ alert('복사 실패. 화면을 캡처해 주세요.'); }
+}
+
+/* ============================================
+   5. 시작
+   ============================================ */
+function boot(){
+  try{
+    document.getElementById('run1').onclick = analyze;
+    document.getElementById('run2').onclick = probeAll;
+    document.getElementById('copy').onclick = copyOut;
+  }catch(e){ alert('시작 실패: ' + e.message); }
+}
+document.addEventListener('DOMContentLoaded', boot);
+</script>
+</body>
+</html>
