@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>저장분 열람기 v3</title>
+<style>
+:root{
+  --cream:#EDEEE7; --navy:#1D4468; --paper:#F7F8F4;
+  --line:rgba(29,68,104,.18); --muted:rgba(29,68,104,.62);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--cream);color:var(--navy);
+  font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;padding-bottom:50px;
+}
+.head{padding:24px 18px 18px;border-bottom:1px solid var(--line);}
+.ver{
+  display:inline-block;background:var(--navy);color:var(--cream);
+  font-size:11px;font-weight:800;letter-spacing:.1em;padding:4px 10px;border-radius:999px;margin-bottom:11px;
+}
+.head h1{font-size:20px;font-weight:800;margin:0 0 8px;}
+.head p{font-size:13px;line-height:1.65;color:var(--muted);margin:0;}
+
+.sec{padding:22px 18px 0;}
+.sec h2{font-size:14px;font-weight:800;margin:0 0 6px;}
+.sec .why{font-size:12px;line-height:1.6;color:var(--muted);margin:0 0 11px;}
+select{
+  width:100%;padding:14px;border:1px solid var(--line);border-radius:12px;
+  background:#fff;color:var(--navy);font-family:inherit;font-size:14px;font-weight:600;
+}
+.big{
+  width:100%;border:none;border-radius:13px;background:var(--navy);color:var(--cream);
+  font-family:inherit;font-size:15px;font-weight:800;padding:16px;cursor:pointer;margin-top:10px;
+}
+.big.alt{background:#fff;color:var(--navy);border:1.5px solid var(--navy);}
+.big:active{opacity:.82;}
+.big:focus-visible{outline:3px solid var(--navy);outline-offset:2px;}
+
+#out{
+  background:#fff;border:1px solid var(--line);border-radius:13px;
+  padding:14px;font-size:12px;line-height:1.75;margin-top:14px;
+  min-height:150px;max-height:65vh;overflow:auto;
+  white-space:pre-wrap;word-break:break-all;font-family:'Courier New',monospace;
+}
+.note{
+  margin:24px 18px 0;padding:14px 16px;border-radius:12px;
+  background:rgba(29,68,104,.06);font-size:12.5px;line-height:1.75;color:var(--muted);
+}
+</style>
+</head>
+<body>
+
+<header class="head">
+  <span class="ver">VIEW v3</span>
+  <h1>저장분 열람기</h1>
+  <p>저장된 항목 안에 실제로 뭐가 들었는지 봅니다. 이름·연락처는 자동으로 가려집니다.</p>
+</header>
+
+<section class="sec">
+  <h2>항목 고르기</h2>
+  <p class="why">큰 것부터 나옵니다. 안전백업을 먼저 보세요.</p>
+  <select id="pick"></select>
+  <button class="big" id="run" type="button">속 들여다보기</button>
+  <button class="big alt" id="runAll" type="button">객실 이름 전부 찾기</button>
+  <button class="big alt" id="copy" type="button">결과 복사</button>
+  <div id="out">여기에 결과가 나옵니다.</div>
+</section>
+
+<p class="note">
+  "객실 이름 전부 찾기"는 모든 항목을 훑어 펜트하우스·영종·송도 객실명이 어디에 있는지 알려줍니다.
+</p>
+
+<script>
+/* ============================================
+   1. 출력
+   ============================================ */
+var out = [];
+function p(m){
+  out.push(m);
+  var box = document.getElementById('out');
+  box.textContent = out.join('\n');
+}
+function clear(){ out = []; document.getElementById('out').textContent = ''; }
+
+/* ============================================
+   2. 개인정보 가리기
+   ============================================ */
+var SECRET = /(이름|성명|name|guest|고객|연락처|전화|폰|phone|tel|mobile|이메일|email|주소|address|memo|비밀|password|token)/i;
+
+function show(key, v){
+  try{
+    if (v === null) return 'null';
+    var t = typeof v;
+    if (t === 'number')  return String(v);
+    if (t === 'boolean') return String(v);
+    if (t === 'string'){
+      if (v.indexOf('data:image') === 0) return '[사진 ' + Math.round(v.length/1024) + 'KB]';
+      if (v.length > 200) return '[긴글 ' + v.length + '자]';
+      if (SECRET.test(key)) return '[가림 ' + v.length + '자]';
+      return '"' + v + '"';
+    }
+    if (Array.isArray(v)) return '[목록 ' + v.length + '개]';
+    return '{묶음 ' + Object.keys(v).length + '칸}';
+  }catch(e){ return '?'; }
+}
+
+/* ============================================
+   3. 구조 펼쳐보기
+   ============================================ */
+function dig(obj, pad, depth){
+  if (depth > 4){ p(pad + '…'); return; }
+
+  if (Array.isArray(obj)){
+    p(pad + '목록 ' + obj.length + '개');
+    if (!obj.length) return;
+    p(pad + '첫 항목 ↓');
+    dig(obj[0], pad + '  ', depth + 1);
+    return;
+  }
+
+  if (obj && typeof obj === 'object'){
+    var keys = Object.keys(obj);
+    keys.slice(0, 25).forEach(function(k){
+      var v = obj[k];
+      if (Array.isArray(v)){
+        p(pad + k + ' : 목록 ' + v.length + '개');
+        if (v.length && typeof v[0] === 'object' && depth < 3){
+          p(pad + '  첫 항목 ↓');
+          dig(v[0], pad + '    ', depth + 2);
+        } else if (v.length && depth < 3){
+          p(pad + '  예: ' + show(k, v[0]));
+        }
+      } else if (v && typeof v === 'object'){
+        p(pad + k + ' : 묶음 ' + Object.keys(v).length + '칸');
+        if (depth < 3) dig(v, pad + '  ', depth + 1);
+      } else {
+        p(pad + k + ' : ' + show(k, v));
+      }
+    });
+    if (keys.length > 25) p(pad + '… 외 ' + (keys.length - 25) + '칸');
+    return;
+  }
+
+  p(pad + show('', obj));
+}
+
+/* ============================================
+   4. 한 항목 열어보기
+   ============================================ */
+function run(){
+  try{
+    var key = document.getElementById('pick').value;
+    clear();
+    if (!key){ p('항목을 골라주세요.'); return; }
+
+    var raw = localStorage.getItem(key);
+    if (raw === null){ p('내용이 없습니다.'); return; }
+
+    p('=== ' + key + ' ===');
+    p('크기: ' + Math.round(raw.length/1024*10)/10 + ' KB');
+    p('');
+
+    var data;
+    try{ data = JSON.parse(raw); }
+    catch(e){
+      p('JSON 아님. 앞부분 300자:');
+      p(raw.slice(0,300));
+      return;
+    }
+
+    p('형식: ' + (Array.isArray(data) ? '목록' : '묶음'));
+    p('--------------------------------');
+    dig(data, '', 0);
+
+    p('--------------------------------');
+    p('[날짜 찾기]');
+    var dm = raw.match(/"\d{4}-\d{2}-\d{2}"/g);
+    if (dm){
+      var uq = {};
+      dm.forEach(function(d){ uq[d] = 1; });
+      var ks = Object.keys(uq).sort();
+      p('  날짜 ' + ks.length + '종류: ' + ks.slice(0,8).join(', ') + (ks.length>8 ? ' …' : ''));
+    } else p('  없음');
+  }catch(e){
+    p('실패: ' + e.message);
+  }
+}
+
+/* ============================================
+   5. 객실 이름 전부 찾기
+   ============================================ */
+function runAll(){
+  clear();
+  p('=== 객실 이름 찾기 ===');
+  p('');
+  try{
+    var words = ['한라','웨스턴','펜트','영종','송도','호실','호 ','1911','501','302'];
+    var i, k, raw;
+
+    for (i = 0; i < localStorage.length; i++){
+      k = localStorage.key(i);
+      if (!k) continue;
+      try{ raw = localStorage.getItem(k) || ''; }catch(e){ continue; }
+      if (!raw) continue;
+
+      var hits = [];
+      words.forEach(function(w){
+        var n = (raw.split(w).length - 1);
+        if (n > 0) hits.push(w + ' × ' + n);
+      });
+
+      if (!hits.length) continue;
+
+      p('★ ' + k + '  (' + Math.round(raw.length/1024*10)/10 + ' KB)');
+      p('   ' + hits.join(' / '));
+
+      // 객실명처럼 보이는 문자열 뽑기
+      var found = {};
+      var re = /"([^"]{2,30}(호|호실|동))"/g, m;
+      while ((m = re.exec(raw)) !== null){
+        if (m[1].length < 30) found[m[1]] = 1;
+      }
+      var fk = Object.keys(found);
+      if (fk.length){
+        p('   객실로 보이는 이름 ' + fk.length + '개:');
+        fk.slice(0,15).forEach(function(n){ p('     - ' + n); });
+        if (fk.length > 15) p('     … 외 ' + (fk.length-15) + '개');
+      }
+      p('');
+    }
+    p('=== 끝 ===');
+  }catch(e){
+    p('실패: ' + e.message);
+  }
+}
+
+/* ============================================
+   6. 목록 채우기
+   ============================================ */
+function fill(){
+  try{
+    var sel = document.getElementById('pick');
+    var items = [], i, k, v;
+    for (i = 0; i < localStorage.length; i++){
+      k = localStorage.key(i);
+      if (!k) continue;
+      try{ v = localStorage.getItem(k) || ''; }catch(e){ v = ''; }
+      items.push({ k:k, size:v.length });
+    }
+    items.sort(function(a,b){ return b.size - a.size; });
+    items.forEach(function(it){
+      var o = document.createElement('option');
+      o.value = it.k;
+      o.textContent = it.k + '  (' + Math.round(it.size/1024*10)/10 + ' KB)';
+      sel.appendChild(o);
+    });
+  }catch(e){ p('목록 실패: ' + e.message); }
+}
+
+/* ============================================
+   7. 복사
+   ============================================ */
+function copyOut(){
+  try{
+    var text = out.join('\n');
+    if (!text){ alert('먼저 실행해 주세요.'); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ alert('복사했습니다.'); })
+        .catch(function(){ alert('복사 실패. 화면을 캡처해 주세요.'); });
+    } else alert('복사 기능을 쓸 수 없습니다. 화면을 캡처해 주세요.');
+  }catch(e){ alert('복사 실패.'); }
+}
+
+/* ============================================
+   8. 시작
+   ============================================ */
+function boot(){
+  try{
+    fill();
+    document.getElementById('run').onclick = run;
+    document.getElementById('runAll').onclick = runAll;
+    document.getElementById('copy').onclick = copyOut;
+  }catch(e){ alert('시작 실패: ' + e.message); }
+}
+document.addEventListener('DOMContentLoaded', boot);
+</script>
+</body>
+</html>
