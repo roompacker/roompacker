@@ -3,12 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Firebase 탐색기 v1</title>
+<title>Firebase 탐색기 v2</title>
 <style>
 :root{
   --cream:#EDEEE7; --navy:#1D4468; --paper:#F7F8F4;
   --line:rgba(29,68,104,.18); --muted:rgba(29,68,104,.62);
-  --ok:#2E7D5B; --bad:#C2543D;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
@@ -25,7 +24,8 @@ body{
 .head p{font-size:13px;line-height:1.65;color:var(--muted);margin:0;}
 
 .sec{padding:22px 18px 0;}
-.sec h2{font-size:14px;font-weight:800;margin:0 0 11px;}
+.sec h2{font-size:14px;font-weight:800;margin:0 0 6px;}
+.sec .why{font-size:12px;line-height:1.6;color:var(--muted);margin:0 0 11px;}
 .field{margin-bottom:11px;}
 .field label{display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;}
 .field input{
@@ -57,36 +57,34 @@ body{
 <body>
 
 <header class="head">
-  <span class="ver">SCAN v1</span>
+  <span class="ver">SCAN v2</span>
   <h1>Firebase 탐색기</h1>
-  <p>룸메이드원이 어떤 설정으로 어디에 예약을 저장하는지 찾아냅니다. 비밀번호나 열쇠 값은 가려서 표시합니다.</p>
+  <p>예약이 실제로 어디에 몇 건 들어있는지 찾아냅니다. 손님 이름 같은 개인정보는 자동으로 가려집니다.</p>
 </header>
 
 <section class="sec">
-  <h2>1. 분석할 파일</h2>
+  <h2>1. 폰 저장분 전체 뒤지기</h2>
+  <p class="why">가장 유력한 방법입니다. 저장된 모든 항목을 열어 예약처럼 생긴 것을 찾습니다.</p>
+  <button class="big" id="run1" type="button">예약 찾기</button>
+</section>
+
+<section class="sec">
+  <h2>2. 파일 속 firebase 부분 보기</h2>
+  <p class="why">룸메이드원이 클라우드와 어떻게 대화하는지 그 부분만 꺼내 봅니다.</p>
   <div class="field">
     <label for="file">파일 이름</label>
     <input id="file" type="text" value="roommade-one.html">
   </div>
-  <button class="big" id="run1" type="button">파일 분석하기</button>
+  <button class="big alt" id="run2" type="button">해당 부분 보기</button>
 </section>
 
 <section class="sec">
-  <h2>2. 저장 위치 접속 테스트</h2>
-  <div class="field">
-    <label for="base">Firebase 주소</label>
-    <input id="base" type="text" value="https://roompacker-48249-default-rtdb.asia-southeast1.firebasedatabase.app">
-  </div>
-  <button class="big" id="run2" type="button">위치 하나씩 두드려보기</button>
   <button class="big alt" id="copy" type="button">결과 복사</button>
+  <div id="out">여기에 결과가 나옵니다.</div>
 </section>
 
-<div class="sec">
-  <div id="out">여기에 결과가 나옵니다.</div>
-</div>
-
 <p class="note">
-  1번을 먼저 누르고, 결과가 나오면 2번을 누르세요. 두 결과를 모두 복사해서 클로에게 보내주시면 됩니다.
+  1번을 먼저 눌러주세요. 여기서 예약이 많이 나오면 클라우드 연결 없이도 해결됩니다.
 </p>
 
 <script>
@@ -94,190 +92,218 @@ body{
    1. 출력
    ============================================ */
 var out = [];
-
-function p(msg){
-  try{
-    out.push(msg);
-    document.getElementById('out').textContent = out.join('\n');
-    var box = document.getElementById('out');
-    box.scrollTop = box.scrollHeight;
-  }catch(e){}
+function p(m){
+  out.push(m);
+  var box = document.getElementById('out');
+  box.textContent = out.join('\n');
+  box.scrollTop = box.scrollHeight;
 }
 function clear(){ out = []; document.getElementById('out').textContent = ''; }
 
-// 열쇠값 가리기
-function mask(s){
+/* ============================================
+   2. 예약처럼 생겼는지 판단
+   ============================================ */
+function looksLikeEvent(o){
   try{
-    s = String(s);
-    if (s.length <= 8) return '****';
-    return s.slice(0,4) + '****' + s.slice(-3) + ' (길이 ' + s.length + ')';
-  }catch(e){ return '****'; }
+    if (!o || typeof o !== 'object' || Array.isArray(o)) return false;
+    var hasDate = !!(o.start || o.checkInDate || o.checkin || o.date || o.from || o.시작일);
+    var hasRoom = !!(o.property || o.room || o.roomName || o.객실 || o.name);
+    var hasTime = !!(o.checkIn || o.checkOut);
+    return hasDate && (hasRoom || hasTime);
+  }catch(e){ return false; }
+}
+
+function flatten(data, depth, acc){
+  acc = acc || [];
+  if (!data || depth > 5) return acc;
+  if (looksLikeEvent(data)){ acc.push(data); return acc; }
+  if (Array.isArray(data)){
+    data.forEach(function(x){
+      if (looksLikeEvent(x)) acc.push(x);
+      else if (x && typeof x === 'object') flatten(x, depth+1, acc);
+    });
+    return acc;
+  }
+  if (typeof data === 'object'){
+    Object.keys(data).forEach(function(k){
+      var v = data[k];
+      if (looksLikeEvent(v)) acc.push(v);
+      else if (v && typeof v === 'object') flatten(v, depth+1, acc);
+    });
+  }
+  return acc;
+}
+
+function normDate(v){
+  if (!v) return '';
+  var m = String(v).match(/(\d{4})[-./](\d{1,2})[-./](\d{1,2})/);
+  if (m) return m[1] + '-' + ('0'+m[2]).slice(-2) + '-' + ('0'+m[3]).slice(-2);
+  return '';
 }
 
 /* ============================================
-   2. 파일 분석
+   3. 폰 저장분 전체 뒤지기
    ============================================ */
-var FOUND_PATHS = [];
-var FOUND_DB = '';
-
-function analyze(){
+function scanLocal(){
   var btn = document.getElementById('run1');
-  var file = (document.getElementById('file').value || '').trim();
   clear();
-  p('=== 1. 파일 분석 ===');
+  p('=== 1. 폰 저장분 전체 뒤지기 ===');
+  p('');
+  btn.disabled = true;
+  btn.textContent = '찾는 중...';
+
+  try{
+    var keys = [], i;
+    for (i = 0; i < localStorage.length; i++){
+      var k = localStorage.key(i);
+      if (k) keys.push(k);
+    }
+    keys.sort();
+    p('저장된 항목: ' + keys.length + '개');
+    p('');
+
+    var best = null;
+
+    keys.forEach(function(key){
+      var raw = '';
+      try{ raw = localStorage.getItem(key) || ''; }catch(e){ return; }
+      var kb = Math.round(raw.length/1024*10)/10;
+
+      var data;
+      try{ data = JSON.parse(raw); }
+      catch(e){ p(key + '  (' + kb + ' KB) → 글자자료, 건너뜀'); return; }
+
+      var list = flatten(data, 0, []);
+      if (!list.length){
+        p(key + '  (' + kb + ' KB) → 예약 없음');
+        return;
+      }
+
+      // 날짜 범위 계산
+      var dates = [];
+      var props = {};
+      list.forEach(function(e){
+        var d = normDate(e.start || e.checkInDate || e.date || e.from);
+        if (d) dates.push(d);
+        var pr = e.property || e.room || e.roomName || e.객실 || '';
+        if (pr) props[String(pr)] = (props[String(pr)] || 0) + 1;
+      });
+      dates.sort();
+
+      p('');
+      p('★ ' + key + '  (' + kb + ' KB)');
+      p('   예약 ' + list.length + '건');
+      if (dates.length) p('   기간: ' + dates[0] + ' ~ ' + dates[dates.length-1]);
+
+      var pk = Object.keys(props);
+      p('   객실 종류: ' + pk.length + '개');
+      pk.slice(0, 12).forEach(function(n){
+        p('     - ' + n + ' (' + props[n] + '건)');
+      });
+      if (pk.length > 12) p('     … 외 ' + (pk.length-12) + '개');
+
+      // 첫 예약의 항목 이름만
+      var f = list[0];
+      p('   기록 항목: ' + Object.keys(f).slice(0,20).join(', '));
+
+      if (!best || list.length > best.n) best = { key:key, n:list.length };
+    });
+
+    p('');
+    p('--------------------------------');
+    if (best) p('가장 유력한 곳: ' + best.key + ' (' + best.n + '건)');
+    else p('예약을 찾지 못했습니다.');
+    p('=== 1번 끝 ===');
+
+  }catch(e){
+    p('실패: ' + e.message);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '예약 찾기';
+}
+
+/* ============================================
+   4. 파일 속 firebase 부분 보기
+   ============================================ */
+function peekFile(){
+  var btn = document.getElementById('run2');
+  var file = (document.getElementById('file').value || '').trim();
+
+  p('');
+  p('=== 2. 파일 속 firebase 부분 ===');
   p('파일: ' + file);
 
   btn.disabled = true;
-  btn.textContent = '분석 중...';
+  btn.textContent = '읽는 중...';
 
   fetch(file, { cache:'no-store' }).then(function(r){
-    p('응답: HTTP ' + r.status);
-    if (!r.ok) throw new Error('파일을 못 읽었습니다');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.text();
   }).then(function(html){
-    p('파일 크기: ' + Math.round(html.length/1024) + ' KB');
+    p('크기: ' + Math.round(html.length/1024) + ' KB');
     p('');
 
-    // firebase 단어가 있는지
-    var cnt = (html.match(/firebase/gi) || []).length;
-    p('firebase 라는 단어: ' + cnt + '번 등장');
-    if (cnt === 0) p('  → 이 파일은 Firebase를 안 쓰는 것 같습니다');
-    p('');
+    // firebase 주변 문맥
+    p('[firebase 라는 글자 주변]');
+    var idx = -1, cnt = 0;
+    while ((idx = html.toLowerCase().indexOf('firebase', idx + 1)) >= 0 && cnt < 6){
+      cnt++;
+      var s = Math.max(0, idx - 140);
+      var e = Math.min(html.length, idx + 200);
+      p('  ── ' + cnt + '번째 ──');
+      p('  ' + clean(html.slice(s, e)));
+      p('');
+    }
+    if (!cnt) p('  없음');
 
-    // 데이터베이스 주소
-    p('[데이터베이스 주소]');
-    var urls = html.match(/https:\/\/[a-zA-Z0-9._-]+\.(firebaseio\.com|firebasedatabase\.app)[^"'\s]*/g);
-    if (urls){
-      var uniq = {};
-      urls.forEach(function(u){ uniq[u] = 1; });
-      Object.keys(uniq).forEach(function(u){
-        p('  ' + u);
-        if (!FOUND_DB) FOUND_DB = u.replace(/\/$/,'');
-      });
-      if (FOUND_DB) document.getElementById('base').value = FOUND_DB;
-    } else p('  없음');
-    p('');
+    // .json 요청 부분
+    p('[.json 이 나오는 곳]');
+    var re = /.{100}\.json.{60}/g, m, n = 0;
+    while ((m = re.exec(html)) !== null && n < 6){
+      n++;
+      p('  ── ' + n + ' ──');
+      p('  ' + clean(m[0]));
+      p('');
+    }
+    if (!n) p('  없음 → 클라우드에 직접 요청하지 않습니다');
 
-    // 설정 항목
-    p('[설정 항목]');
-    var fields = ['apiKey','authDomain','databaseURL','projectId','storageBucket','messagingSenderId','appId'];
-    var any = false;
-    fields.forEach(function(f){
-      var m = html.match(new RegExp(f + '\\s*[:=]\\s*[`"\']([^`"\']+)[`"\']'));
-      if (m){
-        any = true;
-        if (f === 'apiKey' || f === 'appId') p('  ' + f + ' : ' + mask(m[1]));
-        else p('  ' + f + ' : ' + m[1]);
-      }
+    // 다른 서버로 보내는지
+    p('[바깥으로 보내는 주소]');
+    var urls = html.match(/https:\/\/[a-zA-Z0-9._\-]+\.[a-z]{2,}[^"'`\s)]*/g) || [];
+    var uniq = {};
+    urls.forEach(function(u){
+      var host = u.split('/')[2];
+      if (/fonts|gstatic|cdnjs|jsdelivr|unpkg|w3\.org/.test(host)) return;
+      uniq[host] = 1;
     });
-    if (!any) p('  못 찾음 (설정이 다른 모양이거나 다른 파일에 있음)');
-    p('');
-
-    // 저장 위치
-    p('[저장 위치 (ref 경로)]');
-    var paths = {};
-    var m, re;
-    re = /\.ref\(\s*[`"']([^`"']+)[`"']/g;
-    while ((m = re.exec(html)) !== null) paths[m[1]] = 1;
-    re = /ref\(\s*\w+\s*,\s*[`"']([^`"']+)[`"']/g;
-    while ((m = re.exec(html)) !== null) paths[m[1]] = 1;
-    re = /firebasedatabase\.app\/([a-zA-Z0-9_\-\/]+)\.json/g;
-    while ((m = re.exec(html)) !== null) paths[m[1]] = 1;
-    re = /firebaseio\.com\/([a-zA-Z0-9_\-\/]+)\.json/g;
-    while ((m = re.exec(html)) !== null) paths[m[1]] = 1;
-
-    FOUND_PATHS = Object.keys(paths);
-    if (FOUND_PATHS.length) FOUND_PATHS.forEach(function(k){ p('  ' + k); });
-    else p('  못 찾음');
-    p('');
-
-    // 로그인 방식
-    p('[로그인 방식]');
-    if (/signInAnonymously/.test(html))            p('  익명 로그인 사용');
-    if (/signInWithEmailAndPassword/.test(html))   p('  이메일 로그인 사용');
-    if (/signInWithCustomToken/.test(html))        p('  토큰 로그인 사용');
-    if (!/signIn/.test(html))                      p('  로그인 코드 없음 (그냥 읽고 쓰는 방식)');
-    p('');
-
-    // 다른 파일 참조
-    p('[불러오는 다른 파일]');
-    var srcs = {};
-    re = /<script[^>]+src\s*=\s*["']([^"']+)["']/gi;
-    while ((m = re.exec(html)) !== null) srcs[m[1]] = 1;
-    var sk = Object.keys(srcs);
-    if (sk.length) sk.slice(0,15).forEach(function(s){ p('  ' + s); });
-    else p('  없음 (코드가 파일 안에 다 있음)');
+    var uk = Object.keys(uniq);
+    if (uk.length) uk.slice(0,15).forEach(function(u){ p('  ' + u); });
+    else p('  없음');
 
     p('');
-    p('=== 1번 끝. 이제 2번을 눌러주세요 ===');
+    p('=== 2번 끝. 결과 복사해 주세요 ===');
   }).catch(function(err){
-    p('분석 실패: ' + err.message);
-    p('→ 파일 이름이 맞는지 확인해 주세요.');
+    p('읽기 실패: ' + err.message);
   }).then(function(){
     btn.disabled = false;
-    btn.textContent = '파일 분석하기';
+    btn.textContent = '해당 부분 보기';
   });
-}
 
-/* ============================================
-   3. 위치 접속 테스트
-   ============================================ */
-var GUESS = ['', 'events','calendarEvents','calendar','calendar/events','bookings','reservations',
-             'roommade','roommade/events','roommadeOne','one','data','rooms','staff',
-             'roommade-calendar-events-v1','roompacker','roompacker/events'];
-
-function probeAll(){
-  var btn = document.getElementById('run2');
-  var base = (document.getElementById('base').value || '').trim().replace(/\/$/,'');
-
-  p('');
-  p('=== 2. 저장 위치 두드려보기 ===');
-  p('주소: ' + base);
-  p('');
-
-  // 파일에서 찾은 경로를 먼저
-  var list = [];
-  FOUND_PATHS.forEach(function(x){ if (list.indexOf(x) < 0) list.push(x); });
-  GUESS.forEach(function(x){ if (list.indexOf(x) < 0) list.push(x); });
-
-  btn.disabled = true;
-  btn.textContent = '확인 중...';
-
-  var i = 0;
-  function next(){
-    if (i >= list.length){
-      p('');
-      p('=== 2번 끝. 결과 복사해서 클로에게 보내주세요 ===');
-      btn.disabled = false;
-      btn.textContent = '위치 하나씩 두드려보기';
-      return;
-    }
-    var path = list[i++];
-    var label = path === '' ? '(맨 위층)' : path;
-    var url = base + '/' + (path ? path + '.json' : '.json') + '?shallow=true';
-
-    fetch(url).then(function(r){
-      if (r.status === 200){
-        return r.json().then(function(d){
-          var n = (d && typeof d === 'object') ? Object.keys(d).length : (d === null ? 0 : 1);
-          if (d === null) p('  ' + label + ' → 200 열림 (비어 있음)');
-          else p('  ' + label + ' → 200 열림 ★ 항목 ' + n + '개');
-        }).catch(function(){
-          p('  ' + label + ' → 200 열림');
-        });
-      }
-      if (r.status === 401) p('  ' + label + ' → 401 잠김');
-      else if (r.status === 404) p('  ' + label + ' → 404 없음');
-      else p('  ' + label + ' → ' + r.status);
-    }).catch(function(err){
-      p('  ' + label + ' → 접속 실패 (' + err.message + ')');
-    }).then(next);
+  // 줄바꿈 정리 + 긴 열쇠값 가리기
+  function clean(s){
+    try{
+      return String(s)
+        .replace(/\s+/g, ' ')
+        .replace(/AIza[0-9A-Za-z_\-]{20,}/g, 'AIza****가림****')
+        .replace(/[A-Za-z0-9_\-]{40,}/g, '****긴값가림****')
+        .trim();
+    }catch(e){ return ''; }
   }
-  next();
 }
 
 /* ============================================
-   4. 복사
+   5. 복사
    ============================================ */
 function copyOut(){
   try{
@@ -291,12 +317,12 @@ function copyOut(){
 }
 
 /* ============================================
-   5. 시작
+   6. 시작
    ============================================ */
 function boot(){
   try{
-    document.getElementById('run1').onclick = analyze;
-    document.getElementById('run2').onclick = probeAll;
+    document.getElementById('run1').onclick = scanLocal;
+    document.getElementById('run2').onclick = peekFile;
     document.getElementById('copy').onclick = copyOut;
   }catch(e){ alert('시작 실패: ' + e.message); }
 }
