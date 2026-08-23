@@ -14,7 +14,7 @@
 :root{
   --cream:#EDEEE7; --navy:#1D4468; --paper:#F7F8F4;
   --line:rgba(29,68,104,.16); --muted:rgba(29,68,104,.62);
-  --live:#C2543D;
+  --live:#C2543D; --ok:#2E7D5B;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
@@ -24,7 +24,7 @@ body{
   padding-bottom:70px;
 }
 
-.head{padding:26px 20px 20px;border-bottom:1px solid var(--line);}
+.head{padding:26px 20px 18px;border-bottom:1px solid var(--line);}
 .head .eyebrow{
   font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.32em;
   text-transform:uppercase;color:var(--muted);margin:0 0 10px;
@@ -32,10 +32,24 @@ body{
 .head h1{font-family:'Jost',sans-serif;font-weight:500;font-size:25px;letter-spacing:.03em;margin:0 0 8px;}
 .head p{font-size:13px;line-height:1.65;color:var(--muted);margin:0;}
 
+/* 데이터 상태 */
+.dataBar{
+  margin:16px 20px 0;padding:14px 15px;border-radius:12px;
+  background:#fff;border:1px solid var(--line);font-size:12.5px;line-height:1.7;
+}
+.dataBar.real{border-color:rgba(46,125,91,.45);background:rgba(46,125,91,.07);}
+.dataBar.bad{border-color:rgba(194,84,61,.4);background:rgba(194,84,61,.07);}
+.dataBar b{font-weight:800;}
+.reload{
+  margin-top:11px;width:100%;background:transparent;border:1px solid var(--line);
+  border-radius:10px;padding:11px;font-family:inherit;font-size:12.5px;font-weight:700;
+  color:var(--navy);cursor:pointer;
+}
+
 /* ============================================
    2. 마이크
    ============================================ */
-.micWrap{padding:32px 20px 24px;text-align:center;}
+.micWrap{padding:28px 20px 22px;text-align:center;}
 .mic{
   width:136px;height:136px;border-radius:50%;border:none;
   background:var(--navy);color:var(--cream);cursor:pointer;
@@ -45,7 +59,6 @@ body{
 }
 .mic svg{width:34px;height:34px;}
 .mic.live{background:var(--live);animation:pulse 1.3s ease-in-out infinite;}
-.mic:disabled{opacity:.45;}
 .mic:focus-visible{outline:3px solid var(--navy);outline-offset:4px;}
 @keyframes pulse{
   0%,100%{box-shadow:0 8px 26px rgba(194,84,61,.28);}
@@ -68,14 +81,16 @@ body{
 .box.answer{background:var(--navy);border-color:var(--navy);color:var(--cream);}
 .box.answer .cap{color:rgba(237,238,231,.6);}
 .box.answer .txt{font-size:19px;font-weight:700;line-height:1.6;margin:0;}
-.box.answer .detail{
-  margin:14px 0 0;padding-top:14px;border-top:1px solid rgba(237,238,231,.24);
-  font-size:14.5px;line-height:1.9;opacity:.85;
+.box.answer .detail{margin:14px 0 0;padding-top:14px;border-top:1px solid rgba(237,238,231,.24);font-size:14.5px;}
+.box.answer .detail .ln{padding:7px 0;display:flex;gap:10px;align-items:baseline;}
+.box.answer .detail .tag{
+  font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;flex:none;
+  background:rgba(237,238,231,.18);
 }
+.box.answer .detail .tag.out{background:rgba(237,238,231,.9);color:var(--navy);}
 .replay{
   margin-top:14px;background:rgba(237,238,231,.14);border:none;border-radius:10px;
-  color:var(--cream);font-family:inherit;font-size:13px;font-weight:600;
-  padding:11px 16px;cursor:pointer;
+  color:var(--cream);font-family:inherit;font-size:13px;font-weight:600;padding:11px 16px;cursor:pointer;
 }
 
 /* ============================================
@@ -86,13 +101,12 @@ body{
 .chipRow{display:flex;flex-wrap:wrap;gap:8px;}
 .chip{
   background:#fff;border:1px solid var(--line);border-radius:999px;
-  padding:10px 15px;font-family:inherit;font-size:13px;font-weight:600;
-  color:var(--navy);cursor:pointer;
+  padding:10px 15px;font-family:inherit;font-size:13px;font-weight:600;color:var(--navy);cursor:pointer;
 }
 .chip:active{background:var(--navy);color:var(--cream);}
 
 /* ============================================
-   5. 설정 / 데이터
+   5. 설정
    ============================================ */
 .sec{padding:30px 20px 0;}
 .sec h2{font-size:14px;font-weight:800;margin:0 0 12px;}
@@ -102,34 +116,25 @@ body{
 }
 .row input[type=checkbox]{width:20px;height:20px;accent-color:var(--navy);flex:none;}
 .row span{font-size:13.5px;font-weight:600;}
-.hint{font-size:11.5px;line-height:1.7;color:var(--muted);margin:8px 2px 0;}
-
-.keyItem{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:8px;}
-.keyItem .kn{font-size:13px;font-weight:700;word-break:break-all;}
-.keyItem .ks{font-size:11.5px;color:var(--muted);margin-top:4px;}
-.keyItem pre{
-  margin:10px 0 0;padding:11px;background:var(--paper);border-radius:9px;
-  font-size:11px;line-height:1.6;white-space:pre-wrap;word-break:break-all;
-  max-height:170px;overflow:auto;display:none;
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;}
+.field input{
+  width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:11px;
+  background:#fff;color:var(--navy);font-family:inherit;font-size:13.5px;
 }
-.mini{
-  margin-top:9px;background:transparent;border:1px solid var(--line);border-radius:9px;
-  padding:8px 13px;font-family:inherit;font-size:12px;font-weight:600;color:var(--navy);cursor:pointer;
-}
-.mini.wide{width:100%;margin-top:12px;padding:13px;}
-.empty{font-size:12.5px;color:var(--muted);padding:6px 2px;}
-
-/* ============================================
-   6. 기록창
-   ============================================ */
+.field input:focus{outline:2px solid var(--navy);outline-offset:-1px;}
+.hint{font-size:11.5px;line-height:1.7;color:var(--muted);margin:6px 2px 0;}
 #log{
   background:#fff;border:1px solid var(--line);border-radius:12px;
-  padding:12px;font-size:11.5px;line-height:1.7;
-  max-height:190px;overflow:auto;white-space:pre-wrap;word-break:break-all;
-  font-family:'Courier New',monospace;margin-top:10px;
+  padding:12px;font-size:11.5px;line-height:1.7;max-height:220px;overflow:auto;
+  white-space:pre-wrap;word-break:break-all;font-family:'Courier New',monospace;margin-top:10px;
 }
 #log div{padding:2px 0;}
-
+.mini{
+  width:100%;background:transparent;border:1px solid var(--line);border-radius:10px;
+  padding:12px;font-family:inherit;font-size:12.5px;font-weight:700;color:var(--navy);
+  cursor:pointer;margin-top:8px;
+}
 .note{
   margin:26px 20px 0;padding:14px 16px;border-radius:12px;
   background:rgba(29,68,104,.06);font-size:12.5px;line-height:1.75;color:var(--muted);
@@ -140,10 +145,12 @@ body{
 <body>
 
 <header class="head">
-  <p class="eyebrow">Voice Test 02</p>
+  <p class="eyebrow">Voice · Firebase</p>
   <h1>룸메이드 음성 비서</h1>
   <p>마이크를 누르고 "오늘 일정 알려줘" 라고 말해보세요.</p>
 </header>
+
+<div class="dataBar" id="dataBar">예약을 불러오는 중입니다…</div>
 
 <div class="micWrap">
   <button class="mic" id="mic" type="button">
@@ -176,6 +183,14 @@ body{
 </div>
 
 <section class="sec">
+  <h2>제외할 객실</h2>
+  <div class="field">
+    <input id="excl" type="text" value="1911">
+    <p class="hint">계약 전이거나 관리하지 않는 객실을 적으세요. 여러 개면 쉼표로 구분합니다. 예) 1911, 302</p>
+  </div>
+</section>
+
+<section class="sec">
   <h2>설정</h2>
   <label class="row"><input type="checkbox" id="speakOn" checked><span>목소리로 대답하기</span></label>
   <label class="row"><input type="checkbox" id="autoMic"><span>열자마자 마이크 켜기</span></label>
@@ -184,42 +199,67 @@ body{
 </section>
 
 <section class="sec">
-  <h2>이 폰에 저장된 데이터</h2>
-  <p class="hint" style="margin-top:0;">룸메이드원이 저장해 둔 자료입니다. 예약이 들어 있는 항목 이름을 클로에게 알려주세요.</p>
-  <div id="keyList"></div>
-  <button class="mini wide" id="copyKeys" type="button">목록 전체 복사</button>
+  <h2>연결 설정</h2>
+  <div class="field">
+    <label for="dbUrl">Firebase 주소</label>
+    <input id="dbUrl" type="text" placeholder="자동으로 찾습니다">
+  </div>
+  <div class="field">
+    <label for="dbPath">예약이 저장된 위치</label>
+    <input id="dbPath" type="text" placeholder="자동으로 찾습니다">
+  </div>
+  <p class="hint">비워두면 앱이 알아서 찾습니다. 자동 탐색이 실패했을 때만 손대세요.</p>
+  <button class="mini" id="copyLog" type="button">기록 복사 (문제 생겼을 때)</button>
 </section>
 
 <p class="note">
-  지금은 <b>시험용 가짜 예약</b>으로 답합니다. 위 목록에서 진짜 예약이 담긴 항목을 알려주시면 실제 데이터로 연결해 드립니다.
+  Firebase에서 못 읽으면 이 폰에 저장된 예약으로 자동 전환됩니다. 어떤 경로로 읽었는지는 위 상태창에 표시됩니다.
 </p>
 
 <script>
 /* ============================================
-   7. 기본값
+   6. 기본값
    ============================================ */
-var KEY_SET = 'roommade-voice-set';
+var KEY_SET    = 'roommade-voice-set';
+var KEY_EVENTS = 'roommade-calendar-events-v1';
+var KEY_ROOMS  = 'roommade-calendar-rooms-v1';
 var W = ['일','월','화','수','목','금','토'];
+
+// Firebase 주소 후보 (프로젝트: roompacker-48249)
+var DB_CANDIDATES = [
+  'https://roompacker-48249-default-rtdb.firebaseio.com',
+  'https://roompacker-48249-default-rtdb.asia-southeast1.firebasedatabase.app',
+  'https://roompacker-48249.firebaseio.com',
+  'https://roompacker-48249-default-rtdb.europe-west1.firebasedatabase.app'
+];
+
+var EVENTS = [];
+var SOURCE = '';        // 'firebase' | 'local' | 'none'
+var SOURCE_INFO = '';
 var lastSpeak = '';
 var listening = false;
+var rec = null;
+var logLines = [];
 
 /* ============================================
-   8. 기록 남기기
+   7. 기록
    ============================================ */
 function log(msg){
   try{
+    var t = new Date();
+    var line = '[' + ('0'+t.getMinutes()).slice(-2) + ':' + ('0'+t.getSeconds()).slice(-2) + '] ' + msg;
+    logLines.push(line);
     var box = document.getElementById('log');
     if (!box) return;
-    var t = new Date();
     var d = document.createElement('div');
-    d.textContent = '[' + ('0'+t.getMinutes()).slice(-2) + ':' + ('0'+t.getSeconds()).slice(-2) + '] ' + msg;
+    d.textContent = line;
     box.appendChild(d);
     box.scrollTop = box.scrollHeight;
   }catch(e){}
 }
 
 /* ============================================
-   9. 샘플 예약 (오늘 기준 자동 생성)
+   8. 날짜 도구
    ============================================ */
 function ymd(d){
   return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2);
@@ -227,21 +267,326 @@ function ymd(d){
 function shift(n){
   var d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+n); return d;
 }
-var SAMPLE = [
-  {n:0, branch:'영종', room:'101호',        time:'11:00'},
-  {n:0, branch:'영종', room:'203호',        time:'11:00'},
-  {n:0, branch:'송도', room:'802호',        time:'12:00'},
-  {n:1, branch:'송도', room:'1204호',       time:'11:00'},
-  {n:1, branch:'펜트', room:'한라A 501호',  time:'13:00'},
-  {n:2, branch:'영종', room:'101호',        time:'11:00'},
-  {n:3, branch:'영종', room:'305호',        time:'11:00'},
-  {n:4, branch:'송도', room:'802호',        time:'11:00'},
-  {n:4, branch:'송도', room:'905호',        time:'12:00'},
-  {n:6, branch:'펜트', room:'한라C 302호',  time:'13:00'}
-].map(function(x){ x.d = ymd(shift(x.n)); return x; });
+function fromYmd(s){
+  try{ return new Date(String(s).slice(0,10) + 'T00:00:00'); }catch(e){ return null; }
+}
+// 여러 형태의 날짜를 2026-08-23 모양으로 통일
+function normDate(v){
+  try{
+    if (!v) return '';
+    var s = String(v);
+    var m = s.match(/(\d{4})[-./](\d{1,2})[-./](\d{1,2})/);
+    if (m) return m[1] + '-' + ('0'+m[2]).slice(-2) + '-' + ('0'+m[3]).slice(-2);
+    if (/^\d{8}$/.test(s)) return s.slice(0,4) + '-' + s.slice(4,6) + '-' + s.slice(6,8);
+    return '';
+  }catch(e){ return ''; }
+}
 
 /* ============================================
-   10. 말에서 날짜 뽑기
+   9. 예약 한 건을 표준 모양으로
+   ============================================ */
+function normEvent(raw){
+  try{
+    if (!raw || typeof raw !== 'object') return null;
+    var start = normDate(raw.start || raw.checkInDate || raw.checkin || raw.from || raw.date || raw.시작일);
+    if (!start) return null;
+    var end = normDate(raw.end || raw.checkOutDate || raw.checkout || raw.to || raw.종료일) || start;
+    var prop = raw.property || raw.room || raw.roomName || raw.name || raw.객실 || raw.title || '객실';
+    return {
+      start: start,
+      end: end,
+      property: String(prop),
+      checkIn: raw.checkIn || raw.checkin || '16:00',
+      checkOut: raw.checkOut || raw.checkout || '11:00',
+      status: raw.status || ''
+    };
+  }catch(e){ return null; }
+}
+
+// 예약처럼 생겼는지 판단
+function looksLikeEvent(o){
+  try{
+    if (!o || typeof o !== 'object') return false;
+    var hasDate = !!(o.start || o.checkInDate || o.checkin || o.date || o.from);
+    var hasRoom = !!(o.property || o.room || o.roomName || o.객실);
+    var hasTime = !!(o.checkIn || o.checkOut);
+    return hasDate && (hasRoom || hasTime);
+  }catch(e){ return false; }
+}
+
+/* ============================================
+   10. 지점 판단
+   ============================================ */
+var ROOM_BRANCH = {};
+
+function loadRooms(){
+  try{
+    var raw = localStorage.getItem(KEY_ROOMS);
+    if (!raw) return;
+    var data = JSON.parse(raw);
+    var arr = Array.isArray(data) ? data : (data && data.rooms ? data.rooms : []);
+    arr.forEach(function(r){
+      if (!r || typeof r !== 'object') return;
+      var nm = r.name || r.room || r.property || r.title || r.id;
+      var br = r.branch || r.site || r.지점 || r.group || r.area || '';
+      if (nm && br) ROOM_BRANCH[String(nm)] = String(br);
+    });
+    log('객실 정보 ' + Object.keys(ROOM_BRANCH).length + '건');
+  }catch(e){ log('객실 정보 건너뜀'); }
+}
+
+function branchOf(p){
+  try{
+    var s = String(p || '');
+    if (ROOM_BRANCH[s]) return ROOM_BRANCH[s];
+    if (/한라|웨스턴|펜트/.test(s)) return '펜트';
+    if (/영종|을왕|운서|하늘도시/.test(s)) return '영종';
+    if (/송도|인천대|센트럴/.test(s)) return '송도';
+    return '';
+  }catch(e){ return ''; }
+}
+
+function shortName(p){
+  try{ return String(p||'').replace('한라웨스턴파크','한라').trim(); }
+  catch(e){ return String(p||''); }
+}
+
+/* ============================================
+   11. 제외 객실
+   ============================================ */
+function excludedList(){
+  try{
+    var v = document.getElementById('excl').value || '';
+    return v.split(',').map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 0; });
+  }catch(e){ return []; }
+}
+
+function isExcluded(property){
+  try{
+    var p = String(property || '');
+    var ex = excludedList();
+    for (var i = 0; i < ex.length; i++){
+      if (p.indexOf(ex[i]) >= 0) return true;
+    }
+    return false;
+  }catch(e){ return false; }
+}
+
+/* ============================================
+   12. Firebase에서 예약 찾아오기
+   ============================================ */
+function getJson(url){
+  return fetch(url, { method:'GET' }).then(function(r){
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  });
+}
+
+// 주소 찾기
+function findDb(){
+  var manual = (document.getElementById('dbUrl').value || '').trim().replace(/\/$/, '');
+  var list = manual ? [manual] : DB_CANDIDATES;
+
+  var i = 0;
+  function tryNext(){
+    if (i >= list.length) return Promise.reject(new Error('접속 가능한 주소를 찾지 못했습니다'));
+    var base = list[i++];
+    log('주소 시도: ' + base);
+    return getJson(base + '/.json?shallow=true').then(function(data){
+      log('접속 성공: ' + base);
+      return { base:base, roots:data };
+    }).catch(function(err){
+      log('실패 (' + err.message + ')');
+      return tryNext();
+    });
+  }
+  return tryNext();
+}
+
+// 예약이 들어있는 위치 찾기
+function findPath(base, roots){
+  var manual = (document.getElementById('dbPath').value || '').trim().replace(/^\//, '').replace(/\/$/, '');
+  if (manual){
+    log('지정된 위치 사용: ' + manual);
+    return getJson(base + '/' + manual + '.json').then(function(d){
+      return { path:manual, data:d };
+    });
+  }
+
+  if (!roots || typeof roots !== 'object') return Promise.reject(new Error('최상위 목록이 비어 있습니다'));
+
+  var keys = Object.keys(roots).slice(0, 20);
+  log('최상위 항목: ' + keys.join(', '));
+
+  // 이름만 봐도 예약일 것 같은 것 먼저
+  var likely = keys.filter(function(k){ return /event|booking|reserv|calendar|예약|일정/i.test(k); });
+  var order = likely.concat(keys.filter(function(k){ return likely.indexOf(k) < 0; }));
+
+  var i = 0;
+  function tryNext(){
+    if (i >= order.length) return Promise.reject(new Error('예약 데이터를 찾지 못했습니다'));
+    var k = order[i++];
+    return probe(base, k).then(function(hit){
+      if (hit) return hit;
+      return tryNext();
+    }).catch(function(){ return tryNext(); });
+  }
+  return tryNext();
+}
+
+// 한 위치를 살펴보고 예약인지 확인 (2단계까지)
+function probe(base, path){
+  return getJson(base + '/' + path + '.json?shallow=true').then(function(childKeys){
+    if (!childKeys || typeof childKeys !== 'object') return null;
+    var ck = Object.keys(childKeys);
+    if (!ck.length) return null;
+
+    // 첫 자식 하나만 꺼내 확인
+    return getJson(base + '/' + path + '/' + ck[0] + '.json').then(function(sample){
+      if (looksLikeEvent(sample)){
+        log('예약 발견: ' + path);
+        return getJson(base + '/' + path + '.json').then(function(all){
+          return { path:path, data:all };
+        });
+      }
+      // 한 단계 더 들어가 보기
+      if (sample && typeof sample === 'object' && !Array.isArray(sample)){
+        var inner = Object.keys(sample);
+        for (var j = 0; j < inner.length; j++){
+          if (looksLikeEvent(sample[inner[j]])){
+            log('예약 발견: ' + path + '/' + ck[0]);
+            return getJson(base + '/' + path + '.json').then(function(all){
+              return { path:path, data:all, nested:true };
+            });
+          }
+        }
+      }
+      return null;
+    });
+  });
+}
+
+// 어떤 모양이든 예약 목록으로 펼치기
+function flatten(data, depth){
+  var out = [];
+  if (!data) return out;
+  depth = depth || 0;
+  if (depth > 3) return out;
+
+  if (Array.isArray(data)){
+    data.forEach(function(x){
+      if (looksLikeEvent(x)) out.push(x);
+      else if (x && typeof x === 'object') out = out.concat(flatten(x, depth+1));
+    });
+    return out;
+  }
+  if (typeof data === 'object'){
+    if (looksLikeEvent(data)){ out.push(data); return out; }
+    Object.keys(data).forEach(function(k){
+      var v = data[k];
+      if (looksLikeEvent(v)) out.push(v);
+      else if (v && typeof v === 'object') out = out.concat(flatten(v, depth+1));
+    });
+  }
+  return out;
+}
+
+/* ============================================
+   13. 예약 불러오기 전체 흐름
+   ============================================ */
+function loadFromLocal(){
+  try{
+    var raw = localStorage.getItem(KEY_EVENTS);
+    if (!raw) return [];
+    var data = JSON.parse(raw);
+    return flatten(data, 0);
+  }catch(e){ log('폰 저장분 읽기 실패: ' + e.message); return []; }
+}
+
+function applyEvents(rawList, source, info){
+  var norm = [];
+  rawList.forEach(function(r){
+    var e = normEvent(r);
+    if (e && !isExcluded(e.property)) norm.push(e);
+  });
+  // 중복 제거 (같은 객실 + 같은 시작일)
+  var seen = {}, uniq = [];
+  norm.forEach(function(e){
+    var k = e.property + '|' + e.start;
+    if (seen[k]) return;
+    seen[k] = 1;
+    uniq.push(e);
+  });
+
+  EVENTS = uniq;
+  SOURCE = source;
+  SOURCE_INFO = info || '';
+  log(source + ' 예약 ' + EVENTS.length + '건 적용 (제외 후)');
+  showDataBar();
+}
+
+function loadEvents(){
+  var bar = document.getElementById('dataBar');
+  bar.className = 'dataBar';
+  bar.textContent = '예약을 불러오는 중입니다…';
+
+  findDb().then(function(r){
+    document.getElementById('dbUrl').value = r.base;
+    return findPath(r.base, r.roots).then(function(found){
+      document.getElementById('dbPath').value = found.path;
+      saveSet();
+      var list = flatten(found.data, 0);
+      if (!list.length) throw new Error('불러왔지만 예약이 비어 있습니다');
+      applyEvents(list, 'firebase', r.base.replace('https://','') + ' / ' + found.path);
+    });
+  }).catch(function(err){
+    log('Firebase 실패: ' + err.message);
+    var local = loadFromLocal();
+    if (local.length){
+      applyEvents(local, 'local', '이 폰에 저장된 예약');
+    } else {
+      EVENTS = [];
+      SOURCE = 'none';
+      SOURCE_INFO = err.message;
+      showDataBar();
+    }
+  });
+}
+
+function showDataBar(){
+  try{
+    var bar = document.getElementById('dataBar');
+    bar.className = 'dataBar';
+
+    if (SOURCE === 'none'){
+      bar.classList.add('bad');
+      bar.innerHTML = '<b>예약을 불러오지 못했습니다.</b><br>' + SOURCE_INFO
+        + '<br>설정에서 기록창을 켜고 기록을 확인해 주세요.';
+      addReload(bar);
+      return;
+    }
+
+    var ds = EVENTS.map(function(e){ return e.start; }).sort();
+    var de = EVENTS.map(function(e){ return e.end; }).sort();
+    var where = SOURCE === 'firebase' ? '클라우드' : '이 폰';
+
+    bar.classList.add(SOURCE === 'firebase' ? 'real' : '');
+    bar.innerHTML = '<b>' + where + '에서 예약 ' + EVENTS.length + '건</b>을 읽었습니다.'
+      + (EVENTS.length ? '<br>기간: ' + ds[0] + ' ~ ' + de[de.length-1] : '')
+      + '<br><span style="opacity:.7">' + SOURCE_INFO + '</span>';
+    addReload(bar);
+  }catch(e){ log('상태 표시 실패: ' + e.message); }
+
+  function addReload(bar){
+    var b = document.createElement('button');
+    b.className = 'reload'; b.type = 'button'; b.textContent = '예약 새로 불러오기';
+    b.onclick = loadEvents;
+    bar.appendChild(b);
+  }
+}
+
+/* ============================================
+   14. 말에서 날짜 뽑기
    ============================================ */
 function parseRange(text){
   var t = text.replace(/\s/g,'');
@@ -270,6 +615,7 @@ function parseRange(text){
   if (/다음주|담주/.test(t))   return span(7,13,'다음 주');
   if (/주말/.test(t))          return weekend();
   if (/이번달|이달/.test(t))   return span(0,30,'이번 달');
+  if (/다음달/.test(t))        return span(31,60,'다음 달');
 
   m = t.match(/(\d+)일(간|치|동안)/);
   if (m) return span(0, parseInt(m[1],10)-1, m[1]+'일간');
@@ -294,55 +640,83 @@ function parseBranch(text){
   var t = text.replace(/\s/g,'');
   if (/영종/.test(t)) return '영종';
   if (/송도/.test(t)) return '송도';
-  if (/펜트|펜타|한라/.test(t)) return '펜트';
+  if (/펜트|펜타|한라|웨스턴/.test(t)) return '펜트';
   return null;
 }
 
+function parseKind(text){
+  var t = text.replace(/\s/g,'');
+  if (/청소|퇴실|체크아웃|아웃/.test(t)) return 'out';
+  if (/입실|체크인/.test(t)) return 'in';
+  return 'all';
+}
+
 /* ============================================
-   11. 답 만들기
+   15. 답 만들기
    ============================================ */
 function answerFor(text){
   var range  = parseRange(text);
   var branch = parseBranch(text);
+  var kind   = parseKind(text);
+  var rows = [];
 
-  var list = SAMPLE.filter(function(x){
-    if (x.d < range.from || x.d > range.to) return false;
-    if (branch && x.branch !== branch) return false;
-    return true;
+  EVENTS.forEach(function(e){
+    var br = branchOf(e.property);
+    if (branch && br !== branch) return;
+
+    if (kind !== 'in' && e.end >= range.from && e.end <= range.to){
+      rows.push({ d:e.end, time:e.checkOut, kind:'out', prop:e.property });
+    }
+    if (kind !== 'out' && e.start >= range.from && e.start <= range.to){
+      rows.push({ d:e.start, time:e.checkIn, kind:'in', prop:e.property });
+    }
   });
-  list.sort(function(a,b){
-    return a.d === b.d ? a.time.localeCompare(b.time) : a.d.localeCompare(b.d);
+
+  rows.sort(function(a,b){
+    if (a.d !== b.d) return a.d.localeCompare(b.d);
+    return String(a.time).localeCompare(String(b.time));
   });
 
-  var who = branch ? branch + ' ' : '';
+  var who  = branch ? branch + ' ' : '';
+  var what = kind === 'out' ? '청소' : (kind === 'in' ? '입실' : '일정');
 
-  if (list.length === 0){
-    var none = range.label + '은 ' + who + '일정이 없습니다.';
-    return { speak:none, text:none, lines:[] };
+  if (rows.length === 0){
+    var none = range.label + '은 ' + who + what + '이 없습니다.';
+    return { speak:none, text:none, rows:[] };
   }
 
-  var head, lines;
+  var outN = rows.filter(function(r){ return r.kind === 'out'; }).length;
+  var inN  = rows.length - outN;
+
+  var head;
   if (range.single){
     var d = range.date;
-    head = range.label + ' ' + (d.getMonth()+1) + '월 ' + d.getDate() + '일 ' + W[d.getDay()] + '요일, '
-         + who + '청소 ' + list.length + '건입니다.';
-    lines = list.map(function(x){ return x.time + '   ' + x.branch + ' ' + x.room; });
+    head = range.label + ' ' + (d.getMonth()+1) + '월 ' + d.getDate() + '일 ' + W[d.getDay()] + '요일, ';
   } else {
-    head = range.label + ' ' + who + '청소는 모두 ' + list.length + '건입니다.';
-    lines = list.map(function(x){
-      var dd = new Date(x.d + 'T00:00:00');
-      return (dd.getMonth()+1) + '/' + dd.getDate() + ' (' + W[dd.getDay()] + ')   ' + x.branch + ' ' + x.room;
-    });
+    head = range.label + ' ';
+  }
+  head += who;
+
+  if (kind === 'out')     head += '청소 ' + outN + '건입니다.';
+  else if (kind === 'in') head += '입실 ' + inN + '건입니다.';
+  else {
+    var parts = [];
+    if (outN) parts.push('청소 ' + outN + '건');
+    if (inN)  parts.push('입실 ' + inN + '건');
+    head += parts.join(', ') + '입니다.';
   }
 
-  var spoken = head + ' ' + list.slice(0,5).map(function(x){ return x.branch + ' ' + x.room; }).join(', ') + '.';
-  if (list.length > 5) spoken += ' 그 외 ' + (list.length-5) + '건 더 있습니다.';
+  var say = rows.slice(0,5).map(function(r){
+    return shortName(r.prop) + ' ' + (r.kind === 'out' ? '청소' : '입실');
+  }).join(', ');
+  var spoken = head + ' ' + say + '.';
+  if (rows.length > 5) spoken += ' 그 외 ' + (rows.length-5) + '건 더 있습니다.';
 
-  return { speak:spoken, text:head, lines:lines };
+  return { speak:spoken, text:head, rows:rows, single:range.single };
 }
 
 /* ============================================
-   12. 화면 표시 + 읽어주기
+   16. 표시 + 읽어주기
    ============================================ */
 function respond(text){
   try{
@@ -355,11 +729,19 @@ function respond(text){
 
     var det = document.getElementById('detail');
     det.innerHTML = '';
-    if (res.lines.length){
-      res.lines.forEach(function(l){
-        var div = document.createElement('div');
-        div.textContent = l;
-        det.appendChild(div);
+    if (res.rows && res.rows.length){
+      res.rows.forEach(function(r){
+        var ln = document.createElement('div');
+        ln.className = 'ln';
+        var tag = document.createElement('span');
+        tag.className = 'tag' + (r.kind === 'out' ? ' out' : '');
+        tag.textContent = r.kind === 'out' ? '청소' : '입실';
+        var who = document.createElement('span');
+        var dd = fromYmd(r.d);
+        var pre = res.single ? '' : ((dd.getMonth()+1) + '/' + dd.getDate() + ' ');
+        who.textContent = pre + r.time + '  ' + shortName(r.prop);
+        ln.appendChild(tag); ln.appendChild(who);
+        det.appendChild(ln);
       });
       det.style.display = 'block';
     } else {
@@ -367,7 +749,6 @@ function respond(text){
     }
 
     lastSpeak = res.speak;
-    log('답변: ' + res.text);
     if (document.getElementById('speakOn').checked) speak(res.speak);
   }catch(e){
     log('답변 실패: ' + e.message);
@@ -379,30 +760,23 @@ function speak(msg){
   try{
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
-
     var go = function(){
       var u = new SpeechSynthesisUtterance(msg);
-      u.lang = 'ko-KR';
-      u.rate = 1.02;
+      u.lang = 'ko-KR'; u.rate = 1.02;
       var vs = window.speechSynthesis.getVoices();
       for (var i = 0; i < vs.length; i++){
         if (vs[i].lang && vs[i].lang.indexOf('ko') === 0){ u.voice = vs[i]; break; }
       }
-      u.onerror = function(ev){ log('말하기 오류: ' + ev.error); };
       window.speechSynthesis.speak(u);
     };
-
-    // 목소리 목록이 아직 안 왔으면 잠시 뒤 재시도
     if (window.speechSynthesis.getVoices().length === 0) setTimeout(go, 350);
     else go();
   }catch(e){ log('말하기 실패: ' + e.message); }
 }
 
 /* ============================================
-   13. 음성인식 — 누를 때마다 새로 만든다 (안드로이드 크롬 대응)
+   17. 음성인식 (on- 방식)
    ============================================ */
-var rec = null;
-
 function setStatus(s){
   var el = document.getElementById('status');
   if (el) el.textContent = s;
@@ -415,12 +789,7 @@ function setLive(on){
 
 function startListen(){
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR){
-    setStatus('이 브라우저는 음성인식을 지원하지 않습니다. 크롬으로 열어주세요.');
-    log('음성인식 기능 없음');
-    return;
-  }
-
+  if (!SR){ setStatus('크롬으로 열어주세요. 음성인식을 지원하지 않습니다.'); return; }
   try{
     if (rec){ try{ rec.abort(); }catch(e){} rec = null; }
     window.speechSynthesis && window.speechSynthesis.cancel();
@@ -430,10 +799,8 @@ function startListen(){
     rec.continuous = false;
     rec.interimResults = true;
 
-    // 반드시 on- 방식으로 연결 (addEventListener 는 안드로이드에서 동작 안 함)
-    rec.onstart = function(){ setLive(true); setStatus('말씀하세요'); log('듣기 시작'); };
+    rec.onstart = function(){ setLive(true); setStatus('말씀하세요'); };
     rec.onspeechstart = function(){ setStatus('듣는 중...'); };
-
     rec.onresult = function(ev){
       try{
         var txt = '', fin = false, i;
@@ -442,56 +809,39 @@ function startListen(){
           if (ev.results[i].isFinal) fin = true;
         }
         var hd = document.getElementById('heard');
-        hd.textContent = txt;
-        hd.classList.remove('empty');
-        if (fin && txt.trim()){
-          log('인식 완료: ' + txt.trim());
-          setStatus('처리 중');
-          respond(txt.trim());
-        }
+        hd.textContent = txt; hd.classList.remove('empty');
+        if (fin && txt.trim()){ setStatus('처리 중'); respond(txt.trim()); }
       }catch(e){ log('결과 처리 오류: ' + e.message); }
     };
-
     rec.onerror = function(ev){
       setLive(false);
-      log('오류: ' + ev.error);
+      log('인식 오류: ' + ev.error);
       if (ev.error === 'not-allowed')        setStatus('마이크 권한이 필요합니다. 자물쇠 아이콘에서 허용해 주세요.');
       else if (ev.error === 'no-speech')     setStatus('소리를 못 들었습니다. 다시 눌러주세요.');
       else if (ev.error === 'network')       setStatus('인터넷 연결을 확인해 주세요.');
-      else if (ev.error === 'audio-capture') setStatus('마이크를 찾지 못했습니다.');
       else if (ev.error === 'aborted')       setStatus('대기 중');
       else setStatus('오류: ' + ev.error);
     };
-
     rec.onend = function(){
       setLive(false);
-      log('듣기 종료');
       if (document.getElementById('status').textContent === '말씀하세요') setStatus('대기 중');
     };
-
     rec.start();
-    log('시작 명령 보냄');
   }catch(e){
-    setLive(false);
-    setStatus('다시 눌러주세요');
-    log('시작 실패: ' + e.name + ' ' + e.message);
+    setLive(false); setStatus('다시 눌러주세요');
+    log('시작 실패: ' + e.message);
   }
 }
 
-function stopListen(){
-  try{ if (rec) rec.stop(); }catch(e){ log('정지 실패: ' + e.message); }
-  setLive(false);
-}
-
 function toggleMic(){
-  if (listening) stopListen();
+  if (listening){ try{ if (rec) rec.stop(); }catch(e){} setLive(false); }
   else startListen();
 }
 
 /* ============================================
-   14. 예시 질문 버튼
+   18. 예시 질문
    ============================================ */
-var EXAMPLES = ['오늘 일정','내일 예약','모레 일정','이번 주 일정','3일 뒤 예약','영종도 오늘','송도 내일','이번 주말'];
+var EXAMPLES = ['오늘 일정','오늘 청소','내일 예약','모레 일정','이번 주 일정','3일 뒤 예약','펜트하우스 오늘','이번 주말','오늘 체크인'];
 
 function buildChips(){
   try{
@@ -502,89 +852,21 @@ function buildChips(){
       b.onclick = function(){ respond(q); };
       row.appendChild(b);
     });
-  }catch(e){ log('예시 버튼 실패: ' + e.message); }
+  }catch(e){}
 }
 
 /* ============================================
-   15. 저장된 데이터 목록
-   ============================================ */
-var keySummary = '';
-
-function listKeys(){
-  try{
-    var host = document.getElementById('keyList');
-    host.innerHTML = '';
-    var keys = [], i;
-    for (i = 0; i < localStorage.length; i++){
-      var k = localStorage.key(i);
-      if (k) keys.push(k);
-    }
-    if (!keys.length){
-      var p = document.createElement('p');
-      p.className = 'empty';
-      p.textContent = '저장된 자료가 없습니다.';
-      host.appendChild(p);
-      keySummary = '(없음)';
-      return;
-    }
-    keys.sort();
-    var sum = [];
-
-    keys.forEach(function(key){
-      var val = '';
-      try{ val = localStorage.getItem(key) || ''; }catch(e){}
-      var kb = Math.round(val.length/1024*10)/10;
-      sum.push(key + '  (' + kb + ' KB)');
-
-      var item = document.createElement('div');
-      item.className = 'keyItem';
-
-      var nm = document.createElement('div');
-      nm.className = 'kn'; nm.textContent = key;
-
-      var sz = document.createElement('div');
-      sz.className = 'ks'; sz.textContent = kb + ' KB';
-
-      var pre = document.createElement('pre');
-      pre.textContent = val.slice(0,700) + (val.length > 700 ? '\n… (뒷부분 생략)' : '');
-
-      var btn = document.createElement('button');
-      btn.className = 'mini'; btn.type = 'button'; btn.textContent = '내용 보기';
-      btn.onclick = function(){
-        var open = pre.style.display === 'block';
-        pre.style.display = open ? 'none' : 'block';
-        btn.textContent = open ? '내용 보기' : '접기';
-      };
-
-      item.appendChild(nm); item.appendChild(sz); item.appendChild(btn); item.appendChild(pre);
-      host.appendChild(item);
-    });
-
-    keySummary = sum.join('\n');
-  }catch(e){ log('데이터 목록 실패: ' + e.message); }
-}
-
-function copyKeys(){
-  try{
-    var text = '저장된 항목 목록\n' + keySummary;
-    if (navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(function(){ alert('복사했습니다.'); })
-        .catch(function(){ alert('복사 실패. 화면을 캡처해 주세요.'); });
-    } else {
-      alert('복사 기능을 쓸 수 없습니다. 화면을 캡처해 주세요.');
-    }
-  }catch(e){ alert('복사 실패. 화면을 캡처해 주세요.'); }
-}
-
-/* ============================================
-   16. 설정 저장
+   19. 설정 저장
    ============================================ */
 function saveSet(){
   try{
     localStorage.setItem(KEY_SET, JSON.stringify({
       speakOn: document.getElementById('speakOn').checked,
       autoMic: document.getElementById('autoMic').checked,
-      showLog: document.getElementById('showLog').checked
+      showLog: document.getElementById('showLog').checked,
+      excl:    document.getElementById('excl').value,
+      dbUrl:   document.getElementById('dbUrl').value,
+      dbPath:  document.getElementById('dbPath').value
     }));
   }catch(e){}
 }
@@ -596,21 +878,34 @@ function loadSet(){
     document.getElementById('speakOn').checked = d.speakOn !== false;
     document.getElementById('autoMic').checked = !!d.autoMic;
     document.getElementById('showLog').checked = !!d.showLog;
+    if (typeof d.excl   === 'string') document.getElementById('excl').value   = d.excl;
+    if (typeof d.dbUrl  === 'string') document.getElementById('dbUrl').value  = d.dbUrl;
+    if (typeof d.dbPath === 'string') document.getElementById('dbPath').value = d.dbPath;
   }catch(e){}
 }
 
+function copyLog(){
+  try{
+    var text = logLines.join('\n');
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ alert('복사했습니다.'); })
+        .catch(function(){ alert('복사 실패. 화면을 캡처해 주세요.'); });
+    } else alert('복사 기능을 쓸 수 없습니다. 화면을 캡처해 주세요.');
+  }catch(e){ alert('복사 실패. 화면을 캡처해 주세요.'); }
+}
+
 /* ============================================
-   17. 시작
+   20. 시작
    ============================================ */
 function boot(){
   try{
     loadSet();
     buildChips();
-    listKeys();
+    loadRooms();
 
     document.getElementById('mic').onclick = toggleMic;
     document.getElementById('replay').onclick = function(){ if (lastSpeak) speak(lastSpeak); };
-    document.getElementById('copyKeys').onclick = copyKeys;
+    document.getElementById('copyLog').onclick = copyLog;
 
     document.getElementById('speakOn').onchange = saveSet;
     document.getElementById('autoMic').onchange = saveSet;
@@ -621,17 +916,22 @@ function boot(){
     if (document.getElementById('showLog').checked){
       document.getElementById('logWrap').style.display = 'block';
     }
-
-    log('준비 완료');
+    // 제외 객실을 바꾸면 곧바로 다시 계산
+    document.getElementById('excl').oninput = function(){ saveSet(); };
+    document.getElementById('excl').onchange = function(){ saveSet(); loadEvents(); };
+    document.getElementById('dbUrl').onchange = function(){ saveSet(); loadEvents(); };
+    document.getElementById('dbPath').onchange = function(){ saveSet(); loadEvents(); };
 
     if (location.protocol !== 'https:'){
       setStatus('https 주소로 열어야 마이크가 켜집니다');
-      log('https 아님: ' + location.protocol);
     }
 
+    loadEvents();
+
     if (document.getElementById('autoMic').checked){
-      setTimeout(function(){ if (!listening) startListen(); }, 800);
+      setTimeout(function(){ if (!listening) startListen(); }, 900);
     }
+    log('준비 완료');
   }catch(e){
     alert('시작 실패: ' + e.message);
   }
