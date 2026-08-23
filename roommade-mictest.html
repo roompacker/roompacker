@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>마이크 진단</title>
+<style>
+:root{
+  --cream:#EDEEE7; --navy:#1D4468; --paper:#F7F8F4;
+  --line:rgba(29,68,104,.18); --muted:rgba(29,68,104,.62);
+  --ok:#2E7D5B; --bad:#C2543D;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--cream);color:var(--navy);
+  font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  padding:0 0 50px;
+}
+.head{padding:26px 18px 20px;border-bottom:1px solid var(--line);}
+.head h1{font-size:21px;font-weight:800;margin:0 0 8px;}
+.head p{font-size:13px;line-height:1.65;color:var(--muted);margin:0;}
+
+.steps{padding:22px 18px 0;}
+.step{margin-bottom:14px;}
+.step .n{font-size:12px;font-weight:800;color:var(--muted);margin:0 0 7px;letter-spacing:.05em;}
+.big{
+  width:100%;border:none;border-radius:13px;background:var(--navy);color:var(--cream);
+  font-family:inherit;font-size:15.5px;font-weight:800;padding:17px;cursor:pointer;
+}
+.big.alt{background:#fff;color:var(--navy);border:1.5px solid var(--navy);}
+.big:active{opacity:.82;}
+.big:focus-visible{outline:3px solid var(--navy);outline-offset:2px;}
+.step .why{font-size:12px;line-height:1.6;color:var(--muted);margin:7px 2px 0;}
+
+.logWrap{padding:26px 18px 0;}
+.logWrap .bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.logWrap h2{font-size:14px;font-weight:800;margin:0;}
+.mini{
+  background:transparent;border:1px solid var(--line);border-radius:9px;
+  padding:8px 13px;font-family:inherit;font-size:12px;font-weight:700;color:var(--navy);cursor:pointer;
+}
+#log{
+  background:#fff;border:1px solid var(--line);border-radius:13px;
+  padding:14px;font-size:12.5px;line-height:1.75;
+  min-height:180px;max-height:60vh;overflow:auto;
+  white-space:pre-wrap;word-break:break-all;
+  font-family:'D2Coding','Courier New',monospace;
+}
+#log .l{padding:3px 0;border-bottom:1px solid rgba(29,68,104,.07);}
+#log .ok{color:var(--ok);font-weight:700;}
+#log .bad{color:var(--bad);font-weight:700;}
+#log .hi{color:var(--navy);font-weight:800;}
+
+.note{
+  margin:24px 18px 0;padding:14px 16px;border-radius:12px;
+  background:rgba(29,68,104,.06);font-size:12.5px;line-height:1.75;color:var(--muted);
+}
+</style>
+</head>
+<body>
+
+<header class="head">
+  <h1>마이크 진단</h1>
+  <p>위에서부터 순서대로 하나씩 눌러주세요. 아래 기록칸에 결과가 찍힙니다.</p>
+</header>
+
+<section class="steps">
+  <div class="step">
+    <p class="n">1단계</p>
+    <button class="big" id="b1" type="button">브라우저 상태 확인</button>
+    <p class="why">지금 브라우저가 음성인식을 지원하는지, 주소가 안전한지 봅니다.</p>
+  </div>
+
+  <div class="step">
+    <p class="n">2단계</p>
+    <button class="big" id="b2" type="button">마이크 권한 요청</button>
+    <p class="why">"마이크를 사용하도록 허용하시겠습니까" 창이 떠야 정상입니다. 반드시 <b>허용</b>을 눌러주세요.</p>
+  </div>
+
+  <div class="step">
+    <p class="n">3단계</p>
+    <button class="big" id="b3" type="button">음성인식 시작</button>
+    <p class="why">누른 뒤 "오늘 일정" 이라고 말해보세요.</p>
+  </div>
+
+  <div class="step">
+    <p class="n">4단계</p>
+    <button class="big alt" id="b4" type="button">스피커 소리 확인</button>
+    <p class="why">"룸메이드 소리 확인입니다" 라고 들려야 합니다.</p>
+  </div>
+</section>
+
+<section class="logWrap">
+  <div class="bar">
+    <h2>기록</h2>
+    <button class="mini" id="copy" type="button">기록 복사</button>
+  </div>
+  <div id="log"></div>
+</section>
+
+<p class="note">
+  기록 복사를 누른 뒤 클로에게 붙여넣어 주시면 원인을 바로 찾아드립니다.
+</p>
+
+<script>
+/* ============================================
+   1. 기록 출력
+   ============================================ */
+var lines = [];
+
+function log(msg, kind){
+  try{
+    var t = new Date();
+    var stamp = ('0'+t.getMinutes()).slice(-2) + ':' + ('0'+t.getSeconds()).slice(-2);
+    var text = '[' + stamp + '] ' + msg;
+    lines.push(text);
+
+    var box = document.getElementById('log');
+    var div = document.createElement('div');
+    div.className = 'l' + (kind ? ' ' + kind : '');
+    div.textContent = text;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }catch(e){ console.error(e); }
+}
+
+/* ============================================
+   2. 1단계 - 브라우저 상태
+   ============================================ */
+function checkEnv(){
+  try{
+    log('--- 브라우저 상태 확인 ---', 'hi');
+
+    log('주소: ' + location.href);
+    if (location.protocol === 'https:') log('주소 방식: https  → 정상', 'ok');
+    else log('주소 방식: ' + location.protocol + '  → 마이크 차단됨', 'bad');
+
+    var inFrame = (window.self !== window.top);
+    if (inFrame) log('다른 앱 안에 끼워진 화면입니다 → 마이크 차단 가능', 'bad');
+    else log('독립 화면입니다 → 정상', 'ok');
+
+    var ua = navigator.userAgent;
+    log('브라우저 정보: ' + ua);
+
+    var isSamsung = ua.indexOf('SamsungBrowser') >= 0;
+    var isChrome  = ua.indexOf('Chrome') >= 0 && !isSamsung;
+    if (isSamsung) log('삼성 인터넷입니다 → 음성인식 불가', 'bad');
+    else if (isChrome) log('크롬 계열입니다 → 정상', 'ok');
+    else log('크롬이 아닙니다 → 지원 여부 불확실', 'bad');
+
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SR) log('음성인식 기능: 있음', 'ok');
+    else log('음성인식 기능: 없음', 'bad');
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) log('마이크 접근 기능: 있음', 'ok');
+    else log('마이크 접근 기능: 없음', 'bad');
+
+    if ('speechSynthesis' in window){
+      var vs = window.speechSynthesis.getVoices();
+      log('말하기 기능: 있음 (목소리 ' + vs.length + '개)', 'ok');
+      var ko = 0, i;
+      for (i = 0; i < vs.length; i++) if (vs[i].lang && vs[i].lang.indexOf('ko') === 0) ko++;
+      log('한국어 목소리: ' + ko + '개', ko ? 'ok' : 'bad');
+    } else {
+      log('말하기 기능: 없음', 'bad');
+    }
+
+    log('온라인 상태: ' + (navigator.onLine ? '연결됨' : '끊김'), navigator.onLine ? 'ok' : 'bad');
+
+    // 권한 상태 조회
+    if (navigator.permissions && navigator.permissions.query){
+      navigator.permissions.query({ name:'microphone' }).then(function(p){
+        log('마이크 권한 상태: ' + p.state, p.state === 'granted' ? 'ok' : (p.state === 'denied' ? 'bad' : ''));
+        if (p.state === 'denied') log('→ 주소창 왼쪽 자물쇠에서 마이크를 허용으로 바꿔주세요', 'bad');
+      }).catch(function(){
+        log('마이크 권한 상태: 조회 불가 (문제 아님)');
+      });
+    } else {
+      log('마이크 권한 상태: 조회 기능 없음 (문제 아님)');
+    }
+
+    log('1단계 끝', 'hi');
+  }catch(e){
+    log('1단계 실패: ' + e.message, 'bad');
+  }
+}
+
+/* ============================================
+   3. 2단계 - 마이크 권한 요청
+   ============================================ */
+function askMic(){
+  log('--- 마이크 권한 요청 ---', 'hi');
+  try{
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      log('이 브라우저는 마이크 접근을 지원하지 않습니다', 'bad');
+      return;
+    }
+    log('권한 창이 뜨는지 확인하세요...');
+    navigator.mediaDevices.getUserMedia({ audio:true }).then(function(stream){
+      log('마이크 사용 허가됨', 'ok');
+      var tracks = stream.getAudioTracks();
+      if (tracks.length) log('마이크 장치: ' + (tracks[0].label || '이름 없음'), 'ok');
+      tracks.forEach(function(t){ t.stop(); });
+      log('2단계 끝 - 3단계로 가세요', 'hi');
+    }).catch(function(err){
+      log('실패: ' + err.name + ' / ' + err.message, 'bad');
+      if (err.name === 'NotAllowedError') log('→ 권한이 거부되었습니다. 자물쇠 아이콘에서 허용해 주세요', 'bad');
+      if (err.name === 'NotFoundError')  log('→ 마이크 장치를 찾지 못했습니다', 'bad');
+    });
+  }catch(e){
+    log('2단계 실패: ' + e.message, 'bad');
+  }
+}
+
+/* ============================================
+   4. 3단계 - 음성인식
+   ============================================ */
+var rec = null;
+
+function startRec(){
+  log('--- 음성인식 시작 ---', 'hi');
+  try{
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR){ log('음성인식 기능이 없습니다', 'bad'); return; }
+
+    if (rec){
+      try{ rec.abort(); }catch(e){}
+      rec = null;
+      log('이전 인식을 정리했습니다');
+    }
+
+    rec = new SR();
+    rec.lang = 'ko-KR';
+    rec.continuous = false;
+    rec.interimResults = true;
+    log('준비 완료 (언어: ko-KR)');
+
+    rec.onstart = function(){ log('듣기 시작됨 - 지금 말하세요', 'ok'); };
+    rec.onaudiostart  = function(){ log('소리 입력 감지 시작'); };
+    rec.onspeechstart = function(){ log('사람 목소리 감지됨', 'ok'); };
+    rec.onspeechend   = function(){ log('목소리 끝남'); };
+    rec.onaudioend    = function(){ log('소리 입력 종료'); };
+    rec.onnomatch     = function(){ log('알아듣지 못했습니다', 'bad'); };
+
+    rec.onresult = function(ev){
+      try{
+        var txt = '', fin = false, i;
+        for (i = ev.resultIndex; i < ev.results.length; i++){
+          txt += ev.results[i][0].transcript;
+          if (ev.results[i].isFinal) fin = true;
+        }
+        log((fin ? '최종' : '중간') + ' 인식: ' + txt, fin ? 'ok' : '');
+      }catch(e){ log('결과 처리 오류: ' + e.message, 'bad'); }
+    };
+
+    rec.onerror = function(ev){
+      log('오류 발생: ' + ev.error, 'bad');
+      if (ev.error === 'not-allowed')      log('→ 마이크 권한 거부. 자물쇠에서 허용', 'bad');
+      if (ev.error === 'service-not-allowed') log('→ 구글 음성 서비스가 막혔습니다', 'bad');
+      if (ev.error === 'no-speech')        log('→ 소리를 못 들었습니다. 더 크게 말해보세요', 'bad');
+      if (ev.error === 'network')          log('→ 인터넷 문제. 와이파이/데이터 확인', 'bad');
+      if (ev.error === 'audio-capture')    log('→ 마이크 장치를 못 찾음', 'bad');
+      if (ev.error === 'language-not-supported') log('→ 한국어 음성 데이터가 없습니다', 'bad');
+    };
+
+    rec.onend = function(){ log('듣기 종료됨', 'hi'); };
+
+    rec.start();
+    log('시작 명령을 보냈습니다');
+  }catch(e){
+    log('3단계 실패: ' + e.name + ' / ' + e.message, 'bad');
+  }
+}
+
+/* ============================================
+   5. 4단계 - 소리 확인
+   ============================================ */
+function testSound(){
+  log('--- 스피커 소리 확인 ---', 'hi');
+  try{
+    if (!('speechSynthesis' in window)){ log('말하기 기능이 없습니다', 'bad'); return; }
+    window.speechSynthesis.cancel();
+
+    var u = new SpeechSynthesisUtterance('룸메이드 소리 확인입니다');
+    u.lang = 'ko-KR';
+    var vs = window.speechSynthesis.getVoices();
+    var picked = null, i;
+    for (i = 0; i < vs.length; i++){
+      if (vs[i].lang && vs[i].lang.indexOf('ko') === 0){ picked = vs[i]; break; }
+    }
+    if (picked){ u.voice = picked; log('사용 목소리: ' + picked.name); }
+    else log('한국어 목소리가 없어 기본 목소리로 시도합니다', 'bad');
+
+    u.onstart = function(){ log('말하기 시작', 'ok'); };
+    u.onend   = function(){ log('말하기 끝 - 소리가 들렸나요?', 'hi'); };
+    u.onerror = function(ev){ log('말하기 오류: ' + ev.error, 'bad'); };
+
+    window.speechSynthesis.speak(u);
+    log('말하기 명령을 보냈습니다');
+  }catch(e){
+    log('4단계 실패: ' + e.message, 'bad');
+  }
+}
+
+/* ============================================
+   6. 기록 복사
+   ============================================ */
+function copyLog(){
+  try{
+    var text = lines.join('\n');
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){
+        alert('복사했습니다. 클로에게 붙여넣어 주세요.');
+      }).catch(function(){ fallback(text); });
+    } else {
+      fallback(text);
+    }
+  }catch(e){
+    alert('복사에 실패했습니다. 화면을 캡처해서 보내주세요.');
+  }
+
+  function fallback(text){
+    try{
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;left:-9999px;';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      alert('복사했습니다. 클로에게 붙여넣어 주세요.');
+    }catch(e){
+      alert('복사에 실패했습니다. 화면을 캡처해서 보내주세요.');
+    }
+  }
+}
+
+/* ============================================
+   7. 시작
+   ============================================ */
+function boot(){
+  try{
+    document.getElementById('b1').addEventListener('click', checkEnv);
+    document.getElementById('b2').addEventListener('click', askMic);
+    document.getElementById('b3').addEventListener('click', startRec);
+    document.getElementById('b4').addEventListener('click', testSound);
+    document.getElementById('copy').addEventListener('click', copyLog);
+
+    log('진단 도구가 켜졌습니다', 'hi');
+    log('1단계 버튼부터 눌러주세요');
+
+    // 목소리 목록이 늦게 오는 경우 대비
+    if ('speechSynthesis' in window && window.speechSynthesis.onvoiceschanged !== undefined){
+      window.speechSynthesis.onvoiceschanged = function(){
+        log('목소리 목록이 불러와졌습니다 (' + window.speechSynthesis.getVoices().length + '개)');
+      };
+    }
+  }catch(e){
+    alert('진단 도구 시작 실패: ' + e.message);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', boot);
+</script>
+</body>
+</html>
