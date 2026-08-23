@@ -23,7 +23,6 @@ body{
   font-family:'Gothic A1','Apple SD Gothic Neo',sans-serif;
   padding-bottom:70px;
 }
-
 .head{padding:26px 20px 18px;border-bottom:1px solid var(--line);}
 .head .eyebrow{
   font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.32em;
@@ -32,14 +31,14 @@ body{
 .head h1{font-family:'Jost',sans-serif;font-weight:500;font-size:25px;letter-spacing:.03em;margin:0 0 8px;}
 .head p{font-size:13px;line-height:1.65;color:var(--muted);margin:0;}
 
-/* 데이터 상태 */
 .dataBar{
   margin:16px 20px 0;padding:14px 15px;border-radius:12px;
   background:#fff;border:1px solid var(--line);font-size:12.5px;line-height:1.7;
 }
-.dataBar.real{border-color:rgba(46,125,91,.45);background:rgba(46,125,91,.07);}
+.dataBar.good{border-color:rgba(46,125,91,.45);background:rgba(46,125,91,.07);}
 .dataBar.bad{border-color:rgba(194,84,61,.4);background:rgba(194,84,61,.07);}
 .dataBar b{font-weight:800;}
+.dataBar .sub{opacity:.7;font-size:11.5px;}
 .reload{
   margin-top:11px;width:100%;background:transparent;border:1px solid var(--line);
   border-radius:10px;padding:11px;font-family:inherit;font-size:12.5px;font-weight:700;
@@ -67,7 +66,7 @@ body{
 .status{font-size:13px;color:var(--muted);margin:18px 0 0;min-height:20px;}
 
 /* ============================================
-   3. 대화 카드
+   3. 대화
    ============================================ */
 .io{padding:0 20px;display:flex;flex-direction:column;gap:14px;}
 .box{border-radius:16px;padding:18px;border:1px solid var(--line);}
@@ -94,7 +93,7 @@ body{
 }
 
 /* ============================================
-   4. 예시 질문
+   4. 예시 / 설정
    ============================================ */
 .chips{padding:26px 20px 0;}
 .chips .label{font-size:12px;color:var(--muted);margin:0 0 12px;}
@@ -105,9 +104,6 @@ body{
 }
 .chip:active{background:var(--navy);color:var(--cream);}
 
-/* ============================================
-   5. 설정
-   ============================================ */
 .sec{padding:30px 20px 0;}
 .sec h2{font-size:14px;font-weight:800;margin:0 0 12px;}
 .row{
@@ -126,7 +122,7 @@ body{
 .hint{font-size:11.5px;line-height:1.7;color:var(--muted);margin:6px 2px 0;}
 #log{
   background:#fff;border:1px solid var(--line);border-radius:12px;
-  padding:12px;font-size:11.5px;line-height:1.7;max-height:220px;overflow:auto;
+  padding:12px;font-size:11.5px;line-height:1.7;max-height:240px;overflow:auto;
   white-space:pre-wrap;word-break:break-all;font-family:'Courier New',monospace;margin-top:10px;
 }
 #log div{padding:2px 0;}
@@ -145,7 +141,7 @@ body{
 <body>
 
 <header class="head">
-  <p class="eyebrow">Voice · Firebase</p>
+  <p class="eyebrow">Voice · Live</p>
   <h1>룸메이드 음성 비서</h1>
   <p>마이크를 누르고 "오늘 일정 알려줘" 라고 말해보세요.</p>
 </header>
@@ -186,7 +182,7 @@ body{
   <h2>제외할 객실</h2>
   <div class="field">
     <input id="excl" type="text" value="1911">
-    <p class="hint">계약 전이거나 관리하지 않는 객실을 적으세요. 여러 개면 쉼표로 구분합니다. 예) 1911, 302</p>
+    <p class="hint">계약 전이거나 관리하지 않는 객실입니다. 여러 개면 쉼표로 구분하세요. 계약되면 지우면 됩니다.</p>
   </div>
 </section>
 
@@ -201,40 +197,43 @@ body{
 <section class="sec">
   <h2>연결 설정</h2>
   <div class="field">
-    <label for="dbUrl">Firebase 주소</label>
-    <input id="dbUrl" type="text" placeholder="자동으로 찾습니다">
+    <label for="srcFile">설정을 빌려올 파일</label>
+    <input id="srcFile" type="text" value="roommade-one.html">
   </div>
   <div class="field">
     <label for="dbPath">예약이 저장된 위치</label>
     <input id="dbPath" type="text" placeholder="자동으로 찾습니다">
   </div>
   <p class="hint">비워두면 앱이 알아서 찾습니다. 자동 탐색이 실패했을 때만 손대세요.</p>
-  <button class="mini" id="copyLog" type="button">기록 복사 (문제 생겼을 때)</button>
+  <button class="mini" id="copyLog" type="button">기록 복사</button>
 </section>
 
 <p class="note">
-  Firebase에서 못 읽으면 이 폰에 저장된 예약으로 자동 전환됩니다. 어떤 경로로 읽었는지는 위 상태창에 표시됩니다.
+  룸메이드원이 쓰는 접속 설정을 그대로 빌려와 클라우드에서 예약을 읽습니다. 실패하면 이 폰에 저장된 예약으로 자동 전환됩니다.
 </p>
 
 <script>
 /* ============================================
-   6. 기본값
+   5. 기본값
    ============================================ */
 var KEY_SET    = 'roommade-voice-set';
 var KEY_EVENTS = 'roommade-calendar-events-v1';
 var KEY_ROOMS  = 'roommade-calendar-rooms-v1';
 var W = ['일','월','화','수','목','금','토'];
 
-// Firebase 주소 후보 (프로젝트: roompacker-48249)
-var DB_CANDIDATES = [
-  'https://roompacker-48249-default-rtdb.firebaseio.com',
-  'https://roompacker-48249-default-rtdb.asia-southeast1.firebasedatabase.app',
-  'https://roompacker-48249.firebaseio.com',
-  'https://roompacker-48249-default-rtdb.europe-west1.firebasedatabase.app'
+var SDK = [
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js',
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js'
 ];
 
+// 예약이 있을 만한 위치 후보
+var PATH_GUESS = ['events','calendarEvents','calendar/events','bookings','reservations',
+                  'roommade/events','roommade-calendar-events-v1','data/events','one/events'];
+
 var EVENTS = [];
-var SOURCE = '';        // 'firebase' | 'local' | 'none'
+var EXCLUDED_N = 0;
+var SOURCE = '';
 var SOURCE_INFO = '';
 var lastSpeak = '';
 var listening = false;
@@ -242,7 +241,7 @@ var rec = null;
 var logLines = [];
 
 /* ============================================
-   7. 기록
+   6. 기록
    ============================================ */
 function log(msg){
   try{
@@ -259,18 +258,13 @@ function log(msg){
 }
 
 /* ============================================
-   8. 날짜 도구
+   7. 날짜 도구
    ============================================ */
 function ymd(d){
   return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2);
 }
-function shift(n){
-  var d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+n); return d;
-}
-function fromYmd(s){
-  try{ return new Date(String(s).slice(0,10) + 'T00:00:00'); }catch(e){ return null; }
-}
-// 여러 형태의 날짜를 2026-08-23 모양으로 통일
+function shift(n){ var d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+n); return d; }
+function fromYmd(s){ try{ return new Date(String(s).slice(0,10) + 'T00:00:00'); }catch(e){ return null; } }
 function normDate(v){
   try{
     if (!v) return '';
@@ -283,7 +277,7 @@ function normDate(v){
 }
 
 /* ============================================
-   9. 예약 한 건을 표준 모양으로
+   8. 예약 형태 다루기
    ============================================ */
 function normEvent(raw){
   try{
@@ -293,17 +287,13 @@ function normEvent(raw){
     var end = normDate(raw.end || raw.checkOutDate || raw.checkout || raw.to || raw.종료일) || start;
     var prop = raw.property || raw.room || raw.roomName || raw.name || raw.객실 || raw.title || '객실';
     return {
-      start: start,
-      end: end,
-      property: String(prop),
+      start:start, end:end, property:String(prop),
       checkIn: raw.checkIn || raw.checkin || '16:00',
-      checkOut: raw.checkOut || raw.checkout || '11:00',
-      status: raw.status || ''
+      checkOut: raw.checkOut || raw.checkout || '11:00'
     };
   }catch(e){ return null; }
 }
 
-// 예약처럼 생겼는지 판단
 function looksLikeEvent(o){
   try{
     if (!o || typeof o !== 'object') return false;
@@ -314,8 +304,31 @@ function looksLikeEvent(o){
   }catch(e){ return false; }
 }
 
+function flatten(data, depth){
+  var out = [];
+  if (!data) return out;
+  depth = depth || 0;
+  if (depth > 4) return out;
+  if (looksLikeEvent(data)){ out.push(data); return out; }
+  if (Array.isArray(data)){
+    data.forEach(function(x){
+      if (looksLikeEvent(x)) out.push(x);
+      else if (x && typeof x === 'object') out = out.concat(flatten(x, depth+1));
+    });
+    return out;
+  }
+  if (typeof data === 'object'){
+    Object.keys(data).forEach(function(k){
+      var v = data[k];
+      if (looksLikeEvent(v)) out.push(v);
+      else if (v && typeof v === 'object') out = out.concat(flatten(v, depth+1));
+    });
+  }
+  return out;
+}
+
 /* ============================================
-   10. 지점 판단
+   9. 지점 / 제외
    ============================================ */
 var ROOM_BRANCH = {};
 
@@ -331,197 +344,176 @@ function loadRooms(){
       var br = r.branch || r.site || r.지점 || r.group || r.area || '';
       if (nm && br) ROOM_BRANCH[String(nm)] = String(br);
     });
-    log('객실 정보 ' + Object.keys(ROOM_BRANCH).length + '건');
-  }catch(e){ log('객실 정보 건너뜀'); }
+  }catch(e){}
 }
 
 function branchOf(p){
-  try{
-    var s = String(p || '');
-    if (ROOM_BRANCH[s]) return ROOM_BRANCH[s];
-    if (/한라|웨스턴|펜트/.test(s)) return '펜트';
-    if (/영종|을왕|운서|하늘도시/.test(s)) return '영종';
-    if (/송도|인천대|센트럴/.test(s)) return '송도';
-    return '';
-  }catch(e){ return ''; }
+  var s = String(p || '');
+  if (ROOM_BRANCH[s]) return ROOM_BRANCH[s];
+  if (/한라|웨스턴|펜트/.test(s)) return '펜트';
+  if (/영종|을왕|운서|하늘도시/.test(s)) return '영종';
+  if (/송도|인천대|센트럴/.test(s)) return '송도';
+  return '';
 }
+function shortName(p){ return String(p||'').replace('한라웨스턴파크','한라').trim(); }
 
-function shortName(p){
-  try{ return String(p||'').replace('한라웨스턴파크','한라').trim(); }
-  catch(e){ return String(p||''); }
+function excludedList(){
+  try{
+    return (document.getElementById('excl').value || '')
+      .split(',').map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 0; });
+  }catch(e){ return []; }
+}
+function isExcluded(p){
+  var s = String(p || ''), ex = excludedList(), i;
+  for (i = 0; i < ex.length; i++) if (s.indexOf(ex[i]) >= 0) return true;
+  return false;
 }
 
 /* ============================================
-   11. 제외 객실
+   10. 룸메이드원에서 접속 설정 빌려오기
    ============================================ */
-function excludedList(){
+function extractConfig(html){
   try{
-    var v = document.getElementById('excl').value || '';
-    return v.split(',').map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 0; });
+    var cfg = {};
+    var fields = ['apiKey','authDomain','databaseURL','projectId','storageBucket','messagingSenderId','appId'];
+    fields.forEach(function(f){
+      var m = html.match(new RegExp(f + '\\s*:\\s*["\']([^"\']+)["\']'));
+      if (m) cfg[f] = m[1];
+    });
+    if (!cfg.apiKey) return null;
+    if (!cfg.databaseURL){
+      var m2 = html.match(/https:\/\/[a-z0-9-]+\.(firebaseio\.com|firebasedatabase\.app)/i);
+      if (m2) cfg.databaseURL = m2[0];
+    }
+    return cfg;
+  }catch(e){ return null; }
+}
+
+function extractPaths(html){
+  try{
+    var found = {}, m;
+    var re1 = /\.ref\(\s*["'`]([^"'`]+)["'`]/g;
+    while ((m = re1.exec(html)) !== null) found[m[1]] = 1;
+    var re2 = /ref\(\s*\w+\s*,\s*["'`]([^"'`]+)["'`]/g;
+    while ((m = re2.exec(html)) !== null) found[m[1]] = 1;
+    return Object.keys(found);
   }catch(e){ return []; }
 }
 
-function isExcluded(property){
-  try{
-    var p = String(property || '');
-    var ex = excludedList();
-    for (var i = 0; i < ex.length; i++){
-      if (p.indexOf(ex[i]) >= 0) return true;
-    }
-    return false;
-  }catch(e){ return false; }
-}
-
-/* ============================================
-   12. Firebase에서 예약 찾아오기
-   ============================================ */
-function getJson(url){
-  return fetch(url, { method:'GET' }).then(function(r){
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
+function loadScript(src){
+  return new Promise(function(res, rej){
+    var s = document.createElement('script');
+    s.src = src;
+    s.onload = function(){ res(); };
+    s.onerror = function(){ rej(new Error('불러오기 실패: ' + src)); };
+    document.head.appendChild(s);
   });
 }
 
-// 주소 찾기
-function findDb(){
-  var manual = (document.getElementById('dbUrl').value || '').trim().replace(/\/$/, '');
-  var list = manual ? [manual] : DB_CANDIDATES;
-
-  var i = 0;
-  function tryNext(){
-    if (i >= list.length) return Promise.reject(new Error('접속 가능한 주소를 찾지 못했습니다'));
-    var base = list[i++];
-    log('주소 시도: ' + base);
-    return getJson(base + '/.json?shallow=true').then(function(data){
-      log('접속 성공: ' + base);
-      return { base:base, roots:data };
-    }).catch(function(err){
-      log('실패 (' + err.message + ')');
-      return tryNext();
-    });
-  }
-  return tryNext();
+function loadSdk(){
+  if (window.firebase && window.firebase.database) return Promise.resolve();
+  var p = Promise.resolve();
+  SDK.forEach(function(u){ p = p.then(function(){ return loadScript(u); }); });
+  return p;
 }
 
-// 예약이 들어있는 위치 찾기
-function findPath(base, roots){
-  var manual = (document.getElementById('dbPath').value || '').trim().replace(/^\//, '').replace(/\/$/, '');
-  if (manual){
-    log('지정된 위치 사용: ' + manual);
-    return getJson(base + '/' + manual + '.json').then(function(d){
-      return { path:manual, data:d };
-    });
-  }
+/* ============================================
+   11. 클라우드에서 예약 읽기
+   ============================================ */
+function readCloud(){
+  var file = (document.getElementById('srcFile').value || 'roommade-one.html').trim();
 
-  if (!roots || typeof roots !== 'object') return Promise.reject(new Error('최상위 목록이 비어 있습니다'));
+  log('설정 파일 읽는 중: ' + file);
+  return fetch(file, { cache:'no-store' }).then(function(r){
+    if (!r.ok) throw new Error('설정 파일 HTTP ' + r.status);
+    return r.text();
+  }).then(function(html){
+    var cfg = extractConfig(html);
+    if (!cfg) throw new Error('설정을 찾지 못했습니다');
+    log('설정 찾음. 프로젝트: ' + (cfg.projectId || '?'));
+    if (cfg.databaseURL) log('DB 주소: ' + cfg.databaseURL);
 
-  var keys = Object.keys(roots).slice(0, 20);
-  log('최상위 항목: ' + keys.join(', '));
+    var paths = extractPaths(html);
+    if (paths.length) log('파일에서 찾은 위치: ' + paths.slice(0,10).join(', '));
 
-  // 이름만 봐도 예약일 것 같은 것 먼저
-  var likely = keys.filter(function(k){ return /event|booking|reserv|calendar|예약|일정/i.test(k); });
-  var order = likely.concat(keys.filter(function(k){ return likely.indexOf(k) < 0; }));
+    var manual = (document.getElementById('dbPath').value || '').trim();
+    var order = [];
+    if (manual) order.push(manual);
+    paths.forEach(function(p){ if (order.indexOf(p) < 0) order.push(p); });
+    PATH_GUESS.forEach(function(p){ if (order.indexOf(p) < 0) order.push(p); });
 
-  var i = 0;
-  function tryNext(){
-    if (i >= order.length) return Promise.reject(new Error('예약 데이터를 찾지 못했습니다'));
-    var k = order[i++];
-    return probe(base, k).then(function(hit){
-      if (hit) return hit;
-      return tryNext();
-    }).catch(function(){ return tryNext(); });
-  }
-  return tryNext();
-}
+    return loadSdk().then(function(){
+      log('Firebase 준비 완료');
+      var app;
+      try{
+        app = firebase.apps && firebase.apps.length ? firebase.app() : firebase.initializeApp(cfg);
+      }catch(e){ app = firebase.app(); }
 
-// 한 위치를 살펴보고 예약인지 확인 (2단계까지)
-function probe(base, path){
-  return getJson(base + '/' + path + '.json?shallow=true').then(function(childKeys){
-    if (!childKeys || typeof childKeys !== 'object') return null;
-    var ck = Object.keys(childKeys);
-    if (!ck.length) return null;
-
-    // 첫 자식 하나만 꺼내 확인
-    return getJson(base + '/' + path + '/' + ck[0] + '.json').then(function(sample){
-      if (looksLikeEvent(sample)){
-        log('예약 발견: ' + path);
-        return getJson(base + '/' + path + '.json').then(function(all){
-          return { path:path, data:all };
-        });
-      }
-      // 한 단계 더 들어가 보기
-      if (sample && typeof sample === 'object' && !Array.isArray(sample)){
-        var inner = Object.keys(sample);
-        for (var j = 0; j < inner.length; j++){
-          if (looksLikeEvent(sample[inner[j]])){
-            log('예약 발견: ' + path + '/' + ck[0]);
-            return getJson(base + '/' + path + '.json').then(function(all){
-              return { path:path, data:all, nested:true };
-            });
-          }
-        }
-      }
-      return null;
+      // 로그인 시도 (안 되면 그냥 진행)
+      return firebase.auth().signInAnonymously().then(function(){
+        log('익명 로그인 성공');
+      }).catch(function(err){
+        log('익명 로그인 실패: ' + (err.code || err.message) + ' → 로그인 없이 시도합니다');
+      }).then(function(){
+        return tryPaths(order, 0);
+      });
     });
   });
 }
 
-// 어떤 모양이든 예약 목록으로 펼치기
-function flatten(data, depth){
-  var out = [];
-  if (!data) return out;
-  depth = depth || 0;
-  if (depth > 3) return out;
+function tryPaths(order, i){
+  if (i >= order.length) return Promise.reject(new Error('예약이 있는 위치를 찾지 못했습니다'));
+  var path = order[i];
+  log('위치 확인: ' + path);
 
-  if (Array.isArray(data)){
-    data.forEach(function(x){
-      if (looksLikeEvent(x)) out.push(x);
-      else if (x && typeof x === 'object') out = out.concat(flatten(x, depth+1));
-    });
-    return out;
-  }
-  if (typeof data === 'object'){
-    if (looksLikeEvent(data)){ out.push(data); return out; }
-    Object.keys(data).forEach(function(k){
-      var v = data[k];
-      if (looksLikeEvent(v)) out.push(v);
-      else if (v && typeof v === 'object') out = out.concat(flatten(v, depth+1));
-    });
-  }
-  return out;
+  return firebase.database().ref(path).get().then(function(snap){
+    if (!snap.exists()){ log('  비어 있음'); return tryPaths(order, i+1); }
+    var val = snap.val();
+    var list = flatten(val, 0);
+    if (!list.length){ log('  예약 아님'); return tryPaths(order, i+1); }
+    log('  예약 ' + list.length + '건 발견');
+    return { path:path, list:list };
+  }).catch(function(err){
+    log('  실패: ' + (err.code || err.message));
+    return tryPaths(order, i+1);
+  });
 }
 
 /* ============================================
-   13. 예약 불러오기 전체 흐름
+   12. 폰 저장분 읽기
    ============================================ */
-function loadFromLocal(){
+function readLocal(){
   try{
     var raw = localStorage.getItem(KEY_EVENTS);
     if (!raw) return [];
-    var data = JSON.parse(raw);
-    return flatten(data, 0);
-  }catch(e){ log('폰 저장분 읽기 실패: ' + e.message); return []; }
+    return flatten(JSON.parse(raw), 0);
+  }catch(e){ return []; }
 }
 
+/* ============================================
+   13. 적용
+   ============================================ */
 function applyEvents(rawList, source, info){
-  var norm = [];
+  var kept = [], dropped = 0;
   rawList.forEach(function(r){
     var e = normEvent(r);
-    if (e && !isExcluded(e.property)) norm.push(e);
+    if (!e) return;
+    if (isExcluded(e.property)){ dropped++; return; }
+    kept.push(e);
   });
-  // 중복 제거 (같은 객실 + 같은 시작일)
+
   var seen = {}, uniq = [];
-  norm.forEach(function(e){
+  kept.forEach(function(e){
     var k = e.property + '|' + e.start;
     if (seen[k]) return;
-    seen[k] = 1;
-    uniq.push(e);
+    seen[k] = 1; uniq.push(e);
   });
 
   EVENTS = uniq;
+  EXCLUDED_N = dropped;
   SOURCE = source;
   SOURCE_INFO = info || '';
-  log(source + ' 예약 ' + EVENTS.length + '건 적용 (제외 후)');
+  log('적용: ' + EVENTS.length + '건 (제외 ' + dropped + '건)');
   showDataBar();
 }
 
@@ -530,24 +522,16 @@ function loadEvents(){
   bar.className = 'dataBar';
   bar.textContent = '예약을 불러오는 중입니다…';
 
-  findDb().then(function(r){
-    document.getElementById('dbUrl').value = r.base;
-    return findPath(r.base, r.roots).then(function(found){
-      document.getElementById('dbPath').value = found.path;
-      saveSet();
-      var list = flatten(found.data, 0);
-      if (!list.length) throw new Error('불러왔지만 예약이 비어 있습니다');
-      applyEvents(list, 'firebase', r.base.replace('https://','') + ' / ' + found.path);
-    });
+  readCloud().then(function(found){
+    document.getElementById('dbPath').value = found.path;
+    saveSet();
+    applyEvents(found.list, 'cloud', '클라우드 · ' + found.path);
   }).catch(function(err){
-    log('Firebase 실패: ' + err.message);
-    var local = loadFromLocal();
-    if (local.length){
-      applyEvents(local, 'local', '이 폰에 저장된 예약');
-    } else {
-      EVENTS = [];
-      SOURCE = 'none';
-      SOURCE_INFO = err.message;
+    log('클라우드 실패: ' + err.message);
+    var local = readLocal();
+    if (local.length) applyEvents(local, 'local', '이 폰에 저장된 예약');
+    else {
+      EVENTS = []; EXCLUDED_N = 0; SOURCE = 'none'; SOURCE_INFO = err.message;
       showDataBar();
     }
   });
@@ -557,55 +541,50 @@ function showDataBar(){
   try{
     var bar = document.getElementById('dataBar');
     bar.className = 'dataBar';
+    bar.innerHTML = '';
 
     if (SOURCE === 'none'){
-      bar.classList.add('bad');
+      bar.className = 'dataBar bad';
       bar.innerHTML = '<b>예약을 불러오지 못했습니다.</b><br>' + SOURCE_INFO
-        + '<br>설정에서 기록창을 켜고 기록을 확인해 주세요.';
-      addReload(bar);
-      return;
+        + '<br><span class="sub">설정에서 기록창을 켜고 기록을 확인해 주세요.</span>';
+    } else {
+      if (SOURCE === 'cloud') bar.className = 'dataBar good';
+      var where = SOURCE === 'cloud' ? '클라우드' : '이 폰';
+      var html = '<b>' + where + '에서 예약 ' + EVENTS.length + '건</b>';
+      if (EVENTS.length){
+        var ds = EVENTS.map(function(e){ return e.start; }).sort();
+        var de = EVENTS.map(function(e){ return e.end; }).sort();
+        html += '<br>기간: ' + ds[0] + ' ~ ' + de[de.length-1];
+      }
+      if (EXCLUDED_N) html += '<br>제외한 객실 예약: ' + EXCLUDED_N + '건';
+      html += '<br><span class="sub">' + SOURCE_INFO + '</span>';
+      bar.innerHTML = html;
     }
 
-    var ds = EVENTS.map(function(e){ return e.start; }).sort();
-    var de = EVENTS.map(function(e){ return e.end; }).sort();
-    var where = SOURCE === 'firebase' ? '클라우드' : '이 폰';
-
-    bar.classList.add(SOURCE === 'firebase' ? 'real' : '');
-    bar.innerHTML = '<b>' + where + '에서 예약 ' + EVENTS.length + '건</b>을 읽었습니다.'
-      + (EVENTS.length ? '<br>기간: ' + ds[0] + ' ~ ' + de[de.length-1] : '')
-      + '<br><span style="opacity:.7">' + SOURCE_INFO + '</span>';
-    addReload(bar);
-  }catch(e){ log('상태 표시 실패: ' + e.message); }
-
-  function addReload(bar){
     var b = document.createElement('button');
     b.className = 'reload'; b.type = 'button'; b.textContent = '예약 새로 불러오기';
     b.onclick = loadEvents;
     bar.appendChild(b);
-  }
+  }catch(e){ log('상태 표시 실패: ' + e.message); }
 }
 
 /* ============================================
-   14. 말에서 날짜 뽑기
+   14. 말 이해하기
    ============================================ */
 function parseRange(text){
-  var t = text.replace(/\s/g,'');
-  var m;
-
+  var t = text.replace(/\s/g,''), m;
   var words = {'하루':1,'이틀':2,'사흘':3,'나흘':4,'닷새':5,'엿새':6,'일주일':7};
   for (var k in words){
     if (t.indexOf(k) >= 0 && /(뒤|후)/.test(t)) return one(words[k], k+' 뒤');
   }
   m = t.match(/(\d+)일(뒤|후)/);
   if (m) return one(parseInt(m[1],10), m[1]+'일 뒤');
-
   m = t.match(/(\d{1,2})월(\d{1,2})일/);
   if (m){
     var target = new Date(new Date().getFullYear(), parseInt(m[1],10)-1, parseInt(m[2],10));
     target.setHours(0,0,0,0);
     return one(Math.round((target - shift(0))/86400000), m[1]+'월 '+m[2]+'일');
   }
-
   if (/(그제|그저께)/.test(t)) return one(-2,'그제');
   if (/어제/.test(t))          return one(-1,'어제');
   if (/모레/.test(t))          return one(2,'모레');
@@ -616,22 +595,14 @@ function parseRange(text){
   if (/주말/.test(t))          return weekend();
   if (/이번달|이달/.test(t))   return span(0,30,'이번 달');
   if (/다음달/.test(t))        return span(31,60,'다음 달');
-
   m = t.match(/(\d+)일(간|치|동안)/);
   if (m) return span(0, parseInt(m[1],10)-1, m[1]+'일간');
-
   return one(0,'오늘');
 
-  function one(n,label){
-    var d = shift(n);
-    return { from:ymd(d), to:ymd(d), label:label, single:true, date:d };
-  }
-  function span(a,b,label){
-    return { from:ymd(shift(a)), to:ymd(shift(b)), label:label, single:false };
-  }
+  function one(n,label){ var d = shift(n); return { from:ymd(d), to:ymd(d), label:label, single:true, date:d }; }
+  function span(a,b,label){ return { from:ymd(shift(a)), to:ymd(shift(b)), label:label, single:false }; }
   function weekend(){
-    var dow = new Date().getDay();
-    var toSat = (6-dow+7)%7;
+    var dow = new Date().getDay(), toSat = (6-dow+7)%7;
     return { from:ymd(shift(toSat)), to:ymd(shift(toSat+1)), label:'이번 주말', single:false };
   }
 }
@@ -643,7 +614,6 @@ function parseBranch(text){
   if (/펜트|펜타|한라|웨스턴/.test(t)) return '펜트';
   return null;
 }
-
 function parseKind(text){
   var t = text.replace(/\s/g,'');
   if (/청소|퇴실|체크아웃|아웃/.test(t)) return 'out';
@@ -655,21 +625,16 @@ function parseKind(text){
    15. 답 만들기
    ============================================ */
 function answerFor(text){
-  var range  = parseRange(text);
-  var branch = parseBranch(text);
-  var kind   = parseKind(text);
+  var range = parseRange(text), branch = parseBranch(text), kind = parseKind(text);
   var rows = [];
 
   EVENTS.forEach(function(e){
     var br = branchOf(e.property);
     if (branch && br !== branch) return;
-
-    if (kind !== 'in' && e.end >= range.from && e.end <= range.to){
+    if (kind !== 'in' && e.end >= range.from && e.end <= range.to)
       rows.push({ d:e.end, time:e.checkOut, kind:'out', prop:e.property });
-    }
-    if (kind !== 'out' && e.start >= range.from && e.start <= range.to){
+    if (kind !== 'out' && e.start >= range.from && e.start <= range.to)
       rows.push({ d:e.start, time:e.checkIn, kind:'in', prop:e.property });
-    }
   });
 
   rows.sort(function(a,b){
@@ -687,14 +652,12 @@ function answerFor(text){
 
   var outN = rows.filter(function(r){ return r.kind === 'out'; }).length;
   var inN  = rows.length - outN;
-
   var head;
+
   if (range.single){
     var d = range.date;
     head = range.label + ' ' + (d.getMonth()+1) + '월 ' + d.getDate() + '일 ' + W[d.getDay()] + '요일, ';
-  } else {
-    head = range.label + ' ';
-  }
+  } else head = range.label + ' ';
   head += who;
 
   if (kind === 'out')     head += '청소 ' + outN + '건입니다.';
@@ -721,8 +684,7 @@ function answerFor(text){
 function respond(text){
   try{
     var hd = document.getElementById('heard');
-    hd.textContent = text;
-    hd.classList.remove('empty');
+    hd.textContent = text; hd.classList.remove('empty');
 
     var res = answerFor(text);
     document.getElementById('answer').textContent = res.text;
@@ -731,8 +693,7 @@ function respond(text){
     det.innerHTML = '';
     if (res.rows && res.rows.length){
       res.rows.forEach(function(r){
-        var ln = document.createElement('div');
-        ln.className = 'ln';
+        var ln = document.createElement('div'); ln.className = 'ln';
         var tag = document.createElement('span');
         tag.className = 'tag' + (r.kind === 'out' ? ' out' : '');
         tag.textContent = r.kind === 'out' ? '청소' : '입실';
@@ -744,9 +705,7 @@ function respond(text){
         det.appendChild(ln);
       });
       det.style.display = 'block';
-    } else {
-      det.style.display = 'none';
-    }
+    } else det.style.display = 'none';
 
     lastSpeak = res.speak;
     if (document.getElementById('speakOn').checked) speak(res.speak);
@@ -771,16 +730,13 @@ function speak(msg){
     };
     if (window.speechSynthesis.getVoices().length === 0) setTimeout(go, 350);
     else go();
-  }catch(e){ log('말하기 실패: ' + e.message); }
+  }catch(e){}
 }
 
 /* ============================================
-   17. 음성인식 (on- 방식)
+   17. 음성인식
    ============================================ */
-function setStatus(s){
-  var el = document.getElementById('status');
-  if (el) el.textContent = s;
-}
+function setStatus(s){ var el = document.getElementById('status'); if (el) el.textContent = s; }
 function setLive(on){
   listening = on;
   document.getElementById('mic').classList.toggle('live', on);
@@ -789,15 +745,13 @@ function setLive(on){
 
 function startListen(){
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR){ setStatus('크롬으로 열어주세요. 음성인식을 지원하지 않습니다.'); return; }
+  if (!SR){ setStatus('크롬으로 열어주세요.'); return; }
   try{
     if (rec){ try{ rec.abort(); }catch(e){} rec = null; }
     window.speechSynthesis && window.speechSynthesis.cancel();
 
     rec = new SR();
-    rec.lang = 'ko-KR';
-    rec.continuous = false;
-    rec.interimResults = true;
+    rec.lang = 'ko-KR'; rec.continuous = false; rec.interimResults = true;
 
     rec.onstart = function(){ setLive(true); setStatus('말씀하세요'); };
     rec.onspeechstart = function(){ setStatus('듣는 중...'); };
@@ -811,12 +765,11 @@ function startListen(){
         var hd = document.getElementById('heard');
         hd.textContent = txt; hd.classList.remove('empty');
         if (fin && txt.trim()){ setStatus('처리 중'); respond(txt.trim()); }
-      }catch(e){ log('결과 처리 오류: ' + e.message); }
+      }catch(e){ log('결과 오류: ' + e.message); }
     };
     rec.onerror = function(ev){
       setLive(false);
-      log('인식 오류: ' + ev.error);
-      if (ev.error === 'not-allowed')        setStatus('마이크 권한이 필요합니다. 자물쇠 아이콘에서 허용해 주세요.');
+      if (ev.error === 'not-allowed')        setStatus('마이크 권한이 필요합니다.');
       else if (ev.error === 'no-speech')     setStatus('소리를 못 들었습니다. 다시 눌러주세요.');
       else if (ev.error === 'network')       setStatus('인터넷 연결을 확인해 주세요.');
       else if (ev.error === 'aborted')       setStatus('대기 중');
@@ -827,10 +780,7 @@ function startListen(){
       if (document.getElementById('status').textContent === '말씀하세요') setStatus('대기 중');
     };
     rec.start();
-  }catch(e){
-    setLive(false); setStatus('다시 눌러주세요');
-    log('시작 실패: ' + e.message);
-  }
+  }catch(e){ setLive(false); setStatus('다시 눌러주세요'); }
 }
 
 function toggleMic(){
@@ -865,7 +815,7 @@ function saveSet(){
       autoMic: document.getElementById('autoMic').checked,
       showLog: document.getElementById('showLog').checked,
       excl:    document.getElementById('excl').value,
-      dbUrl:   document.getElementById('dbUrl').value,
+      srcFile: document.getElementById('srcFile').value,
       dbPath:  document.getElementById('dbPath').value
     }));
   }catch(e){}
@@ -878,9 +828,9 @@ function loadSet(){
     document.getElementById('speakOn').checked = d.speakOn !== false;
     document.getElementById('autoMic').checked = !!d.autoMic;
     document.getElementById('showLog').checked = !!d.showLog;
-    if (typeof d.excl   === 'string') document.getElementById('excl').value   = d.excl;
-    if (typeof d.dbUrl  === 'string') document.getElementById('dbUrl').value  = d.dbUrl;
-    if (typeof d.dbPath === 'string') document.getElementById('dbPath').value = d.dbPath;
+    if (typeof d.excl    === 'string') document.getElementById('excl').value = d.excl;
+    if (typeof d.srcFile === 'string' && d.srcFile) document.getElementById('srcFile').value = d.srcFile;
+    if (typeof d.dbPath  === 'string') document.getElementById('dbPath').value = d.dbPath;
   }catch(e){}
 }
 
@@ -913,28 +863,18 @@ function boot(){
       document.getElementById('logWrap').style.display = this.checked ? 'block' : 'none';
       saveSet();
     };
-    if (document.getElementById('showLog').checked){
-      document.getElementById('logWrap').style.display = 'block';
-    }
-    // 제외 객실을 바꾸면 곧바로 다시 계산
-    document.getElementById('excl').oninput = function(){ saveSet(); };
-    document.getElementById('excl').onchange = function(){ saveSet(); loadEvents(); };
-    document.getElementById('dbUrl').onchange = function(){ saveSet(); loadEvents(); };
-    document.getElementById('dbPath').onchange = function(){ saveSet(); loadEvents(); };
+    document.getElementById('excl').onchange    = function(){ saveSet(); loadEvents(); };
+    document.getElementById('srcFile').onchange = function(){ saveSet(); loadEvents(); };
+    document.getElementById('dbPath').onchange  = function(){ saveSet(); loadEvents(); };
 
-    if (location.protocol !== 'https:'){
-      setStatus('https 주소로 열어야 마이크가 켜집니다');
-    }
+    if (location.protocol !== 'https:') setStatus('https 주소로 열어야 마이크가 켜집니다');
 
     loadEvents();
 
     if (document.getElementById('autoMic').checked){
       setTimeout(function(){ if (!listening) startListen(); }, 900);
     }
-    log('준비 완료');
-  }catch(e){
-    alert('시작 실패: ' + e.message);
-  }
+  }catch(e){ alert('시작 실패: ' + e.message); }
 }
 
 document.addEventListener('DOMContentLoaded', boot);
