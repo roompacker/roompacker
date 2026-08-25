@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v10.8</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v10.9</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1910,6 +1910,9 @@ h1,h2,h3{color:var(--n-ink)}
   // 예약 목록을 앱의 청소 일정으로 반영 (기존 예약 등록과 같은 방식)
   function applyIcalBookings(room, bookings){
     let added=0, updated=0, removed=0;
+    const changes=[];   // 무엇이 바뀌었는지 사람이 읽을 수 있게 기록
+    const shortName=roomTitleOf(room.name)||room.name;
+    const fmtD=s=>String(s||'').slice(5).replace('-','/');
     const roomId=room.id;
     const amount=room.branch==='펜트하우스'?0:(room.price||0);
     const feedUids={};
@@ -1935,6 +1938,7 @@ h1,h2,h3{color:var(--n-ink)}
           createdAt:Date.now(), autoGen:true, icalUid:bk.uid, bookingCode:bk.code||''
         });
         added++;
+        changes.push('🆕 '+shortName+'  '+fmtD(bk.ci)+' 입실 → '+fmtD(bk.co)+' 청소 ('+bk.nights+'박)');
       }
     });
 
@@ -1980,10 +1984,11 @@ h1,h2,h3{color:var(--n-ink)}
       if(feedUids[t.icalUid])return true;
       if(t.paid||t.status==='done'||t.date<td)return true;   // 이미 처리된 건 보존
       removed++;
+      changes.push('❌ '+shortName+'  '+fmtD(t.date)+' 청소 취소됨');
       return false;
     });
 
-    return {added,updated,removed};
+    return {added,updated,removed,changes};
   }
 
   // 객실 한 개 동기화
@@ -2042,11 +2047,24 @@ h1,h2,h3{color:var(--n-ink)}
       state.icalLastResult=results.map(r=>r.ok
         ? `✅ ${r.room} · 예약 ${r.count}건 (새로 ${r.added} / 갱신 ${r.updated}${r.removed?' / 취소 '+r.removed:''})`
         : `❌ ${r.room} · ${r.error}`).join('\n');
+      // 🔔 바뀐 내용을 모아 알림
+      const allChanges=[];
+      okList.forEach(r=>{ if(Array.isArray(r.changes))allChanges.push.apply(allChanges,r.changes); });
+      state.icalChanges=allChanges;
+      state.icalChangesAt=allChanges.length?Date.now():state.icalChangesAt;
       save(); render();
-      if(!silent){
+
+      if(allChanges.length){
+        // 자동 동기화(조용히)여도 '바뀐 게 있으면' 알려줍니다
+        const head='🔔 에어비앤비 예약이 바뀌었어요 ('+allChanges.length+'건)';
+        const body=allChanges.slice(0,12).join('\n')+(allChanges.length>12?'\n… 외 '+(allChanges.length-12)+'건':'');
+        setTimeout(function(){ try{ alert(head+'\n\n'+body); }catch(e){} }, 300);
+        toast('🔔 예약 변경 '+allChanges.length+'건');
+      }else if(!silent){
         if(failed.length)toast('⚠️ '+failed.length+'개 객실 실패 — 아래 결과를 확인하세요');
-        else toast('✅ 동기화 완료! 새 예약 '+total+'건'+(upd?' · 갱신 '+upd:'')+(del?' · 취소 '+del:''));
+        else toast('✅ 동기화 완료 · 바뀐 예약 없음');
       }
+      if(!silent&&failed.length)toast('⚠️ '+failed.length+'개 객실 실패');
       const b=$('#icalSyncBtn'); if(b){b.disabled=false;b.textContent='🔄 지금 동기화';}
     });
   }
@@ -2152,6 +2170,15 @@ h1,h2,h3{color:var(--n-ink)}
     }
 
     // ⑤ 마지막 동기화 결과 로그
+    // 🔔 최근 바뀐 예약
+    if(Array.isArray(state.icalChanges)&&state.icalChanges.length){
+      const d=state.icalChangesAt?new Date(state.icalChangesAt):null;
+      html+=`<div style="margin-top:8px;background:#EFE6D4;border:1px solid #E0D3B8;border-radius:12px;padding:10px 12px;">`+
+        `<b style="font-size:12px;color:#8A6E38;">🔔 최근 바뀐 예약 ${state.icalChanges.length}건`+
+        (d?` <span style="font-weight:600;">(${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())})</span>`:'')+`</b>`+
+        `<div style="margin-top:6px;font-size:11px;line-height:1.8;color:#8A6E38;white-space:pre-line;">${esc(state.icalChanges.slice(0,10).join('\n'))}</div>`+
+        `</div>`;
+    }
     if(state.icalLastResult){
       html+=`<div style="margin-top:8px;background:#F1F4FA;border-radius:10px;padding:9px 11px;white-space:pre-line;font-size:11px;line-height:1.7;">${esc(state.icalLastResult)}</div>`;
     }
@@ -2831,6 +2858,41 @@ h1,h2,h3{color:var(--n-ink)}
     })() : {};
     const obj={id:id||uid('tx'),date,billingMonth,type:txType,targetId,targetName:target.name,branch,amount,taxRate,taxAmount,netAmount:amount-taxAmount,paid,memo,status,createdAt:Date.now(),...sched};
     if(id){const i=state.transactions.findIndex(x=>x.id===id);state.transactions[i]={...state.transactions[i],...obj}}else state.transactions.push(obj);
+
+    /* 🔗 앞 기록에 자동 이어붙이기
+       공실 뒤에 새 예약을 넣었을 때, 그 앞의 마지막 청소 기록에
+       '다음 입실' 정보를 자동으로 채워줍니다.
+       → 앞 청소 담당자가 "언제 누가 들어오는지"를 알 수 있어요. */
+    let linkMsg='';
+    if(txType==='income' && sched.inNights){
+      const curRec2=state.transactions.find(x=>x.id===obj.id) || obj;
+      const myIn = curRec2.inDate || date;      // 이번에 등록한 입실일
+      // 이 입실일보다 앞에 있는 같은 객실의 마지막 청소 기록 찾기
+      const prev = state.transactions
+        .filter(t=>t.type==='income' && !t.checkinOnly && t.targetId===targetId
+                 && t.status!=='cancelled' && t.id!==obj.id && (t.date||'') <= myIn)
+        .sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
+      if(prev){
+        // 그 입실일을 가리키던 다른 기록이 있으면 정리 (중복 안내 방지)
+        state.transactions.forEach(t=>{
+          if(t.type==='income'&&t.targetId===targetId&&t.inDate===myIn&&t.id!==prev.id&&t.id!==obj.id){
+            t.inDate='';t.inNights='';t.inGuests='';t.inTime='';t.inSupplies='';
+          }
+        });
+        const before = prev.inDate||'';
+        if(before!==myIn || prev.inNights!==sched.inNights){
+          prev.inDate   = myIn;
+          prev.inNights = sched.inNights;
+          if(sched.inGuests)prev.inGuests = sched.inGuests;
+          if(!prev.inTime)prev.inTime = sched.inTime||'16:00';
+          if(sched.inSupplies&&!prev.inSupplies)prev.inSupplies = sched.inSupplies;
+          const gap = Math.round((new Date(myIn+'T00:00:00') - new Date(prev.date+'T00:00:00'))/86400000);
+          linkMsg = '🔗 '+prev.date.slice(5).replace('-','/')+' 청소에 다음 입실 안내를 넣었어요'
+                  + (gap>0?' (공실 '+gap+'일)':'');
+        }
+      }
+    }
+
     // 🔄 입실(예약) 정보가 있으면 → 나가는 날 청소 자동 생성
     let autoMsg='';
     if(txType==='income' && sched.inNights){
@@ -2865,7 +2927,10 @@ h1,h2,h3{color:var(--n-ink)}
         }
       }
     }
-    save();closeModal('txModal');toast('기록을 저장했어요'+autoMsg);render();
+    save();closeModal('txModal');
+    toast('기록을 저장했어요'+autoMsg);
+    if(linkMsg)setTimeout(function(){toast(linkMsg);},1900);   // 이어붙인 결과도 알려줌
+    render();
   }
   function deleteTxForm(){const id=$('#txEditId').value;if(!id)return;if(confirm('이 기록을 삭제할까요?')){state.transactions=state.transactions.filter(x=>x.id!==id);save();closeModal('txModal');render();toast('삭제했어요')}}
   function openRoom(id=''){const r=state.rooms.find(x=>x.id===id);$('#roomEditId').value=id;$('#roomNameInput').value=r?.name||'';$('#roomHostInput').value=r?.hostName||'';$('#roomBranchInput').value=r?.branch||(state.branch==='전체'?'영종점':state.branch);$('#roomPriceInput').value=r?.price||'';$('#roomTaxInput').value=r?.tax||'';$('#roomBaseGuests').value=r?.baseGuests||'';$('#roomExtraSetup').value=r?.extraSetup||'';$('#roomBaseSetup').value=r?.baseSetup||'';$('#roomDoorPw').value=r?.doorPw||'';$('#roomSupplyPw').value=r?.supplyPw||'';$('#roomIcalInput').value=r?.ical||'';const drb=$('#deleteRoomBtn');if(drb)drb.style.display=id?'block':'none';const arb=$('#archiveRoomBtn');if(arb){arb.style.display=id?'block':'none';if(r&&r.archived){arb.textContent='📤 보관 해제 (메뉴에 다시 표시)';arb.style.background='#E2F4EA';arb.style.color='#4FA97D';arb.style.borderColor='#9FD9BC';}else{arb.textContent='📦 이 객실 보관 (메뉴에서 숨김)';arb.style.background='#FDF3D6';arb.style.color='#C4922E';arb.style.borderColor='#F2E3AA';}}openModal('roomModal')}
