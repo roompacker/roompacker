@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v10.9</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v11.0</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -502,6 +502,7 @@ h1,h2,h3{color:var(--n-ink)}
         <div class="progressline"><span id="homeProgressBar"></span></div>
       </div>
 
+      <div id="opsAlertSlot"></div>
       <div class="ops-flow-card">
         <button data-ops-jump="opsCheckoutBlock"><span>01</span><b>퇴실</b><em id="opsFlowCheckout">0</em></button>
         <i>›</i>
@@ -1255,6 +1256,7 @@ h1,h2,h3{color:var(--n-ink)}
     try{ renderInsight(); }catch(e){ console.error('insight',e); }
     try{ renderManage(); }catch(e){ console.error('manage',e); }
     try{ renderIcalCard(); }catch(e){ console.error('ical',e); }
+    try{ renderIcalAlert(); }catch(e){ console.error('icalAlert',e); }
     try{ renderMFGauge(); }catch(e){ console.error('mfgauge',e); }
     try{ renderIncentives(); }catch(e){ console.error('inc',e); }
   }
@@ -1922,8 +1924,17 @@ h1,h2,h3{color:var(--n-ink)}
       feedUids[bk.uid]=1;
       let clean=state.transactions.find(t=>t.type==='income'&&!t.checkinOnly&&t.targetId===roomId&&t.date===bk.co&&t.status!=='cancelled');
       if(clean){
-        // 수동으로 넣은 정보는 지우지 않고, 비어있는 것만 채웁니다
-        if(!clean.outNights){clean.outNights=String(bk.nights);updated++;}
+        // 📝 에어비앤비 정보가 달라졌으면 자동으로 고칩니다 (박수는 예약의 사실이라 갱신)
+        const oldN=String(clean.outNights||'');
+        const newN=String(bk.nights);
+        if(oldN!==newN){
+          if(oldN){
+            changes.push('📝 '+shortName+'  '+fmtD(bk.co)+' 청소 · 숙박 '+oldN+'박 → '+newN+'박 변경');
+            clean.icalChanged=Date.now();   // 🆕 뱃지 표시용
+          }
+          clean.outNights=newN;
+          updated++;
+        }
         if(!clean.outTime)clean.outTime='11:00';
         if(!clean.icalUid)clean.icalUid=bk.uid;
         if(bk.code&&!clean.bookingCode)clean.bookingCode=bk.code;
@@ -1939,6 +1950,7 @@ h1,h2,h3{color:var(--n-ink)}
         });
         added++;
         changes.push('🆕 '+shortName+'  '+fmtD(bk.ci)+' 입실 → '+fmtD(bk.co)+' 청소 ('+bk.nights+'박)');
+        state.transactions[state.transactions.length-1].icalChanged=Date.now();
       }
     });
 
@@ -1955,8 +1967,13 @@ h1,h2,h3{color:var(--n-ink)}
           }
         });
         if(prevClean.inDate!==bk.ci||prevClean.inNights!==String(bk.nights)){
+          const had=prevClean.inDate;
           prevClean.inDate=bk.ci; prevClean.inNights=String(bk.nights);
           if(!prevClean.inTime)prevClean.inTime='16:00';
+          if(had&&had!==bk.ci){
+            changes.push('📝 '+shortName+'  '+fmtD(prevClean.date)+' 청소 · 다음 입실 '+fmtD(had)+' → '+fmtD(bk.ci));
+            prevClean.icalChanged=Date.now();
+          }
           updated++;
         }
       }else{
@@ -2069,6 +2086,46 @@ h1,h2,h3{color:var(--n-ink)}
     });
   }
 
+
+  /* 🔔 바뀐 예약 모아보기 — 홈 화면 위쪽에 띠로 표시 */
+  function renderIcalAlert(){
+    const host=$('#opsAlertSlot');
+    const list=(state.transactions||[]).filter(t=>t.icalChanged&&t.status!=='cancelled')
+      .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    if(!host)return;
+    if(!list.length){host.innerHTML='';return;}
+    host.innerHTML=
+      '<button id="icalChangeBtn" class="smart-strip" style="width:100%;text-align:left;border:1px solid #E0D3B8;background:#EFE6D4;">'+
+        '<span class="smart-icon">🔔</span>'+
+        '<span style="flex:1;min-width:0;"><b style="display:block;">에어비앤비 예약 변경 '+list.length+'건</b>'+
+        '<small style="display:block;">'+esc(list.slice(0,2).map(t=>(roomTitleOf(t.targetName)||'')+' '+(t.date||'').slice(5).replace('-','/')).join(' · '))+
+        (list.length>2?' 외 '+(list.length-2)+'건':'')+' — 눌러서 확인</small></span>'+
+      '</button>';
+  }
+
+  function showIcalChanges(){
+    const list=(state.transactions||[]).filter(t=>t.icalChanged&&t.status!=='cancelled')
+      .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    if(!list.length)return toast('변경된 예약이 없어요');
+    const L=['🔔 에어비앤비에서 바뀐 예약 '+list.length+'건',''];
+    list.forEach(t=>{
+      const nm=roomTitleOf(t.targetName)||t.targetName||'';
+      L.push('· '+(t.date||'').slice(5).replace('-','/')+'  '+nm);
+      L.push('   퇴실 '+(t.outNights||'-')+'박'+(t.inDate?'  →  다음 입실 '+(t.inDate||'').slice(5).replace('-','/')+' '+(t.inNights||'')+'박':'  →  다음 입실 없음'));
+    });
+    L.push('');
+    L.push('※ 각 일정을 눌러서 확인하면 🆕 표시가 사라져요');
+    alert(L.join('\n'));
+  }
+
+  // 모든 변경 표시 지우기
+  function clearIcalBadges(){
+    (state.transactions||[]).forEach(t=>{ if(t.icalChanged)delete t.icalChanged; });
+    state.icalChanges=[];
+    save(); render();
+    toast('변경 표시를 모두 지웠어요');
+  }
+
   /* 🔍 연결 테스트 — 자료를 저장하지 않고 '읽히는지'만 확인합니다 */
   function testIcal(){
     const rooms=state.rooms.filter(r=>!r.archived&&(r.ical||'').trim());
@@ -2171,6 +2228,10 @@ h1,h2,h3{color:var(--n-ink)}
 
     // ⑤ 마지막 동기화 결과 로그
     // 🔔 최근 바뀐 예약
+    const badgeCnt=(state.transactions||[]).filter(t=>t.icalChanged).length;
+    if(badgeCnt){
+      html+=`<button id="icalClearBadges" style="width:100%;margin-top:8px;padding:9px;border:1px solid var(--line);background:#FFFFFF;border-radius:11px;font-size:11px;font-weight:700;color:var(--sub);">🆕 변경 표시 ${badgeCnt}개 모두 지우기</button>`;
+    }
     if(Array.isArray(state.icalChanges)&&state.icalChanges.length){
       const d=state.icalChangesAt?new Date(state.icalChangesAt):null;
       html+=`<div style="margin-top:8px;background:#EFE6D4;border:1px solid #E0D3B8;border-radius:12px;padding:10px 12px;">`+
@@ -2243,7 +2304,7 @@ h1,h2,h3{color:var(--n-ink)}
           return !!t.inSupplies||(base>0&&guests>base);
         }).length;
         const hostLabel=room.hostName?`<small style="display:block;color:var(--navy);font-size:10px;margin-bottom:3px;">👤 ${esc(room.hostName)}</small>`:'';
-        html+=`<button class="card group" data-room-month="${room.id}" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;border:1px solid var(--line);padding:14px 16px;"><div style="display:flex;align-items:center;gap:11px;min-width:0;"><div style="width:42px;height:42px;border-radius:14px;background:var(--sky);display:grid;place-items:center;font-size:18px;flex-shrink:0;">🏠</div><div style="min-width:0;">${hostLabel}<b style="font-size:15px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(ho)}</b>${roomSpecsHTML(room.name)}<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;"><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#EFF2F9;color:var(--navy);">예약 ${reservations}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#EDF7F4;color:#358879;">청소완료 ${done}/${cleans.length}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:${prep?'#FFF1E5':'#F8F7F9'};color:${prep?'var(--amber)':'var(--muted)'};">준비 ${prep}</span></div></div></div><span style="color:var(--muted);font-size:16px;flex-shrink:0;">›</span></button>`;
+        html+=`<button class="card group" data-room-month="${room.id}" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;border:1px solid var(--line);padding:14px 16px;"><div style="display:flex;align-items:center;gap:11px;min-width:0;"><div style="width:42px;height:42px;border-radius:14px;background:var(--sky);display:grid;place-items:center;font-size:18px;flex-shrink:0;">🏠</div><div style="min-width:0;">${hostLabel}<b style="font-size:15px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(ho)}${t.icalChanged?'<span style="margin-left:6px;background:#EFE6D4;color:#8A6E38;border-radius:6px;padding:2px 6px;font-size:9px;font-weight:900;vertical-align:middle;">🆕 변경</span>':''}</b>${roomSpecsHTML(room.name)}<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;"><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#EFF2F9;color:var(--navy);">예약 ${reservations}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#EDF7F4;color:#358879;">청소완료 ${done}/${cleans.length}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:${prep?'#FFF1E5':'#F8F7F9'};color:${prep?'var(--amber)':'var(--muted)'};">준비 ${prep}</span></div></div></div><span style="color:var(--muted);font-size:16px;flex-shrink:0;">›</span></button>`;
       });
     });
     $('#boardList').innerHTML=html;
@@ -3616,6 +3677,31 @@ h1,h2,h3{color:var(--n-ink)}
   {const tci=$('#txClearIn');if(tci)tci.addEventListener('click',()=>{['txInDate','txInNights','txInGuests','txInTime','txInSupplies'].forEach(f=>{const el=$('#'+f);if(el)el.value='';});toast('입실 정보를 지웠어요 — 저장하면 공실 안내도 사라져요');});}
   {const drb=$('#deleteRoomBtn');if(drb)drb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)deleteRoom(id);});const dsb=$('#deleteStaffBtn');if(dsb)dsb.addEventListener('click',()=>{const id=$('#staffEditId').value;if(id)deleteStaff(id);});const arb=$('#archiveRoomBtn');if(arb)arb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)toggleArchiveRoom(id);});const asb=$('#archiveStaffBtn');if(asb)asb.addEventListener('click',()=>{const id=$('#staffEditId').value;if(id)toggleArchiveStaff(id);});}
   {const qr=$('#quickRestoreBtn');if(qr)qr.addEventListener('click',()=>cloudRestore(qr.dataset.rid));}
+  /* 🆕 변경 뱃지: 그 기록을 열어보면 자동으로 없어집니다 */
+  document.addEventListener('click',function(ev){
+    const card=ev.target.closest('[data-edit-tx],[data-tx-card]');
+    if(!card)return;
+    const txid=card.dataset.editTx||card.dataset.txCard;
+    const t=state.transactions.find(x=>x.id===txid);
+    if(t&&t.icalChanged){
+      delete t.icalChanged;
+      // 목록에서도 해당 항목 제거
+      try{
+        if(Array.isArray(state.icalChanges)){
+          const nm=roomTitleOf(t.targetName)||t.targetName||'';
+          const d=(t.date||'').slice(5).replace('-','/');
+          state.icalChanges=state.icalChanges.filter(c=>!(c.indexOf(nm)>=0&&c.indexOf(d)>=0));
+        }
+      }catch(e){}
+      save();
+      setTimeout(()=>{try{render();}catch(e){}},60);
+    }
+  });
+  // 🔔 변경 모아보기
+  document.addEventListener('click',function(ev){
+    if(ev.target.closest('#icalChangeBtn')){showIcalChanges();return;}
+    if(ev.target.closest('#icalClearBadges')){clearIcalBadges();return;}
+  });
   {const mfb=$('#mfSave');if(mfb)mfb.addEventListener('click',saveMFForm);}
   {const ib=$('#incSave');if(ib)ib.addEventListener('click',saveIncentive);}
   document.addEventListener('click',function(ev){
