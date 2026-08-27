@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v11.0</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v11.1</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -908,6 +908,22 @@ h1,h2,h3{color:var(--n-ink)}
     <button class="primary" id="saveStaff">저장</button>
     <button class="secondary" id="archiveStaffBtn" style="margin-top:8px;display:none;background:#FDF3D6;color:#C4922E;border-color:#F2E3AA;">📦 이 직원 보관 (메뉴에서 숨김)</button>
     <button class="secondary danger" id="deleteStaffBtn" style="margin-top:8px;display:none;">🗑️ 이 직원 삭제</button>
+  </div>
+</div>
+
+<!-- 📅 앱 전용 날짜 선택기 -->
+<div class="modal" id="datePickModal">
+  <div class="sheet" style="max-width:400px;">
+    <div class="grab"></div>
+    <div class="sheethead"><h3>📅 날짜 선택</h3><button class="close" data-close="datePickModal">×</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;">
+      <button id="dpPrev" style="border:0;background:#EBEBE8;width:38px;height:38px;border-radius:50%;font-size:18px;font-weight:900;color:var(--navy);">‹</button>
+      <b id="datePickLabel" style="flex:1;text-align:center;font-size:15px;"></b>
+      <button id="dpToday" style="border:0;background:#EBEBE8;padding:0 12px;height:38px;border-radius:19px;font-size:12px;font-weight:800;color:var(--navy);">오늘</button>
+      <button id="dpNext" style="border:0;background:#EBEBE8;width:38px;height:38px;border-radius:50%;font-size:18px;font-weight:900;color:var(--navy);">›</button>
+    </div>
+    <div id="datePickBody"></div>
+    <div style="margin-top:9px;font-size:10px;color:var(--muted);text-align:center;">🟢 점이 있는 날은 청소 일정이 있어요</div>
   </div>
 </div>
 
@@ -1930,7 +1946,7 @@ h1,h2,h3{color:var(--n-ink)}
         if(oldN!==newN){
           if(oldN){
             changes.push('📝 '+shortName+'  '+fmtD(bk.co)+' 청소 · 숙박 '+oldN+'박 → '+newN+'박 변경');
-            clean.icalChanged=Date.now();   // 🆕 뱃지 표시용
+            clean.icalChanged=Date.now(); clean.icalKind='edit';   // 🆕 뱃지 표시용
           }
           clean.outNights=newN;
           updated++;
@@ -1951,6 +1967,7 @@ h1,h2,h3{color:var(--n-ink)}
         added++;
         changes.push('🆕 '+shortName+'  '+fmtD(bk.ci)+' 입실 → '+fmtD(bk.co)+' 청소 ('+bk.nights+'박)');
         state.transactions[state.transactions.length-1].icalChanged=Date.now();
+        state.transactions[state.transactions.length-1].icalKind='new';
       }
     });
 
@@ -1972,7 +1989,7 @@ h1,h2,h3{color:var(--n-ink)}
           if(!prevClean.inTime)prevClean.inTime='16:00';
           if(had&&had!==bk.ci){
             changes.push('📝 '+shortName+'  '+fmtD(prevClean.date)+' 청소 · 다음 입실 '+fmtD(had)+' → '+fmtD(bk.ci));
-            prevClean.icalChanged=Date.now();
+            prevClean.icalChanged=Date.now(); prevClean.icalKind='edit';
           }
           updated++;
         }
@@ -2090,18 +2107,45 @@ h1,h2,h3{color:var(--n-ink)}
   /* 🔔 바뀐 예약 모아보기 — 홈 화면 위쪽에 띠로 표시 */
   function renderIcalAlert(){
     const host=$('#opsAlertSlot');
+    if(!host)return;
     const list=(state.transactions||[]).filter(t=>t.icalChanged&&t.status!=='cancelled')
       .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-    if(!host)return;
     if(!list.length){host.innerHTML='';return;}
-    host.innerHTML=
-      '<button id="icalChangeBtn" class="smart-strip" style="width:100%;text-align:left;border:1px solid #E0D3B8;background:#EFE6D4;">'+
-        '<span class="smart-icon">🔔</span>'+
-        '<span style="flex:1;min-width:0;"><b style="display:block;">에어비앤비 예약 변경 '+list.length+'건</b>'+
-        '<small style="display:block;">'+esc(list.slice(0,2).map(t=>(roomTitleOf(t.targetName)||'')+' '+(t.date||'').slice(5).replace('-','/')).join(' · '))+
-        (list.length>2?' 외 '+(list.length-2)+'건':'')+' — 눌러서 확인</small></span>'+
+
+    /* 📦 예약 변경 박스 — 바뀐 일정을 바로 눌러 수정할 수 있어요.
+       수정(=그 일정을 열어보면) 목록에서 자동으로 빠집니다. */
+    const rows=list.slice(0,6).map(t=>{
+      const nm=roomTitleOf(t.targetName)||t.targetName||'객실';
+      const d=(t.date||'').slice(5).replace('-','/');
+      const wd=['일','월','화','수','목','금','토'][new Date((t.date||'')+'T00:00:00').getDay()]||'';
+      const kind=t.icalKind||'';
+      const tag=kind==='new'?'🆕 신규':(kind==='del'?'❌ 취소':'📝 변경');
+      const detail=t.inDate
+        ? '퇴실 '+(t.outNights||'-')+'박 → 다음 입실 '+(t.inDate||'').slice(5).replace('-','/')+' '+(t.inNights||'')+'박'
+        : '퇴실 '+(t.outNights||'-')+'박 → 다음 입실 없음';
+      return '<button data-edit-tx="'+t.id+'" style="width:100%;text-align:left;display:flex;align-items:center;gap:10px;padding:11px 12px;border:0;border-bottom:1px solid rgba(138,110,56,.14);background:transparent;">'+
+        '<span style="background:#FFFFFF;color:#8A6E38;border-radius:8px;padding:4px 7px;font-size:9px;font-weight:900;white-space:nowrap;">'+tag+'</span>'+
+        '<span style="flex:1;min-width:0;">'+
+          '<b style="display:block;font-size:12px;color:#6B5420;">'+esc(d)+'('+wd+') '+esc(nm)+'</b>'+
+          '<small style="display:block;font-size:10px;color:#8A6E38;margin-top:2px;">'+esc(detail)+'</small>'+
+        '</span>'+
+        '<span style="color:#8A6E38;font-size:15px;">›</span>'+
       '</button>';
+    }).join('');
+
+    host.innerHTML=
+      '<div style="background:#EFE6D4;border:1px solid #E0D3B8;border-radius:18px;overflow:hidden;margin-bottom:11px;">'+
+        '<div style="display:flex;align-items:center;gap:9px;padding:12px 13px;border-bottom:1px solid rgba(138,110,56,.16);">'+
+          '<span style="font-size:17px;">🔔</span>'+
+          '<b style="flex:1;font-size:13px;color:#6B5420;">예약 변경 '+list.length+'건</b>'+
+          '<button id="icalClearBadges" style="border:0;background:#FFFFFF;color:#8A6E38;border-radius:8px;padding:6px 10px;font-size:10px;font-weight:800;">모두 확인</button>'+
+        '</div>'+
+        rows+
+        (list.length>6?'<div style="padding:9px;text-align:center;font-size:10px;color:#8A6E38;">외 '+(list.length-6)+'건</div>':'')+
+        '<div style="padding:9px 12px;font-size:10px;color:#8A6E38;background:rgba(255,255,255,.4);">💡 항목을 눌러 확인·수정하면 목록에서 사라져요</div>'+
+      '</div>';
   }
+
 
   function showIcalChanges(){
     const list=(state.transactions||[]).filter(t=>t.icalChanged&&t.status!=='cancelled')
@@ -2120,10 +2164,70 @@ h1,h2,h3{color:var(--n-ink)}
 
   // 모든 변경 표시 지우기
   function clearIcalBadges(){
-    (state.transactions||[]).forEach(t=>{ if(t.icalChanged)delete t.icalChanged; });
+    (state.transactions||[]).forEach(t=>{ if(t.icalChanged){delete t.icalChanged;delete t.icalKind;} });
     state.icalChanges=[];
     save(); render();
     toast('변경 표시를 모두 지웠어요');
+  }
+
+
+  /* ═══════════ 📅 앱 전용 날짜 선택기 ═══════════
+     폰 기본 달력 대신 앱 색감에 맞는 달력을 띄웁니다.
+     날짜 칸(type=date)을 누르면 이 달력이 열려요. */
+  let pickTarget=null, pickYM='';
+
+  function openDatePicker(input){
+    pickTarget=input;
+    const v=(input.value||'').trim();
+    const base=v?new Date(v+'T00:00:00'):new Date();
+    pickYM=base.getFullYear()+'-'+String(base.getMonth()+1).padStart(2,'0');
+    renderDatePicker();
+    openModal('datePickModal');
+  }
+
+  function renderDatePicker(){
+    const box=$('#datePickBody'); if(!box)return;
+    const [Y,M]=pickYM.split('-').map(Number);
+    const first=new Date(Y,M-1,1), lastDate=new Date(Y,M,0).getDate();
+    const startDay=first.getDay();
+    const todayStr=today();
+    const cur=(pickTarget&&pickTarget.value)?pickTarget.value:'';
+
+    $('#datePickLabel').textContent=Y+'년 '+M+'월';
+
+    let cells='';
+    for(let i=0;i<startDay;i++)cells+='<div></div>';
+    for(let d=1;d<=lastDate;d++){
+      const ds=Y+'-'+String(M).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      const wd=new Date(Y,M-1,d).getDay();
+      const isSel=(ds===cur), isToday=(ds===todayStr);
+      // 그날 청소 일정이 있으면 점으로 표시
+      const has=(state.transactions||[]).some(t=>t.type==='income'&&t.date===ds&&t.status!=='cancelled');
+      let st='height:44px;border-radius:12px;border:0;font-size:14px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;';
+      if(isSel)st+='background:var(--navy,#2C5C87);color:#FFFFFF;font-weight:900;';
+      else if(isToday)st+='background:#E4EBF1;color:#2C5C87;font-weight:900;';
+      else st+='background:transparent;color:'+(wd===0?'#DE8489':(wd===6?'#5A6C99':'var(--ink,#2E3D4F)'))+';';
+      cells+='<button data-pick-day="'+ds+'" style="'+st+'">'+d+
+        (has?'<i style="width:4px;height:4px;border-radius:50%;background:'+(isSel?'#FFFFFF':'#7FA98C')+';display:block;"></i>':'<i style="width:4px;height:4px;display:block;"></i>')+
+        '</button>';
+    }
+
+    box.innerHTML=
+      '<div style="display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px;">'+
+        ['일','월','화','수','목','금','토'].map((w,i)=>
+          '<div style="text-align:center;font-size:10px;font-weight:800;padding:6px 0;color:'+(i===0?'#DE8489':(i===6?'#5A6C99':'var(--muted,#9AA4AE)'))+';">'+w+'</div>').join('')+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">'+cells+'</div>';
+  }
+
+  function pickDay(ds){
+    if(pickTarget){
+      pickTarget.value=ds;
+      // 앱이 값 변경을 알아채도록 신호를 보냅니다
+      try{ pickTarget.dispatchEvent(new Event('change',{bubbles:true})); }catch(e){}
+      try{ pickTarget.dispatchEvent(new Event('input',{bubbles:true})); }catch(e){}
+    }
+    closeModal('datePickModal');
   }
 
   /* 🔍 연결 테스트 — 자료를 저장하지 않고 '읽히는지'만 확인합니다 */
@@ -3684,7 +3788,7 @@ h1,h2,h3{color:var(--n-ink)}
     const txid=card.dataset.editTx||card.dataset.txCard;
     const t=state.transactions.find(x=>x.id===txid);
     if(t&&t.icalChanged){
-      delete t.icalChanged;
+      delete t.icalChanged; delete t.icalKind;
       // 목록에서도 해당 항목 제거
       try{
         if(Array.isArray(state.icalChanges)){
@@ -3701,6 +3805,25 @@ h1,h2,h3{color:var(--n-ink)}
   document.addEventListener('click',function(ev){
     if(ev.target.closest('#icalChangeBtn')){showIcalChanges();return;}
     if(ev.target.closest('#icalClearBadges')){clearIcalBadges();return;}
+    // 📅 날짜 칸을 누르면 앱 달력 열기 (폰 기본 달력 대신)
+    const di=ev.target.closest('input[type="date"]');
+    if(di){ ev.preventDefault(); di.blur(); openDatePicker(di); return; }
+    const pd=ev.target.closest('[data-pick-day]');
+    if(pd){ pickDay(pd.dataset.pickDay); return; }
+    if(ev.target.closest('#dpPrev')){
+      let [Y,M]=pickYM.split('-').map(Number); M--; if(M<1){M=12;Y--;}
+      pickYM=Y+'-'+String(M).padStart(2,'0'); renderDatePicker(); return;
+    }
+    if(ev.target.closest('#dpNext')){
+      let [Y,M]=pickYM.split('-').map(Number); M++; if(M>12){M=1;Y++;}
+      pickYM=Y+'-'+String(M).padStart(2,'0'); renderDatePicker(); return;
+    }
+    if(ev.target.closest('#dpToday')){ pickDay(today()); return; }
+  });
+  // 날짜 칸은 키보드로 열리지 않게 (앱 달력만 쓰도록)
+  document.addEventListener('focusin',function(ev){
+    const di=ev.target.closest&&ev.target.closest('input[type="date"]');
+    if(di){ di.blur(); openDatePicker(di); }
   });
   {const mfb=$('#mfSave');if(mfb)mfb.addEventListener('click',saveMFForm);}
   {const ib=$('#incSave');if(ib)ib.addEventListener('click',saveIncentive);}
