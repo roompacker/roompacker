@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v11.1</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v11.3</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1929,11 +1929,31 @@ h1,h2,h3{color:var(--n-ink)}
   function applyIcalBookings(room, bookings){
     let added=0, updated=0, removed=0;
     const changes=[];   // 무엇이 바뀌었는지 사람이 읽을 수 있게 기록
+    const td=today();   // 오늘 — 지난 일정에는 알림을 붙이지 않기 위해
     const shortName=roomTitleOf(room.name)||room.name;
     const fmtD=s=>String(s||'').slice(5).replace('-','/');
     const roomId=room.id;
     const amount=room.branch==='펜트하우스'?0:(room.price||0);
     const feedUids={};
+
+    // ⓪ 날짜가 통째로 바뀐 예약 먼저 찾아 '이동' 처리 (같은 예약이 두 개로 늘어나는 것 방지)
+    bookings.forEach(bk=>{
+      if(!bk.uid)return;
+      const byUid=state.transactions.find(t=>t.icalUid===bk.uid&&t.type==='income'&&!t.checkinOnly&&t.targetId===roomId&&t.status!=='cancelled');
+      if(byUid&&byUid.date!==bk.co){
+        // 같은 예약인데 청소일이 달라졌다 → 옛 기록의 날짜를 옮깁니다
+        const oldDate=byUid.date;
+        // 이미 처리·결제된 건은 건드리지 않아요
+        if(byUid.paid||byUid.status==='done'||oldDate<td)return;
+        byUid.date=bk.co;
+        byUid.billingMonth=ym(bk.co);
+        byUid.outNights=String(bk.nights);
+        byUid.status=bk.co<=td?'done':'booked';
+        updated++;
+        changes.push('📅 '+shortName+'  청소일 '+fmtD(oldDate)+' → '+fmtD(bk.co)+' 로 이동 ('+bk.nights+'박)');
+        if(bk.co>=td){ byUid.icalChanged=Date.now(); byUid.icalKind='move'; }
+      }
+    });
 
     // ① 퇴실일마다 청소 기록 만들기 (이미 있으면 재사용)
     bookings.forEach(bk=>{
@@ -1945,8 +1965,9 @@ h1,h2,h3{color:var(--n-ink)}
         const newN=String(bk.nights);
         if(oldN!==newN){
           if(oldN){
-            changes.push('📝 '+shortName+'  '+fmtD(bk.co)+' 청소 · 숙박 '+oldN+'박 → '+newN+'박 변경');
-            clean.icalChanged=Date.now(); clean.icalKind='edit';   // 🆕 뱃지 표시용
+            if(bk.co>=td)changes.push('📝 '+shortName+'  '+fmtD(bk.co)+' 청소 · 숙박 '+oldN+'박 → '+newN+'박 변경');
+            // 지난 청소는 이미 끝난 일이라 알림을 붙이지 않아요
+            if(bk.co>=td){ clean.icalChanged=Date.now(); clean.icalKind='edit'; }
           }
           clean.outNights=newN;
           updated++;
@@ -1965,9 +1986,11 @@ h1,h2,h3{color:var(--n-ink)}
           createdAt:Date.now(), autoGen:true, icalUid:bk.uid, bookingCode:bk.code||''
         });
         added++;
-        changes.push('🆕 '+shortName+'  '+fmtD(bk.ci)+' 입실 → '+fmtD(bk.co)+' 청소 ('+bk.nights+'박)');
-        state.transactions[state.transactions.length-1].icalChanged=Date.now();
-        state.transactions[state.transactions.length-1].icalKind='new';
+        if(bk.co>=td)changes.push('🆕 '+shortName+'  '+fmtD(bk.ci)+' 입실 → '+fmtD(bk.co)+' 청소 ('+bk.nights+'박)');
+        if(bk.co>=td){
+          state.transactions[state.transactions.length-1].icalChanged=Date.now();
+          state.transactions[state.transactions.length-1].icalKind='new';
+        }
       }
     });
 
@@ -1988,8 +2011,8 @@ h1,h2,h3{color:var(--n-ink)}
           prevClean.inDate=bk.ci; prevClean.inNights=String(bk.nights);
           if(!prevClean.inTime)prevClean.inTime='16:00';
           if(had&&had!==bk.ci){
-            changes.push('📝 '+shortName+'  '+fmtD(prevClean.date)+' 청소 · 다음 입실 '+fmtD(had)+' → '+fmtD(bk.ci));
-            prevClean.icalChanged=Date.now(); prevClean.icalKind='edit';
+            if((prevClean.date||'')>=td)changes.push('📝 '+shortName+'  '+fmtD(prevClean.date)+' 청소 · 다음 입실 '+fmtD(had)+' → '+fmtD(bk.ci));
+            if((prevClean.date||'')>=td){ prevClean.icalChanged=Date.now(); prevClean.icalKind='edit'; }
           }
           updated++;
         }
@@ -2012,7 +2035,6 @@ h1,h2,h3{color:var(--n-ink)}
     });
 
     // ③ 취소된 예약 정리 — 에어비앤비에서 사라졌고, 아직 안 지난 미결제 자동생성 건만
-    const td=today();
     state.transactions=state.transactions.filter(t=>{
       if(t.targetId!==roomId||!t.icalUid||!t.autoGen)return true;
       if(feedUids[t.icalUid])return true;
@@ -2089,11 +2111,21 @@ h1,h2,h3{color:var(--n-ink)}
       save(); render();
 
       if(allChanges.length){
-        // 자동 동기화(조용히)여도 '바뀐 게 있으면' 알려줍니다
-        const head='🔔 에어비앤비 예약이 바뀌었어요 ('+allChanges.length+'건)';
-        const body=allChanges.slice(0,12).join('\n')+(allChanges.length>12?'\n… 외 '+(allChanges.length-12)+'건':'');
-        setTimeout(function(){ try{ alert(head+'\n\n'+body); }catch(e){} }, 300);
-        toast('🔔 예약 변경 '+allChanges.length+'건');
+        /* 처리 결과를 종류별로 세어 한 줄로 알려줍니다.
+           자세한 내용은 홈 화면 '예약 변경' 박스에서 볼 수 있어요. */
+        const cnt={n:0,m:0,e:0,d:0};
+        allChanges.forEach(c=>{
+          if(c.indexOf('🆕')===0)cnt.n++;
+          else if(c.indexOf('📅')===0)cnt.m++;
+          else if(c.indexOf('❌')===0)cnt.d++;
+          else cnt.e++;
+        });
+        const parts=[];
+        if(cnt.n)parts.push('신규 '+cnt.n);
+        if(cnt.m)parts.push('날짜이동 '+cnt.m);
+        if(cnt.e)parts.push('수정 '+cnt.e);
+        if(cnt.d)parts.push('삭제 '+cnt.d);
+        toast('✅ 자동 반영 완료 · '+parts.join(' · '));
       }else if(!silent){
         if(failed.length)toast('⚠️ '+failed.length+'개 객실 실패 — 아래 결과를 확인하세요');
         else toast('✅ 동기화 완료 · 바뀐 예약 없음');
@@ -2108,7 +2140,14 @@ h1,h2,h3{color:var(--n-ink)}
   function renderIcalAlert(){
     const host=$('#opsAlertSlot');
     if(!host)return;
-    const list=(state.transactions||[]).filter(t=>t.icalChanged&&t.status!=='cancelled')
+    // 오늘 이후 일정만 보여줍니다 (지난 건은 자동으로 정리)
+    const td=today();
+    let dirty=false;
+    (state.transactions||[]).forEach(t=>{
+      if(t.icalChanged&&(t.date||'')<td){ delete t.icalChanged; delete t.icalKind; dirty=true; }
+    });
+    if(dirty){ try{save();}catch(e){} }
+    const list=(state.transactions||[]).filter(t=>t.icalChanged&&t.status!=='cancelled'&&(t.date||'')>=td)
       .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
     if(!list.length){host.innerHTML='';return;}
 
@@ -2119,7 +2158,7 @@ h1,h2,h3{color:var(--n-ink)}
       const d=(t.date||'').slice(5).replace('-','/');
       const wd=['일','월','화','수','목','금','토'][new Date((t.date||'')+'T00:00:00').getDay()]||'';
       const kind=t.icalKind||'';
-      const tag=kind==='new'?'🆕 신규':(kind==='del'?'❌ 취소':'📝 변경');
+      const tag=kind==='new'?'🆕 신규':(kind==='move'?'📅 날짜이동':(kind==='del'?'❌ 취소':'📝 변경'));
       const detail=t.inDate
         ? '퇴실 '+(t.outNights||'-')+'박 → 다음 입실 '+(t.inDate||'').slice(5).replace('-','/')+' '+(t.inNights||'')+'박'
         : '퇴실 '+(t.outNights||'-')+'박 → 다음 입실 없음';
