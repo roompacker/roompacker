@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v11.3</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v11.4</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1411,6 +1411,16 @@ h1,h2,h3{color:var(--n-ink)}
     return out;
   }
 
+  /* 🛏 2인용 품목 판별
+     퀸토퍼·더블토퍼처럼 2명이 함께 쓰는 것은 초과인원 ÷ 2 (올림) 으로 계산합니다.
+     예) 1명 초과 → 1개 / 2명 초과 → 1개 / 3명 초과 → 2개 */
+  function isTwoPersonItem(name){
+    return /퀸|퀸토퍼|더블|킹/.test(String(name||''));
+  }
+  function unitCountFor(name, over){
+    return isTwoPersonItem(name) ? Math.ceil(over/2) : over;
+  }
+
   function mergeSetup(baseText, extraText, over){
     const list=[];   // 순서를 지키려고 배열로 관리
     function add(name, qty, tail){
@@ -1424,7 +1434,10 @@ h1,h2,h3{color:var(--n-ink)}
     }
     parseSetupParts(baseText).forEach(p=>add(p.name,p.qty,p.tail));
     if(over>0){
-      parseSetupParts(extraText).forEach(p=>add(p.name, p.qty!=null?p.qty*over:null, p.tail));
+      parseSetupParts(extraText).forEach(p=>{
+        const mult=unitCountFor(p.name, over);   // 2인용은 절반(올림)
+        add(p.name, p.qty!=null?p.qty*mult:null, p.tail);
+      });
     }
     return list.map(x=>x.name+(x.qty!=null?x.qty:'')+(x.tail?x.tail:'')).join(', ');
   }
@@ -1435,7 +1448,7 @@ h1,h2,h3{color:var(--n-ink)}
       part=part.trim(); if(!part) return '';
       // 맨 끝 숫자를 찾아서 초과인원만큼 곱함
       var m=part.match(/^(.*?)(\d+)\s*$/);
-      if(m){ var nm=m[1].trim(); var qty=parseInt(m[2],10)*over; return nm+qty; }
+      if(m){ var nm=m[1].trim(); var qty=parseInt(m[2],10)*unitCountFor(nm, over); return nm+qty; }
       return part; // 숫자 없으면 그대로
     }).filter(Boolean).join(', ');
   }
@@ -1568,7 +1581,7 @@ h1,h2,h3{color:var(--n-ink)}
     const who=Array.isArray(t.assignedStaffNames)&&t.assignedStaffNames.length
       ? t.assignedStaffNames.join(', ')
       : (opts.staffNames||'');
-    if(who)L.push('👤 담당 : '+who);
+    if(who&&!opts.hideWho)L.push('👤 담당 : '+who);
     if(room.doorPw||room.supplyPw){
       L.push('🔑 도어락 '+(room.doorPw||'-')+(room.supplyPw?'   📦 비품함 '+room.supplyPw:''));
     }
@@ -1681,10 +1694,33 @@ h1,h2,h3{color:var(--n-ink)}
       .sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
     if(!list.length){toast('이 날짜에 청소 일정이 없어요');return;}
     const L=['🧹 '+dateText(dateStr)+' 청소 '+list.length+'건',''];
-    list.forEach((t,i)=>{
-      L.push(roomBoxText(t, i+1, {hideOutSupplies:true}));
+
+    /* 담당자별로 묶어서 씁니다.
+       객실들을 먼저 쓰고 그 아래에 '담당자 : ○○○' 을 표시해요.
+       → 담당자 줄 위에 있는 객실이 그 사람이 맡을 곳입니다.
+       배정된 사람이 없으면 '나' 로 표시합니다. */
+    const groups=[]; // [{who:'김창식', items:[...]}, ...]
+    list.forEach(t=>{
+      const who=(Array.isArray(t.assignedStaffNames)&&t.assignedStaffNames.length)
+        ? t.assignedStaffNames.join(', ')
+        : '나';
+      const last=groups[groups.length-1];
+      if(last&&last.who===who)last.items.push(t);
+      else groups.push({who:who, items:[t]});
+    });
+
+    let no=0;
+    groups.forEach(g=>{
+      g.items.forEach(t=>{
+        no++;
+        L.push(roomBoxText(t, no, {hideOutSupplies:true, hideWho:true}));
+        L.push('');
+      });
+      L.push('━━━━━━━━━━━━━━');
+      L.push('담당자 :  '+g.who+(g.who==='나'?'':' 매니져님'));
       L.push('');
     });
+
     // 그날 전체 확인사항 요약
     const early=list.filter(t=>t.inNights&&t.inTime&&t.inTime<'16:00');
     const late=list.filter(t=>t.outTime&&t.outTime>'11:00');
