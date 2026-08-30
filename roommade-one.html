@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v11.6</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v11.7</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -816,6 +816,11 @@ h1,h2,h3{color:var(--n-ink)}
     <!-- 청소 스케줄 정보 (수입일 때만) -->
     <div id="txScheduleBox" style="border:1px solid var(--line);border-radius:15px;padding:12px;margin-bottom:11px;background:#F3F5FB;">
       <div style="font-size:11px;font-weight:800;color:var(--sub);margin-bottom:9px;">🗓 청소 스케줄 (선택)</div>
+      <!-- 👤 담당 직원 (여러 명 선택 가능) -->
+      <div style="background:#E4EBF1;border-radius:12px;padding:10px;margin-bottom:8px;">
+        <div style="font-size:10px;font-weight:800;color:var(--navy);margin-bottom:7px;">👤 담당 직원 <span style="font-weight:600;color:var(--muted);">· 눌러서 선택 (안 고르면 "나")</span></div>
+        <div id="txStaffPicks" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
+      </div>
       <!-- 체크아웃 -->
       <div style="background:#FCE6E5;border-radius:12px;padding:10px;margin-bottom:8px;">
         <div style="font-size:10px;font-weight:800;color:var(--red);margin-bottom:7px;">🚪 체크아웃 (나가는 손님)</div>
@@ -1578,6 +1583,38 @@ h1,h2,h3{color:var(--n-ink)}
      - 누가: 담당 직원
      - 어떻게: 퇴실 정리 → 청소 → 입실 셋팅 순서
      - 확인사항: 얼리체크인·레이트체크아웃·추가셋팅·공실 등 */
+
+  /* 👤 담당 직원 선택 (여러 명 가능)
+     선택한 직원 번호를 일정에 저장하고, 카톡 보고의 '담당자' 줄에 씁니다. */
+  let txStaffSel=[];
+
+  function renderTxStaffPicks(){
+    const box=$('#txStaffPicks'); if(!box)return;
+    const branch=$('#txBranchInput')?$('#txBranchInput').value:'';
+    let list=(state.staff||[]).filter(s=>!s.archived);
+    if(branch)list=list.filter(s=>s.branch===branch||!s.branch);
+    if(!list.length){
+      box.innerHTML='<span style="font-size:11px;color:var(--muted);">등록된 직원이 없어요</span>';
+      return;
+    }
+    box.innerHTML=list.map(s=>{
+      const on=txStaffSel.indexOf(String(s.id))>=0;
+      return '<button type="button" data-txstaff="'+s.id+'" style="border:1px solid '+(on?'var(--navy)':'var(--line)')+
+        ';background:'+(on?'var(--navy)':'#FFFFFF')+';color:'+(on?'#FFFFFF':'var(--sub)')+
+        ';border-radius:99px;padding:7px 12px;font-size:11px;font-weight:800;">'+(on?'✓ ':'')+esc(s.name)+'</button>';
+    }).join('')+
+    '<button type="button" data-txstaff="__me" style="border:1px solid '+(txStaffSel.length?'var(--line)':'var(--navy)')+
+      ';background:'+(txStaffSel.length?'#FFFFFF':'var(--navy)')+';color:'+(txStaffSel.length?'var(--sub)':'#FFFFFF')+
+      ';border-radius:99px;padding:7px 12px;font-size:11px;font-weight:800;">'+(txStaffSel.length?'':'✓ ')+'나</button>';
+  }
+
+  function toggleTxStaff(id){
+    if(id==='__me'){ txStaffSel=[]; renderTxStaffPicks(); return; }
+    const i=txStaffSel.indexOf(String(id));
+    if(i>=0)txStaffSel.splice(i,1); else txStaffSel.push(String(id));
+    renderTxStaffPicks();
+  }
+
   /* 👤 이 일정의 담당 직원 이름 구하기
      저장 방식이 두 가지라 둘 다 살펴봅니다.
        ① assignedStaffNames — 이름이 그대로 들어있는 경우
@@ -3065,12 +3102,15 @@ h1,h2,h3{color:var(--n-ink)}
     if(editId){const t=state.transactions.find(x=>x.id===editId);if(t){txType=t.type;$('#txDateInput').value=t.date;$('#txBillingInput').value=t.billingMonth||ym(t.date);$('#txBranchInput').value=t.branch;$('#txAmountInput').value=t.amount;$('#txMemoInput').value=t.memo||'';$('#txPaidInput').checked=!!t.paid;$('#txStatusInput').value=t.status||'done';
       $('#txOutNights').value=t.outNights||t.nights||'';$('#txOutGuests').value=t.outGuests||t.guests||'';$('#txOutTime').value=t.outTime||'';$('#txOutSupplies').value=t.outSupplies||'';
       $('#txInNights').value=t.inNights||'';$('#txInGuests').value=t.inGuests||'';$('#txInTime').value=t.inTime||'';$('#txInSupplies').value=t.inSupplies||'';if($('#txInDate'))$('#txInDate').value=t.inDate||'';
+      txStaffSel=Array.isArray(t.assignedStaffIds)?t.assignedStaffIds.map(String):[];
     }}
     updateTxType();if(editId){const t=state.transactions.find(x=>x.id===editId);$('#txTargetInput').value=t.targetId}openModal('txModal')
   }
   function updateTxType(){
     $$('.typebtn').forEach(b=>b.classList.toggle('active',b.dataset.type===txType));$('#txTargetLabel').textContent=txType==='income'?'객실':'직원';$('#txPaidText').textContent=txType==='income'?'입금 완료':'지급 완료';$('#txModalTitle').textContent=txType==='income'?'청소 수입 등록':'직원 지출 등록';
     var schedBox=$('#txScheduleBox'); if(schedBox) schedBox.style.display = txType==='income' ? 'block' : 'none';
+    if(!editId)txStaffSel=[];
+    try{ renderTxStaffPicks(); }catch(e){}
     const branch=$('#txBranchInput').value,list=(txType==='income'?state.rooms:state.staff).filter(x=>x.branch===branch&&!x.archived);$('#txTargetInput').innerHTML='<option value="">선택하세요</option>'+list.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
     updatePayCalc();
   }
@@ -3122,6 +3162,14 @@ h1,h2,h3{color:var(--n-ink)}
       return o;
     })() : {};
     const obj={id:id||uid('tx'),date,billingMonth,type:txType,targetId,targetName:target.name,branch,amount,taxRate,taxAmount,netAmount:amount-taxAmount,paid,memo,status,createdAt:Date.now(),...sched};
+    // 👤 담당 직원 저장 (번호와 이름 둘 다 — 카톡 보고에서 바로 쓰도록)
+    if(txType==='income'){
+      obj.assignedStaffIds=txStaffSel.slice();
+      obj.assignedStaffNames=txStaffSel.map(sid=>{
+        const s=(state.staff||[]).find(x=>String(x.id)===String(sid));
+        return s?s.name:'';
+      }).filter(Boolean);
+    }
     if(id){const i=state.transactions.findIndex(x=>x.id===id);state.transactions[i]={...state.transactions[i],...obj}}else state.transactions.push(obj);
 
     /* 🔗 앞 기록에 자동 이어붙이기
@@ -3880,6 +3928,12 @@ h1,h2,h3{color:var(--n-ink)}
   $('#saveTx').addEventListener('click',saveTxForm);$('#deleteTx').addEventListener('click',deleteTxForm);$('#saveRoom').addEventListener('click',saveRoomForm);$('#saveStaff').addEventListener('click',saveStaffForm);$('#saveSupply').addEventListener('click',saveSupplyForm);$('#deleteSupply').addEventListener('click',deleteSupplyForm);
   {const tci=$('#txClearIn');if(tci)tci.addEventListener('click',()=>{['txInDate','txInNights','txInGuests','txInTime','txInSupplies'].forEach(f=>{const el=$('#'+f);if(el)el.value='';});toast('입실 정보를 지웠어요 — 저장하면 공실 안내도 사라져요');});}
   {const drb=$('#deleteRoomBtn');if(drb)drb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)deleteRoom(id);});const dsb=$('#deleteStaffBtn');if(dsb)dsb.addEventListener('click',()=>{const id=$('#staffEditId').value;if(id)deleteStaff(id);});const arb=$('#archiveRoomBtn');if(arb)arb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)toggleArchiveRoom(id);});const asb=$('#archiveStaffBtn');if(asb)asb.addEventListener('click',()=>{const id=$('#staffEditId').value;if(id)toggleArchiveStaff(id);});}
+  // 👤 담당 직원 선택 버튼
+  document.addEventListener('click',function(ev){
+    const b=ev.target.closest('[data-txstaff]');
+    if(b){ ev.preventDefault(); toggleTxStaff(b.dataset.txstaff); }
+  });
+  {const tb2=$('#txBranchInput');if(tb2)tb2.addEventListener('change',function(){try{renderTxStaffPicks();}catch(e){}});}
   {const qr=$('#quickRestoreBtn');if(qr)qr.addEventListener('click',()=>cloudRestore(qr.dataset.rid));}
   /* 🆕 변경 뱃지: 그 기록을 열어보면 자동으로 없어집니다 */
   document.addEventListener('click',function(ev){
