@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v11.8</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v11.9</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1590,18 +1590,26 @@ h1,h2,h3{color:var(--n-ink)}
 
   function renderTxStaffPicks(){
     const box=$('#txStaffPicks'); if(!box)return;
+    /* 직원은 지점을 넘나들며 일하는 경우가 많아 전부 보여줍니다.
+       해당 지점 직원을 앞쪽에 정렬해 고르기 쉽게 했어요. */
     const branch=$('#txBranchInput')?$('#txBranchInput').value:'';
     let list=(state.staff||[]).filter(s=>!s.archived);
-    if(branch)list=list.filter(s=>s.branch===branch||!s.branch);
+    if(branch){
+      list=list.slice().sort((a,b)=>{
+        const av=(a.branch===branch)?0:1, bv=(b.branch===branch)?0:1;
+        return av-bv;
+      });
+    }
     if(!list.length){
-      box.innerHTML='<span style="font-size:11px;color:var(--muted);">등록된 직원이 없어요</span>';
+      box.innerHTML='<span style="font-size:11px;color:var(--muted);">관리 탭에서 직원을 먼저 등록해주세요</span>';
       return;
     }
     box.innerHTML=list.map(s=>{
       const on=txStaffSel.indexOf(String(s.id))>=0;
       return '<button type="button" data-txstaff="'+s.id+'" style="border:1px solid '+(on?'var(--navy)':'var(--line)')+
         ';background:'+(on?'var(--navy)':'#FFFFFF')+';color:'+(on?'#FFFFFF':'var(--sub)')+
-        ';border-radius:99px;padding:7px 12px;font-size:11px;font-weight:800;">'+(on?'✓ ':'')+esc(s.name)+'</button>';
+        ';border-radius:99px;padding:7px 12px;font-size:11px;font-weight:800;">'+(on?'✓ ':'')+esc(s.name)+
+        ((branch&&s.branch&&s.branch!==branch)?'<span style="opacity:.6;font-weight:600;font-size:9px;"> '+esc(String(s.branch).replace('점',''))+'</span>':'')+'</button>';
     }).join('')+
     '<button type="button" data-txstaff="__me" style="border:1px solid '+(txStaffSel.length?'var(--line)':'var(--navy)')+
       ';background:'+(txStaffSel.length?'#FFFFFF':'var(--navy)')+';color:'+(txStaffSel.length?'var(--sub)':'#FFFFFF')+
