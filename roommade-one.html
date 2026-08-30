@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v11.7</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v11.8</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -3099,6 +3099,7 @@ h1,h2,h3{color:var(--n-ink)}
     // 청소 스케줄 필드 초기화
     ['txOutNights','txOutGuests','txOutTime','txOutSupplies','txInNights','txInGuests','txInTime','txInSupplies','txInDate'].forEach(function(fid){ var el=$('#'+fid); if(el) el.value=''; });
     const prefBranch=state.branch==='전체'?'영종점':state.branch;$('#txBranchInput').value=prefBranch;$('#txAmountInput').value='';
+    txStaffSel=[];   // 새로 열 때는 담당자 선택 초기화 (수정이면 아래에서 다시 채움)
     if(editId){const t=state.transactions.find(x=>x.id===editId);if(t){txType=t.type;$('#txDateInput').value=t.date;$('#txBillingInput').value=t.billingMonth||ym(t.date);$('#txBranchInput').value=t.branch;$('#txAmountInput').value=t.amount;$('#txMemoInput').value=t.memo||'';$('#txPaidInput').checked=!!t.paid;$('#txStatusInput').value=t.status||'done';
       $('#txOutNights').value=t.outNights||t.nights||'';$('#txOutGuests').value=t.outGuests||t.guests||'';$('#txOutTime').value=t.outTime||'';$('#txOutSupplies').value=t.outSupplies||'';
       $('#txInNights').value=t.inNights||'';$('#txInGuests').value=t.inGuests||'';$('#txInTime').value=t.inTime||'';$('#txInSupplies').value=t.inSupplies||'';if($('#txInDate'))$('#txInDate').value=t.inDate||'';
@@ -3109,8 +3110,7 @@ h1,h2,h3{color:var(--n-ink)}
   function updateTxType(){
     $$('.typebtn').forEach(b=>b.classList.toggle('active',b.dataset.type===txType));$('#txTargetLabel').textContent=txType==='income'?'객실':'직원';$('#txPaidText').textContent=txType==='income'?'입금 완료':'지급 완료';$('#txModalTitle').textContent=txType==='income'?'청소 수입 등록':'직원 지출 등록';
     var schedBox=$('#txScheduleBox'); if(schedBox) schedBox.style.display = txType==='income' ? 'block' : 'none';
-    if(!editId)txStaffSel=[];
-    try{ renderTxStaffPicks(); }catch(e){}
+    try{ renderTxStaffPicks(); }catch(e){ console.error('staffPicks',e); }
     const branch=$('#txBranchInput').value,list=(txType==='income'?state.rooms:state.staff).filter(x=>x.branch===branch&&!x.archived);$('#txTargetInput').innerHTML='<option value="">선택하세요</option>'+list.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
     updatePayCalc();
   }
