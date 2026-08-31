@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v11.9</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v12.0</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -3178,7 +3178,37 @@ h1,h2,h3{color:var(--n-ink)}
         return s?s.name:'';
       }).filter(Boolean);
     }
-    if(id){const i=state.transactions.findIndex(x=>x.id===id);state.transactions[i]={...state.transactions[i],...obj}}else state.transactions.push(obj);
+    /* 🔁 같은 날·같은 객실 기록이 이미 있으면 새로 만들지 않고 '덮어쓰기' 합니다.
+       (중복 기록이 쌓이는 것을 막아요. 이미 완료·결제된 건은 건드리지 않습니다.) */
+    let dupMsg='';
+    if(!id){
+      const dup=state.transactions.find(t=>
+        t.type===txType && t.targetId===targetId && t.date===date &&
+        t.status!=='cancelled' && !t.checkinOnly && !t.paid && t.status!=='done'
+      );
+      if(dup){
+        const before={
+          out:(dup.outNights||'')+'박 '+(dup.outGuests||'')+'명',
+          inn:dup.inDate?((dup.inDate||'').slice(5).replace('-','/')+' '+(dup.inNights||'')+'박'):'없음'
+        };
+        Object.assign(dup, obj, {id:dup.id, createdAt:dup.createdAt});
+        const after={
+          out:(dup.outNights||'')+'박 '+(dup.outGuests||'')+'명',
+          inn:dup.inDate?((dup.inDate||'').slice(5).replace('-','/')+' '+(dup.inNights||'')+'박'):'없음'
+        };
+        obj.id=dup.id;
+        const bits=[];
+        if(before.out!==after.out)bits.push('퇴실 '+before.out+' → '+after.out);
+        if(before.inn!==after.inn)bits.push('입실 '+before.inn+' → '+after.inn);
+        dupMsg='🔁 같은 날 기록을 덮어썼어요'+(bits.length?' · '+bits.join(' / '):'');
+      }else{
+        state.transactions.push(obj);
+      }
+    }else{
+      const i=state.transactions.findIndex(x=>x.id===id);
+      if(i>=0)state.transactions[i]={...state.transactions[i],...obj};
+      else state.transactions.push(obj);
+    }
 
     /* 🔗 앞 기록에 자동 이어붙이기
        공실 뒤에 새 예약을 넣었을 때, 그 앞의 마지막 청소 기록에
@@ -3250,7 +3280,8 @@ h1,h2,h3{color:var(--n-ink)}
     }
     save();closeModal('txModal');
     toast('기록을 저장했어요'+autoMsg);
-    if(linkMsg)setTimeout(function(){toast(linkMsg);},1900);   // 이어붙인 결과도 알려줌
+    if(dupMsg)setTimeout(function(){toast(dupMsg);},1300);      // 덮어쓴 사실을 알려줌
+    if(linkMsg)setTimeout(function(){toast(linkMsg);},dupMsg?2600:1900);   // 이어붙인 결과도 알려줌
     render();
   }
   function deleteTxForm(){const id=$('#txEditId').value;if(!id)return;if(confirm('이 기록을 삭제할까요?')){state.transactions=state.transactions.filter(x=>x.id!==id);save();closeModal('txModal');render();toast('삭제했어요')}}
