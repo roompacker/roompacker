@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v12.2</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v12.3</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -2328,8 +2328,12 @@ h1,h2,h3{color:var(--n-ink)}
         const cur=f&&f.qty!=null?f.qty:0;
         if(cur<n.qty)missing.push(n.name+' '+cur+'→'+n.qty);
       });
+      // ✅ 이미 확인한 건은 다시 알리지 않아요 (그 뒤 인원·준비물이 또 바뀌면 다시 알림)
+      const stamp=String(g)+'|'+(t.inSupplies||'').trim();
+      if(t.setupOk===stamp)return;
       if(missing.length){
         out.push({
+          stamp:stamp,
           id:t.id, date:t.date,
           room:roomTitleOf(room.name)||room.name,
           guests:g, base:base, over:over,
@@ -2353,7 +2357,11 @@ h1,h2,h3{color:var(--n-ink)}
           '<small style="display:block;font-size:10px;color:#9A5F55;margin-top:2px;">'+esc(w.missing.join(', '))+'</small>'+
         '</span>'+
         '<span style="color:#9A5F55;font-size:15px;">›</span>'+
-      '</button>').join('');
+      '</button>'+
+      '<div style="display:flex;gap:6px;padding:0 12px 9px;">'+
+        '<button data-setup-fix="'+w.id+'" style="flex:1;border:0;background:#9A5F55;color:#FFFFFF;border-radius:9px;padding:8px;font-size:10px;font-weight:800;">🛒 이대로 채우기</button>'+
+        '<button data-setup-ok="'+w.id+'" style="flex:1;border:1px solid #E4C7C1;background:#FFFFFF;color:#9A5F55;border-radius:9px;padding:8px;font-size:10px;font-weight:800;">✓ 확인함</button>'+
+      '</div>').join('');
     host.innerHTML=
       '<div style="background:#F0DEDA;border:1px solid #E4C7C1;border-radius:18px;overflow:hidden;margin-bottom:11px;">'+
         '<div style="display:flex;align-items:center;gap:9px;padding:12px 13px;border-bottom:1px solid rgba(154,95,85,.16);">'+
@@ -2385,12 +2393,16 @@ h1,h2,h3{color:var(--n-ink)}
        수정(=그 일정을 열어보면) 목록에서 자동으로 빠집니다. */
     const rows=list.slice(0,6).map(t=>{
       const nm=roomTitleOf(t.targetName)||t.targetName||'객실';
-      const d=(t.date||'').slice(5).replace('-','/');
+      // 올해가 아니면 연도까지 표시 (07/05 처럼 보여서 헷갈리는 것 방지)
+      const yr=(t.date||'').slice(0,4), curY=String(new Date().getFullYear());
+      const d=(yr&&yr!==curY?yr.slice(2)+'/':'')+(t.date||'').slice(5).replace('-','/');
       const wd=['일','월','화','수','목','금','토'][new Date((t.date||'')+'T00:00:00').getDay()]||'';
       const kind=t.icalKind||'';
       const tag=kind==='new'?'🆕 신규':(kind==='move'?'📅 날짜이동':(kind==='del'?'❌ 취소':'📝 변경'));
+      const iy=(t.inDate||'').slice(0,4);
+      const inD=(iy&&iy!==curY?iy.slice(2)+'/':'')+(t.inDate||'').slice(5).replace('-','/');
       const detail=t.inDate
-        ? '퇴실 '+(t.outNights||'-')+'박 → 다음 입실 '+(t.inDate||'').slice(5).replace('-','/')+' '+(t.inNights||'')+'박'
+        ? '퇴실 '+(t.outNights||'-')+'박 → 다음 입실 '+inD+' '+(t.inNights||'')+'박'
         : '퇴실 '+(t.outNights||'-')+'박 → 다음 입실 없음';
       return '<button data-edit-tx="'+t.id+'" style="width:100%;text-align:left;display:flex;align-items:center;gap:10px;padding:11px 12px;border:0;border-bottom:1px solid rgba(138,110,56,.14);background:transparent;">'+
         '<span style="background:#FFFFFF;color:#8A6E38;border-radius:8px;padding:4px 7px;font-size:9px;font-weight:900;white-space:nowrap;">'+tag+'</span>'+
@@ -3406,6 +3418,12 @@ h1,h2,h3{color:var(--n-ink)}
     toast('기록을 저장했어요'+autoMsg);
     // ⚠️ 방금 저장한 건에 셋팅이 부족하면 바로 알려줍니다
     try{
+      const _rec=state.transactions.find(x=>x.id===(obj.id||id));
+      if(_rec&&_rec.setupOk){
+        // 인원이나 준비물이 바뀌었으면 확인 표시를 새로 판단하도록 초기화
+        const nowStamp=String(_rec.inGuests||'')+'|'+((_rec.inSupplies||'').trim());
+        if(_rec.setupOk!==nowStamp)delete _rec.setupOk;
+      }
       const warn=setupWarnings().find(w=>w.id===(obj.id||id));
       if(warn){
         alertBeep(1);
@@ -4099,6 +4117,36 @@ h1,h2,h3{color:var(--n-ink)}
   $('#saveTx').addEventListener('click',saveTxForm);$('#deleteTx').addEventListener('click',deleteTxForm);$('#saveRoom').addEventListener('click',saveRoomForm);$('#saveStaff').addEventListener('click',saveStaffForm);$('#saveSupply').addEventListener('click',saveSupplyForm);$('#deleteSupply').addEventListener('click',deleteSupplyForm);
   {const tci=$('#txClearIn');if(tci)tci.addEventListener('click',()=>{['txInDate','txInNights','txInGuests','txInTime','txInSupplies'].forEach(f=>{const el=$('#'+f);if(el)el.value='';});toast('입실 정보를 지웠어요 — 저장하면 공실 안내도 사라져요');});}
   {const drb=$('#deleteRoomBtn');if(drb)drb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)deleteRoom(id);});const dsb=$('#deleteStaffBtn');if(dsb)dsb.addEventListener('click',()=>{const id=$('#staffEditId').value;if(id)deleteStaff(id);});const arb=$('#archiveRoomBtn');if(arb)arb.addEventListener('click',()=>{const id=$('#roomEditId').value;if(id)toggleArchiveRoom(id);});const asb=$('#archiveStaffBtn');if(asb)asb.addEventListener('click',()=>{const id=$('#staffEditId').value;if(id)toggleArchiveStaff(id);});}
+  /* ⚠️ 셋팅 경고 버튼
+     · 이대로 채우기 → 필요한 수량을 준비물 칸에 자동으로 넣어줍니다
+     · 확인함       → 지금 상태 그대로 두고 알림만 끕니다 */
+  document.addEventListener('click',function(ev){
+    const fix=ev.target.closest('[data-setup-fix]');
+    if(fix){
+      ev.preventDefault(); ev.stopPropagation();
+      const w=setupWarnings().find(x=>x.id===fix.dataset.setupFix);
+      const t=state.transactions.find(x=>x.id===fix.dataset.setupFix);
+      if(w&&t){
+        t.inSupplies=w.should;
+        t.setupOk=String(t.inGuests)+'|'+w.should;
+        save(); render();
+        toast('🛒 준비물을 채웠어요 — '+w.should);
+      }
+      return;
+    }
+    const ok=ev.target.closest('[data-setup-ok]');
+    if(ok){
+      ev.preventDefault(); ev.stopPropagation();
+      const t=state.transactions.find(x=>x.id===ok.dataset.setupOk);
+      if(t){
+        t.setupOk=String(t.inGuests||'')+'|'+((t.inSupplies||'').trim());
+        save(); render();
+        toast('✓ 확인 처리했어요');
+      }
+      return;
+    }
+  });
+
   // 👤 담당 직원 선택 버튼
   document.addEventListener('click',function(ev){
     const b=ev.target.closest('[data-txstaff]');
