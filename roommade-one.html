@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v12.3</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v12.4</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -847,7 +847,7 @@ h1,h2,h3{color:var(--n-ink)}
       </div>
     </div>
 
-    <div class="field"><label>메모 <span style="color:var(--muted);font-weight:400;">(추가비용 등 — 작업자/호스트에겐 안 보임)</span></label><input type="text" id="txMemoInput" placeholder="예: 쇼파베드 2개(추가 5000원)" /></div>
+    <div class="field"><label>메모 · 특이사항 <span style="color:var(--muted);font-weight:400;">(작업자/호스트에겐 안 보임)</span></label><input type="text" id="txMemoInput" placeholder="예: 추가요금 5,000원 / 분실물 보관 / 파손 확인" /></div>
     <div class="field"><label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="txPaidInput" style="width:18px;height:18px" /> <span id="txPaidText">입금 완료</span></label></div>
     <div class="twocol"><button class="secondary danger" id="deleteTx" style="display:none">삭제</button><button class="primary" id="saveTx">저장</button></div>
   </div>
@@ -1307,7 +1307,8 @@ h1,h2,h3{color:var(--n-ink)}
     const date=today();
     const jobs=branchFilter(state.transactions).filter(t=>t.type==='income'&&t.date===date&&t.status!=='cancelled').sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
     const checkouts=jobs.filter(t=>t.outNights||t.outGuests||t.outSupplies);
-    const checkins=jobs.filter(t=>t.inNights);
+    // 입실일이 '오늘'인 것만 (공실이 끼면 입실은 다른 날이라 inDate로 판단)
+    const checkins=jobs.filter(t=>t.inNights&&((t.inDate||t.date)===selectedDate));
     const expenses=branchFilter(state.transactions).filter(t=>t.type==='expense'&&t.date===date&&t.status!=='cancelled');
     const assigned=jobs.filter(t=>Array.isArray(t.assignedStaffIds)&&t.assignedStaffIds.length);
     const unassigned=jobs.filter(t=>!Array.isArray(t.assignedStaffIds)||!t.assignedStaffIds.length);
@@ -3393,9 +3394,18 @@ h1,h2,h3{color:var(--n-ink)}
         // 그 날짜에 같은 객실 청소가 이미 있는지
         const exist=state.transactions.find(t=>t.type==='income'&&t.targetId===targetId&&t.date===coStr&&t.status!=='cancelled');
         if(exist){
-          // 이미 있으면 체크아웃 정보만 채움(비어있을 때만)
-          if(!exist.outNights&&!exist.outGuests){
-            exist.outNights=sched.inNights; exist.outGuests=sched.inGuests; exist.outTime=exist.outTime||'11:00';
+          /* 🔗 이미 있는 청소 기록을 이번 입실 정보에 맞춰 자동으로 맞춥니다.
+             (입실 박수·인원을 고치면 그 손님이 나가는 날 청소도 같이 바뀌어요.
+              이미 완료·결제된 건은 건드리지 않습니다.) */
+          if(!exist.paid && exist.status!=='done'){
+            const bN=String(exist.outNights||''), bG=String(exist.outGuests||'');
+            exist.outNights=sched.inNights;
+            if(sched.inGuests)exist.outGuests=sched.inGuests;
+            if(!exist.outTime)exist.outTime='11:00';
+            const aN=String(exist.outNights||''), aG=String(exist.outGuests||'');
+            if(bN!==aN||bG!==aG){
+              autoMsg=' → '+coStr.slice(5).replace('-','/')+' 청소도 '+aN+'박 '+aG+'명으로 맞췄어요';
+            }
           }
           if(sched.outSupplies)exist.outSupplies=sched.outSupplies;
         }else{
