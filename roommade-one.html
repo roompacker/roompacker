@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v12.4</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v12.9</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -611,6 +611,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="segbtn" data-settle="payable">줄 돈</button>
         <button class="segbtn" data-settle="paid">완료</button>
         <button class="segbtn" data-settle="monthly">📅 월별</button>
+        <button class="segbtn" data-settle="weekly">🗓 주별</button>
       </div>
       <div class="card settlehero">
         <small id="settleLabel">현재 받을 돈</small>
@@ -624,6 +625,20 @@ h1,h2,h3{color:var(--n-ink)}
       <div id="settlementGroups"></div>
 
       <!-- 📅 월별 정산 화면 -->
+      <!-- 🗓 주별 정산 (1807호 등 주단위 객실) -->
+      <div id="weeklyWrap" style="display:none;">
+        <div class="monthnav" style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:white;border:1px solid var(--line);border-radius:19px;padding:10px 12px;margin-bottom:10px;">
+          <button id="wPrev" style="border:0;background:#EBEBE8;width:36px;height:36px;min-width:36px;border-radius:50%;color:var(--navy);font-weight:900;font-size:18px;">‹</button>
+          <div style="flex:1;text-align:center;min-width:0;"><b id="wLabel" style="font-size:14px;"></b><small style="display:block;color:var(--muted);font-size:9px;margin-top:1px;">월요일 ~ 일요일 기준</small></div>
+          <button id="wThis" style="border:0;background:#2C5C87;width:36px;height:36px;min-width:36px;border-radius:50%;color:#FFFFFF;font-weight:900;font-size:15px;">◎</button>
+          <button id="wNext" style="border:0;background:#EBEBE8;width:36px;height:36px;min-width:36px;border-radius:50%;color:var(--navy);font-weight:900;font-size:18px;">›</button>
+        </div>
+        <div style="margin-bottom:10px;">
+          <select id="wRoomSel" style="width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:13px;background:#FFFFFF;"></select>
+        </div>
+        <div id="weeklyBody"></div>
+      </div>
+
       <div id="monthlyWrap" style="display:none;">
         <div class="monthnav" style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:white;border:1px solid var(--line);border-radius:19px;padding:10px 12px;margin-bottom:12px;">
           <button id="mPrev" style="border:0;background:#E5EAF4;width:36px;height:36px;min-width:36px;border-radius:50%;color:#3B4667;font-weight:900;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0;">‹</button>
@@ -686,6 +701,7 @@ h1,h2,h3{color:var(--n-ink)}
 
           <!-- 📊 이번 달 관리비 현황 (50건 초과 · 350만원 상한 알림) -->
           <div id="mfGauge" style="margin-top:12px;"></div>
+          <div id="pentBoard"></div>
 
           <!-- 🎁 인센티브 기록 -->
           <div style="margin-top:14px;padding-top:13px;border-top:1px solid var(--line);">
@@ -850,6 +866,24 @@ h1,h2,h3{color:var(--n-ink)}
     <div class="field"><label>메모 · 특이사항 <span style="color:var(--muted);font-weight:400;">(작업자/호스트에겐 안 보임)</span></label><input type="text" id="txMemoInput" placeholder="예: 추가요금 5,000원 / 분실물 보관 / 파손 확인" /></div>
     <div class="field"><label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="txPaidInput" style="width:18px;height:18px" /> <span id="txPaidText">입금 완료</span></label></div>
     <div class="twocol"><button class="secondary danger" id="deleteTx" style="display:none">삭제</button><button class="primary" id="saveTx">저장</button></div>
+  </div>
+</div>
+
+<!-- 📦 객실 비품 체크 -->
+<div class="modal" id="chkModal">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheethead"><h3 id="chkTitle">📦 비품 체크</h3><button class="close" data-close="chkModal">×</button></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:11px;line-height:1.5;">채워야 할 것을 눌러서 표시하세요. 카톡으로 바로 보낼 수 있어요.</div>
+    <div id="chkList" style="max-height:52vh;overflow-y:auto;margin-bottom:11px;"></div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;">
+      <input id="chkAddName" placeholder="품목 추가 (예: 수건)" style="flex:1;min-width:0;padding:11px;border:1px solid var(--line);border-radius:10px;font-size:13px;" />
+      <button class="secondary" id="chkAdd" style="white-space:nowrap;padding:11px 14px;">＋</button>
+    </div>
+    <div style="display:flex;gap:7px;">
+      <button class="secondary" id="chkClear" style="flex:1;">체크 해제</button>
+      <button class="primary" id="chkSend" style="flex:2;">💬 카톡으로 보내기</button>
+    </div>
   </div>
 </div>
 
@@ -1281,6 +1315,7 @@ h1,h2,h3{color:var(--n-ink)}
     try{ renderIcalAlert(); }catch(e){ console.error('icalAlert',e); }
     try{ renderSetupWarn(); }catch(e){ console.error('setupWarn',e); }
     try{ renderMFGauge(); }catch(e){ console.error('mfgauge',e); }
+    try{ renderPentBoard(); }catch(e){ console.error('pentBoard',e); }
     try{ renderIncentives(); }catch(e){ console.error('inc',e); }
   }
   function renderHome(){
@@ -2110,8 +2145,22 @@ h1,h2,h3{color:var(--n-ink)}
         added++;
         if(bk.co>=td)changes.push('🆕 '+shortName+'  '+fmtD(bk.ci)+' 입실 → '+fmtD(bk.co)+' 청소 ('+bk.nights+'박)');
         if(bk.co>=td){
-          state.transactions[state.transactions.length-1].icalChanged=Date.now();
-          state.transactions[state.transactions.length-1].icalKind='new';
+          const justAdded=state.transactions[state.transactions.length-1];
+          justAdded.icalChanged=Date.now();
+          /* ⚠️ '공실인 줄 알았던 날'에 예약이 들어왔는지 확인
+             = 이 입실일 앞의 마지막 청소가 '다음 입실 없음(공실)' 이었다면
+               그건 공실 준비를 해둔 상태이므로 특별히 알려야 해요. */
+          const prevJob=state.transactions
+            .filter(x=>x.type==='income'&&!x.checkinOnly&&x.targetId===roomId
+              &&x.status!=='cancelled'&&x.id!==justAdded.id&&(x.date||'')<=bk.ci)
+            .sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
+          if(prevJob&&!prevJob.inNights){
+            justAdded.icalKind='fillgap';
+            changes.push('⚠️ '+shortName+'  공실이던 '+fmtD(bk.ci)+'에 예약 — 셋팅 확인 필요');
+            prevJob.icalChanged=Date.now(); prevJob.icalKind='fillgap';
+          }else{
+            justAdded.icalKind='new';
+          }
         }
       }
     });
@@ -2375,6 +2424,81 @@ h1,h2,h3{color:var(--n-ink)}
       '</div>';
   }
 
+
+  /* ═══════════ 📋 변경 대응 안내 ═══════════
+     예약이 바뀌었을 때 '무엇을 어떻게 고쳐야 하는지'를 구체적으로 알려줍니다. */
+  function changeGuide(t){
+    const room=(state.rooms||[]).find(r=>String(r.id)===String(t.targetId))||{};
+    const nm=roomTitleOf(t.targetName||room.name)||'객실';
+    const kind=t.icalKind||'edit';
+    const fd=s=>String(s||'').slice(5).replace('-','/');
+    const L=[];
+    L.push('📋 '+fd(t.date)+' '+nm);
+    L.push('');
+
+    if(kind==='new'){
+      L.push('【새 예약이 잡혔어요】');
+      L.push('');
+      L.push('✔ 확인할 것');
+      L.push('  · 청소 담당자를 배정하세요');
+      L.push('  · 입실 인원을 확인하세요 (에어비앤비는 인원을 안 알려줘요)');
+      if(t.inNights)L.push('  · 인원이 기준을 넘으면 추가 셋팅이 필요해요');
+    }else if(kind==='move'){
+      L.push('【청소 날짜가 옮겨졌어요】');
+      L.push('');
+      L.push('✔ 확인할 것');
+      L.push('  · 담당자에게 날짜 변경을 알리세요');
+      L.push('  · 옮긴 날에 다른 청소가 겹치지 않는지 보세요');
+      L.push('  · 이미 보낸 카톡 보고가 있으면 다시 보내세요');
+    }else if(kind==='fillgap'){
+      L.push('【공실이던 날에 예약이 들어왔어요】⚠️');
+      L.push('');
+      L.push('공실인 줄 알고 준비해둔 상태라면 바꿔야 해요.');
+      L.push('');
+      L.push('✔ 반드시 확인할 것');
+      L.push('  · 커튼·전등을 정리해뒀다면 원상복구');
+      L.push('  · 이 날 청소 담당자를 새로 배정');
+      L.push('  · 입실 인원에 맞춰 셋팅 수량 다시 확인');
+      L.push('  · 앞 청소 담당자에게 "공실 아님" 알리기');
+    }else{
+      L.push('【예약 내용이 바뀌었어요】');
+      L.push('');
+      L.push('✔ 확인할 것');
+      L.push('  · 박수가 바뀌었으면 수건 수량을 다시 보세요');
+      L.push('  · 입실일이 바뀌었으면 셋팅 날짜도 함께 바뀌어요');
+      L.push('  · 담당자에게 변경 내용을 알리세요');
+    }
+
+    // 지금 상태
+    L.push('');
+    L.push('━━━━━━━━━━━━━━');
+    L.push('현재 기록');
+    L.push('  퇴실  '+(t.outNights||'-')+'박 '+(t.outGuests||'-')+'명 '+(t.outTime||''));
+    if(t.inNights){
+      L.push('  입실  '+(t.inDate?fd(t.inDate)+' ':'')+t.inNights+'박 '+(t.inGuests||'-')+'명 '+(t.inTime||''));
+      const base=Number(room.baseGuests||0), g=Number(t.inGuests||0);
+      if(base&&g>base){
+        const need=mergeSetup(room.baseSetup||'', room.extraSetup||'', g-base);
+        L.push('  셋팅  '+(need||'-')+'   ('+(g-base)+'명 초과)');
+      }else if(t.inSupplies){
+        L.push('  셋팅  '+t.inSupplies);
+      }
+    }else{
+      L.push('  입실  없음 (청소 후 공실)');
+    }
+    return L.join('\n');
+  }
+
+  // 안내를 화면에 띄우고, 원하면 카톡으로도 보냄
+  function showChangeGuide(txId){
+    const t=(state.transactions||[]).find(x=>x.id===txId);
+    if(!t)return;
+    const msg=changeGuide(t);
+    if(confirm(msg+'\n\n\n담당자에게 이 내용을 보낼까요?')){
+      shareText(msg);
+    }
+  }
+
   /* 🔔 바뀐 예약 모아보기 — 홈 화면 위쪽에 띠로 표시 */
   function renderIcalAlert(){
     const host=$('#opsAlertSlot');
@@ -2399,7 +2523,7 @@ h1,h2,h3{color:var(--n-ink)}
       const d=(yr&&yr!==curY?yr.slice(2)+'/':'')+(t.date||'').slice(5).replace('-','/');
       const wd=['일','월','화','수','목','금','토'][new Date((t.date||'')+'T00:00:00').getDay()]||'';
       const kind=t.icalKind||'';
-      const tag=kind==='new'?'🆕 신규':(kind==='move'?'📅 날짜이동':(kind==='del'?'❌ 취소':'📝 변경'));
+      const tag=kind==='new'?'🆕 신규':(kind==='move'?'📅 날짜이동':(kind==='fillgap'?'⚠️ 공실→예약':(kind==='del'?'❌ 취소':'📝 변경')));
       const iy=(t.inDate||'').slice(0,4);
       const inD=(iy&&iy!==curY?iy.slice(2)+'/':'')+(t.inDate||'').slice(5).replace('-','/');
       const detail=t.inDate
@@ -2412,7 +2536,8 @@ h1,h2,h3{color:var(--n-ink)}
           '<small style="display:block;font-size:10px;color:#8A6E38;margin-top:2px;">'+esc(detail)+'</small>'+
         '</span>'+
         '<span style="color:#8A6E38;font-size:15px;">›</span>'+
-      '</button>';
+      '</button>'+
+      '<div style="padding:0 12px 9px;"><button data-change-guide="'+t.id+'" style="width:100%;border:1px solid rgba(138,110,56,.3);background:#FFFFFF;color:#8A6E38;border-radius:9px;padding:8px;font-size:10px;font-weight:800;">📋 무엇을 고쳐야 하나요?</button></div>';
     }).join('');
 
     host.innerHTML=
@@ -2994,6 +3119,254 @@ h1,h2,h3{color:var(--n-ink)}
   let settleMonth=currentYM();      // 지금 보고 있는 달
   let monthlyOpen={};               // 펼쳐진 객실/직원 기억
 
+
+  /* 💬 직원 지급 명세서 (카톡용)
+     그 달에 그 직원이 한 일과 금액을 정리해 보냅니다. */
+  function staffPayMsg(staffKey, mKey){
+    mKey=mKey||settleMonth;
+    const st=(state.staff||[]).find(s=>String(s.id)===String(staffKey));
+    const list=branchFilter(state.transactions)
+      .filter(t=>t.type==='expense'&&t.status!=='cancelled'&&!t.checkinOnly
+        &&String(t.targetId||t.targetName)===String(staffKey)
+        &&(t.billingMonth||ym(t.date))===mKey)
+      .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    if(!list.length)return toast('그 달 기록이 없어요');
+
+    const amt=t=>Number(t.netAmount||t.amount||0);
+    const sum=list.reduce((a,b)=>a+amt(b),0);
+    const paid=list.filter(t=>t.paid).reduce((a,b)=>a+amt(b),0);
+    const unpaid=sum-paid;
+    const name=st?st.name:(list[0].targetName||'직원');
+
+    const L=['💰 '+monthText(mKey)+' 지급 명세', '', name+' 님', '━━━━━━━━━━━━━━'];
+    list.forEach(t=>{
+      const d=(t.date||'').slice(5).replace('-','/');
+      L.push(d+'   '+money(amt(t))+(t.paid?'   ✅':'   ⏳'));
+      if(t.memo)L.push('        '+t.memo);
+    });
+    L.push('━━━━━━━━━━━━━━');
+    L.push('합계   '+list.length+'건   '+money(sum));
+    if(unpaid>0){
+      L.push('지급 완료   '+money(paid));
+      L.push('지급 예정   '+money(unpaid));
+    }else{
+      L.push('전액 지급 완료 ✅');
+    }
+    if(st&&st.bank)L.push('','💳 '+st.bank);
+    if(st&&st.tax)L.push('※ 세금 '+st.tax+'% 별도 정산');
+    shareText(L.join('\n'));
+  }
+
+  /* 💬 전체 직원 지급 요약 (사장님 확인용) */
+  function allStaffPayMsg(mKey){
+    mKey=mKey||settleMonth;
+    const list=branchFilter(state.transactions)
+      .filter(t=>t.type==='expense'&&t.status!=='cancelled'&&!t.checkinOnly
+        &&(t.billingMonth||ym(t.date))===mKey);
+    if(!list.length)return toast('그 달 지출 기록이 없어요');
+    const amt=t=>Number(t.netAmount||t.amount||0);
+    const g={};
+    list.forEach(t=>{const k=String(t.targetId||t.targetName||'기타');(g[k]=g[k]||[]).push(t);});
+    const L=['💰 '+monthText(mKey)+' 직원 지급 요약','━━━━━━━━━━━━━━'];
+    let sum=0, unpaidSum=0;
+    Object.entries(g).sort((a,b)=>
+      b[1].reduce((x,y)=>x+amt(y),0)-a[1].reduce((x,y)=>x+amt(y),0)
+    ).forEach(([k,arr])=>{
+      const st=(state.staff||[]).find(s=>String(s.id)===k);
+      const nm=st?st.name:(arr[0].targetName||'직원');
+      const s=arr.reduce((a,b)=>a+amt(b),0);
+      const u=arr.filter(t=>!t.paid).reduce((a,b)=>a+amt(b),0);
+      sum+=s; unpaidSum+=u;
+      L.push(nm+'   '+arr.length+'건   '+money(s)+(u>0?'   ⏳'+money(u):'   ✅'));
+      if(u>0&&st&&st.bank)L.push('     💳 '+st.bank);
+    });
+    L.push('━━━━━━━━━━━━━━');
+    L.push('총 지급액   '+money(sum));
+    if(unpaidSum>0)L.push('미지급 잔액   '+money(unpaidSum));
+    shareText(L.join('\n'));
+  }
+
+  // ✅ 그 직원의 그 달 미지급을 한 번에 지급 처리
+  function markStaffPaid(staffKey){
+    const list=branchFilter(state.transactions)
+      .filter(t=>t.type==='expense'&&t.status!=='cancelled'
+        &&String(t.targetId||t.targetName)===String(staffKey)
+        &&(t.billingMonth||ym(t.date))===settleMonth&&!t.paid);
+    if(!list.length)return toast('미지급 항목이 없어요');
+    const amtF=t=>Number(t.netAmount||t.amount||0);
+    const sum=list.reduce((a,b)=>a+amtF(b),0);
+    const st=(state.staff||[]).find(s=>String(s.id)===String(staffKey));
+    if(!confirm((st?st.name:'직원')+' 님\n'+list.length+'건 '+money(sum)+'\n\n전액 지급 처리할까요?'))return;
+    list.forEach(t=>{t.paid=true;});
+    save(); render();
+    toast('✅ '+money(sum)+' 지급 처리');
+  }
+
+
+  /* ═══════════ 🗓 주별 정산 (월요일 ~ 일요일) ═══════════
+     1807호처럼 주 단위로 정산하는 객실을 위한 화면입니다. */
+  let weekStart='';        // 보고 있는 주의 월요일
+  let weekRoomId='';       // 선택한 객실
+
+  function mondayOf(dateStr){
+    const d=new Date(dateStr+'T00:00:00');
+    const wd=d.getDay();                 // 0=일 … 6=토
+    const diff=(wd===0)?-6:(1-wd);       // 일요일이면 지난 월요일로
+    d.setDate(d.getDate()+diff);
+    return dateStr2(d);
+  }
+  function dateStr2(d){
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  function addDays(dateStr,n){
+    const d=new Date(dateStr+'T00:00:00'); d.setDate(d.getDate()+n); return dateStr2(d);
+  }
+
+  function renderWeekly(){
+    if(!weekStart)weekStart=mondayOf(today());
+    const end=addDays(weekStart,6);
+
+    // 주 표시
+    const lab=$('#wLabel');
+    if(lab){
+      const s=weekStart.slice(5).replace('-','/'), e=end.slice(5).replace('-','/');
+      const isNow=(weekStart===mondayOf(today()));
+      lab.innerHTML=s+' ~ '+e+(isNow?' <span style="font-size:10px;color:var(--navy);">이번 주</span>':'');
+    }
+
+    // 객실 선택 목록
+    const sel=$('#wRoomSel');
+    const rooms=(state.rooms||[]).filter(r=>!r.archived);
+    if(sel){
+      if(!weekRoomId){
+        // 1807호를 우선으로 자동 선택
+        const pick=rooms.find(r=>/1807/.test(r.name||''))||rooms[0];
+        weekRoomId=pick?pick.id:'';
+      }
+      sel.innerHTML=rooms.map(r=>
+        '<option value="'+r.id+'"'+(String(r.id)===String(weekRoomId)?' selected':'')+'>'+esc(roomTitleOf(r.name)||r.name)+'</option>'
+      ).join('');
+    }
+
+    const body=$('#weeklyBody'); if(!body)return;
+    const room=rooms.find(r=>String(r.id)===String(weekRoomId));
+    if(!room){body.innerHTML=empty('🏠','객실을 먼저 등록해주세요');return;}
+
+    // 이 주의 수입 기록
+    const amt=t=>Number(t.netAmount||t.amount||0);
+    const list=(state.transactions||[]).filter(t=>
+      t.type==='income' && !t.checkinOnly && t.status!=='cancelled' &&
+      String(t.targetId)===String(weekRoomId) &&
+      (t.date||'')>=weekStart && (t.date||'')<=end
+    ).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+
+    const sum=list.reduce((a,b)=>a+amt(b),0);
+    const paid=list.filter(t=>t.paid).reduce((a,b)=>a+amt(b),0);
+    const unpaid=sum-paid;
+
+    let html='';
+    // 요약
+    html+='<div class="card" style="padding:14px;margin-bottom:11px;">'+
+      '<div style="text-align:center;margin-bottom:11px;">'+
+        '<small style="font-size:10px;color:var(--muted);font-weight:800;">이번 주 청소 '+list.length+'건</small>'+
+        '<b style="display:block;font-size:24px;color:var(--navy);margin-top:3px;">'+money(sum)+'</b>'+
+      '</div>'+
+      '<div style="display:flex;gap:8px;">'+
+        '<div style="flex:1;background:#E2F4EA;border-radius:12px;padding:10px;text-align:center;">'+
+          '<small style="font-size:10px;color:#3B8360;font-weight:800;">입금 완료</small>'+
+          '<b style="display:block;font-size:14px;color:#3B8360;margin-top:2px;">'+money(paid)+'</b></div>'+
+        '<div style="flex:1;background:'+(unpaid?'#F0DEDA':'#EBEBE8')+';border-radius:12px;padding:10px;text-align:center;">'+
+          '<small style="font-size:10px;color:'+(unpaid?'#9A5F55':'var(--muted)')+';font-weight:800;">받을 돈</small>'+
+          '<b style="display:block;font-size:14px;color:'+(unpaid?'#9A5F55':'var(--muted)')+';margin-top:2px;">'+money(unpaid)+'</b></div>'+
+      '</div></div>';
+
+    // 요일별 내역
+    html+='<div class="card" style="overflow:hidden;margin-bottom:11px;">';
+    const WD=['월','화','수','목','금','토','일'];
+    for(let i=0;i<7;i++){
+      const ds=addDays(weekStart,i);
+      const day=list.filter(t=>t.date===ds);
+      const daySum=day.reduce((a,b)=>a+amt(b),0);
+      const isToday=(ds===today());
+      html+='<div style="display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid #F4F1EC;'+
+        (isToday?'background:#E4EBF1;':'')+(day.length?'':'opacity:.45;')+'">'+
+        '<b style="width:52px;font-size:12px;color:'+(i===6?'#DE8489':'var(--navy)')+';">'+WD[i]+' '+ds.slice(8)+'</b>'+
+        '<span style="flex:1;font-size:12px;color:var(--sub);">'+
+          (day.length?day.map(t=>(t.outNights?t.outNights+'박':'청소')+(t.paid?'':' ⏳')).join(', '):'—')+'</span>'+
+        '<b style="font-size:13px;">'+(daySum?money(daySum):'')+'</b>'+
+      '</div>';
+    }
+    html+='</div>';
+
+    // 버튼
+    html+='<div style="display:flex;gap:8px;">'+
+      '<button data-week-msg="1" style="flex:1;border:1px solid var(--line);background:#FFFFFF;color:var(--navy);border-radius:12px;padding:12px;font-size:12px;font-weight:800;">💬 주간 정산서 보내기</button>'+
+      (unpaid?'<button data-week-paid="1" style="flex:1;border:0;background:#3B8360;color:#FFFFFF;border-radius:12px;padding:12px;font-size:12px;font-weight:800;">✅ 전액 입금 처리</button>':'')+
+    '</div>';
+
+    // 최근 4주 비교
+    html+='<div class="sectitle" style="margin:16px 4px 8px;"><h2 style="font-size:14px;margin:0;">📊 최근 4주</h2></div>'+
+      '<div class="card" style="padding:6px 14px 12px;">';
+    for(let w=3;w>=0;w--){
+      const ws=addDays(weekStart,-7*w), we=addDays(ws,6);
+      const l=(state.transactions||[]).filter(t=>
+        t.type==='income'&&!t.checkinOnly&&t.status!=='cancelled'&&
+        String(t.targetId)===String(weekRoomId)&&(t.date||'')>=ws&&(t.date||'')<=we);
+      const s=l.reduce((a,b)=>a+amt(b),0);
+      const cur=(ws===weekStart);
+      html+='<div data-week-jump="'+ws+'" style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #F4F1EC;font-size:12px;cursor:pointer;'+(cur?'font-weight:800;':'')+'">'+
+        '<b style="width:86px;color:'+(cur?'var(--navy)':'var(--sub)')+';">'+ws.slice(5).replace('-','/')+'~'+we.slice(5).replace('-','/')+'</b>'+
+        '<span style="width:40px;color:var(--muted);">'+l.length+'건</span>'+
+        '<span style="flex:1;text-align:right;font-weight:800;">'+money(s)+'</span></div>';
+    }
+    html+='<div style="margin-top:8px;font-size:10px;color:var(--muted);text-align:center;">누르면 그 주로 이동해요</div></div>';
+
+    body.innerHTML=html;
+  }
+
+  // 💬 주간 정산서 (카톡)
+  function weekPayMsg(){
+    const end=addDays(weekStart,6);
+    const room=(state.rooms||[]).find(r=>String(r.id)===String(weekRoomId));
+    if(!room)return;
+    const amt=t=>Number(t.netAmount||t.amount||0);
+    const list=(state.transactions||[]).filter(t=>
+      t.type==='income'&&!t.checkinOnly&&t.status!=='cancelled'&&
+      String(t.targetId)===String(weekRoomId)&&(t.date||'')>=weekStart&&(t.date||'')<=end
+    ).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    if(!list.length)return toast('이번 주 기록이 없어요');
+    const sum=list.reduce((a,b)=>a+amt(b),0);
+    const paid=list.filter(t=>t.paid).reduce((a,b)=>a+amt(b),0);
+    const WD=['일','월','화','수','목','금','토'];
+    const L=['🧾 주간 청소 정산서','',(roomTitleOf(room.name)||room.name),
+      weekStart.replace(/-/g,'.')+' ~ '+end.replace(/-/g,'.'),'━━━━━━━━━━━━━━'];
+    list.forEach(t=>{
+      const wd=WD[new Date(t.date+'T00:00:00').getDay()];
+      L.push((t.date||'').slice(5).replace('-','/')+'('+wd+')   '+
+        (t.outNights?t.outNights+'박':'청소')+'   '+money(amt(t))+(t.paid?'  ✅':''));
+    });
+    L.push('━━━━━━━━━━━━━━');
+    L.push('청소 '+list.length+'건   합계 '+money(sum));
+    if(sum-paid>0)L.push('입금 완료 '+money(paid)+' / 받을 돈 '+money(sum-paid));
+    else L.push('전액 입금 완료 ✅');
+    shareText(L.join('\n'));
+  }
+
+  // ✅ 이 주 전액 입금 처리
+  function weekMarkPaid(){
+    const end=addDays(weekStart,6);
+    const amt=t=>Number(t.netAmount||t.amount||0);
+    const list=(state.transactions||[]).filter(t=>
+      t.type==='income'&&!t.checkinOnly&&t.status!=='cancelled'&&!t.paid&&
+      String(t.targetId)===String(weekRoomId)&&(t.date||'')>=weekStart&&(t.date||'')<=end);
+    if(!list.length)return toast('미입금 항목이 없어요');
+    const sum=list.reduce((a,b)=>a+amt(b),0);
+    if(!confirm(weekStart.slice(5).replace('-','/')+' ~ '+end.slice(5).replace('-','/')+'\n'+list.length+'건 '+money(sum)+'\n\n전액 입금 처리할까요?'))return;
+    list.forEach(t=>{t.paid=true;});
+    save(); render();
+    toast('✅ '+money(sum)+' 입금 처리');
+  }
+
   function renderMonthly(){
     const lab=$('#mLabel'); if(lab)lab.textContent=monthText(settleMonth);
     const body=$('#monthlyBody'); if(!body)return;
@@ -3081,10 +3454,23 @@ h1,h2,h3{color:var(--n-ink)}
     }
 
     // ── ③ 직원별 ──
-    html+=`<div class="sectitle" style="margin:14px 4px 8px;"><h2 style="font-size:14px;margin:0;">👤 직원별 지급 내역</h2></div>`;
+    html+=`<div class="sectitle" style="margin:14px 4px 8px;"><h2 style="font-size:14px;margin:0;">👤 직원별 지급 내역</h2><button data-staff-report="${settleMonth}" style="border:0;background:transparent;color:var(--navy);font-size:11px;font-weight:800;">💬 지급 명세 보내기</button></div>`;
     if(!expenses.length){
       html+=`<div class="card">${empty('👤','이 달에는 지출 기록이 없어요')}</div>`;
     }else{
+      // 지급 현황 요약
+      const paidSum=total(expenses.filter(t=>t.paid));
+      const unpaidSum=total(expenses.filter(t=>!t.paid));
+      html+=`<div class="card" style="padding:12px;margin-bottom:10px;display:flex;gap:8px;">
+        <div style="flex:1;background:#E2F4EA;border-radius:12px;padding:10px;text-align:center;">
+          <small style="font-size:10px;color:#3B8360;font-weight:800;">지급 완료</small>
+          <b style="display:block;font-size:14px;color:#3B8360;margin-top:2px;">${money(paidSum)}</b>
+        </div>
+        <div style="flex:1;background:${unpaidSum?'#F0DEDA':'#EBEBE8'};border-radius:12px;padding:10px;text-align:center;">
+          <small style="font-size:10px;color:${unpaidSum?'#9A5F55':'var(--muted)'};font-weight:800;">아직 안 준 돈</small>
+          <b style="display:block;font-size:14px;color:${unpaidSum?'#9A5F55':'var(--muted)'};margin-top:2px;">${money(unpaidSum)}</b>
+        </div>
+      </div>`;
       const g2={};
       expenses.forEach(t=>{const k=String(t.targetId||t.targetName||'기타');(g2[k]||=[]).push(t);});
       html+=Object.entries(g2).sort((a,b)=>total(b[1])-total(a[1])).map(([key,arr])=>{
@@ -3105,12 +3491,17 @@ h1,h2,h3{color:var(--n-ink)}
             </div>
             <div style="text-align:right;"><b style="font-size:14px;">${money(sumA)}</b><div>${badge}</div></div>
           </div>
-          ${open?arr.map(t=>`<div style="display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px solid #F4F1EC;font-size:12px;">
+          ${open?`${st&&st.bank?`<div style="padding:9px 14px;background:#F7F8F4;border-bottom:1px solid #F4F1EC;font-size:11px;color:var(--sub);">💳 ${esc(st.bank)}</div>`:''}
+          ${arr.map(t=>`<div style="display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px solid #F4F1EC;font-size:12px;">
               <b style="width:48px;color:var(--navy);">${(t.date||'').slice(5).replace('-','/')}</b>
               <span style="flex:1;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.memo||t.targetName||'')}</span>
               <span style="font-weight:700;">${money(amt(t))}</span>
               <span style="width:52px;text-align:right;font-size:10px;font-weight:800;color:${t.paid?'#4FA97D':'#DE8489'};">${t.paid?'✅지급':'⏳미지급'}</span>
-            </div>`).join(''):''}
+            </div>`).join('')}
+          <div style="display:flex;gap:6px;padding:10px 14px;">
+            <button data-staff-msg="${key}" style="flex:1;border:1px solid var(--line);background:#FFFFFF;color:var(--navy);border-radius:9px;padding:9px;font-size:11px;font-weight:800;">💬 명세 보내기</button>
+            ${unpaid?`<button data-staff-paid="${key}" style="flex:1;border:0;background:#3B8360;color:#FFFFFF;border-radius:9px;padding:9px;font-size:11px;font-weight:800;">✅ 전액 지급 처리</button>`:''}
+          </div>`:''}
         </div>`;
       }).join('');
     }
@@ -3144,9 +3535,13 @@ h1,h2,h3{color:var(--n-ink)}
     $$('.segbtn[data-settle]').forEach(b=>b.classList.toggle('active',b.dataset.settle===settleMode));
     // 📅 월별 모드일 때는 전용 화면으로 전환
     const isMonthly=settleMode==='monthly';
+    const isWeekly=settleMode==='weekly';
+    const special=isMonthly||isWeekly;
     const mw=$('#monthlyWrap'); if(mw)mw.style.display=isMonthly?'block':'none';
-    ['#settlementGroups','.settlehero'].forEach(s=>{const el=document.querySelector(s);if(el)el.style.display=isMonthly?'none':'';});
-    const per=document.querySelector('[data-settle-period]'); if(per&&per.parentElement)per.parentElement.style.display=isMonthly?'none':'';
+    const ww=$('#weeklyWrap'); if(ww)ww.style.display=isWeekly?'block':'none';
+    ['#settlementGroups','.settlehero'].forEach(s=>{const el=document.querySelector(s);if(el)el.style.display=special?'none':'';});
+    const per=document.querySelector('[data-settle-period]'); if(per&&per.parentElement)per.parentElement.style.display=special?'none':'';
+    if(isWeekly){renderWeekly();return;}
     if(isMonthly){renderMonthly();return;}let list=branchFilter(state.transactions).filter(t=>t.status!=='cancelled'&&!t.checkinOnly);
     let type,paid,label,desc;if(settleMode==='receivable'){type='income';paid=false;label='현재 받을 돈';desc='미수금은 객실별로 묶어서 보여드려요.'}else if(settleMode==='payable'){type='expense';paid=false;label='현재 줄 돈';desc='직원별 미지급 금액을 바로 처리할 수 있어요.'}else{type=null;paid=true;label='완료된 정산';desc='입금·지급이 끝난 내역입니다.'}
     list=list.filter(t=>(!type||t.type===type)&&!!t.paid===paid);
@@ -3171,7 +3566,7 @@ h1,h2,h3{color:var(--n-ink)}
   function rankHTML(map,red,msg){const arr=Object.entries(map).sort((a,b)=>b[1]-a[1]);if(!arr.length)return empty('📊',msg);const max=arr[0][1]||1;return arr.slice(0,6).map(([name,val],i)=>`<div class="rankrow"><div class="ranktop"><b>${i+1}. ${esc(name)}</b><span>${money(val)}</span></div><div class="bar ${red?'red':''}"><span style="width:${val/max*100}%"></span></div></div>`).join('')}
 
   function renderManage(){
-    const allRooms=branchFilter(state.rooms).slice().sort((a,b)=>(a.order??9999)-(b.order??9999)),staff=branchFilter(state.staff);const rooms=allRooms.filter(r=>!r.archived);const archivedRooms=allRooms.filter(r=>r.archived);let roomHtml=rooms.length?rooms.map((r,idx)=>`<div class="entity drag-room" data-room-card="${r.id}" style="touch-action:pan-y;"><div class="entityico">🏠</div><div class="entitymain"><b>${esc(r.name)}</b><small>${r.branch}${r.hostName?' · 호스트 '+esc(r.hostName):''} · 기본 ${money(r.price)}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join(''):empty('🏠','등록된 객실이 없어요');if(archivedRooms.length){roomHtml+=`<button id="toggleArchived" style="width:100%;margin-top:10px;padding:10px;border:1px dashed #BFCBE0;border-radius:12px;background:#F1F4FA;color:var(--muted);font-size:12px;font-weight:700;">📦 보관된 객실 ${archivedRooms.length}개 ${state._showArchived?'숨기기 ▲':'보기 ▼'}</button>`;if(state._showArchived){roomHtml+='<div style="margin-top:8px;">'+archivedRooms.map(r=>`<div class="entity" style="opacity:.6;"><div class="entityico">📦</div><div class="entitymain"><b>${esc(r.name)}</b><small>보관됨 · ${r.branch}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join('')+'</div>';}}$('#roomList').innerHTML=roomHtml;
+    const allRooms=branchFilter(state.rooms).slice().sort((a,b)=>(a.order??9999)-(b.order??9999)),staff=branchFilter(state.staff);const rooms=allRooms.filter(r=>!r.archived);const archivedRooms=allRooms.filter(r=>r.archived);let roomHtml=rooms.length?rooms.map((r,idx)=>`<div class="entity drag-room" data-room-card="${r.id}" style="touch-action:pan-y;"><div class="entityico">🏠</div><div class="entitymain"><b>${esc(r.name)}</b><small>${r.branch}${r.hostName?' · 호스트 '+esc(r.hostName):''} · 기본 ${money(r.price)}</small></div><button class="editbtn" data-chk-room="${r.id}" style="margin-right:5px;">📦 체크</button><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join(''):empty('🏠','등록된 객실이 없어요');if(archivedRooms.length){roomHtml+=`<button id="toggleArchived" style="width:100%;margin-top:10px;padding:10px;border:1px dashed #BFCBE0;border-radius:12px;background:#F1F4FA;color:var(--muted);font-size:12px;font-weight:700;">📦 보관된 객실 ${archivedRooms.length}개 ${state._showArchived?'숨기기 ▲':'보기 ▼'}</button>`;if(state._showArchived){roomHtml+='<div style="margin-top:8px;">'+archivedRooms.map(r=>`<div class="entity" style="opacity:.6;"><div class="entityico">📦</div><div class="entitymain"><b>${esc(r.name)}</b><small>보관됨 · ${r.branch}</small></div><button class="editbtn" data-edit-room="${r.id}">수정</button></div>`).join('')+'</div>';}}$('#roomList').innerHTML=roomHtml;
     const actStaff=staff.filter(s=>!s.archived);const arcStaff=staff.filter(s=>s.archived);let staffHtml=actStaff.length?actStaff.map(s=>`<div class="entity" data-staff-card="${s.id}"><div class="entityico">👤</div><div class="entitymain"><b>${esc(s.name)}</b><small>${s.branch} · ${s.payType} ${money(s.rate)}${s.bank?' · 💳 '+esc(s.bank):''}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join(''):empty('👥','등록된 직원이 없어요');if(arcStaff.length){staffHtml+=`<button id="toggleArchivedStaff" style="width:100%;margin-top:10px;padding:10px;border:1px dashed #BFCBE0;border-radius:12px;background:#F1F4FA;color:var(--muted);font-size:12px;font-weight:700;">📦 보관된 직원 ${arcStaff.length}명 ${state._showArchivedStaff?'숨기기 ▲':'보기 ▼'}</button>`;if(state._showArchivedStaff){staffHtml+='<div style="margin-top:8px;">'+arcStaff.map(s=>`<div class="entity" style="opacity:.6;"><div class="entityico">📦</div><div class="entitymain"><b>${esc(s.name)}</b><small>보관됨 · ${s.branch}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join('')+'</div>';}}$('#staffList').innerHTML=staffHtml;
     // 비품 목록 (지점 필터, 구입 필요 강조)
     const sup=(state.supplies||[]).filter(x=>state.branch==='전체'||x.branch===state.branch||x.branch==='공용');
@@ -3463,6 +3858,126 @@ h1,h2,h3{color:var(--n-ink)}
 
   // ── 비품 ──
   let supplyReceiptData='';
+
+  /* ═══════════ 📦 객실 비품 체크 ═══════════
+     객실마다 비치 품목을 두고, 채워야 할 것을 체크해 카톡으로 보냅니다.
+     저장 위치: 객실 정보의 checkItems = [{name:'수건', qty:8, need:false}, ...] */
+  /* 품목에 맞는 아이콘 */
+  function supplyIcon(n){
+    n=String(n||'');
+    if(/수건|타월/.test(n))return '🧺';
+    if(/토퍼/.test(n))return '🛌';
+    if(/베개/.test(n))return '🪶';
+    if(/이불|침구/.test(n))return '🛏';
+    if(/쇼파|소파/.test(n))return '🛋';
+    if(/생수|물/.test(n))return '💧';
+    if(/샴푸|바디|린스|워시/.test(n))return '🧴';
+    if(/치약|칫솔/.test(n))return '🪥';
+    if(/휴지|티슈/.test(n))return '🧻';
+    if(/세제|수세미/.test(n))return '🧽';
+    if(/커피|티백|차/.test(n))return '☕';
+    if(/드라이기/.test(n))return '💨';
+    if(/슬리퍼/.test(n))return '🥿';
+    return '📦';
+  }
+
+  let chkRoomId=null;
+  const CHK_PRESETS=['수건','토퍼','베개','이불','생수','샴푸','바디워시','린스','치약','칫솔','휴지','물티슈','수세미','세제','커피','티백','슬리퍼','드라이기'];
+
+  function openChk(roomId){
+    const room=(state.rooms||[]).find(r=>String(r.id)===String(roomId));
+    if(!room)return toast('객실을 찾을 수 없어요');
+    chkRoomId=roomId;
+    $('#chkTitle').textContent='📦 '+(roomTitleOf(room.name)||room.name);
+    if($('#chkAddName'))$('#chkAddName').value='';
+    // 처음 열면 자주 쓰는 품목을 기본으로 깔아둡니다
+    if(!Array.isArray(room.checkItems)||!room.checkItems.length){
+      room.checkItems=['수건','토퍼','생수','샴푸','바디워시','치약','칫솔','휴지','커피','티백']
+        .map(n=>({name:n, qty:0, need:false}));
+      save();
+    }
+    renderChkList();
+    openModal('chkModal');
+  }
+
+  function chkRoom(){ return (state.rooms||[]).find(r=>String(r.id)===String(chkRoomId)); }
+
+  function renderChkList(){
+    const box=$('#chkList'); if(!box)return;
+    const room=chkRoom(); if(!room)return;
+    const list=Array.isArray(room.checkItems)?room.checkItems:[];
+    const needCnt=list.filter(x=>x.need).length;
+
+    let html='';
+    if(needCnt){
+      html+='<div style="background:#F0DEDA;border:1px solid #E4C7C1;border-radius:12px;padding:10px 12px;margin-bottom:9px;">'+
+        '<b style="font-size:12px;color:#7E4A42;">채울 것 '+needCnt+'개</b>'+
+        '<div style="font-size:11px;color:#9A5F55;margin-top:3px;">'+esc(list.filter(x=>x.need).map(x=>x.name+(x.qty?' '+x.qty:'')).join(', '))+'</div></div>';
+    }
+
+    html+=list.map((s,i)=>{
+      const on=!!s.need;
+      return '<div style="display:flex;align-items:center;gap:9px;padding:10px 11px;border:1px solid '+(on?'#E4C7C1':'var(--line)')+
+        ';border-radius:12px;margin-bottom:6px;background:'+(on?'#FBF0EE':'#FFFFFF')+';">'+
+        '<button data-chk-toggle="'+i+'" style="width:26px;height:26px;border-radius:8px;border:2px solid '+(on?'#9A5F55':'var(--line)')+
+          ';background:'+(on?'#9A5F55':'#FFFFFF')+';color:#FFFFFF;font-size:14px;font-weight:900;line-height:1;flex-shrink:0;">'+(on?'✓':'')+'</button>'+
+        '<span style="font-size:16px;">'+esc(supplyIcon(s.name))+'</span>'+
+        '<b style="flex:1;font-size:13px;color:'+(on?'#7E4A42':'var(--ink)')+';">'+esc(s.name)+'</b>'+
+        '<button data-chk-minus="'+i+'" style="width:30px;height:30px;border:1px solid var(--line);background:#F7F8F4;border-radius:8px;font-size:15px;font-weight:900;color:var(--sub);">−</button>'+
+        '<b style="min-width:30px;text-align:center;font-size:14px;">'+(Number(s.qty||0)||'')+'</b>'+
+        '<button data-chk-plus="'+i+'" style="width:30px;height:30px;border:1px solid var(--line);background:#F7F8F4;border-radius:8px;font-size:15px;font-weight:900;color:var(--navy);">＋</button>'+
+        '<button data-chk-del="'+i+'" style="border:0;background:transparent;color:var(--muted);font-size:16px;padding:0 2px;">×</button>'+
+      '</div>';
+    }).join('');
+
+    // 빠른 추가 버튼
+    const have=list.map(x=>x.name);
+    const rest=CHK_PRESETS.filter(n=>have.indexOf(n)<0);
+    if(rest.length){
+      html+='<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;">'+
+        rest.map(n=>'<button data-chk-preset="'+esc(n)+'" style="border:1px solid var(--line);background:#FFFFFF;border-radius:99px;padding:6px 11px;font-size:11px;font-weight:700;color:var(--sub);">＋ '+esc(n)+'</button>').join('')+
+      '</div>';
+    }
+    box.innerHTML=html;
+  }
+
+  function saveChk(fn){
+    const room=chkRoom(); if(!room)return;
+    if(!Array.isArray(room.checkItems))room.checkItems=[];
+    fn(room.checkItems);
+    save(); renderChkList();
+  }
+
+  function addChkItem(name){
+    name=(name||'').trim(); if(!name)return toast('품목 이름을 넣어주세요');
+    saveChk(list=>{
+      if(list.find(x=>x.name===name))return;
+      list.push({name:name, qty:0, need:false});
+    });
+    if($('#chkAddName'))$('#chkAddName').value='';
+  }
+
+  // 💬 체크한 품목을 카톡으로
+  function sendChkMsg(){
+    const room=chkRoom(); if(!room)return;
+    const list=(room.checkItems||[]).filter(x=>x.need);
+    if(!list.length)return toast('채울 품목을 먼저 체크해주세요');
+    const L=['📦 '+(roomTitleOf(room.name)||room.name)+' 비품 요청',''];
+    if(room.doorPw||room.supplyPw)L.push('🔑 도어락 '+(room.doorPw||'-')+(room.supplyPw?'   📦 비품함 '+room.supplyPw:''));
+    L.push('━━━━━━━━━━━━━━');
+    list.forEach(s=>L.push(supplyIcon(s.name)+' '+s.name+(s.qty?'   '+s.qty+'개':'')));
+    L.push('━━━━━━━━━━━━━━');
+    L.push('총 '+list.length+'개 품목');
+    L.push('');
+    L.push('※ 채워주시면 확인 부탁드려요 🙏');
+    shareText(L.join('\n'));
+  }
+
+  function clearChk(){
+    saveChk(list=>{ list.forEach(x=>{x.need=false;}); });
+    toast('체크를 해제했어요');
+  }
+
   function openSupply(id=''){
     const x=(state.supplies||[]).find(s=>s.id===id);
     $('#supplyEditId').value=id;
@@ -3539,6 +4054,90 @@ h1,h2,h3{color:var(--n-ink)}
   /* ═══════════ 📊 펜트하우스 관리비 현황 + 🎁 인센티브 ═══════════ */
 
   // 이번 달 청소 건수를 보고 50건·350만원 상한에 얼마나 가까운지 알려줍니다
+
+  /* 🏢 펜트하우스 4객실 통합 현황
+     · 객실별 청소 건수를 한 곳에서 보고
+     · 월 정액에 포함된 객실인데 요금이 붙어 있으면 잡아냅니다 (이중 계산 방지) */
+  function renderPentBoard(){
+    const box=$('#pentBoard'); if(!box)return;
+    const cfg=loadMF();
+    const branch=(cfg&&cfg.branch)?cfg.branch:'펜트하우스';
+    const rooms=(state.rooms||[]).filter(r=>!r.archived&&r.branch===branch);
+    if(!rooms.length){box.innerHTML='';return;}
+
+    const mKey=currentYM();
+    const inMonth=(state.transactions||[]).filter(t=>
+      t.type==='income' && !t.autoFee && !t.checkinOnly && t.status!=='cancelled' &&
+      (t.billingMonth||(t.date||'').slice(0,7))===mKey &&
+      rooms.some(r=>String(r.id)===String(t.targetId))
+    );
+
+    const BASE=cfg?(cfg.baseCount||50):50;
+    const total=inMonth.length;
+
+    // 객실별 집계 + 요금이 잘못 붙은 건 찾기
+    let wrongAmt=0, wrongSum=0;
+    const rows=rooms.map(r=>{
+      const list=inMonth.filter(t=>String(t.targetId)===String(r.id));
+      const bad=list.filter(t=>Number(t.netAmount||t.amount||0)>0);
+      wrongAmt+=bad.length;
+      wrongSum+=bad.reduce((a,b)=>a+Number(b.netAmount||b.amount||0),0);
+      const done=list.filter(t=>t.status==='done').length;
+      const pct=total?Math.round(list.length/total*100):0;
+      return {room:r, cnt:list.length, done:done, pct:pct, bad:bad.length};
+    }).sort((a,b)=>b.cnt-a.cnt);
+
+    let html='<div style="background:#FFFFFF;border:1px solid var(--line);border-radius:16px;padding:13px;margin-top:11px;">';
+    html+='<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;">'+
+      '<b style="font-size:13px;">🏢 '+esc(branch)+' 통합 현황</b>'+
+      '<span style="font-size:11px;color:var(--muted);">이번 달 합계 <b style="color:var(--navy);font-size:13px;">'+total+'건</b> / '+BASE+'건</span></div>';
+
+    rows.forEach(x=>{
+      html+='<div style="margin-bottom:9px;">'+
+        '<div style="display:flex;align-items:baseline;gap:6px;font-size:12px;margin-bottom:4px;">'+
+          '<b style="flex:1;">'+esc(roomTitleOf(x.room.name)||x.room.name)+'</b>'+
+          (x.bad?'<span style="background:#F0DEDA;color:#9A5F55;border-radius:6px;padding:2px 6px;font-size:9px;font-weight:900;">요금 '+x.bad+'건</span>':'')+
+          '<span style="color:var(--muted);">완료 '+x.done+'</span>'+
+          '<b style="min-width:34px;text-align:right;">'+x.cnt+'건</b>'+
+        '</div>'+
+        '<div style="height:7px;background:#EBEBE8;border-radius:99px;overflow:hidden;">'+
+          '<div style="height:100%;width:'+x.pct+'%;background:var(--navy);border-radius:99px;"></div>'+
+        '</div></div>';
+    });
+
+    // ⚠️ 월 정액인데 건별 요금이 붙어 있으면 경고 + 한 번에 정리
+    if(wrongAmt){
+      html+='<div style="margin-top:10px;background:#F0DEDA;border:1px solid #E4C7C1;border-radius:12px;padding:10px 11px;">'+
+        '<b style="font-size:11px;color:#7E4A42;">⚠️ 월 정액인데 건별 요금이 붙은 기록 '+wrongAmt+'건 ('+money(wrongSum)+')</b>'+
+        '<div style="font-size:10px;color:#9A5F55;margin-top:3px;line-height:1.5;">관리비와 이중으로 잡혀서 수입이 실제보다 많게 보여요.</div>'+
+        '<button id="pentFixAmt" style="width:100%;margin-top:8px;border:0;background:#9A5F55;color:#FFFFFF;border-radius:9px;padding:9px;font-size:11px;font-weight:800;">🧹 모두 0원으로 정리하기</button>'+
+      '</div>';
+    }else{
+      html+='<div style="margin-top:6px;font-size:10px;color:var(--muted);text-align:center;">✅ 4객실 모두 월 정액으로 정상 처리 중</div>';
+    }
+    html+='</div>';
+    box.innerHTML=html;
+  }
+
+  // 잘못 붙은 요금을 0원으로 정리 (결제 완료 건은 건드리지 않음)
+  function pentFixAmount(){
+    const cfg=loadMF();
+    const branch=(cfg&&cfg.branch)?cfg.branch:'펜트하우스';
+    const mKey=currentYM();
+    let n=0, sum=0;
+    (state.transactions||[]).forEach(t=>{
+      if(t.type!=='income'||t.autoFee||t.checkinOnly)return;
+      if(t.branch!==branch)return;
+      if((t.billingMonth||(t.date||'').slice(0,7))!==mKey)return;
+      if(t.paid)return;   // 이미 입금된 건은 보호
+      const amt=Number(t.netAmount||t.amount||0);
+      if(amt>0){ sum+=amt; t.amount=0; t.netAmount=0; t.taxAmount=0; n++; }
+    });
+    if(!n)return toast('정리할 항목이 없어요');
+    save(); render();
+    toast('🧹 '+n+'건 정리 · '+money(sum)+' 제외');
+  }
+
   function renderMFGauge(){
     const box=$('#mfGauge'); if(!box)return;
     const cfg=loadMF();
@@ -4188,6 +4787,31 @@ h1,h2,h3{color:var(--n-ink)}
   document.addEventListener('click',function(ev){
     if(ev.target.closest('#icalChangeBtn')){showIcalChanges();return;}
     if(ev.target.closest('#icalClearBadges')){clearIcalBadges();return;}
+    if(ev.target.closest('#pentFixAmt')){pentFixAmount();return;}
+    const cg=ev.target.closest('[data-change-guide]');
+    if(cg){ev.stopPropagation();showChangeGuide(cg.dataset.changeGuide);return;}
+    // 📦 비품 체크
+    const co=ev.target.closest('[data-chk-room]');
+    if(co){openChk(co.dataset.chkRoom);return;}
+    const ct=ev.target.closest('[data-chk-toggle]');
+    if(ct){const i=+ct.dataset.chkToggle;saveChk(l=>{if(l[i])l[i].need=!l[i].need;});return;}
+    const cp=ev.target.closest('[data-chk-plus]');
+    if(cp){const i=+cp.dataset.chkPlus;saveChk(l=>{if(l[i])l[i].qty=Number(l[i].qty||0)+1;});return;}
+    const cm=ev.target.closest('[data-chk-minus]');
+    if(cm){const i=+cm.dataset.chkMinus;saveChk(l=>{if(l[i]&&Number(l[i].qty||0)>0)l[i].qty=Number(l[i].qty)-1;});return;}
+    const cd=ev.target.closest('[data-chk-del]');
+    if(cd){const i=+cd.dataset.chkDel;saveChk(l=>{l.splice(i,1);});return;}
+    const cpre=ev.target.closest('[data-chk-preset]');
+    if(cpre){addChkItem(cpre.dataset.chkPreset);return;}
+    if(ev.target.closest('#chkAdd')){addChkItem($('#chkAddName')?$('#chkAddName').value:'');return;}
+    if(ev.target.closest('#chkSend')){sendChkMsg();return;}
+    if(ev.target.closest('#chkClear')){clearChk();return;}
+    const sm=ev.target.closest('[data-staff-msg]');
+    if(sm){ev.stopPropagation();staffPayMsg(sm.dataset.staffMsg);return;}
+    const sp=ev.target.closest('[data-staff-paid]');
+    if(sp){ev.stopPropagation();markStaffPaid(sp.dataset.staffPaid);return;}
+    const sr=ev.target.closest('[data-staff-report]');
+    if(sr){allStaffPayMsg(sr.dataset.staffReport);return;}
     // 📅 날짜 칸을 누르면 앱 달력 열기 (폰 기본 달력 대신)
     const di=ev.target.closest('input[type="date"]');
     if(di){ ev.preventDefault(); di.blur(); openDatePicker(di); return; }
@@ -4232,6 +4856,17 @@ h1,h2,h3{color:var(--n-ink)}
   const tti=$('#txTargetInput');if(tti)tti.addEventListener('change',()=>{const r=$('#payRateInput');if(r)r.value='';updatePayCalc();});
   ['#payQtyInput','#payRateInput'].forEach(s=>{const el=$(s);if(el)el.addEventListener('input',calcPay);});
   // 📅 월별 정산 이벤트
+  // 🗓 주별 정산 이벤트
+  {const wp=$('#wPrev');if(wp)wp.addEventListener('click',()=>{weekStart=addDays(weekStart||mondayOf(today()),-7);renderWeekly();});}
+  {const wn=$('#wNext');if(wn)wn.addEventListener('click',()=>{weekStart=addDays(weekStart||mondayOf(today()),7);renderWeekly();});}
+  {const wt=$('#wThis');if(wt)wt.addEventListener('click',()=>{weekStart=mondayOf(today());renderWeekly();toast('이번 주로 이동');});}
+  {const wr=$('#wRoomSel');if(wr)wr.addEventListener('change',()=>{weekRoomId=wr.value;renderWeekly();});}
+  document.addEventListener('click',function(ev){
+    if(ev.target.closest('[data-week-msg]')){weekPayMsg();return;}
+    if(ev.target.closest('[data-week-paid]')){weekMarkPaid();return;}
+    const wj=ev.target.closest('[data-week-jump]');
+    if(wj){weekStart=wj.dataset.weekJump;renderWeekly();window.scrollTo({top:0,behavior:'smooth'});return;}
+  });
   const mp=$('#mPrev');if(mp)mp.addEventListener('click',()=>{settleMonth=shiftMonth(settleMonth,-1);renderMonthly();});
   const mn=$('#mNext');if(mn)mn.addEventListener('click',()=>{settleMonth=shiftMonth(settleMonth,1);renderMonthly();});
   const mt=$('#mThis');if(mt)mt.addEventListener('click',()=>{settleMonth=currentYM();renderMonthly();toast('이번 달로 이동');});
