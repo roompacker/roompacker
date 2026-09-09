@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v13.0</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v13.2</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -861,11 +861,16 @@ h1,h2,h3{color:var(--n-ink)}
         </div>
         <div style="margin-top:7px;"><label style="font-size:9px;color:var(--sub);font-weight:800;">입실일 <span style="color:#B8A06A;">(공실 안내 계산 기준)</span></label><div style="display:flex;gap:6px;margin-top:3px;"><input type="date" id="txInDate" style="flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;"><button type="button" id="txClearIn" style="flex-shrink:0;border:1px solid #F0D9A8;background:#FFF4DE;color:#C4922E;border-radius:10px;padding:0 11px;font-size:10px;font-weight:800;">입실 취소</button></div></div>
         <label style="font-size:9px;color:var(--sub);font-weight:800;">준비물 (토퍼·수건 등)</label>
-        <input type="text" id="txInSupplies" placeholder="예: 토퍼1, 수건3세트" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;">
+        <input type="text" id="txInSupplies" placeholder="비워두면 아래대로 자동 준비" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;">
       </div>
     </div>
 
-    <div class="field"><label>메모 · 특이사항 <span style="color:var(--muted);font-weight:400;">(작업자/호스트에겐 안 보임)</span></label><input type="text" id="txMemoInput" placeholder="예: 추가요금 5,000원 / 분실물 보관 / 파손 확인" /></div>
+    <div class="field"><label>메모 · 특이사항 <span style="color:var(--muted);font-weight:400;">(작업자/호스트에겐 안 보임)</span></label><input type="text" id="txMemoInput" placeholder="예: 추가요금 5,000원 / 분실물 보관 / 파손 확인" />
+        <div id="txAutoPrep" style="display:none;background:#E4EBF1;border-radius:10px;padding:9px 11px;margin-top:6px;">
+          <div style="font-size:9px;color:var(--navy);font-weight:800;margin-bottom:3px;">🛒 자동 계산 결과</div>
+          <div id="txAutoPrepText" style="font-size:12px;font-weight:700;color:var(--ink);line-height:1.5;"></div>
+          <button type="button" id="txUseAuto" style="width:100%;margin-top:7px;border:1px solid #C6D6E2;background:#FFFFFF;color:var(--navy);border-radius:8px;padding:7px;font-size:10px;font-weight:800;">이 내용으로 채우기</button>
+        </div></div>
     <div class="field"><label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="txPaidInput" style="width:18px;height:18px" /> <span id="txPaidText">입금 완료</span></label></div>
     <div class="twocol"><button class="secondary danger" id="deleteTx" style="display:none">삭제</button><button class="primary" id="saveTx">저장</button></div>
   </div>
@@ -1468,6 +1473,52 @@ h1,h2,h3{color:var(--n-ink)}
 
   /* 🧺 수건 상한
      연박이거나 인원이 많아도 수건은 한 번에 20개까지만 준비합니다. */
+
+  /* ═══════════ 🛒 준비물 표준 계산 (단일 규칙) ═══════════
+     여러 곳에서 제각각 계산하던 것을 이 함수 하나로 통일했습니다.
+
+       수건     = 인원 × 2 × 박수   (최대 20장)
+       쇼파베드 = 기준 초과 인원     (1인용)
+       퀸토퍼   = 초과 인원 ÷ 2 올림 (2인용)
+
+     쇼파베드/퀸토퍼 중 무엇을 쓰는지는 객실 이름·설정에서 자동으로 판단합니다.
+     (이름에 '퀸토퍼'가 있으면 퀸토퍼, '쇼파베드'가 있으면 쇼파베드) */
+  const TOWEL_LIMIT=20;
+
+  function extraBedType(room){
+    const src=String((room&&room.name)||'')+' '+String((room&&room.extraSetup)||'');
+    if(/퀸토퍼|퀸 토퍼/.test(src))return 'queen';
+    if(/쇼파베드|소파베드/.test(src))return 'sofa';
+    return '';   // 정보가 없으면 추가 침구 없음
+  }
+
+  function standardPrep(room, guests, nights){
+    const g=Number(guests||0), n=Number(nights||0);
+    if(!g||!n)return '';
+    const items=[];
+
+    // ① 수건 — 인원 × 2 × 박수, 최대 20장
+    const towel=Math.min(g*2*n, TOWEL_LIMIT);
+    items.push('수건'+towel);
+
+    // ② 추가 침구 — 기준 인원을 넘을 때만
+    const base=Number((room&&room.baseGuests)||0);
+    const over=(base&&g>base)?(g-base):0;
+    if(over>0){
+      const type=extraBedType(room);
+      if(type==='queen')items.push('퀸토퍼'+Math.ceil(over/2));
+      else if(type==='sofa')items.push('쇼파베드'+over);
+    }
+
+    // ③ 객실에 따로 적어둔 기본 셋팅 중 수건·침구 외 품목은 그대로 유지
+    parseSetupParts(room&&room.baseSetup||'').forEach(p=>{
+      if(/수건|타월|토퍼|쇼파베드|소파베드/.test(p.name))return;
+      items.push(p.name+(p.qty!=null?p.qty:''));
+    });
+
+    return items.join(', ');
+  }
+
   const TOWEL_MAX=20;
   function isTowel(name){ return /수건|타월/.test(String(name||'')); }
   function capQty(name, qty){
@@ -1721,16 +1772,8 @@ h1,h2,h3{color:var(--n-ink)}
       /* 준비물 결정 순서
          ① 이 예약에 직접 적어둔 준비물이 있으면 그것을 우선 사용
          ② 없으면 객실의 '기본 셋팅 + 초과당 추가'를 합산해서 자동 계산 */
-      let prepText='';
-      if(t.inSupplies){
-        prepText=t.inSupplies;
-        if(over>0){
-          const auto=calcExtraSetup(room.extraSetup||'', over);
-          if(auto)prepText=mergeSetup(t.inSupplies, room.extraSetup||'', over);
-        }
-      }else{
-        prepText=mergeSetup(room.baseSetup||'', room.extraSetup||'', over);
-      }
+      // 직접 적어둔 게 있으면 그것을, 없으면 표준 계산 결과를 씁니다
+      const prepText=(t.inSupplies||'').trim() || standardPrep(room, t.inGuests, t.inNights);
       L.push('');
       if(prepText){
         L.push('🛒 셋팅할 것  ('+t.inNights+'박 '+(t.inGuests||'-')+'명'+(over>0?' · 초과 '+over+'명 포함':'')+')');
@@ -2380,7 +2423,7 @@ h1,h2,h3{color:var(--n-ink)}
       const g=Number(t.inGuests||0);
       if(!base||g<=base)return;               // 초과 인원이 아니면 통과
       const over=g-base;
-      const should=mergeSetup(room.baseSetup||'', room.extraSetup||'', over);
+      const should=standardPrep(room, g, t.inNights);
       const nowText=(t.inSupplies||'').trim();
       if(!nowText){
         // 준비물을 아예 안 적었으면 자동 계산으로 채워지므로 경고 대상 아님
@@ -2644,7 +2687,7 @@ h1,h2,h3{color:var(--n-ink)}
       L.push('  입실  '+(t.inDate?fd(t.inDate)+' ':'')+t.inNights+'박 '+(t.inGuests||'-')+'명 '+(t.inTime||''));
       const base=Number(room.baseGuests||0), g=Number(t.inGuests||0);
       if(base&&g>base){
-        const need=mergeSetup(room.baseSetup||'', room.extraSetup||'', g-base);
+        const need=standardPrep(room, g, t.inNights);
         L.push('  셋팅  '+(need||'-')+'   ('+(g-base)+'명 초과)');
       }else if(t.inSupplies){
         L.push('  셋팅  '+t.inSupplies);
@@ -3817,6 +3860,7 @@ h1,h2,h3{color:var(--n-ink)}
     $$('.typebtn').forEach(b=>b.classList.toggle('active',b.dataset.type===txType));$('#txTargetLabel').textContent=txType==='income'?'객실':'직원';$('#txPaidText').textContent=txType==='income'?'입금 완료':'지급 완료';$('#txModalTitle').textContent=txType==='income'?'청소 수입 등록':'직원 지출 등록';
     var schedBox=$('#txScheduleBox'); if(schedBox) schedBox.style.display = txType==='income' ? 'block' : 'none';
     try{ renderTxStaffPicks(); }catch(e){ console.error('staffPicks',e); }
+    try{ updateAutoPrep(); }catch(e){}
     const branch=$('#txBranchInput').value,list=(txType==='income'?state.rooms:state.staff).filter(x=>x.branch===branch&&!x.archived);$('#txTargetInput').innerHTML='<option value="">선택하세요</option>'+list.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
     updatePayCalc();
   }
@@ -3824,6 +3868,28 @@ h1,h2,h3{color:var(--n-ink)}
   /* 💰 급여 자동계산
      직원을 고르면 그 직원의 급여 방식(건당/시간/당일/월급)에 맞춰
      '건수' 또는 '시간'을 입력받아 금액을 자동으로 채웁니다 */
+
+  /* 🛒 준비물 자동 계산 미리보기 */
+  function updateAutoPrep(){
+    const box=$('#txAutoPrep'), txt=$('#txAutoPrepText');
+    if(!box||!txt)return;
+    const room=(state.rooms||[]).find(r=>String(r.id)===String($('#txTargetInput')?$('#txTargetInput').value:''));
+    const nights=$('#txInNights')?$('#txInNights').value:'';
+    if(!room||!nights){box.style.display='none';return;}
+    const base=Number(room.baseGuests||0);
+    const g=Number($('#txInGuests')?$('#txInGuests').value:0);
+    const over=(base&&g>base)?(g-base):0;
+    const auto=standardPrep(room, g, nights);
+    if(!auto){box.style.display='none';return;}
+    box.style.display='block';
+    box.dataset.auto=auto;
+    const towelRaw=g*2*Number(nights||0);
+    txt.innerHTML=esc(auto)+
+      '<div style="font-size:10px;color:var(--sub);font-weight:600;margin-top:3px;">'+
+      '수건 '+g+'명×2×'+nights+'박'+(towelRaw>20?' = '+towelRaw+' → 상한 20장':'')+
+      (over>0?' · 초과 '+over+'명 추가침구':'')+'</div>';
+  }
+
   function updatePayCalc(){
     const box=$('#payCalcBox'); if(!box)return;
     if(txType!=='expense'){box.style.display='none';return;}
@@ -4735,7 +4801,11 @@ h1,h2,h3{color:var(--n-ink)}
       }
     });
     if(prevClean){
-      prevClean.inDate=ci; prevClean.inNights=String(nights); prevClean.inGuests=guests; prevClean.inTime=inTime; prevClean.inSupplies=supplies;
+      prevClean.inDate=ci; prevClean.inNights=String(nights);
+      if(guests)prevClean.inGuests=guests;
+      if(inTime)prevClean.inTime=inTime;
+      // 준비물은 적어둔 게 있을 때만 덮어씁니다 (빈 값으로 지워지는 것 방지)
+      if(supplies)prevClean.inSupplies=supplies;
       if(prevClean.date!==ci)attachMsg=' · '+prevClean.date.slice(5).replace('-','/')+' 청소에 입실예정 표시';
     }else{
       // 이전 청소 기록이 없으면(신규 객실 등) 입실일에 0원 셋팅 안내만 남깁니다
@@ -5022,6 +5092,13 @@ h1,h2,h3{color:var(--n-ink)}
   // 💰 급여 자동계산 이벤트
   const tti=$('#txTargetInput');if(tti)tti.addEventListener('change',()=>{const r=$('#payRateInput');if(r)r.value='';updatePayCalc();});
   ['#payQtyInput','#payRateInput'].forEach(s=>{const el=$(s);if(el)el.addEventListener('input',calcPay);});
+  ['#txInGuests','#txInNights','#txTargetInput'].forEach(s=>{
+    const el=$(s); if(el){el.addEventListener('input',updateAutoPrep);el.addEventListener('change',updateAutoPrep);}
+  });
+  {const ua=$('#txUseAuto');if(ua)ua.addEventListener('click',function(){
+    const b=$('#txAutoPrep'), inp=$('#txInSupplies');
+    if(b&&inp&&b.dataset.auto){ inp.value=b.dataset.auto; toast('🛒 준비물을 채웠어요'); }
+  });}
   // 📅 월별 정산 이벤트
   // 🗓 주별 정산 이벤트
   {const wp=$('#wPrev');if(wp)wp.addEventListener('click',()=>{weekStart=addDays(weekStart||mondayOf(today()),-7);renderWeekly();});}
