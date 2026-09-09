@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v13.7</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v13.8</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -2554,6 +2554,22 @@ h1,h2,h3{color:var(--n-ink)}
           issues.push({type:'backdate',id:t.id,
             msg:nm+' '+D(t.date)+' 입실일('+D(t.inDate)+')이 청소일보다 앞 → 입실 정보 정리'});
         }
+        /* ⑦ 입실일이 다음 청소 흐름과 안 맞는 경우
+           예) 9/12 청소인데 입실일이 9/13으로 하루 밀려 있음
+           → 다음 청소일에서 박수를 빼면 진짜 입실일이 나옵니다 */
+        if(t.inNights&&t.inDate){
+          const nx2=clean[i+1];
+          if(nx2&&nx2.outNights){
+            const d2=new Date(nx2.date+'T00:00:00');
+            d2.setDate(d2.getDate()-parseInt(nx2.outNights,10));
+            const realIn=d2.getFullYear()+'-'+String(d2.getMonth()+1).padStart(2,'0')+'-'+String(d2.getDate()).padStart(2,'0');
+            if(realIn!==t.inDate&&realIn>=t.date){
+              issues.push({type:'fixin',id:t.id,realIn:realIn,realN:nx2.outNights,
+                msg:nm+' '+D(t.date)+' 입실일 '+D(t.inDate)+' → '+D(realIn)+' 로 정정'});
+            }
+          }
+        }
+
         // ④ 다음 청소가 있는데 공실로 표시됨
         const next=clean[i+1];
         if(next&&!t.inNights){
@@ -2630,6 +2646,10 @@ h1,h2,h3{color:var(--n-ink)}
           inNights:'', inGuests:'', inTime:'', inSupplies:'',
           memo:'', paid:false, status:'booked', createdAt:Date.now(), autoGen:true
         });
+        n++; done.push(is.msg);
+      }else if(is.type==='fixin'){
+        t.inDate=is.realIn;
+        if(is.realN)t.inNights=String(is.realN);
         n++; done.push(is.msg);
       }else if(is.type==='pentamt'){
         t.amount=0; t.netAmount=0; t.taxAmount=0;
