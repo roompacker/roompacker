@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v13.2</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v13.3</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1475,49 +1475,63 @@ h1,h2,h3{color:var(--n-ink)}
      연박이거나 인원이 많아도 수건은 한 번에 20개까지만 준비합니다. */
 
   /* ═══════════ 🛒 준비물 표준 계산 (단일 규칙) ═══════════
-     여러 곳에서 제각각 계산하던 것을 이 함수 하나로 통일했습니다.
+     수건     = 인원 × 2 × 박수   (최대 20장)
+     추가침구 = 기준 인원을 넘는 만큼
+                · 쇼파베드 = 1인용 (있는 만큼 먼저 사용)
+                · 퀸토퍼   = 2인용 (쇼파베드가 모자라면 사용)
 
-       수건     = 인원 × 2 × 박수   (최대 20장)
-       쇼파베드 = 기준 초과 인원     (1인용)
-       퀸토퍼   = 초과 인원 ÷ 2 올림 (2인용)
-
-     쇼파베드/퀸토퍼 중 무엇을 쓰는지는 객실 이름·설정에서 자동으로 판단합니다.
-     (이름에 '퀸토퍼'가 있으면 퀸토퍼, '쇼파베드'가 있으면 쇼파베드) */
+     객실별 보유 현황 (2026.09 기준)
+       A3506 · A3709 : 침대2개(4명) + 쇼파베드 5개
+       C3606         : 침대2개(4명) + 퀸토퍼 3개
+       C3708         : 침대3개(6명) + 쇼파베드 2개 + 퀸토퍼 1개  */
   const TOWEL_LIMIT=20;
 
-  function extraBedType(room){
-    const src=String((room&&room.name)||'')+' '+String((room&&room.extraSetup)||'');
-    if(/퀸토퍼|퀸 토퍼/.test(src))return 'queen';
-    if(/쇼파베드|소파베드/.test(src))return 'sofa';
-    return '';   // 정보가 없으면 추가 침구 없음
+  // 객실 이름으로 보유 침구를 찾습니다 (호수로 판별)
+  function bedStock(room){
+    const nm=String((room&&room.name)||'');
+    if(/3506|3709/.test(nm))return {sofa:5, queen:0, base:4};
+    if(/3606/.test(nm))      return {sofa:0, queen:3, base:4};
+    if(/3708/.test(nm))      return {sofa:2, queen:1, base:6};
+    // 등록되지 않은 객실은 설정값에서 유추
+    const src=nm+' '+String((room&&room.extraSetup)||'');
+    return {
+      sofa:/쇼파베드|소파베드/.test(src)?99:0,
+      queen:/퀸토퍼/.test(src)?99:0,
+      base:Number((room&&room.baseGuests)||0)
+    };
   }
 
   function standardPrep(room, guests, nights){
     const g=Number(guests||0), n=Number(nights||0);
     if(!g||!n)return '';
+    const st=bedStock(room);
     const items=[];
 
     // ① 수건 — 인원 × 2 × 박수, 최대 20장
-    const towel=Math.min(g*2*n, TOWEL_LIMIT);
-    items.push('수건'+towel);
+    items.push('수건'+Math.min(g*2*n, TOWEL_LIMIT));
 
-    // ② 추가 침구 — 기준 인원을 넘을 때만
-    const base=Number((room&&room.baseGuests)||0);
-    const over=(base&&g>base)?(g-base):0;
+    // ② 추가 침구 — 쇼파베드(1인용) 먼저, 모자라면 퀸토퍼(2인용)
+    const base=st.base||Number((room&&room.baseGuests)||0);
+    let over=(base&&g>base)?(g-base):0;
     if(over>0){
-      const type=extraBedType(room);
-      if(type==='queen')items.push('퀸토퍼'+Math.ceil(over/2));
-      else if(type==='sofa')items.push('쇼파베드'+over);
+      const sofa=Math.min(over, st.sofa||0);      // 1인당 1개
+      if(sofa>0){ items.push('쇼파베드'+sofa); over-=sofa; }
+      if(over>0 && (st.queen||0)>0){
+        const queen=Math.min(Math.ceil(over/2), st.queen);   // 1개당 2명
+        if(queen>0){ items.push('퀸토퍼'+queen); over-=queen*2; }
+      }
+      if(over>0)items.push('※침구부족 '+over+'명');
     }
 
-    // ③ 객실에 따로 적어둔 기본 셋팅 중 수건·침구 외 품목은 그대로 유지
-    parseSetupParts(room&&room.baseSetup||'').forEach(p=>{
+    // ③ 객실에 적어둔 그 밖의 품목 (생수·커피 등)
+    parseSetupParts((room&&room.baseSetup)||'').forEach(p=>{
       if(/수건|타월|토퍼|쇼파베드|소파베드/.test(p.name))return;
       items.push(p.name+(p.qty!=null?p.qty:''));
     });
 
     return items.join(', ');
   }
+
 
   const TOWEL_MAX=20;
   function isTowel(name){ return /수건|타월/.test(String(name||'')); }
