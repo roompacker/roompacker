@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v13.3</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v13.4</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1511,7 +1511,8 @@ h1,h2,h3{color:var(--n-ink)}
     items.push('수건'+Math.min(g*2*n, TOWEL_LIMIT));
 
     // ② 추가 침구 — 쇼파베드(1인용) 먼저, 모자라면 퀸토퍼(2인용)
-    const base=st.base||Number((room&&room.baseGuests)||0);
+    // 기준 인원: 코드에 등록된 값을 우선 사용 (객실 설정이 비어 있어도 계산되게)
+    const base=st.base||Number((room&&room.baseGuests)||0)||0;
     let over=(base&&g>base)?(g-base):0;
     if(over>0){
       const sofa=Math.min(over, st.sofa||0);      // 1인당 1개
@@ -3890,7 +3891,8 @@ h1,h2,h3{color:var(--n-ink)}
     const room=(state.rooms||[]).find(r=>String(r.id)===String($('#txTargetInput')?$('#txTargetInput').value:''));
     const nights=$('#txInNights')?$('#txInNights').value:'';
     if(!room||!nights){box.style.display='none';return;}
-    const base=Number(room.baseGuests||0);
+    const st=bedStock(room);
+    const base=st.base||Number(room.baseGuests||0);
     const g=Number($('#txInGuests')?$('#txInGuests').value:0);
     const over=(base&&g>base)?(g-base):0;
     const auto=standardPrep(room, g, nights);
@@ -3901,6 +3903,7 @@ h1,h2,h3{color:var(--n-ink)}
     txt.innerHTML=esc(auto)+
       '<div style="font-size:10px;color:var(--sub);font-weight:600;margin-top:3px;">'+
       '수건 '+g+'명×2×'+nights+'박'+(towelRaw>20?' = '+towelRaw+' → 상한 20장':'')+
+      (base?' · 기준 '+base+'명':'')+
       (over>0?' · 초과 '+over+'명 추가침구':'')+'</div>';
   }
 
