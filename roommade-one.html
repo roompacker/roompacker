@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v13.6</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v13.7</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -2165,6 +2165,9 @@ h1,h2,h3{color:var(--n-ink)}
     bookings.forEach(bk=>{
       feedUids[bk.uid]=1;
       let clean=state.transactions.find(t=>t.type==='income'&&!t.checkinOnly&&t.targetId===roomId&&t.date===bk.co&&t.status!=='cancelled');
+      /* 예약번호가 아직 없는 기록(손으로 만든 것)에 번호를 붙여둡니다.
+         이래야 다음에 취소·날짜변경이 생겼을 때 앱이 알아볼 수 있어요. */
+      if(clean&&!clean.icalUid)clean.icalUid=bk.uid;
       if(clean){
         // 📝 에어비앤비 정보가 달라졌으면 자동으로 고칩니다 (박수는 예약의 사실이라 갱신)
         /* ⚠️ 무한 반복 방지
@@ -2279,11 +2282,18 @@ h1,h2,h3{color:var(--n-ink)}
 
     // ③ 취소된 예약 정리 — 에어비앤비에서 사라졌고, 아직 안 지난 미결제 자동생성 건만
     state.transactions=state.transactions.filter(t=>{
-      if(t.targetId!==roomId||!t.icalUid||!t.autoGen)return true;
+      // 에어비앤비 예약번호가 붙은 기록이면 (손으로 고친 것 포함) 취소 대상으로 봅니다
+      if(t.targetId!==roomId||!t.icalUid)return true;
       if(feedUids[t.icalUid])return true;
-      if(t.paid||t.status==='done'||t.date<td)return true;   // 이미 처리된 건 보존
+      if(t.paid||t.status==='done')return true;   // 이미 청소·정산 끝난 건만 보존
+      if((t.date||'')<td)return true;             // 지난 일정도 보존
       removed++;
-      changes.push('❌ '+shortName+'  '+fmtD(t.date)+' 청소 취소됨');
+      changes.push('❌ '+shortName+'  '+fmtD(t.date)+' 청소 취소됨 (에어비앤비에서 삭제)');
+      if((t.date||'')>=td){
+        // 취소 사실을 알리기 위해 기록만 남깁니다
+        state.icalCancelLog=state.icalCancelLog||[];
+        state.icalCancelLog.push({date:t.date,room:shortName,at:Date.now()});
+      }
       return false;
     });
 
