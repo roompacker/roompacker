@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v13.4</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v13.5</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -862,15 +862,16 @@ h1,h2,h3{color:var(--n-ink)}
         <div style="margin-top:7px;"><label style="font-size:9px;color:var(--sub);font-weight:800;">입실일 <span style="color:#B8A06A;">(공실 안내 계산 기준)</span></label><div style="display:flex;gap:6px;margin-top:3px;"><input type="date" id="txInDate" style="flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;"><button type="button" id="txClearIn" style="flex-shrink:0;border:1px solid #F0D9A8;background:#FFF4DE;color:#C4922E;border-radius:10px;padding:0 11px;font-size:10px;font-weight:800;">입실 취소</button></div></div>
         <label style="font-size:9px;color:var(--sub);font-weight:800;">준비물 (토퍼·수건 등)</label>
         <input type="text" id="txInSupplies" placeholder="비워두면 아래대로 자동 준비" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;">
-      </div>
-    </div>
-
-    <div class="field"><label>메모 · 특이사항 <span style="color:var(--muted);font-weight:400;">(작업자/호스트에겐 안 보임)</span></label><input type="text" id="txMemoInput" placeholder="예: 추가요금 5,000원 / 분실물 보관 / 파손 확인" />
         <div id="txAutoPrep" style="display:none;background:#E4EBF1;border-radius:10px;padding:9px 11px;margin-top:6px;">
           <div style="font-size:9px;color:var(--navy);font-weight:800;margin-bottom:3px;">🛒 자동 계산 결과</div>
           <div id="txAutoPrepText" style="font-size:12px;font-weight:700;color:var(--ink);line-height:1.5;"></div>
           <button type="button" id="txUseAuto" style="width:100%;margin-top:7px;border:1px solid #C6D6E2;background:#FFFFFF;color:var(--navy);border-radius:8px;padding:7px;font-size:10px;font-weight:800;">이 내용으로 채우기</button>
         </div></div>
+      </div>
+    </div>
+
+    <div class="field"><label>메모 · 특이사항 <span style="color:var(--muted);font-weight:400;">(작업자/호스트에겐 안 보임)</span></label><input type="text" id="txMemoInput" placeholder="예: 추가요금 5,000원 / 분실물 보관 / 파손 확인" />
+        
     <div class="field"><label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="txPaidInput" style="width:18px;height:18px" /> <span id="txPaidText">입금 완료</span></label></div>
     <div class="twocol"><button class="secondary danger" id="deleteTx" style="display:none">삭제</button><button class="primary" id="saveTx">저장</button></div>
   </div>
@@ -3876,6 +3877,7 @@ h1,h2,h3{color:var(--n-ink)}
     var schedBox=$('#txScheduleBox'); if(schedBox) schedBox.style.display = txType==='income' ? 'block' : 'none';
     try{ renderTxStaffPicks(); }catch(e){ console.error('staffPicks',e); }
     try{ updateAutoPrep(); }catch(e){}
+    setTimeout(function(){ try{ updateAutoPrep(); }catch(e){} }, 250);
     const branch=$('#txBranchInput').value,list=(txType==='income'?state.rooms:state.staff).filter(x=>x.branch===branch&&!x.archived);$('#txTargetInput').innerHTML='<option value="">선택하세요</option>'+list.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
     updatePayCalc();
   }
@@ -5112,6 +5114,7 @@ h1,h2,h3{color:var(--n-ink)}
   ['#txInGuests','#txInNights','#txTargetInput'].forEach(s=>{
     const el=$(s); if(el){el.addEventListener('input',updateAutoPrep);el.addEventListener('change',updateAutoPrep);}
   });
+  {const ic=$('#txInCancel');if(ic)ic.addEventListener('click',function(){setTimeout(updateAutoPrep,60);});}
   {const ua=$('#txUseAuto');if(ua)ua.addEventListener('click',function(){
     const b=$('#txAutoPrep'), inp=$('#txInSupplies');
     if(b&&inp&&b.dataset.auto){ inp.value=b.dataset.auto; toast('🛒 준비물을 채웠어요'); }
