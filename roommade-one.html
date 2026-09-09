@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v12.9</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v13.0</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -702,6 +702,8 @@ h1,h2,h3{color:var(--n-ink)}
           <!-- 📊 이번 달 관리비 현황 (50건 초과 · 350만원 상한 알림) -->
           <div id="mfGauge" style="margin-top:12px;"></div>
           <div id="pentBoard"></div>
+          <button id="auditBtn" style="width:100%;margin-top:11px;border:1px solid var(--line);background:#FFFFFF;color:var(--navy);border-radius:12px;padding:12px;font-size:12px;font-weight:800;">🩺 기록 검사하고 자동으로 고치기</button>
+          <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:5px;line-height:1.5;">중복·공실 오표기·빠진 청소를 찾아서 정리해요</div>
 
           <!-- 🎁 인센티브 기록 -->
           <div style="margin-top:14px;padding-top:13px;border-top:1px solid var(--line);">
@@ -2309,6 +2311,21 @@ h1,h2,h3{color:var(--n-ink)}
         if(cnt.d)parts.push('삭제 '+cnt.d);
         alertBeep(2);   // 🔔 알림음 + 진동
         toast('✅ 자동 반영 완료 · '+parts.join(' · '));
+        /* 🩺 동기화 뒤에는 기록이 어긋나기 쉬워요.
+           안전한 항목만 조용히 고치고, 무엇을 고쳤는지 알려줍니다. */
+        setTimeout(function(){
+          try{
+            const iss=auditRecords();
+            if(!iss.length)return;
+            const r=applyAudit(iss);
+            if(r.n){
+              const M=['🩺 어긋난 기록 '+r.n+'건을 자동으로 고쳤어요',''];
+              r.done.slice(0,12).forEach((d,i)=>M.push((i+1)+'. '+d));
+              if(r.done.length>12)M.push('… 외 '+(r.done.length-12)+'건');
+              alert(M.join('\n'));
+            }
+          }catch(e){console.error('audit',e);}
+        }, 1200);
       }else if(!silent){
         if(failed.length)toast('⚠️ '+failed.length+'개 객실 실패 — 아래 결과를 확인하세요');
         else toast('✅ 동기화 완료 · 바뀐 예약 없음');
@@ -2427,6 +2444,155 @@ h1,h2,h3{color:var(--n-ink)}
 
   /* ═══════════ 📋 변경 대응 안내 ═══════════
      예약이 바뀌었을 때 '무엇을 어떻게 고쳐야 하는지'를 구체적으로 알려줍니다. */
+
+  /* ═══════════ 🩺 기록 검사 · 자동 수정 ═══════════
+     공실 뒤 예약 유입·날짜 변경으로 어긋난 기록을 찾아 고칩니다.
+     이미 완료·입금된 기록과 지난 일정은 절대 건드리지 않아요. */
+  function auditRecords(){
+    const issues=[];
+    const td=today();
+    const alive=t=>t.type==='income'&&!t.checkinOnly&&t.status!=='cancelled';
+    const locked=t=>t.paid||t.status==='done'||(t.date||'')<td;
+
+    (state.rooms||[]).forEach(room=>{
+      const list=(state.transactions||[]).filter(t=>alive(t)&&String(t.targetId)===String(room.id))
+        .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+      const nm=roomTitleOf(room.name)||room.name;
+      const D=s=>String(s||'').slice(5).replace('-','/');
+
+      // ① 같은 날 중복 청소
+      const byDate={};
+      list.forEach(t=>{ (byDate[t.date]=byDate[t.date]||[]).push(t); });
+      Object.entries(byDate).forEach(([d,arr])=>{
+        if(arr.length>1){
+          const keep=arr.find(t=>locked(t))||arr[0];
+          arr.filter(t=>t!==keep&&!locked(t)).forEach(t=>{
+            issues.push({type:'dup',id:t.id,keepId:keep.id,
+              msg:nm+' '+D(d)+' 청소가 2건 → 중복 삭제'});
+          });
+        }
+      });
+
+      // 중복으로 삭제될 기록은 이후 검사에서 빼고 봅니다 (중복 경고 방지)
+      const willDelete={};
+      issues.forEach(x=>{ if(x.type==='dup')willDelete[x.id]=1; });
+      const clean=list.filter(t=>!willDelete[t.id]);
+
+      clean.forEach((t,i)=>{
+        if(locked(t))return;
+        // ② 입실일이 청소일보다 앞 (거꾸로)
+        if(t.inDate&&t.inDate<t.date){
+          issues.push({type:'backdate',id:t.id,
+            msg:nm+' '+D(t.date)+' 입실일('+D(t.inDate)+')이 청소일보다 앞 → 입실 정보 정리'});
+        }
+        // ④ 다음 청소가 있는데 공실로 표시됨
+        const next=clean[i+1];
+        if(next&&!t.inNights){
+          issues.push({type:'gap',id:t.id,nextId:next.id,
+            msg:nm+' '+D(t.date)+' 공실 표시인데 '+D(next.date)+' 청소 있음 → 입실 정보 연결'});
+        }
+        // ⑤ 입실 정보는 있는데 그 손님 퇴실 청소가 없음
+        if(t.inNights){
+          const ci=t.inDate||t.date;
+          const dd=new Date(ci+'T00:00:00'); dd.setDate(dd.getDate()+parseInt(t.inNights,10));
+          const co=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0');
+          if(co>=td&&!clean.find(x=>x.date===co)){
+            issues.push({type:'nocheckout',id:t.id,coDate:co,
+              msg:nm+' '+D(ci)+' 입실 '+t.inNights+'박 → '+D(co)+' 청소 일정 생성'});
+          }
+        }
+        // ⑥ 펜트하우스 건별 요금
+        if(room.branch==='펜트하우스'&&!t.autoFee&&Number(t.netAmount||t.amount||0)>0){
+          issues.push({type:'pentamt',id:t.id,
+            msg:nm+' '+D(t.date)+' 월 정액인데 요금 '+money(t.netAmount||t.amount)+' → 0원 정리'});
+        }
+      });
+
+      // ③ 같은 입실일을 두 기록이 가리킴
+      const byIn={};
+      list.forEach(t=>{ if(t.inDate)(byIn[t.inDate]=byIn[t.inDate]||[]).push(t); });
+      Object.entries(byIn).forEach(([d,arr])=>{
+        if(arr.length>1){
+          const keep=arr.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
+          arr.filter(t=>t!==keep&&!locked(t)).forEach(t=>{
+            issues.push({type:'dupin',id:t.id,
+              msg:nm+' '+D(t.date)+'와 '+D(keep.date)+'가 같은 입실일 안내 → 중복 정리'});
+          });
+        }
+      });
+    });
+    return issues;
+  }
+
+  function applyAudit(issues){
+    let n=0; const done=[];
+    issues.forEach(is=>{
+      const t=(state.transactions||[]).find(x=>x.id===is.id);
+      if(!t)return;
+      if(is.type==='dup'){
+        const keep=(state.transactions||[]).find(x=>x.id===is.keepId);
+        if(keep){
+          if(!keep.outNights&&t.outNights)keep.outNights=t.outNights;
+          if(!keep.outGuests&&t.outGuests)keep.outGuests=t.outGuests;
+          if(!keep.inNights&&t.inNights){keep.inNights=t.inNights;keep.inDate=t.inDate;keep.inGuests=t.inGuests;keep.inTime=t.inTime;}
+          if(!keep.memo&&t.memo)keep.memo=t.memo;
+        }
+        state.transactions=state.transactions.filter(x=>x.id!==is.id);
+        n++; done.push(is.msg);
+      }else if(is.type==='backdate'||is.type==='dupin'){
+        t.inDate=''; t.inNights=''; t.inGuests=''; t.inTime=''; t.inSupplies='';
+        n++; done.push(is.msg);
+      }else if(is.type==='gap'){
+        const nx=(state.transactions||[]).find(x=>x.id===is.nextId);
+        if(nx){
+          t.inDate=nx.date; t.inNights=nx.outNights||'1';
+          if(nx.outGuests)t.inGuests=nx.outGuests;
+          if(!t.inTime)t.inTime='16:00';
+          n++; done.push(is.msg);
+        }
+      }else if(is.type==='nocheckout'){
+        const room=(state.rooms||[]).find(r=>String(r.id)===String(t.targetId))||{};
+        const amt=room.branch==='펜트하우스'?0:(room.price||0);
+        state.transactions.push({
+          id:uid('tx'), date:is.coDate, billingMonth:ym(is.coDate), type:'income',
+          targetId:t.targetId, targetName:t.targetName, branch:t.branch,
+          amount:amt, taxRate:room.tax||0, taxAmount:0, netAmount:amt,
+          outNights:t.inNights, outGuests:t.inGuests||'', outTime:'11:00', outSupplies:'',
+          inNights:'', inGuests:'', inTime:'', inSupplies:'',
+          memo:'', paid:false, status:'booked', createdAt:Date.now(), autoGen:true
+        });
+        n++; done.push(is.msg);
+      }else if(is.type==='pentamt'){
+        t.amount=0; t.netAmount=0; t.taxAmount=0;
+        n++; done.push(is.msg);
+      }
+    });
+    if(n){ save(); render(); }
+    return {n,done};
+  }
+
+  function runAudit(){
+    const issues=auditRecords();
+    if(!issues.length){
+      try{alertBeep(1);}catch(e){}
+      alert('✅ 기록 검사 완료\n\n이상한 기록이 없어요.\n모든 일정이 정상입니다.');
+      return;
+    }
+    const L=['🩺 기록 검사 — '+issues.length+'건 발견',''];
+    issues.slice(0,15).forEach((is,i)=>L.push((i+1)+'. '+is.msg));
+    if(issues.length>15)L.push('… 외 '+(issues.length-15)+'건');
+    L.push('','━━━━━━━━━━━━━━','자동으로 고칠까요?','※ 완료·입금된 기록과 지난 일정은 건드리지 않아요');
+    try{alertBeep(2);}catch(e){}
+    if(confirm(L.join('\n'))){
+      const r=applyAudit(issues);
+      const M=['✅ '+r.n+'건 자동 수정 완료',''];
+      r.done.slice(0,15).forEach((d,i)=>M.push((i+1)+'. '+d));
+      if(r.done.length>15)M.push('… 외 '+(r.done.length-15)+'건');
+      M.push('','일정 탭에서 확인해주세요.');
+      alert(M.join('\n'));
+    }
+  }
+
   function changeGuide(t){
     const room=(state.rooms||[]).find(r=>String(r.id)===String(t.targetId))||{};
     const nm=roomTitleOf(t.targetName||room.name)||'객실';
@@ -4788,6 +4954,7 @@ h1,h2,h3{color:var(--n-ink)}
     if(ev.target.closest('#icalChangeBtn')){showIcalChanges();return;}
     if(ev.target.closest('#icalClearBadges')){clearIcalBadges();return;}
     if(ev.target.closest('#pentFixAmt')){pentFixAmount();return;}
+    if(ev.target.closest('#auditBtn')){runAudit();return;}
     const cg=ev.target.closest('[data-change-guide]');
     if(cg){ev.stopPropagation();showChangeGuide(cg.dataset.changeGuide);return;}
     // 📦 비품 체크
