@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>룸메이드 입지분석</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* ============================================
+   1. 색상 토큰
+   화면 껍데기는 차분한 남보라, 데이터는 뜨거운 색
+   빨강 = 좋음 / 회청 = 나쁨
+   ============================================ */
+:root{
+  --bg:#F5F4F8;
+  --card:#FFFFFF;
+  --ink:#1C1830;
+  --muted:#6B6480;
+  --line:#E3DFEB;
+  --brand:#3A2D5C;
+  --hot4:#D81E3F;
+  --hot3:#F26522;
+  --hot2:#E9B21A;
+  --hot1:#8FA1B3;
+  --hot0:#7E8FA3;
+  --good:#0F7A6B;
+  --warn:#B4552A;
+  --bad:#A8264B;
+  --radius:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:'Pretendard Variable',Pretendard,-apple-system,'Noto Sans KR',sans-serif;
+  font-size:15px;line-height:1.55;padding-bottom:50px;
+  font-variant-numeric:tabular-nums;
+}
+h1,h2,h3{margin:0;font-weight:700;letter-spacing:-0.02em;}
+
+header{padding:16px 16px 10px;}
+header h1{font-size:21px;}
+header p{margin:3px 0 0;color:var(--muted);font-size:13px;}
+
+.tabs{display:flex;gap:6px;padding:0 16px 10px;}
+.tab{
+  flex:1;padding:9px 0;border:1px solid var(--line);background:var(--card);
+  border-radius:10px;font-size:14px;font-weight:600;color:var(--muted);
+  font-family:inherit;cursor:pointer;
+}
+.tab.on{background:var(--brand);color:#fff;border-color:var(--brand);}
+.panel{display:none;padding:0 16px;}
+.panel.on{display:block;}
+
+/* ============================================
+   2. 상단 고정 결과 요약
+   ============================================ */
+.summary{
+  position:sticky;top:0;z-index:400;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px;margin-bottom:14px;display:flex;align-items:center;gap:14px;
+  box-shadow:0 4px 14px rgba(28,24,48,.07);
+}
+.ring{width:78px;height:78px;flex-shrink:0;}
+.ring text{font-family:inherit;font-weight:700;}
+.sum-body{flex:1;min-width:0;}
+.sum-profit{font-size:22px;font-weight:700;line-height:1.2;}
+.sum-label{font-size:12px;color:var(--muted);}
+.badge{
+  display:inline-block;margin-top:6px;padding:3px 10px;border-radius:999px;
+  font-size:12px;font-weight:700;color:#fff;background:var(--muted);
+}
+
+/* ============================================
+   3. 입력 그룹
+   ============================================ */
+.group{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;}
+.group > summary{padding:13px 15px;font-weight:700;font-size:15px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;}
+.group > summary::-webkit-details-marker{display:none;}
+.group > summary::after{content:'▾';color:var(--muted);font-size:12px;}
+.group[open] > summary::after{content:'▴';}
+.group-body{padding:0 15px 14px;}
+
+.field{margin-bottom:13px;}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;}
+.field .hint{font-size:12px;color:var(--muted);font-weight:400;margin-left:5px;}
+.field input[type=text],.field input[type=number]{
+  width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;
+  font-size:16px;font-family:inherit;background:#FCFBFD;color:var(--ink);
+}
+.field input:focus{outline:2px solid var(--brand);outline-offset:1px;}
+.won{font-size:12px;color:var(--brand);margin-top:4px;font-weight:600;min-height:16px;}
+.row{display:flex;gap:10px;}
+.row .field{flex:1;}
+.check{display:flex;align-items:center;gap:9px;font-size:14px;padding:4px 0;}
+.check input{width:20px;height:20px;accent-color:var(--brand);}
+
+/* ============================================
+   4. 결과표
+   ============================================ */
+.result{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:6px 15px 12px;margin-bottom:12px;}
+.result h3{font-size:15px;padding:10px 0 6px;}
+.line{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font-size:14px;}
+.line:last-child{border-bottom:none;}
+.line span:first-child{color:var(--muted);}
+.line span:last-child{font-weight:600;}
+.line.total span{font-size:16px;font-weight:700;color:var(--ink);}
+.note{font-size:12.5px;color:var(--muted);margin:10px 0 0;line-height:1.6;}
+
+.btn{width:100%;padding:14px;border:none;border-radius:12px;background:var(--brand);color:#fff;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:10px;}
+.btn.sub{background:var(--card);color:var(--brand);border:1px solid var(--line);}
+.btn:active{transform:scale(.99);}
+
+/* ============================================
+   5. 지도
+   ============================================ */
+.searchbar{display:flex;gap:7px;margin-bottom:9px;}
+.searchbar input{
+  flex:1;padding:11px 12px;border:1px solid var(--line);border-radius:10px;
+  font-size:16px;font-family:inherit;background:var(--card);color:var(--ink);
+}
+.searchbar button{
+  padding:0 16px;border:none;border-radius:10px;background:var(--brand);color:#fff;
+  font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;
+}
+#map{
+  height:62vh;min-height:340px;border-radius:var(--radius);
+  border:1px solid var(--line);margin-bottom:10px;background:#E8E6EF;z-index:1;
+}
+.place-bar{
+  background:#FFF4E5;border:1px solid #F0C48A;border-radius:12px;
+  padding:11px 13px;margin-bottom:10px;font-size:13.5px;line-height:1.6;display:none;
+}
+.place-bar.on{display:block;}
+.place-bar b{color:var(--warn);}
+.pending{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;}
+.chip{
+  border:1px dashed var(--hot1);background:var(--card);color:var(--ink);
+  border-radius:999px;padding:7px 13px;font-size:13px;font-family:inherit;
+  font-weight:600;cursor:pointer;
+}
+.legend{
+  display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);
+  margin-bottom:12px;flex-wrap:wrap;
+}
+.legend i{width:20px;height:11px;border-radius:3px;display:inline-block;}
+
+/* 깃발 마커 */
+.flagwrap{position:relative;width:44px;height:40px;}
+.flagbody{
+  position:absolute;left:3px;bottom:14px;min-width:30px;height:24px;
+  border-radius:5px 7px 7px 5px;color:#fff;font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;padding:0 6px;
+  box-shadow:0 2px 5px rgba(0,0,0,.28);
+  font-family:'Pretendard Variable',Pretendard,sans-serif;
+}
+.flagpole{position:absolute;left:2px;bottom:0;width:3px;height:24px;background:#3B3550;border-radius:2px;}
+.flagdot{position:absolute;left:0;bottom:-3px;width:7px;height:7px;border-radius:50%;background:#3B3550;}
+
+.leaflet-popup-content{margin:12px 14px;font-family:'Pretendard Variable',Pretendard,sans-serif;}
+.pop-t{font-weight:700;font-size:15px;margin-bottom:4px;}
+.pop-d{font-size:13px;color:#5A5370;line-height:1.7;margin-bottom:9px;}
+.pop-btns{display:flex;gap:6px;}
+.pop-btns button{
+  flex:1;padding:8px 0;border-radius:8px;border:1px solid var(--line);
+  background:var(--card);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;color:var(--brand);
+}
+.pop-btns button.danger{color:var(--bad);}
+
+/* 목록 */
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:9px;display:flex;align-items:center;gap:12px;}
+.item .bar{width:5px;height:38px;border-radius:3px;flex-shrink:0;}
+.item .txt{flex:1;min-width:0;}
+.item .t1{font-weight:700;font-size:14.5px;}
+.item .t2{font-size:12.5px;color:var(--muted);}
+.item .go{background:none;border:none;color:var(--brand);font-size:13px;font-family:inherit;font-weight:700;cursor:pointer;padding:6px;}
+.empty{text-align:center;color:var(--muted);padding:34px 20px;font-size:14px;line-height:1.7;}
+
+/* 기준 탭 */
+.doc{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
+.doc h3{font-size:15px;margin-bottom:8px;}
+.doc p,.doc li{font-size:13.5px;color:#463C5E;line-height:1.75;}
+.doc ol,.doc ul{padding-left:19px;margin:6px 0;}
+
+.toast{
+  position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(80px);
+  background:var(--ink);color:#fff;padding:11px 20px;border-radius:999px;font-size:14px;
+  opacity:0;transition:.25s;z-index:9999;pointer-events:none;max-width:80%;text-align:center;
+}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>룸메이드 입지분석</h1>
+  <p>계약 전에 숫자로 먼저 확인하는 숙소 판정기</p>
+</header>
+
+<div class="tabs">
+  <button class="tab on" data-tab="analyze" type="button">분석</button>
+  <button class="tab" data-tab="mapview" type="button">지도</button>
+  <button class="tab" data-tab="guide" type="button">기준</button>
+</div>
+
+<!-- ============ 분석 탭 ============ -->
+<section class="panel on" id="analyze">
+
+  <div class="summary">
+    <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="42" fill="none" stroke="#EAE7F0" stroke-width="11"></circle>
+      <circle id="ringArc" cx="50" cy="50" r="42" fill="none" stroke="#D81E3F" stroke-width="11"
+        stroke-linecap="round" stroke-dasharray="0 264" transform="rotate(-90 50 50)"></circle>
+      <text id="ringNum" x="50" y="57" text-anchor="middle" font-size="27" fill="#1C1830">0</text>
+    </svg>
+    <div class="sum-body">
+      <div class="sum-label">예상 월 순수익</div>
+      <div class="sum-profit" id="sumProfit">0원</div>
+      <span class="badge" id="sumBadge">숫자를 입력하세요</span>
+    </div>
+  </div>
+
+  <details class="group" open>
+    <summary>1. 어떤 숙소인가요</summary>
+    <div class="group-body">
+      <div class="field">
+        <label for="name">숙소·지역 이름</label>
+        <input type="text" id="name" placeholder="예: 영종 하늘도시 A아파트 12층">
+      </div>
+      <div class="field">
+        <label for="rooms">경쟁 숙소 수 <span class="hint">반경 1km 내</span></label>
+        <input type="number" id="rooms" inputmode="numeric" placeholder="예: 40">
+      </div>
+    </div>
+  </details>
+
+  <details class="group" open>
+    <summary>2. 시장 데이터</summary>
+    <div class="group-body">
+      <div class="field">
+        <label for="adr">1박 평균 요금 <span class="hint">주변 비슷한 숙소</span></label>
+        <input type="number" id="adr" inputmode="numeric" value="120000">
+        <div class="won" data-won="adr"></div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="occ">점유율 (%)</label>
+          <input type="number" id="occ" inputmode="numeric" value="60">
+        </div>
+        <div class="field">
+          <label for="stay">평균 숙박 (박)</label>
+          <input type="number" id="stay" inputmode="decimal" value="2">
+        </div>
+      </div>
+      <p class="note">점유율은 한 달 30일 중 예약이 찬 비율입니다. 60이면 18일 예약된다는 뜻이에요.</p>
+    </div>
+  </details>
+
+  <details class="group" open>
+    <summary>3. 매달 나가는 돈</summary>
+    <div class="group-body">
+      <div class="field">
+        <label for="rent">월세</label>
+        <input type="number" id="rent" inputmode="numeric" value="800000">
+        <div class="won" data-won="rent"></div>
+      </div>
+      <div class="field">
+        <label for="mgmt">관리비·공과금</label>
+        <input type="number" id="mgmt" inputmode="numeric" value="150000">
+        <div class="won" data-won="mgmt"></div>
+      </div>
+      <div class="field">
+        <label for="etc">기타 고정비 <span class="hint">인터넷, 보험 등</span></label>
+        <input type="number" id="etc" inputmode="numeric" value="100000">
+        <div class="won" data-won="etc"></div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="clean">청소비 (1회)</label>
+          <input type="number" id="clean" inputmode="numeric" value="50000">
+        </div>
+        <div class="field">
+          <label for="amenity">소모품 (1회)</label>
+          <input type="number" id="amenity" inputmode="numeric" value="10000">
+        </div>
+      </div>
+      <label class="check">
+        <input type="checkbox" id="guestPay" checked>
+        <span>청소비는 게스트가 따로 냄</span>
+      </label>
+      <div class="field" style="margin-top:13px;">
+        <label for="fee">플랫폼 수수료 (%) <span class="hint">에어비앤비 호스트 기본 3</span></label>
+        <input type="number" id="fee" inputmode="decimal" value="3">
+      </div>
+    </div>
+  </details>
+
+  <details class="group" open>
+    <summary>4. 처음 들어가는 돈</summary>
+    <div class="group-body">
+      <div class="field">
+        <label for="setup">세팅비 <span class="hint">가구·가전·침구·촬영</span></label>
+        <input type="number" id="setup" inputmode="numeric" value="8000000">
+        <div class="won" data-won="setup"></div>
+      </div>
+      <div class="field">
+        <label for="deposit">보증금 <span class="hint">나중에 돌려받는 돈</span></label>
+        <input type="number" id="deposit" inputmode="numeric" value="10000000">
+        <div class="won" data-won="deposit"></div>
+      </div>
+    </div>
+  </details>
+
+  <div class="result">
+    <h3>계산 결과</h3>
+    <div class="line"><span>월 예상 매출</span><span id="rRev">0원</span></div>
+    <div class="line"><span>월 예약 건수</span><span id="rBook">0건</span></div>
+    <div class="line"><span>플랫폼 수수료</span><span id="rFee">0원</span></div>
+    <div class="line"><span>청소·소모품</span><span id="rVar">0원</span></div>
+    <div class="line"><span>고정비 합계</span><span id="rFix">0원</span></div>
+    <div class="line total"><span>월 순수익</span><span id="rProfit">0원</span></div>
+    <h3>버틸 수 있는가</h3>
+    <div class="line"><span>손익분기 점유율</span><span id="rBep">-</span></div>
+    <div class="line"><span>여유 점유율</span><span id="rGap">-</span></div>
+    <div class="line"><span>순이익률</span><span id="rMargin">-</span></div>
+    <div class="line"><span>세팅비 회수 기간</span><span id="rPay">-</span></div>
+    <div class="line"><span>연 수익률 (세팅비 대비)</span><span id="rRoi">-</span></div>
+    <p class="note" id="verdict"></p>
+  </div>
+
+  <button class="btn" id="save" type="button">저장하고 지도에 꽂기</button>
+  <button class="btn sub" id="reset" type="button">입력값 초기화</button>
+</section>
+
+<!-- ============ 지도 탭 ============ -->
+<section class="panel" id="mapview">
+  <div class="searchbar">
+    <input type="text" id="q" placeholder="동네 이름 검색 (예: 영종 하늘도시)">
+    <button id="qbtn" type="button">이동</button>
+  </div>
+
+  <div class="place-bar" id="placeBar">
+    <b>위치를 찍어주세요.</b> 지도에서 <span id="placeName"></span>의 자리를 한 번 누르면 깃발이 꽂힙니다.
+  </div>
+
+  <div class="pending" id="pending"></div>
+  <div id="map"></div>
+
+  <div class="legend">
+    <span>깃발 색</span>
+    <i style="background:var(--hot4)"></i><span>80+</span>
+    <i style="background:var(--hot3)"></i><span>65+</span>
+    <i style="background:var(--hot2)"></i><span>50+</span>
+    <i style="background:var(--hot1)"></i><span>35+</span>
+    <i style="background:var(--hot0)"></i><span>미만</span>
+  </div>
+  <p class="note" style="margin:-4px 0 14px;">깃발이 빨갈수록 수익과 예약률이 좋은 자리입니다. 깃발을 눌러 상세를 보고, 길게 끌어 위치를 옮길 수 있어요. 깃발 아래 옅은 원은 월 순수익 크기입니다.</p>
+
+  <div id="list"></div>
+</section>
+
+<!-- ============ 기준 탭 ============ -->
+<section class="panel" id="guide">
+  <div class="doc">
+    <h3>데이터는 어디서 구하나요</h3>
+    <p>이 앱은 시세를 자동으로 가져오지 못합니다. 아래 3곳에서 30분이면 숫자를 다 모을 수 있어요.</p>
+    <ol>
+      <li><b>1박 요금·점유율</b> — 에어비앤비 앱에서 동네를 검색하고 다음 달 달력을 엽니다. 비슷한 평수 숙소 5개의 1박 요금 평균을 내고, 달력에서 막힌 날짜 수를 세면 그게 점유율입니다.</li>
+      <li><b>경쟁 숙소 수</b> — 같은 검색 화면의 지도에서 핀 개수를 셉니다.</li>
+      <li><b>월세·보증금</b> — 네이버부동산에서 단지를 검색합니다. 단기임대 가능 여부는 집주인에게 꼭 확인하세요.</li>
+    </ol>
+  </div>
+
+  <div class="doc">
+    <h3>계산식</h3>
+    <ul>
+      <li>월 매출 = 1박 요금 × 30.4 × 점유율</li>
+      <li>예약 건수 = 30.4 × 점유율 ÷ 평균 숙박일</li>
+      <li>순수익 = 매출 − 수수료 − 청소·소모품 − 고정비</li>
+      <li>손익분기 점유율 = 고정비 ÷ 한 달 만실 기준 남는 돈</li>
+    </ul>
+    <p>손익분기 점유율은 본전만 하는 점유율입니다. 45%면 한 달에 14일만 채워도 손해는 안 본다는 뜻이에요.</p>
+  </div>
+
+  <div class="doc">
+    <h3>입지 점수 100점 배분</h3>
+    <ul>
+      <li><b>수익성 40점</b> — 순이익률 0%면 0점, 30% 이상 만점</li>
+      <li><b>안정성 25점</b> — 여유 점유율 0이면 0점, 30%p 이상 만점</li>
+      <li><b>회수 20점</b> — 세팅비 회수 24개월이면 0점, 6개월 이하 만점</li>
+      <li><b>시장 15점</b> — 동네 점유율 50%면 0점, 80% 이상 만점</li>
+    </ul>
+    <p>75점 이상 계약 추천 / 55~74점 조건부 / 55점 미만 보류. 단기임대 허용 여부와 소음 민원 위험은 숫자로 잡히지 않으니 따로 확인하세요.</p>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+'use strict';
+
+/* ============================================
+   1. 공통 도구
+   ============================================ */
+var $ = function(id){ return document.getElementById(id); };
+var KEY = '입지분석-후보';
+var VIEWKEY = '입지분석-지도위치';
+var IDS = ['name','rooms','adr','occ','stay','rent','mgmt','etc','clean','amenity','fee','setup','deposit'];
+
+var map = null;          // Leaflet 지도 객체
+var layer = null;        // 깃발과 원을 담는 그룹
+var placingId = null;    // 지금 위치를 찍는 중인 숙소 id
+
+function num(id){
+  var v = parseFloat($(id).value);
+  return isNaN(v) ? 0 : v;
+}
+function won(n){ return Math.round(n).toLocaleString('ko-KR') + '원'; }
+function korean(n){
+  if(!n) return '0원';
+  var m = Math.abs(n);
+  if(m >= 100000000) return (n/100000000).toFixed(1).replace('.0','') + '억원';
+  if(m >= 10000) return Math.round(n/10000).toLocaleString('ko-KR') + '만원';
+  return Math.round(n).toLocaleString('ko-KR') + '원';
+}
+function toast(msg){
+  try{
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    setTimeout(function(){ t.classList.remove('on'); }, 2200);
+  }catch(e){ console.error(e); }
+}
+/* 점수 → 색. 빨강이 가장 좋음 */
+function heatColor(score){
+  if(score >= 80) return '#D81E3F';
+  if(score >= 65) return '#F26522';
+  if(score >= 50) return '#E9B21A';
+  if(score >= 35) return '#8FA1B3';
+  return '#7E8FA3';
+}
+
+/* ============================================
+   2. 계산 엔진
+   ============================================ */
+function calc(){
+  var adr = num('adr');
+  var occ = num('occ') / 100;
+  var stay = num('stay') > 0 ? num('stay') : 1;
+  var feeRate = num('fee') / 100;
+  var guestPay = $('guestPay').checked;
+
+  var clean = guestPay ? 0 : num('clean');
+  var amenity = num('amenity');
+  var perBook = clean + amenity;
+
+  var fixed = num('rent') + num('mgmt') + num('etc');
+  var days = 30.4;
+
+  var revenue = adr * days * occ;
+  var bookings = (days * occ) / stay;
+  var fee = revenue * feeRate;
+  var variable = bookings * perBook;
+  var profit = revenue - fee - variable - fixed;
+
+  var perOcc = days * (adr * (1 - feeRate) - perBook / stay);
+  var bep = perOcc > 0 ? (fixed / perOcc) : 999;
+
+  var margin = revenue > 0 ? (profit / revenue) : 0;
+  var setup = num('setup');
+  var payback = profit > 0 ? (setup / profit) : 999;
+  var roi = setup > 0 ? (profit * 12 / setup) : 0;
+  var gap = occ - bep;
+
+  var s1 = Math.max(0, Math.min(40, margin / 0.30 * 40));
+  var s2 = Math.max(0, Math.min(25, gap / 0.30 * 25));
+  var s3 = Math.max(0, Math.min(20, (24 - payback) / 18 * 20));
+  var s4 = Math.max(0, Math.min(15, (occ - 0.50) / 0.30 * 15));
+  var score = Math.round(s1 + s2 + s3 + s4);
+  if(profit <= 0) score = Math.min(score, 20);
+
+  return {revenue:revenue,bookings:bookings,fee:fee,variable:variable,fixed:fixed,
+          profit:profit,bep:bep,gap:gap,margin:margin,payback:payback,roi:roi,score:score};
+}
+
+/* ============================================
+   3. 분석 화면 그리기
+   ============================================ */
+function render(){
+  try{
+    var r = calc();
+
+    $('rRev').textContent = won(r.revenue);
+    $('rBook').textContent = r.bookings.toFixed(1) + '건';
+    $('rFee').textContent = '−' + won(r.fee);
+    $('rVar').textContent = '−' + won(r.variable);
+    $('rFix').textContent = '−' + won(r.fixed);
+    $('rProfit').textContent = won(r.profit);
+    $('rProfit').style.color = r.profit > 0 ? 'var(--good)' : 'var(--bad)';
+
+    $('rBep').textContent = r.bep > 1 ? '달성 불가' : (r.bep*100).toFixed(1) + '%';
+    $('rGap').textContent = (r.gap*100).toFixed(1) + '%p';
+    $('rGap').style.color = r.gap > 0.15 ? 'var(--good)' : (r.gap > 0 ? 'var(--warn)' : 'var(--bad)');
+    $('rMargin').textContent = (r.margin*100).toFixed(1) + '%';
+    $('rPay').textContent = r.payback > 120 ? '회수 불가' : r.payback.toFixed(1) + '개월';
+    $('rRoi').textContent = (r.roi*100).toFixed(1) + '%';
+
+    $('sumProfit').textContent = won(r.profit);
+    $('sumProfit').style.color = r.profit > 0 ? 'var(--good)' : 'var(--bad)';
+
+    var arc = 264 * (r.score/100);
+    $('ringArc').setAttribute('stroke-dasharray', arc.toFixed(1) + ' 264');
+    $('ringArc').setAttribute('stroke', heatColor(r.score));
+    $('ringNum').textContent = r.score;
+
+    var b = $('sumBadge'), v = $('verdict');
+    if(r.score >= 75){
+      b.textContent = '계약 추천'; b.style.background = 'var(--good)';
+      v.textContent = '숫자상 안정적입니다. 단기임대 허용 여부와 소음 민원 이력만 확인하세요.';
+    }else if(r.score >= 55){
+      b.textContent = '조건부'; b.style.background = 'var(--warn)';
+      v.textContent = '월세를 깎거나 요금을 올려야 여유가 생깁니다. 월세 10만원 낮추면 어떻게 변하는지 넣어보세요.';
+    }else{
+      b.textContent = '보류'; b.style.background = 'var(--bad)';
+      v.textContent = '지금 조건으로는 위험합니다. 손익분기 점유율이 실제 점유율에 너무 가깝거나 넘습니다.';
+    }
+
+    var helpers = document.querySelectorAll('.won');
+    for(var i=0;i<helpers.length;i++){
+      helpers[i].textContent = korean(num(helpers[i].getAttribute('data-won')));
+    }
+  }catch(e){ console.error('계산 오류', e); }
+}
+
+/* ============================================
+   4. 저장소
+   ============================================ */
+function load(){
+  try{
+    var raw = localStorage.getItem(KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ console.error(e); return []; }
+}
+function store(list){
+  try{ localStorage.setItem(KEY, JSON.stringify(list)); }
+  catch(e){ console.error(e); toast('저장 공간을 쓸 수 없습니다'); }
+}
+function findOne(id){
+  var list = load();
+  for(var i=0;i<list.length;i++){ if(list[i].id === id) return list[i]; }
+  return null;
+}
+function updateOne(id, patch){
+  var list = load();
+  for(var i=0;i<list.length;i++){
+    if(list[i].id === id){
+      for(var k in patch){ if(patch.hasOwnProperty(k)) list[i][k] = patch[k]; }
+    }
+  }
+  store(list);
+}
+
+function saveCurrent(){
+  var name = $('name').value.trim();
+  if(!name){ toast('숙소 이름을 먼저 적어주세요'); $('name').focus(); return; }
+
+  var data = { id: Date.now(), name: name, lat: null, lng: null };
+  for(var i=0;i<IDS.length;i++){ data[IDS[i]] = $(IDS[i]).value; }
+  data.guestPay = $('guestPay').checked;
+
+  var r = calc();
+  data.score = r.score;
+  data.profit = r.profit;
+  data.bep = r.bep;
+  data.occ = num('occ');
+
+  var list = load();
+  list.push(data);
+  store(list);
+
+  switchTab('mapview');
+  startPlacing(data.id);
+  toast('지도에서 위치를 눌러주세요');
+}
+
+/* ============================================
+   5. 지도 만들기
+   ============================================ */
+function initMap(){
+  if(map) return;
+  try{
+    var start = [37.4600, 126.6100];  // 영종 ~ 송도 중간
+    var zoom = 11;
+    try{
+      var saved = JSON.parse(localStorage.getItem(VIEWKEY));
+      if(saved && saved.lat){ start = [saved.lat, saved.lng]; zoom = saved.z; }
+    }catch(e){}
+
+    map = L.map('map', {zoomControl:true}).setView(start, zoom);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap, &copy; CARTO'
+    }).addTo(map);
+
+    layer = L.layerGroup().addTo(map);
+
+    // 지도를 누르면 : 위치 지정 중일 때만 깃발을 꽂음
+    map.addEventListener('click', function(e){
+      if(placingId === null) return;
+      updateOne(placingId, { lat: e.latlng.lat, lng: e.latlng.lng });
+      stopPlacing();
+      drawMarkers();
+      toast('깃발을 꽂았습니다');
+    });
+
+    // 마지막으로 본 위치 기억
+    map.addEventListener('moveend', function(){
+      try{
+        var c = map.getCenter();
+        localStorage.setItem(VIEWKEY, JSON.stringify({lat:c.lat, lng:c.lng, z:map.getZoom()}));
+      }catch(e){}
+    });
+
+    drawMarkers();
+  }catch(e){
+    console.error('지도 초기화 실패', e);
+    toast('지도를 불러오지 못했습니다');
+  }
+}
+
+/* 깃발 아이콘 만들기 */
+function flagIcon(score){
+  var c = heatColor(score);
+  var html = '<div class="flagwrap">' +
+             '<div class="flagpole"></div>' +
+             '<div class="flagdot"></div>' +
+             '<div class="flagbody" style="background:' + c + '">' + score + '</div>' +
+             '</div>';
+  return L.divIcon({
+    html: html, className: '',
+    iconSize: [44,40], iconAnchor: [3,40], popupAnchor: [14,-34]
+  });
+}
+
+/* 지도에 깃발과 수익 원 그리기 */
+function drawMarkers(){
+  if(!map || !layer) return;
+  try{
+    layer.clearLayers();
+    var list = load();
+    var placed = 0;
+
+    for(var i=0;i<list.length;i++){
+      (function(d){
+        if(d.lat === null || d.lat === undefined) return;
+        placed++;
+
+        // 순수익 크기만큼 옅은 원 : 수익 밀도
+        var radius = 160 + Math.max(0, d.profit) / 2200;
+        L.circle([d.lat, d.lng], {
+          radius: Math.min(radius, 1400),
+          color: heatColor(d.score), weight: 1,
+          fillColor: heatColor(d.score), fillOpacity: 0.14
+        }).addTo(layer);
+
+        var m = L.marker([d.lat, d.lng], {
+          icon: flagIcon(d.score), draggable: true, title: d.name
+        }).addTo(layer);
+
+        var html = '<div class="pop-t">' + d.name + '</div>' +
+          '<div class="pop-d">입지 점수 <b>' + d.score + '점</b><br>' +
+          '월 순수익 ' + korean(d.profit) + '<br>' +
+          '점유율 ' + (d.occ || 0) + '% · 손익분기 ' + Math.round((d.bep||0)*100) + '%</div>' +
+          '<div class="pop-btns">' +
+          '<button data-act="load" data-id="' + d.id + '">불러오기</button>' +
+          '<button class="danger" data-act="del" data-id="' + d.id + '">삭제</button>' +
+          '</div>';
+        m.bindPopup(html);
+
+        // 깃발을 끌어서 위치 수정
+        m.addEventListener('dragend', function(ev){
+          var p = ev.target.getLatLng();
+          updateOne(d.id, {lat:p.lat, lng:p.lng});
+          drawMarkers();
+          toast('위치를 옮겼습니다');
+        });
+      })(list[i]);
+    }
+
+    // 깃발이 2개 이상이면 전체가 보이게 지도 범위 맞춤
+    if(placed >= 2 && !window.__fitOnce){
+      var pts = [];
+      for(var j=0;j<list.length;j++){
+        if(list[j].lat) pts.push([list[j].lat, list[j].lng]);
+      }
+      map.fitBounds(pts, {padding:[40,40], maxZoom:14});
+      window.__fitOnce = true;
+    }
+    renderPending();
+    renderList();
+  }catch(e){ console.error('마커 그리기 실패', e); }
+}
+
+/* 팝업 안 버튼은 나중에 생기므로 문서 전체에서 클릭을 받음 */
+document.addEventListener('click', function(e){
+  var t = e.target;
+  if(!t || !t.getAttribute) return;
+  var act = t.getAttribute('data-act');
+  if(!act) return;
+  var id = parseInt(t.getAttribute('data-id'), 10);
+  if(act === 'load'){ restore(findOne(id)); }
+  if(act === 'del'){ removeOne(id); }
+});
+
+/* ============================================
+   6. 위치 지정 모드
+   ============================================ */
+function startPlacing(id){
+  var d = findOne(id);
+  if(!d) return;
+  placingId = id;
+  $('placeName').textContent = '「' + d.name + '」';
+  $('placeBar').classList.add('on');
+  if(map) map.getContainer().style.cursor = 'crosshair';
+}
+function stopPlacing(){
+  placingId = null;
+  $('placeBar').classList.remove('on');
+  if(map) map.getContainer().style.cursor = '';
+}
+
+/* 위치가 아직 없는 숙소를 칩으로 보여줌 */
+function renderPending(){
+  var box = $('pending');
+  box.innerHTML = '';
+  var list = load();
+  for(var i=0;i<list.length;i++){
+    (function(d){
+      if(d.lat) return;
+      var c = document.createElement('button');
+      c.className = 'chip';
+      c.type = 'button';
+      c.textContent = '📍 ' + d.name + ' 위치 찍기';
+      c.addEventListener('click', function(){ startPlacing(d.id); });
+      box.appendChild(c);
+    })(list[i]);
+  }
+}
+
+/* ============================================
+   7. 목록
+   ============================================ */
+function renderList(){
+  var list = load();
+  var box = $('list');
+  box.innerHTML = '';
+  if(list.length === 0){
+    box.innerHTML = '<div class="empty">아직 저장한 숙소가 없습니다.<br>분석 탭에서 숫자를 넣고<br>저장하면 지도에 깃발이 생깁니다.</div>';
+    return;
+  }
+  list.sort(function(a,b){ return b.score - a.score; });
+
+  for(var i=0;i<list.length;i++){
+    (function(d){
+      var it = document.createElement('div');
+      it.className = 'item';
+      it.innerHTML = '<div class="bar" style="background:' + heatColor(d.score) + '"></div>' +
+        '<div class="txt"><div class="t1">' + d.name + '</div>' +
+        '<div class="t2">' + d.score + '점 · 순수익 ' + korean(d.profit) +
+        ' · 손익분기 ' + Math.round((d.bep||0)*100) + '%</div></div>';
+      var go = document.createElement('button');
+      go.className = 'go'; go.type = 'button';
+      go.textContent = d.lat ? '보기' : '위치';
+      go.addEventListener('click', function(){
+        if(d.lat && map){ map.setView([d.lat, d.lng], 15); window.scrollTo(0,180); }
+        else { startPlacing(d.id); window.scrollTo(0,180); }
+      });
+      it.appendChild(go);
+      box.appendChild(it);
+    })(list[i]);
+  }
+}
+
+function restore(d){
+  if(!d) return;
+  for(var i=0;i<IDS.length;i++){
+    if(d[IDS[i]] !== undefined && d[IDS[i]] !== null) $(IDS[i]).value = d[IDS[i]];
+  }
+  $('guestPay').checked = !!d.guestPay;
+  render();
+  switchTab('analyze');
+  window.scrollTo(0,0);
+  toast(d.name + ' 불러왔습니다');
+}
+
+function removeOne(id){
+  if(!confirm('이 숙소를 목록과 지도에서 지울까요?')) return;
+  var list = load().filter(function(x){ return x.id !== id; });
+  store(list);
+  drawMarkers();
+  toast('삭제했습니다');
+}
+
+/* ============================================
+   8. 동네 검색 (OpenStreetMap 무료 검색)
+   ============================================ */
+function searchPlace(){
+  var q = $('q').value.trim();
+  if(!q){ toast('찾을 동네 이름을 적어주세요'); return; }
+  toast('찾는 중…');
+
+  var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=kr&q=' + encodeURIComponent(q);
+  fetch(url)
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+      if(!data || data.length === 0){
+        toast('못 찾았습니다. 지도를 직접 움직여 주세요');
+        return;
+      }
+      map.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 14);
+      toast(q + ' 로 이동했습니다');
+    })
+    .catch(function(err){
+      console.error(err);
+      toast('검색이 안 됩니다. 지도를 손으로 움직여 주세요');
+    });
+}
+
+/* ============================================
+   9. 탭 전환
+   ============================================ */
+function switchTab(name){
+  var tabs = document.querySelectorAll('.tab');
+  var panels = document.querySelectorAll('.panel');
+  for(var i=0;i<tabs.length;i++){
+    tabs[i].classList.toggle('on', tabs[i].getAttribute('data-tab') === name);
+  }
+  for(var j=0;j<panels.length;j++){
+    panels[j].classList.toggle('on', panels[j].id === name);
+  }
+  if(name === 'mapview'){
+    initMap();
+    // 숨겨진 상태로 만들어진 지도는 크기를 다시 알려줘야 함
+    setTimeout(function(){ if(map) map.invalidateSize(); }, 120);
+    drawMarkers();
+  }
+}
+
+/* ============================================
+   10. 이벤트 연결
+   ============================================ */
+(function init(){
+  try{
+    var tabs = document.querySelectorAll('.tab');
+    for(var i=0;i<tabs.length;i++){
+      tabs[i].addEventListener('click', function(){
+        switchTab(this.getAttribute('data-tab'));
+      });
+    }
+
+    var inputs = document.querySelectorAll('#analyze input');
+    for(var j=0;j<inputs.length;j++){
+      inputs[j].addEventListener('input', render);
+      inputs[j].addEventListener('change', render);
+    }
+
+    $('save').addEventListener('click', saveCurrent);
+    $('qbtn').addEventListener('click', searchPlace);
+    $('q').addEventListener('keydown', function(e){
+      if(e.key === 'Enter') searchPlace();
+    });
+
+    $('reset').addEventListener('click', function(){
+      if(!confirm('입력한 값을 모두 지울까요? 저장된 목록은 그대로 남습니다.')) return;
+      $('name').value = ''; $('rooms').value = '';
+      $('adr').value = 120000; $('occ').value = 60; $('stay').value = 2;
+      $('rent').value = 800000; $('mgmt').value = 150000; $('etc').value = 100000;
+      $('clean').value = 50000; $('amenity').value = 10000; $('fee').value = 3;
+      $('setup').value = 8000000; $('deposit').value = 10000000;
+      $('guestPay').checked = true;
+      render(); toast('초기화했습니다');
+    });
+
+    render();
+  }catch(e){ console.error('초기화 실패', e); }
+})();
+</script>
+</body>
+</html>
