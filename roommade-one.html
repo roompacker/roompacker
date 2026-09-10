@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v14.4</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v14.5</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -702,6 +702,8 @@ h1,h2,h3{color:var(--n-ink)}
           <!-- 📊 이번 달 관리비 현황 (50건 초과 · 350만원 상한 알림) -->
           <div id="mfGauge" style="margin-top:12px;"></div>
           <div id="pentBoard"></div>
+          <button id="recalcFeeBtn" style="width:100%;margin-top:11px;border:0;background:#2C5C87;color:#FFFFFF;border-radius:12px;padding:12px;font-size:12px;font-weight:800;">🔧 관리비 금액 다시 계산하기</button>
+          <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:5px;">지금 청소 건수로 관리비를 맞춰요</div>
           <button id="auditBtn" style="width:100%;margin-top:11px;border:1px solid var(--line);background:#FFFFFF;color:var(--navy);border-radius:12px;padding:12px;font-size:12px;font-weight:800;">🩺 기록 검사하고 자동으로 고치기</button>
           <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:5px;line-height:1.5;">중복 기록과 잘못된 요금만 정리해요 (예약은 만들지 않아요)</div>
 
@@ -1239,6 +1241,52 @@ h1,h2,h3{color:var(--n-ink)}
      예전 버전에서 관리비가 특정 객실에 붙어 저장된 경우가 있어요.
      그러면 '받을 돈'에서 그 객실 청소와 한 묶음으로 보여 금액이 이상해집니다.
      앱을 열 때 한 번 분리해 둡니다. */
+
+  /* 🔧 관리비 다시 계산 (직접 실행)
+     지금 청소 건수로 관리비 금액을 다시 맞춥니다.
+     무엇이 어떻게 바뀌는지 먼저 보여주고, 확인하면 반영합니다. */
+  function recalcFeeNow(){
+    const cfg=(typeof loadMF==='function')?loadMF():null;
+    if(!cfg||!cfg.active)return alert('관리비 자동등록이 꺼져 있어요.\n관리 탭에서 켜주세요.');
+    const label=cfg.label||'위탁관리비';
+    const rids=(state.rooms||[]).filter(r=>r.branch===cfg.branch).map(r=>String(r.id));
+    const fees=(state.transactions||[]).filter(t=>t.autoFee===true);
+    if(!fees.length)return alert('관리비 항목이 없어요.');
+
+    const lines=[]; const plan=[];
+    fees.forEach(t=>{
+      const mKey=t.billingMonth||(t.date||'').slice(0,7);
+      const cnt=(state.transactions||[]).filter(x=>
+        x.type==='income' && !x.autoFee && !x.checkinOnly && x.status!=='cancelled' &&
+        (x.billingMonth||(x.date||'').slice(0,7))===mKey &&
+        (rids.indexOf(String(x.targetId))>=0 || x.branch===cfg.branch)
+      ).length;
+      const BASE=cfg.baseCount||50, FEE=cfg.amount||0, OVER=cfg.overFee||50000, MAX=cfg.maxFee||3500000;
+      let fee=FEE; if(cnt>BASE)fee=FEE+(cnt-BASE)*OVER; if(fee>MAX)fee=MAX;
+      const cur=Number(t.netAmount||t.amount||0);
+      lines.push(mKey+'  청소 '+cnt+'건  '+money(cur)+(cur!==fee?('  →  '+money(fee)):'  (그대로)'));
+      if(cur!==fee)plan.push({t:t,fee:fee,cnt:cnt,BASE:BASE,MAX:MAX});
+    });
+
+    const msg=['🔧 관리비 다시 계산','',
+      '기준 : '+ (cfg.baseCount||50)+'건까지 '+money(cfg.amount||0),
+      '        초과 1건당 '+money(cfg.overFee||50000),
+      '        상한 '+money(cfg.maxFee||3500000),
+      '','━━━━━━━━━━━━━━',...lines,'━━━━━━━━━━━━━━'];
+    if(!plan.length){ alert(msg.join('\n')+'\n\n모두 정확합니다 ✅'); return; }
+    msg.push('','바꿀 항목 '+plan.length+'개 — 적용할까요?');
+    if(!confirm(msg.join('\n')))return;
+
+    plan.forEach(p=>{
+      p.t.amount=p.fee; p.t.netAmount=p.fee; p.t.taxAmount=0;
+      p.t.targetId='';                 // 객실 연결 끊기
+      p.t.targetName=label;            // 이름 되돌리기
+      p.t.memo='위탁관리비 ('+p.cnt+'회'+(p.cnt>p.BASE?' / 초과 '+(p.cnt-p.BASE)+'건':'')+(p.fee>=p.MAX&&p.cnt>p.BASE?' / 상한도달':'')+')';
+    });
+    save(); render();
+    alert('✅ '+plan.length+'개 항목을 다시 계산했어요.');
+  }
+
   function detachFeeFromRoom(){
     let n=0;
     const cfg=(typeof loadMF==='function')?loadMF():null;
@@ -5123,6 +5171,7 @@ h1,h2,h3{color:var(--n-ink)}
     if(ev.target.closest('#icalChangeBtn')){showIcalChanges();return;}
     if(ev.target.closest('#icalClearBadges')){clearIcalBadges();return;}
     if(ev.target.closest('#pentFixAmt')){pentFixAmount();return;}
+    if(ev.target.closest('#recalcFeeBtn')){recalcFeeNow();return;}
     if(ev.target.closest('#auditBtn')){runAudit();return;}
     const cg=ev.target.closest('[data-change-guide]');
     if(cg){ev.stopPropagation();showChangeGuide(cg.dataset.changeGuide);return;}
