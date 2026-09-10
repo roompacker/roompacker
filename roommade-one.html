@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v13.8</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v13.9</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -703,7 +703,7 @@ h1,h2,h3{color:var(--n-ink)}
           <div id="mfGauge" style="margin-top:12px;"></div>
           <div id="pentBoard"></div>
           <button id="auditBtn" style="width:100%;margin-top:11px;border:1px solid var(--line);background:#FFFFFF;color:var(--navy);border-radius:12px;padding:12px;font-size:12px;font-weight:800;">🩺 기록 검사하고 자동으로 고치기</button>
-          <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:5px;line-height:1.5;">중복·공실 오표기·빠진 청소를 찾아서 정리해요</div>
+          <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:5px;line-height:1.5;">중복 기록과 잘못된 요금만 정리해요 (예약은 만들지 않아요)</div>
 
           <!-- 🎁 인센티브 기록 -->
           <div style="margin-top:14px;padding-top:13px;border-top:1px solid var(--line);">
@@ -2380,21 +2380,7 @@ h1,h2,h3{color:var(--n-ink)}
         if(cnt.d)parts.push('삭제 '+cnt.d);
         alertBeep(2);   // 🔔 알림음 + 진동
         toast('✅ 자동 반영 완료 · '+parts.join(' · '));
-        /* 🩺 동기화 뒤에는 기록이 어긋나기 쉬워요.
-           안전한 항목만 조용히 고치고, 무엇을 고쳤는지 알려줍니다. */
-        setTimeout(function(){
-          try{
-            const iss=auditRecords();
-            if(!iss.length)return;
-            const r=applyAudit(iss);
-            if(r.n){
-              const M=['🩺 어긋난 기록 '+r.n+'건을 자동으로 고쳤어요',''];
-              r.done.slice(0,12).forEach((d,i)=>M.push((i+1)+'. '+d));
-              if(r.done.length>12)M.push('… 외 '+(r.done.length-12)+'건');
-              alert(M.join('\n'));
-            }
-          }catch(e){console.error('audit',e);}
-        }, 1200);
+        /* 자동 검사는 껐습니다 — 관리 탭에서 직접 누를 때만 실행돼요 */
       }else if(!silent){
         if(failed.length)toast('⚠️ '+failed.length+'개 객실 실패 — 아래 결과를 확인하세요');
         else toast('✅ 동기화 완료 · 바뀐 예약 없음');
@@ -2554,38 +2540,14 @@ h1,h2,h3{color:var(--n-ink)}
           issues.push({type:'backdate',id:t.id,
             msg:nm+' '+D(t.date)+' 입실일('+D(t.inDate)+')이 청소일보다 앞 → 입실 정보 정리'});
         }
-        /* ⑦ 입실일이 다음 청소 흐름과 안 맞는 경우
-           예) 9/12 청소인데 입실일이 9/13으로 하루 밀려 있음
-           → 다음 청소일에서 박수를 빼면 진짜 입실일이 나옵니다 */
-        if(t.inNights&&t.inDate){
-          const nx2=clean[i+1];
-          if(nx2&&nx2.outNights){
-            const d2=new Date(nx2.date+'T00:00:00');
-            d2.setDate(d2.getDate()-parseInt(nx2.outNights,10));
-            const realIn=d2.getFullYear()+'-'+String(d2.getMonth()+1).padStart(2,'0')+'-'+String(d2.getDate()).padStart(2,'0');
-            if(realIn!==t.inDate&&realIn>=t.date){
-              issues.push({type:'fixin',id:t.id,realIn:realIn,realN:nx2.outNights,
-                msg:nm+' '+D(t.date)+' 입실일 '+D(t.inDate)+' → '+D(realIn)+' 로 정정'});
-            }
-          }
-        }
+        /* ⑦ 입실일 자동 정정도 제거했습니다.
+           추정으로 날짜를 바꾸다 보니 오히려 어긋나는 경우가 있었어요. */
 
-        // ④ 다음 청소가 있는데 공실로 표시됨
-        const next=clean[i+1];
-        if(next&&!t.inNights){
-          issues.push({type:'gap',id:t.id,nextId:next.id,
-            msg:nm+' '+D(t.date)+' 공실 표시인데 '+D(next.date)+' 청소 있음 → 입실 정보 연결'});
-        }
-        // ⑤ 입실 정보는 있는데 그 손님 퇴실 청소가 없음
-        if(t.inNights){
-          const ci=t.inDate||t.date;
-          const dd=new Date(ci+'T00:00:00'); dd.setDate(dd.getDate()+parseInt(t.inNights,10));
-          const co=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0');
-          if(co>=td&&!clean.find(x=>x.date===co)){
-            issues.push({type:'nocheckout',id:t.id,coDate:co,
-              msg:nm+' '+D(ci)+' 입실 '+t.inNights+'박 → '+D(co)+' 청소 일정 생성'});
-          }
-        }
+        /* ④ 공실 자동 연결도 제거했습니다.
+           실제로 공실인 날을 예약으로 바꿔버리는 문제가 있었어요. */
+        /* ⑤ '퇴실 청소가 없다'는 검사는 제거했습니다.
+           에어비앤비에 없는 예약을 앱이 만들어내는 부작용이 있었어요.
+           청소 일정은 iCal 동기화나 사장님 입력으로만 생깁니다. */
         // ⑥ 펜트하우스 건별 요금
         if(room.branch==='펜트하우스'&&!t.autoFee&&Number(t.netAmount||t.amount||0)>0){
           issues.push({type:'pentamt',id:t.id,
@@ -2627,31 +2589,7 @@ h1,h2,h3{color:var(--n-ink)}
       }else if(is.type==='backdate'||is.type==='dupin'){
         t.inDate=''; t.inNights=''; t.inGuests=''; t.inTime=''; t.inSupplies='';
         n++; done.push(is.msg);
-      }else if(is.type==='gap'){
-        const nx=(state.transactions||[]).find(x=>x.id===is.nextId);
-        if(nx){
-          t.inDate=nx.date; t.inNights=nx.outNights||'1';
-          if(nx.outGuests)t.inGuests=nx.outGuests;
-          if(!t.inTime)t.inTime='16:00';
-          n++; done.push(is.msg);
-        }
-      }else if(is.type==='nocheckout'){
-        const room=(state.rooms||[]).find(r=>String(r.id)===String(t.targetId))||{};
-        const amt=room.branch==='펜트하우스'?0:(room.price||0);
-        state.transactions.push({
-          id:uid('tx'), date:is.coDate, billingMonth:ym(is.coDate), type:'income',
-          targetId:t.targetId, targetName:t.targetName, branch:t.branch,
-          amount:amt, taxRate:room.tax||0, taxAmount:0, netAmount:amt,
-          outNights:t.inNights, outGuests:t.inGuests||'', outTime:'11:00', outSupplies:'',
-          inNights:'', inGuests:'', inTime:'', inSupplies:'',
-          memo:'', paid:false, status:'booked', createdAt:Date.now(), autoGen:true
-        });
-        n++; done.push(is.msg);
-      }else if(is.type==='fixin'){
-        t.inDate=is.realIn;
-        if(is.realN)t.inNights=String(is.realN);
-        n++; done.push(is.msg);
-      }else if(is.type==='pentamt'){
+                  }else if(is.type==='pentamt'){
         t.amount=0; t.netAmount=0; t.taxAmount=0;
         n++; done.push(is.msg);
       }
