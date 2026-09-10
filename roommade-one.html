@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v13.9</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v14.1</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -848,7 +848,12 @@ h1,h2,h3{color:var(--n-ink)}
           <div><label style="font-size:9px;color:var(--sub);font-weight:800;">인원</label><input type="text" id="txOutGuests" inputmode="numeric" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;"></div>
           <div><label style="font-size:9px;color:var(--sub);font-weight:800;">시간</label><input type="time" id="txOutTime" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;"></div>
         </div>
-        <div class="field" style="margin:8px 0 0;"><label style="font-size:9px;color:var(--sub);font-weight:800;">사용 물품 (토퍼·수건 등)</label><input type="text" id="txOutSupplies" placeholder="예: 토퍼1, 수건12" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;"></div>
+        <div class="field" style="margin:8px 0 0;"><label style="font-size:9px;color:var(--sub);font-weight:800;">사용 물품 (토퍼·수건 등)</label><input type="text" id="txOutSupplies" placeholder="예: 토퍼1, 수건12" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;">
+          <div id="txPrevPrep" style="display:none;background:#FDEEEE;border-radius:10px;padding:9px 11px;margin-top:6px;">
+            <div style="font-size:9px;color:var(--red);font-weight:800;margin-bottom:3px;">📥 지난번에 넣어둔 준비물</div>
+            <div id="txPrevPrepText" style="font-size:12px;font-weight:700;color:var(--ink);line-height:1.5;"></div>
+            <button type="button" id="txUsePrev" style="width:100%;margin-top:7px;border:1px solid #F0C9C6;background:#FFFFFF;color:var(--red);border-radius:8px;padding:7px;font-size:10px;font-weight:800;">이 내용으로 채우기</button>
+          </div></div>
       </div>
       <!-- 체크인 -->
       <div style="background:var(--sky);border-radius:12px;padding:10px;">
@@ -1192,8 +1197,20 @@ h1,h2,h3{color:var(--n-ink)}
       localStorage.setItem(LEGACY.tx,JSON.stringify(state.transactions));
       localStorage.setItem(LEGACY.branch,state.branch);
       localStorage.setItem('roommade-supplies',JSON.stringify(state.supplies||[]));
-      // 검증
-      if(!localStorage.getItem(LEGACY.tx)){toast('⚠️ 저장 실패 - GitHub Pages 주소로 열어주세요');return false;}
+      /* 🛡️ 저장 검증 — 방금 쓴 내용을 다시 읽어 건수까지 맞는지 확인합니다.
+         (저장이 조용히 실패해 기록이 사라지는 것을 막아요) */
+      let back=[];
+      try{ back=JSON.parse(localStorage.getItem(LEGACY.tx)||'[]'); }catch(e){}
+      if(!Array.isArray(back)||back.length!==state.transactions.length){
+        // 한 번 더 시도
+        try{ localStorage.setItem(LEGACY.tx,JSON.stringify(state.transactions)); }catch(e){}
+        try{ back=JSON.parse(localStorage.getItem(LEGACY.tx)||'[]'); }catch(e){}
+      }
+      if(!Array.isArray(back)||back.length!==state.transactions.length){
+        alert('⚠️ 저장이 안 됐어요!\n\n기록 '+state.transactions.length+'건 중 '+(back?back.length:0)+'건만 저장됨\n\n· 저장 공간이 가득 찼거나\n· 시크릿 모드일 수 있어요\n\n관리 탭에서 백업 내보내기를 먼저 해주세요.');
+        return false;
+      }
+      state.lastSaved=Date.now();
       // 🛡️ 안전 백업: 별도 키에 통째로 한 벌 더 저장 (공유키가 비워져도 복구 가능)
       try{
         localStorage.setItem('roommade-안전백업', JSON.stringify({
@@ -1215,6 +1232,18 @@ h1,h2,h3{color:var(--n-ink)}
   function scheduleAutoCloud(){
     return; // 자동 클라우드 업로드 비활성화 (무료 플랜 요청 한도 절약)
   }
+
+  /* 💾 저장 상태 표시 — 기록이 안전한지 항상 보이게 */
+  function renderSaveState(){
+    const el=$('#saveState'); if(!el)return;
+    let cnt=0;
+    try{ cnt=(JSON.parse(localStorage.getItem(LEGACY.tx)||'[]')||[]).length; }catch(e){}
+    const ok=(cnt===(state.transactions||[]).length);
+    el.textContent=ok?('저장됨 '+cnt):('⚠️ 미저장');
+    el.style.background=ok?'#E2F4EA':'#F0DEDA';
+    el.style.color=ok?'#3B8360':'#9A5F55';
+  }
+
   function toast(msg){$('.toast')?.remove();const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.append(el);setTimeout(()=>el.remove(),1900)}
   function branchFilter(arr){
     let out=state.branch==='전체'?arr:arr.filter(x=>x.branch===state.branch);
@@ -1321,6 +1350,7 @@ h1,h2,h3{color:var(--n-ink)}
     try{ renderManage(); }catch(e){ console.error('manage',e); }
     try{ renderIcalCard(); }catch(e){ console.error('ical',e); }
     try{ renderIcalAlert(); }catch(e){ console.error('icalAlert',e); }
+    try{ renderSaveState(); }catch(e){}
     try{ renderSetupWarn(); }catch(e){ console.error('setupWarn',e); }
     try{ renderMFGauge(); }catch(e){ console.error('mfgauge',e); }
     try{ renderPentBoard(); }catch(e){ console.error('pentBoard',e); }
@@ -3845,7 +3875,8 @@ h1,h2,h3{color:var(--n-ink)}
     var schedBox=$('#txScheduleBox'); if(schedBox) schedBox.style.display = txType==='income' ? 'block' : 'none';
     try{ renderTxStaffPicks(); }catch(e){ console.error('staffPicks',e); }
     try{ updateAutoPrep(); }catch(e){}
-    setTimeout(function(){ try{ updateAutoPrep(); }catch(e){} }, 250);
+    try{ updatePrevPrep(); }catch(e){}
+    setTimeout(function(){ try{ updateAutoPrep(); updatePrevPrep(); }catch(e){} }, 250);
     const branch=$('#txBranchInput').value,list=(txType==='income'?state.rooms:state.staff).filter(x=>x.branch===branch&&!x.archived);$('#txTargetInput').innerHTML='<option value="">선택하세요</option>'+list.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
     updatePayCalc();
   }
@@ -3855,6 +3886,41 @@ h1,h2,h3{color:var(--n-ink)}
      '건수' 또는 '시간'을 입력받아 금액을 자동으로 채웁니다 */
 
   /* 🛒 준비물 자동 계산 미리보기 */
+
+  /* 📥 이전 준비물 불러오기
+     이번에 나가는 손님은 '앞 청소 때 준비해둔 것'을 쓴 손님이에요.
+     그래서 앞 기록의 준비물을 그대로 가져와 '사용 물품'으로 쓸 수 있게 합니다.
+     앞 기록에 준비물이 안 적혀 있으면 그때의 인원·박수로 계산해 보여줍니다. */
+  function updatePrevPrep(){
+    const box=$('#txPrevPrep'), txt=$('#txPrevPrepText');
+    if(!box||!txt)return;
+    const roomId=$('#txTargetInput')?$('#txTargetInput').value:'';
+    const date=$('#txDateInput')?$('#txDateInput').value:'';
+    if(!roomId||!date){box.style.display='none';return;}
+
+    // 이 청소일 '이전'의 가장 최근 기록 찾기
+    const prev=(state.transactions||[])
+      .filter(t=>t.type==='income'&&!t.checkinOnly&&String(t.targetId)===String(roomId)
+        &&t.status!=='cancelled'&&(t.date||'')<date)
+      .sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
+    if(!prev){box.style.display='none';return;}
+
+    const room=(state.rooms||[]).find(r=>String(r.id)===String(roomId));
+    // 적어둔 준비물이 있으면 그것을, 없으면 그때 기준으로 계산
+    let text=(prev.inSupplies||'').trim();
+    let src='';
+    if(text){ src='('+(prev.date||'').slice(5).replace('-','/')+' 기록)'; }
+    else if(prev.inNights){
+      text=standardPrep(room, prev.inGuests, prev.inNights);
+      src='('+(prev.date||'').slice(5).replace('-','/')+' '+(prev.inGuests||'-')+'명 '+prev.inNights+'박 기준)';
+    }
+    if(!text){box.style.display='none';return;}
+
+    box.style.display='block';
+    box.dataset.prev=text;
+    txt.innerHTML=esc(text)+'<div style="font-size:10px;color:var(--sub);font-weight:600;margin-top:3px;">'+esc(src)+'</div>';
+  }
+
   function updateAutoPrep(){
     const box=$('#txAutoPrep'), txt=$('#txAutoPrepText');
     if(!box||!txt)return;
@@ -5083,6 +5149,14 @@ h1,h2,h3{color:var(--n-ink)}
     const el=$(s); if(el){el.addEventListener('input',updateAutoPrep);el.addEventListener('change',updateAutoPrep);}
   });
   {const ic=$('#txInCancel');if(ic)ic.addEventListener('click',function(){setTimeout(updateAutoPrep,60);});}
+  // 📥 이전 준비물 가져오기
+  ['#txDateInput','#txTargetInput'].forEach(s=>{
+    const el=$(s); if(el){el.addEventListener('change',updatePrevPrep);el.addEventListener('input',updatePrevPrep);}
+  });
+  {const up=$('#txUsePrev');if(up)up.addEventListener('click',function(){
+    const b=$('#txPrevPrep'), inp=$('#txOutSupplies');
+    if(b&&inp&&b.dataset.prev){ inp.value=b.dataset.prev; toast('📥 사용 물품을 채웠어요'); }
+  });}
   {const ua=$('#txUseAuto');if(ua)ua.addEventListener('click',function(){
     const b=$('#txAutoPrep'), inp=$('#txInSupplies');
     if(b&&inp&&b.dataset.auto){ inp.value=b.dataset.auto; toast('🛒 준비물을 채웠어요'); }
@@ -5144,6 +5218,11 @@ h1,h2,h3{color:var(--n-ink)}
   fillMFForm();       // 설정 폼에 현재값 표시
   render();
 })();
+  /* 🛡️ 페이지를 닫거나 화면을 벗어날 때 마지막으로 한 번 더 저장 */
+  window.addEventListener('pagehide',function(){ try{save();}catch(e){} });
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='hidden'){ try{save();}catch(e){} }
+  });
 </script>
 </body>
 </html>
