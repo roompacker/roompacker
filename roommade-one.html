@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v14.3</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v14.4</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1255,9 +1255,12 @@ h1,h2,h3{color:var(--n-ink)}
       // 금액도 현재 설정으로 다시 계산되도록 표시
       if(!t.paid && cfg && cfg.active){
         const mKey=t.billingMonth||(t.date||'').slice(0,7);
+        // 지점 표시가 빠진 기록도 있어서, '그 지점 객실'을 기준으로 셉니다
+        const roomIds=(state.rooms||[]).filter(r=>r.branch===cfg.branch).map(r=>String(r.id));
         const cnt=(state.transactions||[]).filter(x=>
-          x.branch===cfg.branch && x.type==='income' && !x.autoFee && !x.checkinOnly &&
-          x.status!=='cancelled' && (x.billingMonth||(x.date||'').slice(0,7))===mKey
+          x.type==='income' && !x.autoFee && !x.checkinOnly && x.status!=='cancelled' &&
+          (x.billingMonth||(x.date||'').slice(0,7))===mKey &&
+          (roomIds.indexOf(String(x.targetId))>=0 || x.branch===cfg.branch)
         ).length;
         const BASE=cfg.baseCount||50, FEE=cfg.amount||0, OVER=cfg.overFee||50000, MAX=cfg.maxFee||3500000;
         let fee=FEE; if(cnt>BASE)fee=FEE+(cnt-BASE)*OVER; if(fee>MAX)fee=MAX;
@@ -4482,9 +4485,11 @@ h1,h2,h3{color:var(--n-ink)}
     const BASE_LIMIT=cfg.baseCount||50, BASE_FEE=cfg.amount||3200000;
     const OVER_FEE=cfg.overFee||50000, MAX_FEE=cfg.maxFee||3500000;
     const mKey=currentYM();
+    const _rid2=(state.rooms||[]).filter(r=>r.branch===cfg.branch).map(r=>String(r.id));
     const cleanCount=state.transactions.filter(t=>
-      t.branch===cfg.branch && t.type==='income' && !t.autoFee && !t.checkinOnly &&
-      t.status!=='cancelled' && (t.billingMonth||(t.date||'').slice(0,7))===mKey
+      t.type==='income' && !t.autoFee && !t.checkinOnly && t.status!=='cancelled' &&
+      (t.billingMonth||(t.date||'').slice(0,7))===mKey &&
+      (_rid2.indexOf(String(t.targetId))>=0 || t.branch===cfg.branch)
     ).length;
     let fee=BASE_FEE;
     if(cleanCount>BASE_LIMIT)fee=BASE_FEE+(cleanCount-BASE_LIMIT)*OVER_FEE;
@@ -4628,11 +4633,13 @@ h1,h2,h3{color:var(--n-ink)}
     while(d<=now){
       const mKey=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
       // 그달 펜트하우스 '청소 건수' 세기 (자동관리비 자신은 제외, 취소 제외)
-      const cleanCount=state.transactions.filter(t=>
-        t.branch===cfg.branch && t.type==='income' && !t.autoFee &&
-        t.status!=='cancelled' && (t.billingMonth||(t.date||'').slice(0,7))===mKey
+      const _rids=(state.rooms||[]).filter(r=>r.branch===cfg.branch).map(r=>String(r.id));
+      const cleanCount = state.transactions.filter(t =>
+        t.type==='income' && !t.autoFee && !t.checkinOnly && t.status!=='cancelled' &&
+        (t.billingMonth||(t.date||'').slice(0,7))===mKey &&
+        (_rids.indexOf(String(t.targetId))>=0 || t.branch===cfg.branch)
       ).length;
-      // 금액 계산: 50회까지 320만, 51회부터 건당 5만 추가, 350만 상한
+            // 금액 계산: 50회까지 320만, 51회부터 건당 5만 추가, 350만 상한
       let fee=BASE_FEE;
       if(cleanCount>BASE_LIMIT){ fee = BASE_FEE + (cleanCount-BASE_LIMIT)*OVER_FEE; }
       if(fee>MAX_FEE) fee=MAX_FEE;
