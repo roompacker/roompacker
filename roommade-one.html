@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v14.1</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v14.2</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1234,6 +1234,20 @@ h1,h2,h3{color:var(--n-ink)}
   }
 
   /* 💾 저장 상태 표시 — 기록이 안전한지 항상 보이게 */
+
+  /* 🧾 관리비 항목 정리
+     예전 버전에서 관리비가 특정 객실에 붙어 저장된 경우가 있어요.
+     그러면 '받을 돈'에서 그 객실 청소와 한 묶음으로 보여 금액이 이상해집니다.
+     앱을 열 때 한 번 분리해 둡니다. */
+  function detachFeeFromRoom(){
+    let n=0;
+    (state.transactions||[]).forEach(t=>{
+      if(t.autoFee===true && t.targetId){ t.targetId=''; n++; }
+    });
+    if(n){ try{save();}catch(e){} }
+    return n;
+  }
+
   function renderSaveState(){
     const el=$('#saveState'); if(!el)return;
     let cnt=0;
@@ -4605,7 +4619,8 @@ h1,h2,h3{color:var(--n-ink)}
         state.transactions.push({
           id:'fee_'+cfg.branch+'_'+mKey,
           date:mKey+'-01', billingMonth:mKey, type:'income',
-          targetId:room?room.id:'', targetName:cfg.label,
+          // 관리비는 특정 객실 것이 아니므로 객실에 붙이지 않습니다 (객실별 정산에 섞이지 않게)
+          targetId:'', targetName:cfg.label,
           branch:cfg.branch, amount:fee,
           taxRate:0, taxAmount:0, netAmount:fee,
           outNights:'',outGuests:'',outTime:'',inNights:'',inGuests:'',inTime:'',inSupplies:'',
@@ -5214,6 +5229,7 @@ h1,h2,h3{color:var(--n-ink)}
   $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id)}));
 
   applyRole();fillHostPreview();setBranch(state.branch||'전체');$('#reportMonth').value=currentYM();
+  try{ detachFeeFromRoom(); }catch(e){}   // 관리비가 객실에 붙어 있으면 분리
   applyMonthlyFee();  // 빠진 달 관리비 자동등록
   fillMFForm();       // 설정 폼에 현재값 표시
   render();
