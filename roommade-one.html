@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v14.2</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v14.3</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1241,8 +1241,32 @@ h1,h2,h3{color:var(--n-ink)}
      앱을 열 때 한 번 분리해 둡니다. */
   function detachFeeFromRoom(){
     let n=0;
+    const cfg=(typeof loadMF==='function')?loadMF():null;
+    const label=(cfg&&cfg.label)?cfg.label:'위탁관리비';
     (state.transactions||[]).forEach(t=>{
-      if(t.autoFee===true && t.targetId){ t.targetId=''; n++; }
+      if(t.autoFee!==true)return;
+      // 객실 연결을 끊고, 이름도 '위탁관리비'로 되돌립니다
+      // (객실 이름이 남아 있으면 정산 화면에서 그 객실 묶음으로 보여요)
+      if(t.targetId){ t.targetId=''; n++; }
+      const nm=String(t.targetName||'');
+      if(!nm || /호|파크|오션|룸|점/.test(nm)){
+        if(nm!==label){ t.targetName=label; n++; }
+      }
+      // 금액도 현재 설정으로 다시 계산되도록 표시
+      if(!t.paid && cfg && cfg.active){
+        const mKey=t.billingMonth||(t.date||'').slice(0,7);
+        const cnt=(state.transactions||[]).filter(x=>
+          x.branch===cfg.branch && x.type==='income' && !x.autoFee && !x.checkinOnly &&
+          x.status!=='cancelled' && (x.billingMonth||(x.date||'').slice(0,7))===mKey
+        ).length;
+        const BASE=cfg.baseCount||50, FEE=cfg.amount||0, OVER=cfg.overFee||50000, MAX=cfg.maxFee||3500000;
+        let fee=FEE; if(cnt>BASE)fee=FEE+(cnt-BASE)*OVER; if(fee>MAX)fee=MAX;
+        if(Number(t.amount||0)!==fee){
+          t.amount=fee; t.netAmount=fee; t.taxAmount=0;
+          t.memo='위탁관리비 ('+cnt+'회'+(cnt>BASE?' / 초과 '+(cnt-BASE)+'건':'')+(fee>=MAX&&cnt>BASE?' / 상한도달':'')+')';
+          n++;
+        }
+      }
     });
     if(n){ try{save();}catch(e){} }
     return n;
