@@ -41,6 +41,10 @@ overflow-x:auto;white-space:pre-wrap;word-break:break-all;line-height:1.6}
 <button class="p" id="check">1️⃣ 지금 상태 확인하기</button>
 <button class="g" id="test">2️⃣ 저장 시험해보기 (안전)</button>
 <button class="g" id="peek">3️⃣ 기록 내용 살짝 보기</button>
+<button class="p" id="restore" style="background:#3B8360;margin-top:14px;">🛟 안전백업으로 되살리기</button>
+<div style="font-size:11px;color:var(--sub);text-align:center;margin:-4px 0 14px;line-height:1.6;">
+거래 기록이 비어 있을 때 눌러주세요<br>안전백업에 남아있는 내용을 되돌립니다
+</div>
 
 <div id="out"></div>
 
@@ -152,6 +156,45 @@ $('#test').addEventListener('click', function(){
   }
   h+='<pre>'+esc(log.join('\n'))+'</pre></div>';
   $('#out').innerHTML=h;
+});
+
+$('#restore').addEventListener('click', function(){
+  var bk=null;
+  try{ bk=JSON.parse(localStorage.getItem(K.backup)||'null'); }catch(e){}
+  if(!bk||!Array.isArray(bk.transactions)||!bk.transactions.length){
+    alert('안전백업이 비어 있어요.\n\n관리 탭의 "백업 가져오기"로\n받아두신 파일을 복원해주세요.');
+    return;
+  }
+  var now=getArr(K.tx);
+  var nowCnt=Array.isArray(now)?now.length:0;
+  var msg='🛟 안전백업으로 되살리기\n\n'+
+    '지금 거래 기록 : '+nowCnt+'건\n'+
+    '안전백업        : '+bk.transactions.length+'건\n'+
+    '저장 시각       : '+String(bk.savedAt||'').slice(0,16).replace('T',' ')+'\n\n'+
+    '안전백업 내용으로 되돌릴까요?';
+  if(!confirm(msg))return;
+
+  try{
+    // 되돌리기 전, 지금 상태를 따로 보관 (혹시 몰라서)
+    localStorage.setItem('roommade-되돌리기전', JSON.stringify({
+      at:new Date().toISOString(), transactions:now||[]
+    }));
+    localStorage.setItem(K.tx, JSON.stringify(bk.transactions));
+    if(Array.isArray(bk.rooms)&&bk.rooms.length)localStorage.setItem(K.rooms, JSON.stringify(bk.rooms));
+    if(Array.isArray(bk.staff)&&bk.staff.length)localStorage.setItem(K.staff, JSON.stringify(bk.staff));
+    if(bk.branch)localStorage.setItem(K.branch, bk.branch);
+
+    var after=getArr(K.tx);
+    var n=Array.isArray(after)?after.length:0;
+    if(n===bk.transactions.length){
+      alert('✅ 되살렸어요!\n\n거래 기록 '+n+'건\n\n이제 앱을 열어서 확인해주세요.');
+    }else{
+      alert('⚠️ 일부만 되살아났어요\n\n기대 '+bk.transactions.length+'건 / 실제 '+n+'건');
+    }
+    $('#check').click();
+  }catch(e){
+    alert('❌ 되살리기 실패\n\n'+e.name+': '+e.message);
+  }
 });
 
 $('#peek').addEventListener('click', function(){
