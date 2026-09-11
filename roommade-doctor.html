@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="google" content="notranslate" />
+<title>🔍 저장 상태 진단</title>
+<style>
+:root{--bg:#EDEEE7;--card:#FCFCFA;--line:#DDE0D8;--ink:#2E3D4F;--sub:#7C8894;
+--navy:#2C5C87;--ok:#3B8360;--okbg:#E2F4EA;--bad:#9A5F55;--badbg:#F0DEDA;
+--warn:#8A6E38;--warnbg:#EFE6D4;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);padding:16px 14px 40px;
+font-family:-apple-system,"Apple SD Gothic Neo",Pretendard,sans-serif;
+max-width:560px;margin:0 auto}
+h1{font-size:19px;margin:0 0 4px}
+.lead{font-size:12px;color:var(--sub);line-height:1.6;margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:11px}
+.row{display:flex;gap:9px;padding:10px 0;border-bottom:1px solid #EFF0EA;font-size:12.5px}
+.row:last-child{border-bottom:0}
+.row b{flex:1}
+.row span{font-weight:800;text-align:right}
+button{font:inherit;cursor:pointer;width:100%;border:0;border-radius:12px;
+padding:13px;font-size:13px;font-weight:800;margin-bottom:9px}
+.p{background:var(--navy);color:#fff}
+.g{background:#fff;border:1px solid var(--line);color:var(--navy)}
+.big{text-align:center;padding:16px;border-radius:14px;margin-bottom:12px}
+.big b{display:block;font-size:26px}
+.big small{display:block;font-size:12px;margin-top:4px;opacity:.85}
+pre{background:#F4F5F1;border-radius:10px;padding:11px;font-size:10px;
+overflow-x:auto;white-space:pre-wrap;word-break:break-all;line-height:1.6}
+</style>
+</head>
+<body>
+<h1>🔍 저장 상태 진단</h1>
+<p class="lead">
+기록이 왜 안 늘어나는지 직접 확인합니다.<br>
+<b>이 페이지는 기록을 지우지 않아요.</b> 읽기만 합니다.
+</p>
+
+<button class="p" id="check">1️⃣ 지금 상태 확인하기</button>
+<button class="g" id="test">2️⃣ 저장 시험해보기 (안전)</button>
+<button class="g" id="peek">3️⃣ 기록 내용 살짝 보기</button>
+
+<div id="out"></div>
+
+<script>
+(function(){
+'use strict';
+var $=function(s){return document.querySelector(s)};
+var K={rooms:'룸메이드캐쉬-객실',staff:'룸메이드캐쉬-직원',
+       tx:'룸메이드캐쉬-거래',branch:'룸메이드캐쉬-지점',
+       backup:'roommade-안전백업'};
+
+function esc(s){return String(s==null?'':s).replace(/[&<>]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]});}
+
+function getArr(k){
+  try{ var v=localStorage.getItem(k); if(!v)return null;
+       var a=JSON.parse(v); return Array.isArray(a)?a:null; }
+  catch(e){ return 'ERR:'+e.message; }
+}
+
+$('#check').addEventListener('click', function(){
+  var h='';
+  // 저장 공간 자체가 되는지
+  var canWrite=false, writeErr='';
+  try{ localStorage.setItem('__시험__','1');
+       canWrite=(localStorage.getItem('__시험__')==='1');
+       localStorage.removeItem('__시험__'); }
+  catch(e){ writeErr=e.name+': '+e.message; }
+
+  h+='<div class="big" style="background:'+(canWrite?'var(--okbg)':'var(--badbg)')+
+     ';color:'+(canWrite?'var(--ok)':'var(--bad)')+';">'+
+     '<b>'+(canWrite?'저장 가능':'저장 불가')+'</b>'+
+     '<small>'+(canWrite?'브라우저 저장 공간이 열려 있어요':esc(writeErr||'쓰기가 막혀 있어요'))+'</small></div>';
+
+  // 각 항목 건수
+  h+='<div class="card">';
+  var items=[['객실',K.rooms],['직원',K.staff],['거래 기록',K.tx]];
+  items.forEach(function(it){
+    var a=getArr(it[1]);
+    var txt, col='var(--ink)';
+    if(a===null){ txt='없음'; col='var(--bad)'; }
+    else if(typeof a==='string'){ txt='읽기 실패'; col='var(--bad)'; }
+    else { txt=a.length+'건'; }
+    h+='<div class="row"><b>'+it[0]+'</b><span style="color:'+col+'">'+txt+'</span></div>';
+  });
+
+  // 안전백업
+  var bk=null;
+  try{ bk=JSON.parse(localStorage.getItem(K.backup)||'null'); }catch(e){}
+  h+='<div class="row"><b>안전백업</b><span>'+
+     (bk&&bk.transactions?(bk.transactions.length+'건 · '+String(bk.savedAt||'').slice(5,16).replace('T',' ')):'없음')+
+     '</span></div>';
+
+  // 사용량
+  var total=0;
+  try{ for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i); total+=(k+(localStorage.getItem(k)||'')).length; } }catch(e){}
+  var mb=(total/1024/1024).toFixed(2);
+  h+='<div class="row"><b>사용 중인 공간</b><span style="color:'+
+     (total>4500000?'var(--bad)':'var(--ink)')+'">'+mb+' MB / 약 5 MB</span></div>';
+  h+='<div class="row"><b>저장 항목 수</b><span>'+localStorage.length+'개</span></div>';
+  h+='</div>';
+
+  if(total>4500000){
+    h+='<div class="card" style="background:var(--badbg);border-color:#E4C7C1;">'+
+       '<b style="color:var(--bad);font-size:13px;">⚠️ 저장 공간이 거의 찼어요</b>'+
+       '<div style="font-size:11px;color:var(--bad);margin-top:5px;line-height:1.6;">'+
+       '이래서 새 기록이 안 들어가요. 오래된 항목을 정리해야 합니다.</div></div>';
+  }
+
+  // 주소 확인
+  h+='<div class="card"><div class="row"><b>지금 주소</b></div>'+
+     '<pre>'+esc(location.href)+'</pre>'+
+     '<div style="font-size:11px;color:var(--sub);line-height:1.6;">'+
+     '앱과 <b>같은 주소(roompacker.github.io)</b>여야 같은 기록을 봅니다.</div></div>';
+
+  $('#out').innerHTML=h;
+});
+
+$('#test').addEventListener('click', function(){
+  var h='<div class="card">';
+  var log=[];
+  try{
+    var before=getArr(K.tx);
+    var n0=Array.isArray(before)?before.length:0;
+    log.push('시험 전 거래 기록: '+n0+'건');
+
+    // 실제 배열에 한 건 넣고 저장해본 뒤 되돌립니다
+    var arr=Array.isArray(before)?before.slice():[];
+    arr.push({id:'__진단용__',date:'2000-01-01',type:'income',_test:true});
+    localStorage.setItem(K.tx, JSON.stringify(arr));
+
+    var after=getArr(K.tx);
+    var n1=Array.isArray(after)?after.length:0;
+    log.push('한 건 추가 후: '+n1+'건');
+
+    if(n1===n0+1) log.push('✅ 저장 정상 — 기록이 늘어납니다');
+    else log.push('❌ 저장 실패 — 건수가 안 늘어요');
+
+    // 원래대로 되돌리기
+    var back=(after||[]).filter(function(t){return !t._test;});
+    localStorage.setItem(K.tx, JSON.stringify(back));
+    var n2=(getArr(K.tx)||[]).length;
+    log.push('되돌림 후: '+n2+'건'+(n2===n0?' ✅':' ⚠️'));
+  }catch(e){
+    log.push('❌ 오류: '+e.name+' — '+e.message);
+    if(/quota|exceed/i.test(e.name+e.message))
+      log.push('→ 저장 공간이 가득 찼어요');
+  }
+  h+='<pre>'+esc(log.join('\n'))+'</pre></div>';
+  $('#out').innerHTML=h;
+});
+
+$('#peek').addEventListener('click', function(){
+  var a=getArr(K.tx);
+  var h='<div class="card">';
+  if(!Array.isArray(a)){ h+='<pre>거래 기록을 읽을 수 없어요</pre>'; }
+  else{
+    var last=a.slice(-5).map(function(t){
+      return (t.date||'-')+'  '+(t.targetName||'-')+'  '+
+             (t.outNights?t.outNights+'박':'')+'  '+
+             (t.inSupplies?('준비:'+t.inSupplies):'');
+    });
+    h+='<div class="row"><b>전체 기록</b><span>'+a.length+'건</span></div>';
+    h+='<div style="font-size:11px;color:var(--sub);margin:8px 0 4px;">마지막 5건</div>';
+    h+='<pre>'+esc(last.join('\n')||'없음')+'</pre>';
+  }
+  h+='</div>';
+  $('#out').innerHTML=h;
+});
+})();
+</script>
+</body>
+</html>
