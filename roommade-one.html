@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v14.9</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v15.0</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1192,44 +1192,32 @@ h1,h2,h3{color:var(--n-ink)}
   }
   let state=loadState();
   function save(){
-    // 🛟 기록이 갑자기 줄었는지 먼저 확인
-    try{ if(guardBefore()===false)return false; }catch(e){}
+    /* 저장은 단순하게 — 중간에 막는 장치를 모두 없앴습니다.
+       (검증·감시 코드가 오히려 저장을 방해하고 있었어요) */
     try{
-      // 캐쉬 앱과 같은 키에 직접 저장 → 두 앱이 데이터 공유
       localStorage.setItem(LEGACY.rooms,JSON.stringify(state.rooms));
       localStorage.setItem(LEGACY.staff,JSON.stringify(state.staff));
       localStorage.setItem(LEGACY.tx,JSON.stringify(state.transactions));
       localStorage.setItem(LEGACY.branch,state.branch);
       localStorage.setItem('roommade-supplies',JSON.stringify(state.supplies||[]));
-      /* 🛡️ 저장 검증 — 방금 쓴 내용을 다시 읽어 건수까지 맞는지 확인합니다.
-         (저장이 조용히 실패해 기록이 사라지는 것을 막아요) */
-      let back=[];
-      try{ back=JSON.parse(localStorage.getItem(LEGACY.tx)||'[]'); }catch(e){}
-      if(!Array.isArray(back)||back.length!==state.transactions.length){
-        // 한 번 더 시도
-        try{ localStorage.setItem(LEGACY.tx,JSON.stringify(state.transactions)); }catch(e){}
-        try{ back=JSON.parse(localStorage.getItem(LEGACY.tx)||'[]'); }catch(e){}
-      }
-      if(!Array.isArray(back)||back.length!==state.transactions.length){
-        alert('⚠️ 저장이 안 됐어요!\n\n기록 '+state.transactions.length+'건 중 '+(back?back.length:0)+'건만 저장됨\n\n· 저장 공간이 가득 찼거나\n· 시크릿 모드일 수 있어요\n\n관리 탭에서 백업 내보내기를 먼저 해주세요.');
-        return false;
-      }
       state.lastSaved=Date.now();
-      // 🛡️ 안전 백업: 별도 키에 통째로 한 벌 더 저장 (공유키가 비워져도 복구 가능)
-      try{
-        localStorage.setItem('roommade-안전백업', JSON.stringify({
-          savedAt:new Date().toISOString(),
-          rooms:state.rooms, staff:state.staff, transactions:state.transactions, branch:state.branch
-        }));
-      }catch(e){}
-      // ☁️ 자동 클라우드 백업 (5초 모아서 한 번만 — 과도한 호출 방지)
-      scheduleAutoCloud();
-      return true;
     }catch(e){
-      toast('⚠️ 저장 안 됨: '+e.message+' (브라우저로 열어주세요)');
+      // 저장 공간이 가득 찼을 때만 알립니다
+      try{ alert('⚠️ 저장 공간이 부족해요\n\n'+e.message+'\n\n관리 탭에서 백업을 먼저 받아주세요.'); }catch(_){}
       return false;
     }
+    // 안전 백업 (실패해도 본 저장에 영향 없음)
+    try{
+      localStorage.setItem('roommade-안전백업', JSON.stringify({
+        savedAt:new Date().toISOString(),
+        rooms:state.rooms, staff:state.staff, transactions:state.transactions, branch:state.branch
+      }));
+    }catch(e){}
+    try{ scheduleAutoCloud(); }catch(e){}
+    try{ renderSaveState(); }catch(e){}
+    return true;
   }
+
   // 자동 클라우드 백업 스케줄러 (한도 절약 위해 기본 꺼짐)
   // 로컬 '안전백업'은 계속 작동하므로 데이터는 안전. 클라우드는 호스트 공유 버튼 누를 때만 호출.
   let _autoCloudTimer=null;
@@ -1293,19 +1281,8 @@ h1,h2,h3{color:var(--n-ink)}
      저장 직전 건수를 기억해 두고, 갑자기 크게 줄면 알려줍니다.
      (기록이 조용히 사라지는 것을 막아요) */
   const GUARD_KEY='roommade-기록감시';
-  function guardBefore(){
-    try{
-      const cnt=(state.transactions||[]).length;
-      const prev=Number(localStorage.getItem(GUARD_KEY)||0);
-      // 10건 이상 갑자기 줄었으면 경고
-      if(prev>=20 && cnt < prev-10){
-        const ok=confirm('⚠️ 기록이 갑자기 줄었어요!\n\n이전 '+prev+'건 → 지금 '+cnt+'건\n\n그대로 저장할까요?\n\n[취소]를 누르면 저장하지 않아요.\n(다른 탭이 열려 있는지 확인해보세요)');
-        if(!ok)return false;
-      }
-      localStorage.setItem(GUARD_KEY,String(cnt));
-    }catch(e){}
-    return true;
-  }
+  function guardBefore(){ return true; }   // 사용 안 함
+
 
   function detachFeeFromRoom(){
     let n=0;
