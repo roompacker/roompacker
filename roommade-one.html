@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v15.1</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v17.0</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -869,7 +869,12 @@ h1,h2,h3{color:var(--n-ink)}
         <div style="margin-top:7px;"><label style="font-size:9px;color:var(--sub);font-weight:800;">입실일 <span style="color:#B8A06A;">(공실 안내 계산 기준)</span></label><div style="display:flex;gap:6px;margin-top:3px;"><input type="date" id="txInDate" style="flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;"><button type="button" id="txClearIn" style="flex-shrink:0;border:1px solid #F0D9A8;background:#FFF4DE;color:#C4922E;border-radius:10px;padding:0 11px;font-size:10px;font-weight:800;">입실 취소</button></div></div>
         <label style="font-size:9px;color:var(--sub);font-weight:800;">준비물 (토퍼·수건 등)</label>
         <input type="text" id="txInSupplies" placeholder="비워두면 아래대로 자동 준비" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;">
-        <div id="txAutoPrep" style="display:none;background:#E4EBF1;border-radius:10px;padding:9px 11px;margin-top:6px;">
+        <div id="txLockInfo" style="display:none;background:#E2F4EA;border-radius:10px;padding:9px 11px;margin-top:6px;">
+            <div style="font-size:10px;color:#3B8360;font-weight:800;">🔒 직접 고치신 항목이 있어요</div>
+            <div id="txLockText" style="font-size:11px;color:#3B8360;margin-top:3px;line-height:1.5;"></div>
+            <button type="button" id="txUnlock" style="width:100%;margin-top:7px;border:1px solid #9FD9BC;background:#FFFFFF;color:#3B8360;border-radius:8px;padding:7px;font-size:10px;font-weight:800;">자동 갱신 다시 허용하기</button>
+          </div>
+          <div id="txAutoPrep" style="display:none;background:#E4EBF1;border-radius:10px;padding:9px 11px;margin-top:6px;">
           <div style="font-size:9px;color:var(--navy);font-weight:800;margin-bottom:3px;">🛒 자동 계산 결과</div>
           <div id="txAutoPrepText" style="font-size:12px;font-weight:700;color:var(--ink);line-height:1.5;"></div>
           <button type="button" id="txUseAuto" style="width:100%;margin-top:7px;border:1px solid #C6D6E2;background:#FFFFFF;color:var(--navy);border-radius:8px;padding:7px;font-size:10px;font-weight:800;">이 내용으로 채우기</button>
@@ -2281,9 +2286,9 @@ h1,h2,h3{color:var(--n-ink)}
         const oldDate=byUid.date;
         // 이미 처리·결제된 건은 건드리지 않아요
         if(byUid.paid||byUid.status==='done'||oldDate<td)return;
-        byUid.date=bk.co;
+        byUid.date=bk.co;                       // 날짜 이동은 예약의 사실이라 반영
         byUid.billingMonth=ym(bk.co);
-        byUid.outNights=String(bk.nights);
+        autoSet(byUid,{outNights:String(bk.nights)},'ical');
         byUid.icalSeenNights=String(bk.nights);
         byUid.status=bk.co<=td?'done':'booked';
         updated++;
@@ -2310,8 +2315,8 @@ h1,h2,h3{color:var(--n-ink)}
         const newN=String(bk.nights);
         const seenN=String(clean.icalSeenNights!=null?clean.icalSeenNights:'');
         if(!seenN){
-          // 처음 연결하는 기록 — 비어 있을 때만 채우고, 기준값을 기록해 둡니다
-          if(!curN){ clean.outNights=newN; updated++; }
+          // 처음 연결하는 기록 — 비어 있을 때만 채웁니다 (잠긴 값은 건드리지 않음)
+          if(!curN){ autoSet(clean,{outNights:newN},'ical'); updated++; }
           clean.icalSeenNights=newN;
         }else if(seenN!==newN){
           // 에어비앤비에서 실제로 바뀐 경우에만 덮어씁니다
@@ -2319,9 +2324,10 @@ h1,h2,h3{color:var(--n-ink)}
             changes.push('📝 '+shortName+'  '+fmtD(bk.co)+' 청소 · 숙박 '+seenN+'박 → '+newN+'박 변경');
             clean.icalChanged=Date.now(); clean.icalKind='edit';
           }
-          clean.outNights=newN;
+          var r1=autoSet(clean,{outNights:newN},'ical');
           clean.icalSeenNights=newN;
-          updated++;
+          if(r1.applied.length)updated++;
+          if(r1.blocked.length)changes.push('🔒 '+shortName+' '+fmtD(bk.co)+' — 직접 고치신 값이라 그대로 뒀어요');
         }
         if(!clean.outTime)clean.outTime='11:00';
         if(!clean.icalUid)clean.icalUid=bk.uid;
@@ -2377,16 +2383,17 @@ h1,h2,h3{color:var(--n-ink)}
         const newIn=bk.ci+'|'+bk.nights;
         if(!seenIn){
           if(!prevClean.inDate){
-            prevClean.inDate=bk.ci; prevClean.inNights=String(bk.nights);
-            if(!prevClean.inTime)prevClean.inTime='16:00';
+            autoSet(prevClean,{inDate:bk.ci,inNights:String(bk.nights)},'ical');
+            if(!prevClean.inTime)autoSet(prevClean,{inTime:'16:00'},'ical');
             updated++;
           }
           prevClean.icalSeenIn=newIn;
         }else if(seenIn!==newIn){
           const had=prevClean.inDate;
-          prevClean.inDate=bk.ci; prevClean.inNights=String(bk.nights);
-          if(!prevClean.inTime)prevClean.inTime='16:00';
+          var r2=autoSet(prevClean,{inDate:bk.ci,inNights:String(bk.nights)},'ical');
+          if(!prevClean.inTime)autoSet(prevClean,{inTime:'16:00'},'ical');
           prevClean.icalSeenIn=newIn;
+          if(r2.blocked.length)changes.push('🔒 '+shortName+' '+fmtD(prevClean.date)+' 입실 — 직접 고치신 값 유지');
           if((prevClean.date||'')>=td){
             changes.push('📝 '+shortName+'  '+fmtD(prevClean.date)+' 청소 · 다음 입실 '+fmtD(had||seenIn.split('|')[0])+' → '+fmtD(bk.ci));
             prevClean.icalChanged=Date.now(); prevClean.icalKind='edit';
@@ -3913,6 +3920,7 @@ h1,h2,h3{color:var(--n-ink)}
     try{ renderTxStaffPicks(); }catch(e){ console.error('staffPicks',e); }
     try{ updateAutoPrep(); }catch(e){}
     try{ updatePrevPrep(); }catch(e){}
+    try{ renderLockInfo(); }catch(e){}
     setTimeout(function(){ try{ updateAutoPrep(); updatePrevPrep(); }catch(e){} }, 250);
     const branch=$('#txBranchInput').value,list=(txType==='income'?state.rooms:state.staff).filter(x=>x.branch===branch&&!x.archived);$('#txTargetInput').innerHTML='<option value="">선택하세요</option>'+list.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
     updatePayCalc();
@@ -4008,6 +4016,74 @@ h1,h2,h3{color:var(--n-ink)}
     if(res)res.innerHTML=`${qty}${unit} × ${money(rate)} = <b style="color:var(--navy);">${money(gross)}</b>`+
       (taxRate?`<br><span style="font-size:11px;color:var(--muted);">세금 ${taxRate}% 떼면 실지급 ${money(net)}</span>`:'');
   }
+
+  /* ═══════════════════════════════════════════════════════════
+     🔒 기록 보호 장치 (Data Guard)
+
+     문제였던 것: 앱 곳곳(36군데)에서 제각각 기록을 고쳐서,
+     사용자가 손으로 수정한 값이 다른 코드에 덮어써졌습니다.
+
+     해결: 사용자가 직접 고친 항목에 '잠금 표시'를 남기고,
+           자동 코드는 잠긴 항목을 절대 건드리지 않습니다.
+     ═══════════════════════════════════════════════════════════ */
+
+  // 사용자가 직접 고친 항목을 기록에 표시
+
+  /* 🔒 잠금 상태 표시 */
+  var LOCK_LABEL={outNights:'퇴실 박수',outGuests:'퇴실 인원',outTime:'퇴실 시간',
+    outSupplies:'사용 물품',inNights:'입실 박수',inGuests:'입실 인원',
+    inTime:'입실 시간',inSupplies:'준비물',inDate:'입실일',memo:'메모'};
+
+  function renderLockInfo(){
+    var box=$('#txLockInfo'), txt=$('#txLockText');
+    if(!box||!txt)return;
+    var id=$('#txEditId')?$('#txEditId').value:'';
+    var t=id?(state.transactions||[]).find(function(x){return x.id===id}):null;
+    if(!t||!t._lock||!Object.keys(t._lock).length){ box.style.display='none'; return; }
+    var names=Object.keys(t._lock).map(function(k){return LOCK_LABEL[k]||k;});
+    box.style.display='block';
+    txt.textContent=names.join(', ')+' — 에어비앤비가 이 값을 바꾸지 못해요';
+  }
+
+  function unlockTx(){
+    var id=$('#txEditId')?$('#txEditId').value:'';
+    var t=id?(state.transactions||[]).find(function(x){return x.id===id}):null;
+    if(!t)return;
+    if(!confirm('자동 갱신을 다시 허용할까요?\n\n앞으로 에어비앤비 예약이 바뀌면\n이 기록도 따라서 바뀝니다.'))return;
+    delete t._lock;
+    save(); renderLockInfo();
+    toast('자동 갱신을 허용했어요');
+  }
+
+  function markEdited(tx, fields){
+    if(!tx)return;
+    tx._lock = tx._lock || {};
+    (fields||[]).forEach(function(f){ tx._lock[f]=Date.now(); });
+  }
+
+  // 그 항목이 사용자 손을 탄 것인지
+  function isLocked(tx, field){
+    return !!(tx && tx._lock && tx._lock[field]);
+  }
+
+  /* 자동 코드는 반드시 이 함수로만 값을 바꿉니다.
+     잠긴 항목은 건너뛰고, 무엇이 막혔는지 돌려줍니다. */
+  function autoSet(tx, changes, reason){
+    if(!tx||!changes)return {applied:[],blocked:[]};
+    var applied=[], blocked=[];
+    Object.keys(changes).forEach(function(k){
+      if(isLocked(tx,k)){ blocked.push(k); return; }
+      if(String(tx[k]||'')===String(changes[k]||''))return;   // 같은 값이면 건너뜀
+      tx[k]=changes[k];
+      applied.push(k);
+    });
+    if(applied.length){
+      tx._autoAt=Date.now();
+      if(reason)tx._autoWhy=reason;
+    }
+    return {applied:applied, blocked:blocked};
+  }
+
   function saveTxForm(){
     const id=$('#txEditId').value,date=$('#txDateInput').value,branch=$('#txBranchInput').value,targetId=$('#txTargetInput').value,amount=Number($('#txAmountInput').value),memo=$('#txMemoInput').value.trim(),billingMonth=$('#txBillingInput').value||ym(date),paid=$('#txPaidInput').checked,status=$('#txStatusInput').value;
     if(!date||!targetId)return toast('날짜와 대상을 확인해주세요');const target=(txType==='income'?state.rooms:state.staff).find(x=>x.id===targetId);if(!target)return toast('대상을 찾을 수 없어요');const taxRate=Number(target.tax||0),taxAmount=Math.round(amount*taxRate/100);
@@ -4034,9 +4110,19 @@ h1,h2,h3{color:var(--n-ink)}
     }
     /* 🔁 같은 날·같은 객실 기록이 이미 있으면 새로 만들지 않고 '덮어쓰기' 합니다.
        (중복 기록이 쌓이는 것을 막아요. 이미 완료·결제된 건은 건드리지 않습니다.) */
+    /* 🔒 사용자가 직접 입력·수정한 항목에 잠금 표시
+       (이후 iCal 등 자동 코드가 이 값을 덮어쓰지 못합니다) */
+    var _userFields=[];
+    ['outNights','outGuests','outTime','outSupplies',
+     'inNights','inGuests','inTime','inSupplies','inDate','memo'].forEach(function(f){
+      var v=obj[f];
+      if(v!==undefined && String(v).trim()!=='')_userFields.push(f);
+    });
+    markEdited(obj,_userFields);
+
     let dupMsg='';
     if(!id){
-      const dup=state.transactions.find(t=>
+      const dup=false && state.transactions.find(t=>   /* 중복 자동 덮어쓰기 끔 */
         t.type===txType && t.targetId===targetId && t.date===date &&
         t.status!=='cancelled' && !t.checkinOnly && !t.paid && t.status!=='done'
       );
@@ -4060,7 +4146,10 @@ h1,h2,h3{color:var(--n-ink)}
       }
     }else{
       const i=state.transactions.findIndex(x=>x.id===id);
-      if(i>=0)state.transactions[i]={...state.transactions[i],...obj};
+      if(i>=0){
+        const keepLock=Object.assign({}, state.transactions[i]._lock||{}, obj._lock||{});
+        state.transactions[i]={...state.transactions[i],...obj,_lock:keepLock};
+      }
       else state.transactions.push(obj);
     }
 
@@ -4069,7 +4158,7 @@ h1,h2,h3{color:var(--n-ink)}
        '다음 입실' 정보를 자동으로 채워줍니다.
        → 앞 청소 담당자가 "언제 누가 들어오는지"를 알 수 있어요. */
     let linkMsg='';
-    if(txType==='income' && sched.inNights){
+    if(false && txType==='income' && sched.inNights){   /* 자동 이어붙이기 끔 */
       const curRec2=state.transactions.find(x=>x.id===obj.id) || obj;
       const myIn = curRec2.inDate || date;      // 이번에 등록한 입실일
       // 이 입실일보다 앞에 있는 같은 객실의 마지막 청소 기록 찾기
@@ -4100,7 +4189,7 @@ h1,h2,h3{color:var(--n-ink)}
 
     // 🔄 입실(예약) 정보가 있으면 → 나가는 날 청소 자동 생성
     let autoMsg='';
-    if(txType==='income' && sched.inNights){
+    if(false && txType==='income' && sched.inNights){   /* 자동 청소 생성 끔 */
       const n=parseInt(sched.inNights,10);
       if(n>0){
         // 입실예정일(inDate)이 있으면 그 날 기준으로 다음 청소일 계산 (없으면 기록 날짜 기준)
@@ -5183,6 +5272,7 @@ h1,h2,h3{color:var(--n-ink)}
   ['#txDateInput','#txTargetInput'].forEach(s=>{
     const el=$(s); if(el){el.addEventListener('change',updatePrevPrep);el.addEventListener('input',updatePrevPrep);}
   });
+  {const ul=$('#txUnlock');if(ul)ul.addEventListener('click',unlockTx);}
   {const up=$('#txUsePrev');if(up)up.addEventListener('click',function(){
     const b=$('#txPrevPrep'), inp=$('#txOutSupplies');
     if(b&&inp&&b.dataset.prev){ inp.value=b.dataset.prev; toast('📥 사용 물품을 채웠어요'); }
