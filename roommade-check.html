@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="google" content="notranslate" />
+<title>🩺 앱 사전 검사기</title>
+<style>
+:root{
+  --bg:#EDEEE7; --card:#FCFCFA; --line:#DDE0D8;
+  --ink:#2E3D4F; --sub:#7C8894; --muted:#9AA4AE;
+  --navy:#2C5C87; --navy-bg:#E4EBF1;
+  --ok:#3B8360; --ok-bg:#E2F4EA;
+  --warn:#8A6E38; --warn-bg:#EFE6D4;
+  --bad:#9A5F55; --bad-bg:#F0DEDA;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Pretendard,"Segoe UI",sans-serif}
+body{display:flex;justify-content:center}
+.app{width:100%;max-width:560px;min-height:100vh;padding:16px 14px 40px}
+h1{font-size:19px;margin:0 0 4px}
+.lead{font-size:12px;color:var(--sub);line-height:1.6;margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:12px}
+.drop{border:2px dashed #C6CCC3;border-radius:18px;padding:26px 16px;text-align:center;background:var(--card)}
+.drop b{display:block;font-size:14px;margin-bottom:4px}
+.drop small{font-size:11px;color:var(--muted)}
+button{font:inherit;cursor:pointer}
+.primary{width:100%;border:0;background:var(--navy);color:#fff;border-radius:12px;padding:13px;font-size:13px;font-weight:800}
+.primary:disabled{opacity:.45}
+.ghost{width:100%;border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:12px;padding:11px;font-size:12px;font-weight:800;margin-top:8px}
+.score{text-align:center;padding:18px 12px;border-radius:16px;margin-bottom:12px}
+.score b{display:block;font-size:34px;line-height:1.1}
+.score small{display:block;font-size:12px;margin-top:4px;opacity:.85}
+.row{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid #EFF0EA}
+.row:last-child{border-bottom:0}
+.tag{flex-shrink:0;border-radius:8px;padding:4px 8px;font-size:10px;font-weight:900;white-space:nowrap}
+.t-ok{background:var(--ok-bg);color:var(--ok)}
+.t-warn{background:var(--warn-bg);color:var(--warn)}
+.t-bad{background:var(--bad-bg);color:var(--bad)}
+.row .body{flex:1;min-width:0}
+.row b{display:block;font-size:12.5px;margin-bottom:2px}
+.row small{display:block;font-size:11px;color:var(--sub);line-height:1.6;word-break:break-all}
+.sec{font-size:13px;font-weight:900;margin:18px 0 8px;padding-left:8px;border-left:3px solid var(--navy)}
+.hint{font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🩺 앱 사전 검사기</h1>
+  <p class="lead">
+    GitHub에 올리기 <b>전에</b> 앱 파일을 검사합니다.<br>
+    화면 깨짐·먹통·기록이 되돌아가는 문제를 미리 찾아내요.
+  </p>
+
+  <div class="drop" id="drop">
+    <b>📄 검사할 HTML 파일 고르기</b>
+    <small>roommade-one.html 같은 앱 파일</small>
+    <input type="file" id="file" accept=".html,.htm" style="margin-top:12px;width:100%" />
+  </div>
+
+  <div style="margin-top:12px;">
+    <button class="primary" id="run" disabled>🩺 검사 시작</button>
+  </div>
+
+  <div id="out"></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(s){return document.querySelector(s)};
+var SRC='', NAME='';
+
+$('#file').addEventListener('change', function(e){
+  var f=e.target.files&&e.target.files[0];
+  if(!f)return;
+  NAME=f.name;
+  var r=new FileReader();
+  r.onload=function(){ SRC=r.result; $('#run').disabled=false;
+    $('#out').innerHTML='<div class="card"><b style="font-size:13px;">📄 '+esc(NAME)+'</b>'+
+      '<div style="font-size:11px;color:var(--sub);margin-top:4px;">'+Math.round(SRC.length/1024)+' KB · 검사 준비 완료</div></div>';
+  };
+  r.readAsText(f,'utf-8');
+});
+
+$('#run').addEventListener('click', function(){ render(runAll(SRC)); });
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+/* ═══════════ 검사 항목 ═══════════ */
+function runAll(src){
+  var R=[];
+  function add(level,title,detail){ R.push({level:level,title:title,detail:detail||''}); }
+
+  var scripts=[], m, re=/<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+  while((m=re.exec(src))!==null) scripts.push(m[1]);
+  var js=scripts.join('\n');
+  var html=src.replace(/<script[\s\S]*?<\/script>/gi,'')
+              .replace(/<style[\s\S]*?<\/style>/gi,'');
+
+  /* ① 자바스크립트 문법 — 앱이 통째로 먹통 되는 원인 */
+  try{
+    new Function(js);
+    add('ok','자바스크립트 문법','오류 없음');
+  }catch(e){
+    add('bad','자바스크립트 문법 오류','앱이 아예 안 열립니다 · '+String(e.message).slice(0,140));
+  }
+
+  /* ② 태그 균형 — 화면이 깨지거나 겹쳐 보이는 원인 */
+  var od=(html.match(/<div\b/gi)||[]).length, cd=(html.match(/<\/div>/gi)||[]).length;
+  if(od===cd) add('ok','div 태그 균형', od+' / '+cd+' 일치');
+  else add('bad','div 태그 불균형','여는 '+od+' / 닫는 '+cd+' — 화면이 깨지거나 겹쳐 보여요 ('+(od>cd?'닫는 태그 '+(od-cd)+'개 부족':'닫는 태그 '+(cd-od)+'개 초과')+')');
+
+  ['section','button','label'].forEach(function(t){
+    var o=(html.match(new RegExp('<'+t+'\\b','gi'))||[]).length;
+    var c=(html.match(new RegExp('</'+t+'>','gi'))||[]).length;
+    if(o!==c) add('warn',t+' 태그 불균형','여는 '+o+' / 닫는 '+c);
+  });
+
+  /* ③ id 중복 — 버튼이 반응 없는 원인 */
+  var ids={}, dup=[];
+  var ire=/\sid\s*=\s*["']([^"']+)["']/gi, im;
+  while((im=ire.exec(html))!==null){
+    if(ids[im[1]]){ if(dup.indexOf(im[1])<0)dup.push(im[1]); } else ids[im[1]]=1;
+  }
+  if(dup.length) add('bad','id 중복 '+dup.length+'개','같은 이름이 둘 이상 — 버튼이 안 눌려요 · '+dup.slice(0,6).join(', '));
+  else add('ok','id 중복','없음');
+
+  /* ④ 없는 화면 요소를 찾는 코드 — 조용히 멈추는 원인 */
+  var miss=[], seen={};
+  var qre=/\$\(\s*['"]#([A-Za-z0-9_-]+)['"]\s*\)/g, qm;
+  while((qm=qre.exec(js))!==null){
+    var id=qm[1];
+    if(seen[id])continue; seen[id]=1;
+    if(!ids[id] && js.indexOf('id="'+id+'"')<0 && src.indexOf('id="'+id+'"')<0) miss.push(id);
+  }
+  if(miss.length) add('warn','화면에 없는 id를 찾는 코드 '+miss.length+'개', miss.slice(0,8).join(', '));
+  else add('ok','화면 요소 참조','모두 존재');
+
+  /* ⑤ 정의 없이 부르는 함수 — 먹통 원인 */
+  var defined={}, dre=/function\s+([A-Za-z_$][\w$]*)\s*\(/g, dm;
+  while((dm=dre.exec(js))!==null) defined[dm[1]]=1;
+  var dre2=/(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:function|\()/g;
+  while((dm=dre2.exec(js))!==null) defined[dm[1]]=1;
+  var BUILTIN='if for while switch catch return typeof new delete void alert confirm prompt parseInt parseFloat Number String Boolean Array Object JSON Math Date RegExp Promise setTimeout setInterval clearTimeout clearInterval fetch encodeURIComponent decodeURIComponent isNaN console localStorage document window require map filter forEach find sort join split slice splice push replace match test then catch finally'.split(' ');
+  var called={}, cre=/(?:^|[^.\w$])([A-Za-z_$][\w$]*)\s*\(/g, cm, undef=[];
+  while((cm=cre.exec(js))!==null){
+    var fn=cm[1];
+    if(called[fn])continue; called[fn]=1;
+    if(defined[fn])continue;
+    if(BUILTIN.indexOf(fn)>=0)continue;
+    if(js.indexOf(fn+'=')>=0||js.indexOf(fn+' =')>=0)continue;
+    undef.push(fn);
+  }
+  if(undef.length) add('warn','정의를 못 찾은 함수 '+undef.length+'개','오탈자일 수 있어요 · '+undef.slice(0,8).join(', '));
+  else add('ok','함수 정의','모두 확인됨');
+
+  /* ⑥ 값을 빈 값으로 덮어쓰는 코드 — 수정이 되돌아가는 원인 */
+  var wipe=[];
+  var wre=/\.(in|out)([A-Za-z]+)\s*=\s*['"]{2}/g, wm;
+  while((wm=wre.exec(js))!==null){
+    var key=wm[1]+wm[2];
+    if(/Supplies|Guests|Nights|Time|Date/.test(wm[2]) && wipe.indexOf(key)<0) wipe.push(key);
+  }
+  if(wipe.length) add('warn','입력값을 지우는 코드 '+wipe.length+'종','손으로 고친 내용이 되돌아갈 수 있어요 · '+wipe.join(', '));
+  else add('ok','입력값 보호','지우는 코드 없음');
+
+  /* ⑦ 화면 그릴 때 저장 — 옛 내용으로 덮어쓰는 원인 */
+  var rIdx=js.indexOf('function render()');
+  if(rIdx>=0){
+    var body=js.slice(rIdx, rIdx+6000);
+    var cnt=(body.match(/\bsave\s*\(/g)||[]).length;
+    if(cnt>0) add('bad','화면 그릴 때 저장함 '+cnt+'회','옛 내용으로 덮어써서 기록이 사라질 수 있어요');
+    else add('ok','화면 그릴 때 저장','없음 (안전)');
+  }
+
+  /* ⑧ 기록을 자동으로 만드는 코드 — 없던 예약이 생기는 원인 */
+  var auto=(js.match(/transactions\.push\s*\(/g)||[]).length;
+  if(auto>3) add('warn','기록을 새로 만드는 곳 '+auto+'군데','자동 생성이 많으면 없던 예약이 생길 수 있어요');
+  else add('ok','기록 생성 지점',auto+'군데');
+
+  /* ⑨ 같은 계산을 여러 곳에서 — 화면마다 숫자가 다른 원인 */
+  var calcFns=['standardPrep','mergeSetup','calcExtraSetup'].filter(function(f){return js.indexOf('function '+f)>=0;});
+  if(calcFns.length>1) add('warn','준비물 계산 함수가 '+calcFns.length+'개','화면마다 숫자가 다를 수 있어요 · '+calcFns.join(', '));
+  else if(calcFns.length===1) add('ok','준비물 계산','한 곳으로 통일됨 ('+calcFns[0]+')');
+
+  /* ⑩ 저장 검증 · 안전장치 */
+  add(js.indexOf('안전백업')>=0?'ok':'warn','자동 안전백업', js.indexOf('안전백업')>=0?'있음':'없음 — 기록 손실 위험');
+  add(js.indexOf('guardBefore')>=0?'ok':'warn','기록 급감 감시', js.indexOf('guardBefore')>=0?'있음':'없음');
+  add(/localStorage\.setItem/.test(js)?'ok':'bad','저장 기능', /localStorage\.setItem/.test(js)?'있음':'저장 코드가 없어요');
+
+  /* ⑪ 무한 반복 위험 */
+  if(/setInterval\s*\(/.test(js)){
+    var iv=(js.match(/setInterval\s*\(/g)||[]).length;
+    add('warn','반복 실행 '+iv+'개','계속 도는 코드가 있어요. 저장과 충돌하지 않는지 확인하세요');
+  }else add('ok','반복 실행 코드','없음');
+
+  /* ⑫ 필수 화면·기능 존재 */
+  ['txModal','roomModal','saveState'].forEach(function(id){
+    if(!ids[id]) add('warn','화면 없음: '+id,'이 기능이 안 열릴 수 있어요');
+  });
+
+  /* ⑬ 버전 표시 */
+  var v=src.match(/>v(\d+\.\d+)</);
+  add(v?'ok':'warn','버전 표시', v?('v'+v[1]+' — 올린 뒤 화면에서 확인하세요'):'없음 — 새 파일인지 알기 어려워요');
+
+  return R;
+}
+
+/* ═══════════ 결과 화면 ═══════════ */
+function render(R){
+  var bad=R.filter(function(x){return x.level==='bad'}).length;
+  var warn=R.filter(function(x){return x.level==='warn'}).length;
+  var ok=R.filter(function(x){return x.level==='ok'}).length;
+
+  var verdict, vbg, vfg, vmsg;
+  if(bad>0){ verdict='올리지 마세요'; vbg='var(--bad-bg)'; vfg='var(--bad)';
+    vmsg='심각한 문제 '+bad+'건 — 앱이 깨지거나 먹통이 됩니다'; }
+  else if(warn>0){ verdict='확인 후 올리세요'; vbg='var(--warn-bg)'; vfg='var(--warn)';
+    vmsg='주의 '+warn+'건 — 기록이 되돌아갈 수 있어요'; }
+  else { verdict='올려도 좋아요'; vbg='var(--ok-bg)'; vfg='var(--ok)';
+    vmsg='문제를 찾지 못했어요'; }
+
+  var h='';
+  h+='<div class="score" style="background:'+vbg+';color:'+vfg+';">'+
+       '<b>'+verdict+'</b><small>'+vmsg+'</small>'+
+       '<div style="margin-top:10px;font-size:11px;">'+
+         '❌ '+bad+' · ⚠️ '+warn+' · ✅ '+ok+'</div></div>';
+
+  function group(level,label){
+    var list=R.filter(function(x){return x.level===level});
+    if(!list.length)return '';
+    var s='<div class="sec">'+label+' '+list.length+'</div><div class="card">';
+    list.forEach(function(x){
+      s+='<div class="row"><span class="tag t-'+level+'">'+
+         (level==='bad'?'심각':level==='warn'?'주의':'정상')+'</span>'+
+         '<span class="body"><b>'+esc(x.title)+'</b>'+
+         (x.detail?'<small>'+esc(x.detail)+'</small>':'')+'</span></div>';
+    });
+    return s+'</div>';
+  }
+  h+=group('bad','❌ 심각 — 고치고 올리세요');
+  h+=group('warn','⚠️ 주의 — 확인하세요');
+  h+=group('ok','✅ 정상');
+
+  h+='<button class="ghost" id="copy">📋 결과 복사하기</button>';
+  h+='<div class="hint">복사해서 클로에게 붙여넣으면<br>어디를 고쳐야 하는지 바로 알려줘요</div>';
+
+  $('#out').innerHTML=h;
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  var c=$('#copy');
+  if(c)c.addEventListener('click',function(){
+    var t=['🩺 검사 결과 — '+NAME,'판정: '+verdict,''];
+    R.forEach(function(x){
+      if(x.level==='ok')return;
+      t.push((x.level==='bad'?'❌ ':'⚠️ ')+x.title+(x.detail?' — '+x.detail:''));
+    });
+    if(t.length===3)t.push('문제 없음 ✅');
+    var ta=document.createElement('textarea');
+    ta.value=t.join('\n'); document.body.appendChild(ta);
+    ta.select(); try{document.execCommand('copy');}catch(e){}
+    document.body.removeChild(ta);
+    c.textContent='✅ 복사했어요';
+    setTimeout(function(){c.textContent='📋 결과 복사하기';},1800);
+  });
+}
+})();
+</script>
+</body>
+</html>
