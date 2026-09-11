@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v14.5</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v14.7</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1192,6 +1192,8 @@ h1,h2,h3{color:var(--n-ink)}
   }
   let state=loadState();
   function save(){
+    // 🛟 기록이 갑자기 줄었는지 먼저 확인
+    try{ if(guardBefore()===false)return false; }catch(e){}
     try{
       // 캐쉬 앱과 같은 키에 직접 저장 → 두 앱이 데이터 공유
       localStorage.setItem(LEGACY.rooms,JSON.stringify(state.rooms));
@@ -1287,6 +1289,24 @@ h1,h2,h3{color:var(--n-ink)}
     alert('✅ '+plan.length+'개 항목을 다시 계산했어요.');
   }
 
+  /* 🛟 기록 감시
+     저장 직전 건수를 기억해 두고, 갑자기 크게 줄면 알려줍니다.
+     (기록이 조용히 사라지는 것을 막아요) */
+  const GUARD_KEY='roommade-기록감시';
+  function guardBefore(){
+    try{
+      const cnt=(state.transactions||[]).length;
+      const prev=Number(localStorage.getItem(GUARD_KEY)||0);
+      // 10건 이상 갑자기 줄었으면 경고
+      if(prev>=20 && cnt < prev-10){
+        const ok=confirm('⚠️ 기록이 갑자기 줄었어요!\n\n이전 '+prev+'건 → 지금 '+cnt+'건\n\n그대로 저장할까요?\n\n[취소]를 누르면 저장하지 않아요.\n(다른 탭이 열려 있는지 확인해보세요)');
+        if(!ok)return false;
+      }
+      localStorage.setItem(GUARD_KEY,String(cnt));
+    }catch(e){}
+    return true;
+  }
+
   function detachFeeFromRoom(){
     let n=0;
     const cfg=(typeof loadMF==='function')?loadMF():null;
@@ -1319,7 +1339,7 @@ h1,h2,h3{color:var(--n-ink)}
         }
       }
     });
-    if(n){ try{save();}catch(e){} }
+    /* 시작 시 자동 저장하지 않습니다 — 사용자가 무언가 저장할 때 함께 반영돼요 */
     return n;
   }
 
@@ -2817,11 +2837,8 @@ h1,h2,h3{color:var(--n-ink)}
     if(!host)return;
     // 오늘 이후 일정만 보여줍니다 (지난 건은 자동으로 정리)
     const td=today();
-    let dirty=false;
-    (state.transactions||[]).forEach(t=>{
-      if(t.icalChanged&&(t.date||'')<td){ delete t.icalChanged; delete t.icalKind; dirty=true; }
-    });
-    if(dirty){ try{save();}catch(e){} }
+    /* 화면을 그릴 때는 저장하지 않습니다 (의도치 않은 덮어쓰기 방지)
+       지난 알림은 화면에서만 걸러서 보여줘요. */
     const list=(state.transactions||[]).filter(t=>t.icalChanged&&t.status!=='cancelled'&&(t.date||'')>=td)
       .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
     if(!list.length){host.innerHTML='';return;}
@@ -4195,20 +4212,7 @@ h1,h2,h3{color:var(--n-ink)}
     }
     save();closeModal('txModal');
     toast('기록을 저장했어요'+autoMsg);
-    // ⚠️ 방금 저장한 건에 셋팅이 부족하면 바로 알려줍니다
-    try{
-      const _rec=state.transactions.find(x=>x.id===(obj.id||id));
-      if(_rec&&_rec.setupOk){
-        // 인원이나 준비물이 바뀌었으면 확인 표시를 새로 판단하도록 초기화
-        const nowStamp=String(_rec.inGuests||'')+'|'+((_rec.inSupplies||'').trim());
-        if(_rec.setupOk!==nowStamp)delete _rec.setupOk;
-      }
-      const warn=setupWarnings().find(w=>w.id===(obj.id||id));
-      if(warn){
-        alertBeep(1);
-        setTimeout(function(){ toast('⚠️ '+warn.guests+'명인데 준비물 부족 — '+warn.missing.join(', ')); }, 900);
-      }
-    }catch(e){}
+    /* 저장 직후 경고 검사는 제거했습니다 — 저장 흐름을 방해할 수 있어요 */
     if(dupMsg)setTimeout(function(){toast(dupMsg);},1300);      // 덮어쓴 사실을 알려줌
     if(linkMsg)setTimeout(function(){toast(linkMsg);},dupMsg?2600:1900);   // 이어붙인 결과도 알려줌
     render();
