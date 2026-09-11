@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v15.0</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v15.1</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1124,8 +1124,23 @@ h1,h2,h3{color:var(--n-ink)}
     try{
       const rooms=JSON.parse(localStorage.getItem(LEGACY.rooms)||'[]');
       const staff=JSON.parse(localStorage.getItem(LEGACY.staff)||'[]');
-      const transactions=JSON.parse(localStorage.getItem(LEGACY.tx)||'[]');
+      let transactions=JSON.parse(localStorage.getItem(LEGACY.tx)||'[]');
       const branch=localStorage.getItem(LEGACY.branch)||'전체';
+
+      /* 🛟 거래 기록만 비어 있으면 안전백업에서 되살립니다.
+         (객실·직원은 남았는데 기록만 사라지는 경우가 있었어요) */
+      if((!Array.isArray(transactions)||transactions.length===0) && (rooms.length||staff.length)){
+        try{
+          const bk=JSON.parse(localStorage.getItem('roommade-안전백업')||'null');
+          if(bk && Array.isArray(bk.transactions) && bk.transactions.length){
+            transactions=bk.transactions;
+            localStorage.setItem(LEGACY.tx, JSON.stringify(transactions));
+            setTimeout(function(){
+              try{ alert('🛟 기록이 비어 있어 안전백업으로 되살렸어요.\n\n거래 기록 '+transactions.length+'건\n('+String(bk.savedAt||'').slice(0,16).replace('T',' ')+' 저장본)'); }catch(e){}
+            }, 600);
+          }
+        }catch(e){}
+      }
       if(rooms.length||staff.length||transactions.length){
         return normalize({version:1,branch,rooms,staff,transactions});
       }
