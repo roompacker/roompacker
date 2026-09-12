@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v17.1</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v17.2</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -2144,6 +2144,22 @@ h1,h2,h3{color:var(--n-ink)}
     const detail=(canFinance?`${esc(t.memo||'청소 일정')} · ${money(t.netAmount||t.amount)}`:(t.inSupplies?'준비물 '+esc(t.inSupplies):'청소 작업'))+assigned+used+nextIn;
     return `<div class="job"><div class="jobtime" data-edit-tx="${t.id}"><b>${i===0?'11:00':`${11+i}:20`}</b><small>${(t.branch||'').replace('점','')}</small></div><div class="jobicon" data-edit-tx="${t.id}">🧹</div><div class="jobinfo" data-edit-tx="${t.id}"><b>${esc(t.targetName||roomName(t.targetId))}</b><small>${detail}</small></div><div class="jobactions"><button class="jobdone ${done?'is-done':''}" data-toggle-status="${t.id}">${done?'완료':'완료 처리'}</button><button class="kkbtn worker" data-kakao-worker="${t.id}">💬</button><button class="kkbtn host" data-kakao-host="${t.id}">📋</button></div></div>`;
   }
+
+  /* ✅ 항목 하나만 입금·지급 처리 */
+  function payOne(txId){
+    const t=(state.transactions||[]).find(x=>x.id===txId);
+    if(!t)return;
+    const isIn=t.type==='income';
+    const amt=Number(t.netAmount||t.amount||0);
+    const nm=t.targetName||(isIn?roomName(t.targetId):staffName(t.targetId));
+    const d=(t.date||'').slice(0,10).replace(/-/g,'.');
+    if(!confirm((isIn?'💰 입금 처리':'💸 지급 처리')+'\n\n'+nm+'\n'+d+'\n'+money(amt)+'\n\n이 건만 처리할까요?'))return;
+    t.paid=true;
+    markEdited(t,['paid']);
+    save(); render();
+    toast('✅ '+money(amt)+' '+(isIn?'입금':'지급')+' 처리');
+  }
+
   function txHTML(t){
     const isIn=t.type==='income',canFinance=activeRole==='admin'||activeRole==='director';
     const kakao=isIn?`<div style="display:flex;gap:4px;margin-left:6px;"><button class="kkbtn worker" data-kakao-worker="${t.id}">💬</button><button class="kkbtn host" data-kakao-host="${t.id}">📋</button></div>`:'';
@@ -2174,7 +2190,11 @@ h1,h2,h3{color:var(--n-ink)}
     }
     // 펜트하우스는 월 정액 관리비라 건별 금액이 0원 → 금액 대신 '월 정액' 표시
     const isPent=(t.branch==='펜트하우스')&&!t.autoFee&&Number(t.netAmount||t.amount||0)===0;
-    const amount=t.checkinOnly?`<div class="txamt"><small class="status wait">🏠 입실 셋팅</small></div>`:isPent?`<div class="txamt" data-edit-tx="${t.id}"><small class="status book">월 정액</small></div>`:canFinance?`<div class="txamt" data-edit-tx="${t.id}"><b class="${t.type}">${isIn?'+':'-'}${money(t.netAmount||t.amount)}</b><small>${t.paid?(isIn?'입금완료':'지급완료'):(isIn?'미수금':'미지급')}</small></div>`:`<div class="txamt"><small class="status ${t.status==='done'?'done':'wait'}">${t.status==='done'?'완료':'대기'}</small></div>`;
+    /* 미수금·미지급이면 그 항목만 처리하는 버튼을 보여줍니다
+       (묶음 버튼은 여러 달이 한꺼번에 처리돼서 불편했어요) */
+    const oneBtn=(canFinance&&!t.paid&&!t.checkinOnly&&Number(t.netAmount||t.amount||0)>0)
+      ? `<button data-pay-one="${t.id}" style="margin-top:4px;border:1px solid ${isIn?'#9FD9BC':'#E4C7C1'};background:#FFFFFF;color:${isIn?'#3B8360':'#9A5F55'};border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;white-space:nowrap;">${isIn?'✅ 입금됨':'✅ 지급됨'}</button>` : '';
+    const amount=t.checkinOnly?`<div class="txamt"><small class="status wait">🏠 입실 셋팅</small></div>`:isPent?`<div class="txamt" data-edit-tx="${t.id}"><small class="status book">월 정액</small></div>`:canFinance?`<div class="txamt"><b class="${t.type}" data-edit-tx="${t.id}">${isIn?'+':'-'}${money(t.netAmount||t.amount)}</b><small>${t.paid?(isIn?'입금완료':'지급완료'):(isIn?'미수금':'미지급')}</small>${oneBtn}</div>`:`<div class="txamt"><small class="status ${t.status==='done'?'done':'wait'}">${t.status==='done'?'완료':'대기'}</small></div>`;
     const statusButton=isIn?`<button class="jobdone ${t.status==='done'?'is-done':''}" data-toggle-status="${t.id}">${t.status==='done'?'완료':'완료 처리'}</button>`:'';
     return `<div class="txrow"><div class="txico ${t.type}" data-edit-tx="${t.id}">${isIn?'＋':'−'}</div><div class="txmain" data-edit-tx="${t.id}"><b>${name}</b><small>${dateText(t.date)}</small>${detail}</div>${statusButton}${amount}${kakao}</div>`;
   }
@@ -5231,6 +5251,8 @@ h1,h2,h3{color:var(--n-ink)}
     if(ev.target.closest('#chkAdd')){addChkItem($('#chkAddName')?$('#chkAddName').value:'');return;}
     if(ev.target.closest('#chkSend')){sendChkMsg();return;}
     if(ev.target.closest('#chkClear')){clearChk();return;}
+    const p1=ev.target.closest('[data-pay-one]');
+    if(p1){ev.stopPropagation();payOne(p1.dataset.payOne);return;}
     const sm=ev.target.closest('[data-staff-msg]');
     if(sm){ev.stopPropagation();staffPayMsg(sm.dataset.staffMsg);return;}
     const sp=ev.target.closest('[data-staff-paid]');
