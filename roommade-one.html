@@ -467,7 +467,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v17.0</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v17.1</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1255,6 +1255,21 @@ h1,h2,h3{color:var(--n-ink)}
   /* 🔧 관리비 다시 계산 (직접 실행)
      지금 청소 건수로 관리비 금액을 다시 맞춥니다.
      무엇이 어떻게 바뀌는지 먼저 보여주고, 확인하면 반영합니다. */
+
+  /* 📅 상한 금액이 바뀐 시점 기록
+     조건이 바뀌어도 지난 달 정산은 그때 기준을 유지합니다.
+     (예: 7월까지 350만, 8월부터 380만) */
+  const FEE_HISTORY=[
+    {from:'2026-08', maxFee:3800000},   // 8월부터 380만원
+    {from:'0000-00', maxFee:3500000}    // 그 이전은 350만원
+  ];
+  function maxFeeOf(mKey, cfg){
+    for(var i=0;i<FEE_HISTORY.length;i++){
+      if(String(mKey)>=FEE_HISTORY[i].from)return FEE_HISTORY[i].maxFee;
+    }
+    return (cfg&&cfg.maxFee)||3500000;
+  }
+
   function recalcFeeNow(){
     const cfg=(typeof loadMF==='function')?loadMF():null;
     if(!cfg||!cfg.active)return alert('관리비 자동등록이 꺼져 있어요.\n관리 탭에서 켜주세요.');
@@ -1271,7 +1286,7 @@ h1,h2,h3{color:var(--n-ink)}
         (x.billingMonth||(x.date||'').slice(0,7))===mKey &&
         (rids.indexOf(String(x.targetId))>=0 || x.branch===cfg.branch)
       ).length;
-      const BASE=cfg.baseCount||50, FEE=cfg.amount||0, OVER=cfg.overFee||50000, MAX=cfg.maxFee||3500000;
+      const BASE=cfg.baseCount||50, FEE=cfg.amount||0, OVER=cfg.overFee||50000, MAX=maxFeeOf(mKey,cfg);
       let fee=FEE; if(cnt>BASE)fee=FEE+(cnt-BASE)*OVER; if(fee>MAX)fee=MAX;
       const cur=Number(t.netAmount||t.amount||0);
       lines.push(mKey+'  청소 '+cnt+'건  '+money(cur)+(cur!==fee?('  →  '+money(fee)):'  (그대로)'));
@@ -1281,7 +1296,7 @@ h1,h2,h3{color:var(--n-ink)}
     const msg=['🔧 관리비 다시 계산','',
       '기준 : '+ (cfg.baseCount||50)+'건까지 '+money(cfg.amount||0),
       '        초과 1건당 '+money(cfg.overFee||50000),
-      '        상한 '+money(cfg.maxFee||3500000),
+      '        상한 : 7월까지 '+money(3500000)+' / 8월부터 '+money(3800000),
       '','━━━━━━━━━━━━━━',...lines,'━━━━━━━━━━━━━━'];
     if(!plan.length){ alert(msg.join('\n')+'\n\n모두 정확합니다 ✅'); return; }
     msg.push('','바꿀 항목 '+plan.length+'개 — 적용할까요?');
@@ -1327,7 +1342,7 @@ h1,h2,h3{color:var(--n-ink)}
           (x.billingMonth||(x.date||'').slice(0,7))===mKey &&
           (roomIds.indexOf(String(x.targetId))>=0 || x.branch===cfg.branch)
         ).length;
-        const BASE=cfg.baseCount||50, FEE=cfg.amount||0, OVER=cfg.overFee||50000, MAX=cfg.maxFee||3500000;
+        const BASE=cfg.baseCount||50, FEE=cfg.amount||0, OVER=cfg.overFee||50000, MAX=maxFeeOf(mKey,cfg);
         let fee=FEE; if(cnt>BASE)fee=FEE+(cnt-BASE)*OVER; if(fee>MAX)fee=MAX;
         if(Number(t.amount||0)!==fee){
           t.amount=fee; t.netAmount=fee; t.taxAmount=0;
@@ -4555,8 +4570,9 @@ h1,h2,h3{color:var(--n-ink)}
     }catch(e){}
     if(!cfg||!cfg.active){box.innerHTML='';return;}
     const BASE_LIMIT=cfg.baseCount||50, BASE_FEE=cfg.amount||3200000;
-    const OVER_FEE=cfg.overFee||50000, MAX_FEE=cfg.maxFee||3500000;
+    const OVER_FEE=cfg.overFee||50000;
     const mKey=currentYM();
+    const MAX_FEE=maxFeeOf(mKey,cfg);
     const _rid2=(state.rooms||[]).filter(r=>r.branch===cfg.branch).map(r=>String(r.id));
     const cleanCount=state.transactions.filter(t=>
       t.type==='income' && !t.autoFee && !t.checkinOnly && t.status!=='cancelled' &&
@@ -4700,7 +4716,7 @@ h1,h2,h3{color:var(--n-ink)}
     const BASE_LIMIT = cfg.baseCount || 50;      // 기본 포함 횟수
     const BASE_FEE   = cfg.amount   || 3200000;  // 기본 금액(320만)
     const OVER_FEE   = cfg.overFee  || 50000;    // 초과 1건당(5만)
-    const MAX_FEE    = cfg.maxFee   || 3500000;  // 상한(350만)
+    /* 상한은 달마다 다를 수 있어요 (아래 계산에서 maxFeeOf 사용) */
     let added=0, changed=0, d=new Date(startD);
     while(d<=now){
       const mKey=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
@@ -4714,7 +4730,7 @@ h1,h2,h3{color:var(--n-ink)}
             // 금액 계산: 50회까지 320만, 51회부터 건당 5만 추가, 350만 상한
       let fee=BASE_FEE;
       if(cleanCount>BASE_LIMIT){ fee = BASE_FEE + (cleanCount-BASE_LIMIT)*OVER_FEE; }
-      if(fee>MAX_FEE) fee=MAX_FEE;
+      const _MAX=maxFeeOf(mKey,cfg); if(fee>_MAX) fee=_MAX;
       const overCnt=Math.max(0,cleanCount-BASE_LIMIT);
       const memo='위탁관리비 ('+cleanCount+'회'+(overCnt>0?(' / 초과 '+overCnt+'건'):'')+(fee>=MAX_FEE&&overCnt>0?' / 상한도달':'')+')';
       const existing=state.transactions.find(t=>t.autoFee===true && (t.billingMonth===mKey||(t.date||'').slice(0,7)===mKey) && t.branch===cfg.branch);
