@@ -172,6 +172,34 @@ html,body{background:linear-gradient(180deg,#EFF2F9 0%,#EFF2F9 100%)}
 .app[data-role="director"] .hostshare,.app[data-role="staff"] .hostshare,.app[data-role="host"] .hostshare{display:none}
 .app[data-role="host"] .jobinfo small,.app[data-role="staff"] .jobinfo small{color:#9C94AC}
 .app[data-role="host"] .rolebtn{background:#EFF2F9;color:#917EB3}
+
+/* ═══ 🕐 타임라인 일정 ═══ */
+.tljob{display:flex;gap:11px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tltime{width:50px;text-align:right;flex-shrink:0;padding-top:13px}
+.tltime b{font-size:12.5px;color:var(--navy,#2C5C87);font-weight:800}
+.tltime small{display:block;font-size:9px;color:var(--muted,#9AA4AE);margin-top:1px;white-space:nowrap}
+.tlrail{width:2px;background:var(--line,#DDE0D8);position:relative;flex-shrink:0}
+.tldot{position:absolute;left:-5px;top:15px;width:12px;height:12px;border-radius:50%;
+  background:var(--navy,#2C5C87);border:3px solid var(--card,#FCFCFA)}
+.tldot.done{background:#4FA97D}
+.tlbody{flex:1;min-width:0;padding:12px 0}
+.tlhead{display:flex;align-items:center;gap:7px}
+.tlhead b{flex:1;font-size:13.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tlchev{color:var(--muted,#9AA4AE);font-size:15px;transition:transform .2s;flex-shrink:0}
+.tljob.open .tlchev{transform:rotate(90deg)}
+.tljob.open .tlhead b{color:var(--navy,#2C5C87)}
+.tlsum{font-size:11px;color:var(--sub,#7C8894);margin-top:3px;line-height:1.5}
+.tlcard{display:none;margin-top:11px;background:var(--bg,#EDEEE7);border-radius:14px;padding:12px}
+.tljob.open .tlcard{display:block}
+.tlkv{display:flex;gap:9px;font-size:11.5px;padding:4px 0}
+.tlkv span{width:60px;color:var(--sub,#7C8894);flex-shrink:0;font-size:10.5px}
+.tlkv b{flex:1;font-weight:700;word-break:break-all}
+.tlprep{background:var(--card,#FCFCFA);border-radius:11px;padding:10px;margin:8px 0 0;font-size:11.5px;line-height:1.6}
+.tlbtns{display:flex;gap:6px;margin-top:10px}
+.tlbtns button{flex:1;border:0;border-radius:11px;padding:10px 4px;font-size:11px;font-weight:800;white-space:nowrap}
+.tledit{flex:0 0 42px!important;background:var(--card,#FCFCFA);border:1px solid var(--line,#DDE0D8)!important;
+  color:var(--navy,#2C5C87);font-size:14px!important}
+
 </style>
 <style id="roommade-trend-refresh">
 /* ROOMMADE ONE · 2026 mobile product UI refresh
@@ -467,7 +495,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v17.2</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v18.0</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -702,6 +730,7 @@ h1,h2,h3{color:var(--n-ink)}
           <!-- 📊 이번 달 관리비 현황 (50건 초과 · 350만원 상한 알림) -->
           <div id="mfGauge" style="margin-top:12px;"></div>
           <div id="pentBoard"></div>
+          <div id="notiBox" class="card" style="margin-top:12px;"></div>
           <button id="recalcFeeBtn" style="width:100%;margin-top:11px;border:0;background:#2C5C87;color:#FFFFFF;border-radius:12px;padding:12px;font-size:12px;font-weight:800;">🔧 관리비 금액 다시 계산하기</button>
           <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:5px;">지금 청소 건수로 관리비를 맞춰요</div>
           <button id="auditBtn" style="width:100%;margin-top:11px;border:1px solid var(--line);background:#FFFFFF;color:var(--navy);border-radius:12px;padding:12px;font-size:12px;font-weight:800;">🩺 기록 검사하고 자동으로 고치기</button>
@@ -1475,6 +1504,7 @@ h1,h2,h3{color:var(--n-ink)}
     try{ renderSetupWarn(); }catch(e){ console.error('setupWarn',e); }
     try{ renderMFGauge(); }catch(e){ console.error('mfgauge',e); }
     try{ renderPentBoard(); }catch(e){ console.error('pentBoard',e); }
+    try{ renderNotiUI(); }catch(e){}
     try{ renderIncentives(); }catch(e){ console.error('inc',e); }
   }
   function renderHome(){
@@ -2135,15 +2165,67 @@ h1,h2,h3{color:var(--n-ink)}
     const src=state.transactions.find(x=>x.id===fromId);if(!src)return null;
     return {date:getPlannedCleanings().find(p=>p.fromId===fromId)?.date||today(),targetId:src.targetId,targetName:src.targetName,outNights:src.inNights,outGuests:src.inGuests,outTime:src.inTime,outSupplies:src.outSupplies||'',inSupplies:src.inSupplies};
   }
+  /* 🕐 타임라인 + 펼침 카드
+     평소엔 시간순으로 한 줄씩, 누르면 자세한 내용이 펼쳐집니다.
+     여러 개를 동시에 펼칠 수 있어요. */
+  const openJobs={};   // 펼쳐둔 항목 기억
+
   function jobHTML(t,i){
-    const done=t.status==='done',canFinance=activeRole==='admin'||activeRole==='director';
-    const assigned=Array.isArray(t.assignedStaffNames)&&t.assignedStaffNames.length?' · 👤 '+esc(t.assignedStaffNames.join(', ')):'';
-    const used=t.outSupplies?' · 🧺 '+esc(t.outSupplies):'';
-    let nextIn='';
-    if(t.inDate&&t.inDate>t.date){const _d=new Date(t.inDate+'T00:00:00');nextIn=' · ⏳ 공실후 '+(_d.getMonth()+1)+'/'+_d.getDate()+' 입실';}
-    const detail=(canFinance?`${esc(t.memo||'청소 일정')} · ${money(t.netAmount||t.amount)}`:(t.inSupplies?'준비물 '+esc(t.inSupplies):'청소 작업'))+assigned+used+nextIn;
-    return `<div class="job"><div class="jobtime" data-edit-tx="${t.id}"><b>${i===0?'11:00':`${11+i}:20`}</b><small>${(t.branch||'').replace('점','')}</small></div><div class="jobicon" data-edit-tx="${t.id}">🧹</div><div class="jobinfo" data-edit-tx="${t.id}"><b>${esc(t.targetName||roomName(t.targetId))}</b><small>${detail}</small></div><div class="jobactions"><button class="jobdone ${done?'is-done':''}" data-toggle-status="${t.id}">${done?'완료':'완료 처리'}</button><button class="kkbtn worker" data-kakao-worker="${t.id}">💬</button><button class="kkbtn host" data-kakao-host="${t.id}">📋</button></div></div>`;
+    const done=t.status==='done';
+    const canFinance=activeRole==='admin'||activeRole==='director';
+    const room=(state.rooms||[]).find(r=>String(r.id)===String(t.targetId))||{};
+    const nm=roomTitleOf(t.targetName||room.name)||t.targetName||'객실';
+    const open=!!openJobs[t.id];
+
+    // 왼쪽 시간축
+    const outT=t.outTime||'11:00';
+    const late=outT>'11:00';
+    const early=t.inNights&&t.inTime&&t.inTime<'16:00';
+
+    // 한 줄 요약
+    const inTxt = t.inNights
+      ? (t.inDate&&t.inDate>t.date
+          ? '공실 후 '+(t.inDate||'').slice(5).replace('-','/')+' 입실'
+          : (t.inTime||'16:00')+' 입실 · '+t.inNights+'박 '+(t.inGuests||'-')+'명')
+      : '다음 입실 없음';
+    const summary=(t.outNights?t.outNights+'박 '+(t.outGuests||'-')+'명':'퇴실')+' → '+inTxt;
+
+    // 준비물
+    const prep=(t.inSupplies||'').trim() ||
+      (t.inNights?standardPrep(room,t.inGuests,t.inNights):'');
+    const who=assignedNamesOf(t)||'나';
+
+    return `<div class="tljob ${open?'open':''}" data-job-toggle="${t.id}">
+      <div class="tltime">
+        <b>${esc(outT)}</b>
+        <small>${late?'⚡레이트':(early?'⚡얼리':'퇴실')}</small>
+      </div>
+      <div class="tlrail"><span class="tldot ${done?'done':''}"></span></div>
+      <div class="tlbody">
+        <div class="tlhead">
+          <b>${esc(nm)}</b>
+          <span class="status ${done?'done':'wait'}">${done?'완료':'대기'}</span>
+          <span class="tlchev">›</span>
+        </div>
+        <div class="tlsum">${esc(summary)}</div>
+        <div class="tlcard">
+          <div class="tlkv"><span>👤 담당</span><b>${esc(who)}</b></div>
+          ${room.doorPw?`<div class="tlkv"><span>🔑 도어락</span><b>${esc(room.doorPw)}${room.supplyPw?'  📦 '+esc(room.supplyPw):''}</b></div>`:''}
+          ${t.outSupplies?`<div class="tlkv"><span>🧺 사용</span><b>${esc(t.outSupplies)}</b></div>`:''}
+          ${canFinance&&Number(t.netAmount||t.amount||0)>0?`<div class="tlkv"><span>💰 금액</span><b>${money(t.netAmount||t.amount)}${t.paid?' <span style="color:var(--ok,#3B8360);font-size:10px;">입금완료</span>':''}</b></div>`:''}
+          ${t.memo?`<div class="tlkv"><span>📝 메모</span><b>${esc(t.memo)}</b></div>`:''}
+          <div class="tlprep">${prep?'🛒 <b>'+esc(prep)+'</b>':'<span style="color:var(--muted);">셋팅 없음</span>'}</div>
+          <div class="tlbtns">
+            <button class="jobdone ${done?'is-done':''}" data-toggle-status="${t.id}">${done?'✓ 완료됨':'완료 처리'}</button>
+            <button class="kkbtn worker" data-kakao-worker="${t.id}">💬 직원</button>
+            <button class="kkbtn host" data-kakao-host="${t.id}">📋 호스트</button>
+            <button class="tledit" data-edit-tx="${t.id}">✏️</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
   }
+
 
   /* ✅ 항목 하나만 입금·지급 처리 */
   function payOne(txId){
@@ -4064,6 +4146,136 @@ h1,h2,h3{color:var(--n-ink)}
 
   // 사용자가 직접 고친 항목을 기록에 표시
 
+
+  /* ═══════════ 🔔 잠금화면 알림 ═══════════
+     정해진 시각에 이번 주 일정 요약을 알림으로 띄웁니다.
+     · 앱이 꺼져 있어도 브라우저가 살아있으면 떠요
+     · 알림을 누르면 앱이 열립니다 */
+  const NOTI_KEY='roommade-알림설정';
+
+  function loadNoti(){
+    try{ return JSON.parse(localStorage.getItem(NOTI_KEY)||'null')||{on:false,hour:7,min:0}; }
+    catch(e){ return {on:false,hour:7,min:0}; }
+  }
+  function saveNoti(c){ try{localStorage.setItem(NOTI_KEY,JSON.stringify(c));}catch(e){} }
+
+  // 이번 주(월~일) 요약 만들기
+  function weekSummary(){
+    const td=today();
+    const d=new Date(td+'T00:00:00');
+    const wd=d.getDay();
+    d.setDate(d.getDate()+((wd===0)?-6:(1-wd)));       // 이번 주 월요일
+    const ws=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+    d.setDate(d.getDate()+6);
+    const we=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+
+    const list=(state.transactions||[]).filter(t=>
+      t.type==='income'&&!t.checkinOnly&&t.status!=='cancelled'&&
+      (t.date||'')>=ws&&(t.date||'')<=we);
+    const todayList=list.filter(t=>t.date===td);
+    const done=list.filter(t=>t.status==='done').length;
+
+    // 요일별 건수
+    const WD=['월','화','수','목','금','토','일'];
+    const byDay=[];
+    for(let i=0;i<7;i++){
+      const dd=new Date(ws+'T00:00:00'); dd.setDate(dd.getDate()+i);
+      const ds=dd.getFullYear()+'-'+pad(dd.getMonth()+1)+'-'+pad(dd.getDate());
+      const n=list.filter(t=>t.date===ds).length;
+      byDay.push(WD[i]+(n||'·'));
+    }
+
+    const rooms=todayList.map(t=>roomTitleOf(t.targetName)||t.targetName||'').filter(Boolean);
+    return {
+      title:'🧹 오늘 청소 '+todayList.length+'건 · 이번 주 '+list.length+'건',
+      body:(rooms.length?rooms.join(', ')+'\n':'오늘 예정된 청소가 없어요\n')+
+           byDay.join(' ')+'   (완료 '+done+')',
+      count:list.length
+    };
+  }
+
+  // 알림 켜기
+  function enableNoti(){
+    if(!('Notification' in window)){
+      alert('이 브라우저는 알림을 지원하지 않아요.\n크롬으로 열어주세요.');
+      return;
+    }
+    Notification.requestPermission().then(function(perm){
+      if(perm!=='granted'){
+        alert('알림이 거부됐어요.\n\n크롬 ⋮ → 설정 → 사이트 설정 → 알림에서\nroompacker.github.io 를 허용해주세요.');
+        return;
+      }
+      const c=loadNoti(); c.on=true; saveNoti(c);
+      renderNotiUI();
+      showWeekNoti(true);   // 바로 한 번 보여주기
+      toast('🔔 알림을 켰어요');
+    });
+  }
+
+  function disableNoti(){
+    const c=loadNoti(); c.on=false; saveNoti(c);
+    renderNotiUI();
+    toast('알림을 껐어요');
+  }
+
+  // 알림 띄우기
+  function showWeekNoti(force){
+    try{
+      if(!('Notification' in window)||Notification.permission!=='granted')return;
+      const c=loadNoti();
+      if(!c.on&&!force)return;
+      const s=weekSummary();
+      const n=new Notification(s.title,{
+        body:s.body,
+        icon:'icon-one-192.png',
+        badge:'icon-one-192.png',
+        tag:'roommade-week',
+        requireInteraction:false
+      });
+      n.onclick=function(){ window.focus(); n.close(); };
+      const cfg=loadNoti(); cfg.lastAt=today(); saveNoti(cfg);
+    }catch(e){ console.error('noti',e); }
+  }
+
+  // 앱을 열 때, 정해진 시각이 지났고 오늘 아직 안 보냈으면 알림
+  function checkNotiTime(){
+    try{
+      const c=loadNoti();
+      if(!c.on)return;
+      if(c.lastAt===today())return;             // 오늘 이미 보냄
+      const now=new Date();
+      const mins=now.getHours()*60+now.getMinutes();
+      if(mins >= (c.hour*60+c.min)) showWeekNoti();
+    }catch(e){}
+  }
+
+  function renderNotiUI(){
+    const box=$('#notiBox'); if(!box)return;
+    const c=loadNoti();
+    const perm=('Notification' in window)?Notification.permission:'unsupported';
+    box.innerHTML=
+      '<div style="display:flex;align-items:center;gap:9px;margin-bottom:9px;">'+
+        '<span style="font-size:17px;">🔔</span>'+
+        '<b style="flex:1;font-size:13px;">잠금화면 알림</b>'+
+        '<span style="background:'+(c.on?'#E2F4EA':'#EBEBE8')+';color:'+(c.on?'#3B8360':'var(--muted)')+
+        ';border-radius:8px;padding:4px 9px;font-size:10px;font-weight:900;">'+(c.on?'켜짐':'꺼짐')+'</span></div>'+
+      '<div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px;">'+
+        '매일 정한 시각에 이번 주 일정 요약을 알려드려요.<br>알림을 누르면 앱이 열립니다.</div>'+
+      '<div class="twocol" style="margin-bottom:9px;">'+
+        '<div class="field" style="margin-bottom:0;"><label>시</label>'+
+          '<input type="number" id="notiHour" min="0" max="23" value="'+(c.hour||7)+'" /></div>'+
+        '<div class="field" style="margin-bottom:0;"><label>분</label>'+
+          '<input type="number" id="notiMin" min="0" max="59" value="'+(c.min||0)+'" /></div>'+
+      '</div>'+
+      (c.on
+        ? '<button class="secondary" id="notiOff" style="width:100%;">알림 끄기</button>'
+        : '<button class="primary" id="notiOn" style="width:100%;">🔔 알림 켜기</button>')+
+      '<button class="secondary" id="notiTest" style="width:100%;margin-top:7px;">지금 한 번 보내보기</button>'+
+      (perm==='denied'
+        ? '<div style="margin-top:8px;font-size:10px;color:#9A5F55;line-height:1.6;">⚠️ 알림이 차단돼 있어요. 크롬 ⋮ → 설정 → 사이트 설정 → 알림에서 허용해주세요.</div>'
+        : '');
+  }
+
   /* 🔒 잠금 상태 표시 */
   var LOCK_LABEL={outNights:'퇴실 박수',outGuests:'퇴실 인원',outTime:'퇴실 시간',
     outSupplies:'사용 물품',inNights:'입실 박수',inGuests:'입실 인원',
@@ -5231,6 +5443,13 @@ h1,h2,h3{color:var(--n-ink)}
     if(ev.target.closest('#icalChangeBtn')){showIcalChanges();return;}
     if(ev.target.closest('#icalClearBadges')){clearIcalBadges();return;}
     if(ev.target.closest('#pentFixAmt')){pentFixAmount();return;}
+    if(ev.target.closest('#notiOn')){
+      var hh=$('#notiHour'), mm=$('#notiMin');
+      var c=loadNoti(); c.hour=Number(hh?hh.value:7)||7; c.min=Number(mm?mm.value:0)||0; saveNoti(c);
+      enableNoti(); return;
+    }
+    if(ev.target.closest('#notiOff')){disableNoti();return;}
+    if(ev.target.closest('#notiTest')){showWeekNoti(true);return;}
     if(ev.target.closest('#recalcFeeBtn')){recalcFeeNow();return;}
     if(ev.target.closest('#auditBtn')){runAudit();return;}
     const cg=ev.target.closest('[data-change-guide]');
@@ -5251,6 +5470,14 @@ h1,h2,h3{color:var(--n-ink)}
     if(ev.target.closest('#chkAdd')){addChkItem($('#chkAddName')?$('#chkAddName').value:'');return;}
     if(ev.target.closest('#chkSend')){sendChkMsg();return;}
     if(ev.target.closest('#chkClear')){clearChk();return;}
+    // 🕐 타임라인 항목 펼치기 (여러 개 동시 가능)
+    const jt=ev.target.closest('[data-job-toggle]');
+    if(jt && !ev.target.closest('button')){
+      const id=jt.dataset.jobToggle;
+      if(openJobs[id])delete openJobs[id]; else openJobs[id]=1;
+      jt.classList.toggle('open');
+      return;
+    }
     const p1=ev.target.closest('[data-pay-one]');
     if(p1){ev.stopPropagation();payOne(p1.dataset.payOne);return;}
     const sm=ev.target.closest('[data-staff-msg]');
@@ -5311,6 +5538,14 @@ h1,h2,h3{color:var(--n-ink)}
     const el=$(s); if(el){el.addEventListener('change',updatePrevPrep);el.addEventListener('input',updatePrevPrep);}
   });
   {const ul=$('#txUnlock');if(ul)ul.addEventListener('click',unlockTx);}
+  document.addEventListener('change',function(ev){
+    if(ev.target.id==='notiHour'||ev.target.id==='notiMin'){
+      var c=loadNoti();
+      var hh=$('#notiHour'), mm=$('#notiMin');
+      c.hour=Number(hh?hh.value:7)||0; c.min=Number(mm?mm.value:0)||0;
+      saveNoti(c);
+    }
+  });
   {const up=$('#txUsePrev');if(up)up.addEventListener('click',function(){
     const b=$('#txPrevPrep'), inp=$('#txOutSupplies');
     if(b&&inp&&b.dataset.prev){ inp.value=b.dataset.prev; toast('📥 사용 물품을 채웠어요'); }
@@ -5373,6 +5608,7 @@ h1,h2,h3{color:var(--n-ink)}
 
   applyRole();fillHostPreview();setBranch(state.branch||'전체');$('#reportMonth').value=currentYM();
   try{ detachFeeFromRoom(); }catch(e){}   // 관리비가 객실에 붙어 있으면 분리
+  try{ checkNotiTime(); }catch(e){}   // 알림 시각이 지났으면 보냄
   applyMonthlyFee();  // 빠진 달 관리비 자동등록
   fillMFForm();       // 설정 폼에 현재값 표시
   render();
