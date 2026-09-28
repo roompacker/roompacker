@@ -495,7 +495,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v18.0</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v18.1</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -515,7 +515,7 @@ h1,h2,h3{color:var(--n-ink)}
       </div>
 
       <div class="ops-topline">
-        <button class="ops-date-button" data-goto="schedule"><span>오늘 업무일</span><b id="homeDate">오늘</b><small id="homeBranchLabel">전체 지점</small></button>
+        <button class="ops-date-button"><span>오늘 업무일</span><b id="homeDate">오늘</b><small id="homeBranchLabel">전체 지점</small></button>
         <button class="primary ops-book-main" data-quick="book"><span>＋</span> 예약+청소</button>
       </div>
 
@@ -577,8 +577,9 @@ h1,h2,h3{color:var(--n-ink)}
         </section>
 
         <section class="ops-card ops-all" id="opsAllBlock">
-          <div class="ops-card-head"><div><span class="ops-label gray-label">TODAY TIMELINE</span><h2>오늘 전체 청소 기록</h2><small>카드를 누르면 예약·체크아웃 정보를 수정할 수 있어요.</small></div><button class="ops-head-action" data-goto="schedule">달력 보기</button></div>
+          <div class="ops-card-head"><div><span class="ops-label gray-label">TODAY TIMELINE</span><h2>오늘 청소 일정</h2><small>👆 항목을 누르면 자세한 내용이 펼쳐져요</small></div></div>
           <div class="card ops-timeline-list" id="todayJobs" data-card-nav="schedule"></div>
+        <button class="ops-head-action" data-goto="schedule" style="width:100%;margin-top:10px;padding:11px;border-radius:12px;">📅 달력으로 보기</button>
         </section>
 
         <section class="ops-card ops-alerts" id="opsAlertBlock">
