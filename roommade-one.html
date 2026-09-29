@@ -495,7 +495,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v18.1</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v18.2</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -578,7 +578,7 @@ h1,h2,h3{color:var(--n-ink)}
 
         <section class="ops-card ops-all" id="opsAllBlock">
           <div class="ops-card-head"><div><span class="ops-label gray-label">TODAY TIMELINE</span><h2>오늘 청소 일정</h2><small>👆 항목을 누르면 자세한 내용이 펼쳐져요</small></div></div>
-          <div class="card ops-timeline-list" id="todayJobs" data-card-nav="schedule"></div>
+          <div class="card ops-timeline-list" id="todayJobs"></div>
         <button class="ops-head-action" data-goto="schedule" style="width:100%;margin-top:10px;padding:11px;border-radius:12px;">📅 달력으로 보기</button>
         </section>
 
@@ -5331,6 +5331,16 @@ h1,h2,h3{color:var(--n-ink)}
   document.addEventListener('mouseup',dragEnd);
 
   document.addEventListener('click',e=>{
+    /* 🕐 타임라인 펼치기는 가장 먼저 처리합니다
+       (다른 이동 동작보다 앞서야 화면이 안 바뀝니다) */
+    const _jt=e.target.closest('[data-job-toggle]');
+    if(_jt && !e.target.closest('button')){
+      const _id=_jt.dataset.jobToggle;
+      if(openJobs[_id])delete openJobs[_id]; else openJobs[_id]=1;
+      _jt.classList.toggle('open');
+      e.stopPropagation();
+      return;
+    }
     const b=e.target.closest('button,[data-edit-tx],[data-settle-toggle],[data-room-month],[data-plan-clean],[data-edit-setup],[data-sched-view],[data-goto],[data-card-nav],[data-ops-jump]');if(!b)return;
     if(b.id==='roleBtn'){fillHostPreview();openModal('roleModal');return;}
     if(b.id==='roleHint'){fillHostPreview();openModal('roleModal');return;}
@@ -5471,14 +5481,6 @@ h1,h2,h3{color:var(--n-ink)}
     if(ev.target.closest('#chkAdd')){addChkItem($('#chkAddName')?$('#chkAddName').value:'');return;}
     if(ev.target.closest('#chkSend')){sendChkMsg();return;}
     if(ev.target.closest('#chkClear')){clearChk();return;}
-    // 🕐 타임라인 항목 펼치기 (여러 개 동시 가능)
-    const jt=ev.target.closest('[data-job-toggle]');
-    if(jt && !ev.target.closest('button')){
-      const id=jt.dataset.jobToggle;
-      if(openJobs[id])delete openJobs[id]; else openJobs[id]=1;
-      jt.classList.toggle('open');
-      return;
-    }
     const p1=ev.target.closest('[data-pay-one]');
     if(p1){ev.stopPropagation();payOne(p1.dataset.payOne);return;}
     const sm=ev.target.closest('[data-staff-msg]');
