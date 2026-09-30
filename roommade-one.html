@@ -495,7 +495,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v18.2</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v18.3</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -862,6 +862,11 @@ h1,h2,h3{color:var(--n-ink)}
       <div id="payCalcResult" style="margin-top:9px;font-size:12px;color:var(--sub);text-align:center;font-weight:700;"></div>
     </div>
     <div class="twocol"><div class="field"><label>금액</label><input type="number" id="txAmountInput" inputmode="numeric" placeholder="0" /></div><div class="field"><label>상태</label><select id="txStatusInput"><option value="booked">예약</option><option value="done">청소완료</option><option value="cancelled">취소</option></select></div></div>
+      <div id="txLongStay" style="display:none;background:#FDF3D6;border:1px solid #EFDFB4;border-radius:11px;padding:10px 12px;margin:-4px 0 10px;">
+        <div style="font-size:10px;color:#8A6E38;font-weight:800;margin-bottom:3px;">🏷 장박 요금</div>
+        <div id="txLongStayText" style="color:#6B5420;line-height:1.5;"></div>
+        <button type="button" id="txUseLong" style="width:100%;margin-top:7px;border:1px solid #E0D3B8;background:#FFFFFF;color:#8A6E38;border-radius:9px;padding:8px;font-size:10.5px;font-weight:800;">이 금액으로 넣기</button>
+      </div>
     <div class="field"><label>귀속월</label><input type="month" id="txBillingInput" /></div>
 
     <!-- 청소 스케줄 정보 (수입일 때만) -->
@@ -947,6 +952,29 @@ h1,h2,h3{color:var(--n-ink)}
     <div class="twocol"><div class="field"><label>세금률 %</label><input type="number" step="0.1" id="roomTaxInput" placeholder="0" /></div><div class="field"><label>기본 인원</label><input type="number" id="roomBaseGuests" placeholder="예: 4" /></div></div>
     <div class="twocol"><div class="field"><label>도어락 비번</label><input id="roomDoorPw" placeholder="예: 37098877*" /></div><div class="field"><label>비품함 비번</label><input id="roomSupplyPw" placeholder="예: 998" /></div></div>
     <div style="font-size:11px;color:var(--muted);margin:-4px 0 8px;">💡 기본 인원보다 많으면 체크인 준비에 '추가 셋팅 필요'로 표시돼요</div>
+    <!-- 🏷 장박 요금 (객실마다 다름) -->
+    <div style="background:#FDF3D6;border:1px solid #EFDFB4;border-radius:14px;padding:12px;margin-bottom:11px;">
+      <div style="font-size:12px;font-weight:800;color:#8A6E38;margin-bottom:3px;">🏷 장박 요금</div>
+      <div style="font-size:10.5px;color:#8A6E38;margin-bottom:9px;line-height:1.6;">
+        정한 박수 이상이면 이 금액으로 자동 계산돼요. 비워두면 기본 요금을 씁니다.</div>
+      <div class="twocol">
+        <div class="field"><label>1단계 · 몇 박부터</label><input type="number" id="roomLong1N" placeholder="예: 4" /></div>
+        <div class="field"><label>1단계 요금</label><input type="number" id="roomLong1P" placeholder="예: 35000" /></div>
+      </div>
+      <div class="twocol">
+        <div class="field"><label>2단계 · 몇 박부터</label><input type="number" id="roomLong2N" placeholder="예: 16" /></div>
+        <div class="field"><label>2단계 요금</label><input type="number" id="roomLong2P" placeholder="예: 55000" /></div>
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label>📌 단기임대 고정 요금 (박수 상관없이)</label>
+        <input type="number" id="roomFlatPrice" placeholder="예: 100000 · 비워두면 사용 안 함" />
+      </div>
+      <div style="font-size:10px;color:#8A6E38;margin-top:7px;line-height:1.6;">
+        예) 1807호 : 4박부터 35,000 / 16박부터 55,000<br>
+        예) 1419호 : 단기임대 고정 100,000
+      </div>
+    </div>
+
     <div class="field"><label>🛒 기본 셋팅 (기본 인원까지)</label><input id="roomBaseSetup" placeholder="예: 수건8, 생수4, 쿠키4" /></div>
     <div class="field"><label>＋ 1명 초과당 추가 셋팅</label><input id="roomExtraSetup" placeholder="예: 토퍼1, 베개1, 수건2" /></div>
     <div style="font-size:11px;color:var(--muted);margin:-4px 0 10px;line-height:1.6;">💡 기본 4명 · 기본셋팅 <b>수건8</b> · 초과당 <b>수건2</b> 로 두면<br>6명 입실 시 → <b>수건12</b> 로 자동 합산돼요 (8 + 2×2)</div>
@@ -1682,6 +1710,60 @@ h1,h2,h3{color:var(--n-ink)}
       queen:/퀸토퍼/.test(src)?99:0,
       base:Number((room&&room.baseGuests)||0)
     };
+  }
+
+
+  /* ═══════════ 🏷 장박 요금 자동 계산 ═══════════
+     객실마다 조건이 달라서 객실 설정값을 그대로 씁니다.
+
+       1807호 : 4~15박 35,000 / 16박~ 55,000
+       1710호 : 4박~ 55,000
+       1419호 : 단기임대 고정 100,000
+       용현동 : 단기임대 고정 75,000
+
+     펜트하우스는 월 정액이라 이 계산을 쓰지 않습니다. */
+  function longStayPrice(room, nights){
+    if(!room)return null;
+    if(room.branch==='펜트하우스')return null;      // 월 정액 객실 제외
+
+    // ① 단기임대 고정 요금 — 박수와 상관없이 항상 이 금액
+    var flat=Number(room.flatPrice||0);
+    if(flat>0)return {price:flat, why:'단기임대 고정'};
+
+    var n=Number(nights||0);
+    if(!n)return null;
+
+    // ② 2단계부터 (박수가 더 큰 쪽을 먼저 확인)
+    var n2=Number(room.long2N||0), p2=Number(room.long2P||0);
+    if(n2>0 && p2>0 && n>=n2)return {price:p2, why:n2+'박 이상'};
+
+    // ③ 1단계
+    var n1=Number(room.long1N||0), p1=Number(room.long1P||0);
+    if(n1>0 && p1>0 && n>=n1)return {price:p1, why:n1+'박 이상'+(n2>0?' ('+n1+'~'+(n2-1)+'박)':'')};
+
+    return null;   // 조건에 안 맞으면 기본 요금 사용
+  }
+
+  /* 일정 화면에서 금액을 자동으로 채워줍니다.
+     사용자가 직접 고친 금액은 건드리지 않아요. */
+  function updateLongStay(){
+    var box=$('#txLongStay'), txt=$('#txLongStayText');
+    if(!box||!txt)return;
+    var room=(state.rooms||[]).find(function(r){
+      return String(r.id)===String($('#txTargetInput')?$('#txTargetInput').value:'')});
+    var nights=$('#txOutNights')?$('#txOutNights').value:'';
+    if(!room){ box.style.display='none'; return; }
+
+    var r=longStayPrice(room, nights);
+    if(!r){ box.style.display='none'; return; }
+
+    var cur=Number($('#txAmountInput')?$('#txAmountInput').value:0);
+    box.style.display='block';
+    box.dataset.price=r.price;
+    txt.innerHTML='<b style="font-size:15px;">'+money(r.price)+'</b>'+
+      '<span style="font-size:10.5px;color:var(--sub);"> · '+esc(r.why)+
+      (nights?' · '+nights+'박':'')+'</span>'+
+      (cur===r.price?'<div style="font-size:10px;color:#3B8360;font-weight:800;margin-top:3px;">✓ 금액이 이미 맞아요</div>':'');
   }
 
   function standardPrep(room, guests, nights){
@@ -4039,6 +4121,8 @@ h1,h2,h3{color:var(--n-ink)}
     try{ updateAutoPrep(); }catch(e){}
     try{ updatePrevPrep(); }catch(e){}
     try{ renderLockInfo(); }catch(e){}
+    try{ updateLongStay(); }catch(e){}
+    setTimeout(function(){try{updateLongStay();}catch(e){}},250);
     setTimeout(function(){ try{ updateAutoPrep(); updatePrevPrep(); }catch(e){} }, 250);
     const branch=$('#txBranchInput').value,list=(txType==='income'?state.rooms:state.staff).filter(x=>x.branch===branch&&!x.archived);$('#txTargetInput').innerHTML='<option value="">선택하세요</option>'+list.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
     updatePayCalc();
@@ -4486,7 +4570,12 @@ h1,h2,h3{color:var(--n-ink)}
     render();
   }
   function deleteTxForm(){const id=$('#txEditId').value;if(!id)return;if(confirm('이 기록을 삭제할까요?')){state.transactions=state.transactions.filter(x=>x.id!==id);save();closeModal('txModal');render();toast('삭제했어요')}}
-  function openRoom(id=''){const r=state.rooms.find(x=>x.id===id);$('#roomEditId').value=id;$('#roomNameInput').value=r?.name||'';$('#roomHostInput').value=r?.hostName||'';$('#roomBranchInput').value=r?.branch||(state.branch==='전체'?'영종점':state.branch);$('#roomPriceInput').value=r?.price||'';$('#roomTaxInput').value=r?.tax||'';$('#roomBaseGuests').value=r?.baseGuests||'';$('#roomExtraSetup').value=r?.extraSetup||'';$('#roomBaseSetup').value=r?.baseSetup||'';$('#roomDoorPw').value=r?.doorPw||'';$('#roomSupplyPw').value=r?.supplyPw||'';$('#roomIcalInput').value=r?.ical||'';const drb=$('#deleteRoomBtn');if(drb)drb.style.display=id?'block':'none';const arb=$('#archiveRoomBtn');if(arb){arb.style.display=id?'block':'none';if(r&&r.archived){arb.textContent='📤 보관 해제 (메뉴에 다시 표시)';arb.style.background='#E2F4EA';arb.style.color='#4FA97D';arb.style.borderColor='#9FD9BC';}else{arb.textContent='📦 이 객실 보관 (메뉴에서 숨김)';arb.style.background='#FDF3D6';arb.style.color='#C4922E';arb.style.borderColor='#F2E3AA';}}openModal('roomModal')}
+  function openRoom(id=''){const r=state.rooms.find(x=>x.id===id);$('#roomEditId').value=id;$('#roomNameInput').value=r?.name||'';$('#roomHostInput').value=r?.hostName||'';$('#roomBranchInput').value=r?.branch||(state.branch==='전체'?'영종점':state.branch);$('#roomPriceInput').value=r?.price||'';$('#roomTaxInput').value=r?.tax||'';$('#roomBaseGuests').value=r?.baseGuests||'';$('#roomExtraSetup').value=r?.extraSetup||'';$('#roomBaseSetup').value=r?.baseSetup||'';
+    if($('#roomLong1N'))$('#roomLong1N').value=r?.long1N||'';
+    if($('#roomLong1P'))$('#roomLong1P').value=r?.long1P||'';
+    if($('#roomLong2N'))$('#roomLong2N').value=r?.long2N||'';
+    if($('#roomLong2P'))$('#roomLong2P').value=r?.long2P||'';
+    if($('#roomFlatPrice'))$('#roomFlatPrice').value=r?.flatPrice||'';$('#roomDoorPw').value=r?.doorPw||'';$('#roomSupplyPw').value=r?.supplyPw||'';$('#roomIcalInput').value=r?.ical||'';const drb=$('#deleteRoomBtn');if(drb)drb.style.display=id?'block':'none';const arb=$('#archiveRoomBtn');if(arb){arb.style.display=id?'block':'none';if(r&&r.archived){arb.textContent='📤 보관 해제 (메뉴에 다시 표시)';arb.style.background='#E2F4EA';arb.style.color='#4FA97D';arb.style.borderColor='#9FD9BC';}else{arb.textContent='📦 이 객실 보관 (메뉴에서 숨김)';arb.style.background='#FDF3D6';arb.style.color='#C4922E';arb.style.borderColor='#F2E3AA';}}openModal('roomModal')}
   // 객실 삭제 (길게 누르기)
   function deleteRoom(id){
     const r=state.rooms.find(x=>x.id===id);
@@ -4500,7 +4589,10 @@ h1,h2,h3{color:var(--n-ink)}
     state.transactions=state.transactions.filter(t=>t.targetId!==id);
     closeModal('roomModal');save();render();toast('🗑️ "'+r.name+'" 삭제됐어요');
   }
-  function saveRoomForm(){const id=$('#roomEditId').value,name=$('#roomNameInput').value.trim(),hostName=$('#roomHostInput').value.trim(),branch=$('#roomBranchInput').value,price=Number($('#roomPriceInput').value),tax=Number($('#roomTaxInput').value||0),baseGuests=Number($('#roomBaseGuests').value||0),extraSetup=$('#roomExtraSetup').value.trim(),baseSetup=$('#roomBaseSetup').value.trim(),doorPw=$('#roomDoorPw').value.trim(),supplyPw=$('#roomSupplyPw').value.trim(),ical=$('#roomIcalInput').value.trim();if(!name||!price)return toast('객실명과 기본 청소비를 입력해주세요');const prev=state.rooms.find(x=>x.id===id)||{};const obj={...prev,id:id||uid('room'),name,hostName,branch,price,tax,baseGuests,extraSetup,baseSetup,doorPw,supplyPw,ical};if(id)state.rooms[state.rooms.findIndex(x=>x.id===id)]=obj;else state.rooms.push(obj);save();closeModal('roomModal');render();toast('객실을 저장했어요')}
+  function saveRoomForm(){const id=$('#roomEditId').value,name=$('#roomNameInput').value.trim(),hostName=$('#roomHostInput').value.trim(),branch=$('#roomBranchInput').value,price=Number($('#roomPriceInput').value),tax=Number($('#roomTaxInput').value||0),baseGuests=Number($('#roomBaseGuests').value||0),extraSetup=$('#roomExtraSetup').value.trim(),baseSetup=$('#roomBaseSetup').value.trim(),
+      long1N=Number($('#roomLong1N')?.value||0),long1P=Number($('#roomLong1P')?.value||0),
+      long2N=Number($('#roomLong2N')?.value||0),long2P=Number($('#roomLong2P')?.value||0),
+      flatPrice=Number($('#roomFlatPrice')?.value||0),doorPw=$('#roomDoorPw').value.trim(),supplyPw=$('#roomSupplyPw').value.trim(),ical=$('#roomIcalInput').value.trim();if(!name||!price)return toast('객실명과 기본 청소비를 입력해주세요');const prev=state.rooms.find(x=>x.id===id)||{};const obj={...prev,id:id||uid('room'),name,hostName,branch,price,tax,baseGuests,extraSetup,baseSetup,long1N,long1P,long2N,long2P,flatPrice,doorPw,supplyPw,ical};if(id)state.rooms[state.rooms.findIndex(x=>x.id===id)]=obj;else state.rooms.push(obj);save();closeModal('roomModal');render();toast('객실을 저장했어요')}
 
   // ── 비품 ──
   let supplyReceiptData='';
@@ -5532,6 +5624,18 @@ h1,h2,h3{color:var(--n-ink)}
   // 💰 급여 자동계산 이벤트
   const tti=$('#txTargetInput');if(tti)tti.addEventListener('change',()=>{const r=$('#payRateInput');if(r)r.value='';updatePayCalc();});
   ['#payQtyInput','#payRateInput'].forEach(s=>{const el=$(s);if(el)el.addEventListener('input',calcPay);});
+  // 🏷 장박 요금 자동 안내
+  ['#txOutNights','#txTargetInput','#txAmountInput'].forEach(s=>{
+    const el=$(s); if(el){el.addEventListener('input',updateLongStay);el.addEventListener('change',updateLongStay);}
+  });
+  {const ul2=$('#txUseLong');if(ul2)ul2.addEventListener('click',function(){
+    const b=$('#txLongStay'), inp=$('#txAmountInput');
+    if(b&&inp&&b.dataset.price){
+      inp.value=b.dataset.price;
+      updateLongStay();
+      toast('🏷 장박 요금 '+money(Number(b.dataset.price))+' 적용');
+    }
+  });}
   ['#txInGuests','#txInNights','#txTargetInput'].forEach(s=>{
     const el=$(s); if(el){el.addEventListener('input',updateAutoPrep);el.addEventListener('change',updateAutoPrep);}
   });
