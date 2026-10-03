@@ -495,7 +495,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v18.4</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v18.5</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -4994,18 +4994,26 @@ h1,h2,h3{color:var(--n-ink)}
   // 설정 화면에 현재 값 채우기
   function fillMFForm(){
     const cfg=loadMF();
-    if(cfg){
-      if($('#mfBranch'))$('#mfBranch').value=cfg.branch||'펜트하우스';
-      if($('#mfAmount'))$('#mfAmount').value=cfg.amount||'';
-      if($('#mfLabel'))$('#mfLabel').value=cfg.label||'위탁관리비';
-      if($('#mfBaseCount'))$('#mfBaseCount').value=cfg.baseCount||50;
-      if($('#mfOverFee'))$('#mfOverFee').value=cfg.overFee||50000;
-      if($('#mfMaxFee'))$('#mfMaxFee').value=cfg.maxFee||3500000;
-      if($('#mfStart'))$('#mfStart').value=cfg.start||'';
-      if($('#mfActive'))$('#mfActive').value=cfg.active?'1':'0';
+    /* 설정이 아직 없으면 권장값을 미리 채워둡니다.
+       (빈 칸이면 저장이 안 돼서 관리비가 안 만들어졌어요) */
+    const d = cfg || {branch:'펜트하우스',amount:3200000,label:'위탁관리비',
+                     start:'2026-07',active:true,baseCount:50,overFee:50000,maxFee:3800000};
+    if($('#mfBranch'))$('#mfBranch').value=d.branch||'펜트하우스';
+    if($('#mfAmount'))$('#mfAmount').value=d.amount||3200000;
+    if($('#mfLabel'))$('#mfLabel').value=d.label||'위탁관리비';
+    if($('#mfBaseCount'))$('#mfBaseCount').value=d.baseCount||50;
+    if($('#mfOverFee'))$('#mfOverFee').value=d.overFee||50000;
+    if($('#mfMaxFee'))$('#mfMaxFee').value=d.maxFee||3800000;
+    if($('#mfStart'))$('#mfStart').value=d.start||'2026-07';
+    if($('#mfActive'))$('#mfActive').value=(d.active===false)?'0':'1';
+    const st=$('#mfStatus');
+    if(st){
+      st.textContent = cfg
+        ? ('✅ 자동등록 '+(cfg.active?'켜짐':'꺼짐')+' ('+cfg.branch+' 매월 '+money(cfg.amount)+')')
+        : '⚠️ 아직 저장 전이에요 — 아래 저장 버튼을 눌러주세요';
     }
-    updateMFStatus();
   }
+
   function updateMFStatus(){
     const cfg=loadMF(); const el=$('#mfStatus'); if(!el)return;
     if(cfg&&cfg.active){ el.textContent='✅ 자동등록 켜짐 ('+cfg.branch+' 매월 '+Number(cfg.amount).toLocaleString()+'원)'; }
@@ -5023,9 +5031,14 @@ h1,h2,h3{color:var(--n-ink)}
     const baseCount=Number($('#mfBaseCount').value||0)||prev.baseCount||50;
     const overFee=Number($('#mfOverFee').value||0)||prev.overFee||50000;
     const maxFee=Number($('#mfMaxFee').value||0)||prev.maxFee||3500000;
-    if(active&&(!amount||!start)){ toast('금액과 시작월을 입력해주세요'); return; }
+    if(active&&!amount){ alert('기본 금액을 입력해주세요\n(예: 3200000)'); return; }
+    let start2=start;
+    if(active&&!start2){
+      start2=currentYM();   // 시작월을 안 넣으면 이번 달부터
+      if($('#mfStart'))$('#mfStart').value=start2;
+    }
     if(maxFee<amount){ toast('상한이 기본금액보다 작아요'); return; }
-    saveMF({branch,amount,label,start,active,baseCount,overFee,maxFee});
+    saveMF({branch,amount,label,start:start2,active,baseCount,overFee,maxFee});
     const added=applyMonthlyFee();
     fillMFForm();
     toast(added>0?('✅ 저장 + '+added+'개월 관리비 자동등록'):'✅ 저장됐어요');
@@ -5567,6 +5580,8 @@ h1,h2,h3{color:var(--n-ink)}
     }
     if(ev.target.closest('#notiOff')){disableNoti();return;}
     if(ev.target.closest('#notiTest')){showWeekNoti(true);return;}
+    if(ev.target.closest('#mfSave')){ try{saveMFForm();}catch(e){alert('저장 오류: '+e.message);} return; }
+    if(ev.target.closest('#incSave')){ try{saveIncentive();}catch(e){} return; }
     if(ev.target.closest('#recalcFeeBtn')){recalcFeeNow();return;}
     if(ev.target.closest('#auditBtn')){runAudit();return;}
     const cg=ev.target.closest('[data-change-guide]');
