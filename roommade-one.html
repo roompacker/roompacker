@@ -495,7 +495,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v18.3</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v18.4</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -756,7 +756,9 @@ h1,h2,h3{color:var(--n-ink)}
         <div class="card formcard">
           <div class="segment" id="reportSegment"><button class="segbtn active" data-report="room">객실 정산</button><button class="segbtn" data-report="staff">직원 지급</button></div>
           <div class="field"><label>대상 선택</label><select id="reportTarget"></select></div>
-          <div class="field"><label>정산 월</label><input type="month" id="reportMonth" /></div>
+          <div id="reportPentHint" style="display:none;background:#FDF3D6;border:1px solid #EFDFB4;border-radius:11px;padding:10px 12px;margin-bottom:9px;font-size:11px;color:#8A6E38;line-height:1.6;">
+        🏢 펜트하우스는 청소비가 0원이고 <b>위탁관리비</b>로 정산돼요.<br>보고서에 관리비가 함께 나옵니다.</div>
+      <div class="field"><label>정산 월</label><input type="month" id="reportMonth" /></div>
           <button class="primary" id="makeReport">보고서 만들기</button>
           <div class="reportbox" id="reportBox"></div>
           <button class="secondary" id="copyReport" style="display:none;margin-top:8px">카카오톡용 문구 복사</button>
@@ -5336,7 +5338,19 @@ h1,h2,h3{color:var(--n-ink)}
     toast('✅ 예약 등록! '+co.slice(5).replace('-','/')+' 청소 자동 생성'+attachMsg);
   }
 
-  function makeReport(){const targetId=$('#reportTarget').value,month=$('#reportMonth').value;if(!targetId||!month)return toast('대상과 정산 월을 선택해주세요');const type=reportMode==='room'?'income':'expense',entity=(reportMode==='room'?state.rooms:state.staff).find(x=>x.id===targetId),items=state.transactions.filter(t=>t.type===type&&!t.checkinOnly&&(t.targetId===targetId||(entity&&t.targetName===entity.name))&&(t.billingMonth||ym(t.date))===month&&t.status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date));const total=sum(items),paid=sum(items,null,true),pending=sum(items,null,false);let lines=[`──────────────`,`📋 ${entity.name} ${reportMode==='room'?'청소 정산':'지급 내역'}`,monthText(month),`──────────────`,``];items.forEach((t,i)=>lines.push(`${i+1}. ${dateText(t.date)}  ${money(t.netAmount||t.amount)}${t.memo?' / '+t.memo:''}${!t.paid?' ('+(type==='income'?'미수금':'미지급')+')':''}`));lines.push('',`총 ${items.length}건  ${money(total)}`,`${reportMode==='room'?'입금':'지급'} 완료  ${money(paid)}`,`${reportMode==='room'?'미수금':'미지급'}  ${money(pending)}`,'──────────────');$('#reportBox').textContent=lines.join('\n');$('#reportBox').style.display='block';$('#copyReport').style.display='block'}
+  function makeReport(){const targetId=$('#reportTarget').value,month=$('#reportMonth').value;if(!targetId||!month)return toast('대상과 정산 월을 선택해주세요');const type=reportMode==='room'?'income':'expense',entity=(reportMode==='room'?state.rooms:state.staff).find(x=>x.id===targetId),items=state.transactions.filter(t=>t.type===type&&!t.checkinOnly&&(t.targetId===targetId||(entity&&t.targetName===entity.name))&&(t.billingMonth||ym(t.date))===month&&t.status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date));/* 🏢 펜트하우스는 건별 0원이고 관리비가 따로 있어요.
+     그 객실 보고서에는 관리비도 함께 보여줍니다. */
+  let feeItems=[];
+  if(reportMode==='room' && entity && entity.branch==='펜트하우스'){
+    feeItems=state.transactions.filter(t=>t.autoFee===true && t.status!=='cancelled'
+      && (t.billingMonth||ym(t.date))===month);
+  }
+  const total=sum(items)+sum(feeItems),paid=sum(items,null,true)+sum(feeItems,null,true),pending=sum(items,null,false)+sum(feeItems,null,false);let lines=[`──────────────`,`📋 ${entity.name} ${reportMode==='room'?'청소 정산':'지급 내역'}`,monthText(month),`──────────────`,``];items.forEach((t,i)=>lines.push(`${i+1}. ${dateText(t.date)}  ${money(t.netAmount||t.amount)}${t.memo?' / '+t.memo:''}${!t.paid?' ('+(type==='income'?'미수금':'미지급')+')':''}`));
+  if(feeItems.length){
+    lines.push('','── 위탁관리비 ──');
+    feeItems.forEach(t=>lines.push(`${dateText(t.date)}  ${money(t.netAmount||t.amount)}${t.memo?'  '+t.memo:''}${!t.paid?'  (미수금)':''}`));
+  }
+  lines.push('',`청소 ${items.length}건${feeItems.length?' + 관리비 '+feeItems.length+'건':''}  ${money(total)}`,`${reportMode==='room'?'입금':'지급'} 완료  ${money(paid)}`,`${reportMode==='room'?'미수금':'미지급'}  ${money(pending)}`,'──────────────');$('#reportBox').textContent=lines.join('\n');$('#reportBox').style.display='block';$('#copyReport').style.display='block'}
   function copyReport(){navigator.clipboard?.writeText($('#reportBox').textContent).then(()=>toast('보고서 문구를 복사했어요')).catch(()=>toast('복사에 실패했어요'))}
   function exportData(){const data={app:'roommade-one',version:1,exportedAt:new Date().toISOString(),currentBranch:state.branch,rooms:state.rooms,staff:state.staff,transactions:state.transactions};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`roommade-one-${today()}.json`;a.click();URL.revokeObjectURL(a.href);toast('백업 파일을 만들었어요')}
   function importData(file){
@@ -5628,6 +5642,11 @@ h1,h2,h3{color:var(--n-ink)}
   ['#txOutNights','#txTargetInput','#txAmountInput'].forEach(s=>{
     const el=$(s); if(el){el.addEventListener('input',updateLongStay);el.addEventListener('change',updateLongStay);}
   });
+  {const rt=$('#reportTarget');if(rt)rt.addEventListener('change',function(){
+    const hint=$('#reportPentHint'); if(!hint)return;
+    const r=(state.rooms||[]).find(x=>String(x.id)===String(rt.value));
+    hint.style.display=(r&&r.branch==='펜트하우스')?'block':'none';
+  });}
   {const ul2=$('#txUseLong');if(ul2)ul2.addEventListener('click',function(){
     const b=$('#txLongStay'), inp=$('#txAmountInput');
     if(b&&inp&&b.dataset.price){
