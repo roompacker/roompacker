@@ -495,7 +495,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v18.6</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v18.7</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -4045,7 +4045,12 @@ h1,h2,h3{color:var(--n-ink)}
     }).join(''):empty('📦','등록된 비품이 없어요');
     renderReportOptions();
   }
-  function renderReportOptions(){const list=branchFilter(reportMode==='room'?state.rooms:state.staff);$('#reportTarget').innerHTML='<option value="">선택하세요</option>'+list.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');$('#reportMonth').value=$('#reportMonth').value||currentYM();$$('[data-report]').forEach(b=>b.classList.toggle('active',b.dataset.report===reportMode))}
+  function renderReportOptions(){const list=branchFilter(reportMode==='room'?state.rooms:state.staff);
+    /* 🏢 펜트하우스는 4객실을 묶어서 한 장으로 보는 일이 많아 '전체' 항목을 넣습니다 */
+    const pentRooms=(state.rooms||[]).filter(r=>!r.archived&&r.branch==='펜트하우스');
+    const pentOpt=(reportMode==='room'&&pentRooms.length)
+      ? `<option value="__PENT__">🏢 펜트하우스 전체 (${pentRooms.length}객실 통합)</option>` : '';
+    $('#reportTarget').innerHTML='<option value="">선택하세요</option>'+pentOpt+list.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');$('#reportMonth').value=$('#reportMonth').value||currentYM();$$('[data-report]').forEach(b=>b.classList.toggle('active',b.dataset.report===reportMode))}
 
   // ── 뒤로가기 버튼 지원: 뒤로 눌러도 앱이 닫히지 않고 모달 닫기 → 이전 화면 순서로 이동 ──
   let modalStack=[];   // 열린 모달 순서 기록
@@ -5351,19 +5356,49 @@ h1,h2,h3{color:var(--n-ink)}
     toast('✅ 예약 등록! '+co.slice(5).replace('-','/')+' 청소 자동 생성'+attachMsg);
   }
 
-  function makeReport(){const targetId=$('#reportTarget').value,month=$('#reportMonth').value;if(!targetId||!month)return toast('대상과 정산 월을 선택해주세요');const type=reportMode==='room'?'income':'expense',entity=(reportMode==='room'?state.rooms:state.staff).find(x=>x.id===targetId),items=state.transactions.filter(t=>t.type===type&&!t.checkinOnly&&(t.targetId===targetId||(entity&&t.targetName===entity.name))&&(t.billingMonth||ym(t.date))===month&&t.status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date));/* 🏢 펜트하우스는 건별 0원이고 관리비가 따로 있어요.
+  function makeReport(){
+    const targetId=$('#reportTarget').value,month=$('#reportMonth').value;
+    if(!targetId||!month)return toast('대상과 정산 월을 선택해주세요');
+    const type=reportMode==='room'?'income':'expense';
+
+    /* 🏢 펜트하우스 전체를 고른 경우 — 4객실을 묶어서 한 장으로 */
+    const isPentAll = (targetId==='__PENT__');
+    let entity, items;
+    if(isPentAll){
+      const pentRooms=(state.rooms||[]).filter(r=>r.branch==='펜트하우스');
+      const ids=pentRooms.map(r=>String(r.id));
+      entity={name:'펜트하우스 4객실', branch:'펜트하우스', _rooms:pentRooms};
+      items=state.transactions.filter(t=>t.type==='income'&&!t.checkinOnly&&!t.autoFee
+        && ids.indexOf(String(t.targetId))>=0
+        && (t.billingMonth||ym(t.date))===month && t.status!=='cancelled')
+        .sort((a,b)=>a.date.localeCompare(b.date));
+    }else{
+      entity=(reportMode==='room'?state.rooms:state.staff).find(x=>x.id===targetId);
+      items=state.transactions.filter(t=>t.type===type&&!t.checkinOnly&&(t.targetId===targetId||(entity&&t.targetName===entity.name))&&(t.billingMonth||ym(t.date))===month&&t.status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date));
+    }/* 🏢 펜트하우스는 건별 0원이고 관리비가 따로 있어요.
      그 객실 보고서에는 관리비도 함께 보여줍니다. */
   let feeItems=[];
-  if(reportMode==='room' && entity && entity.branch==='펜트하우스'){
+  if(reportMode==='room' && (isPentAll || (entity && entity.branch==='펜트하우스'))){
     feeItems=state.transactions.filter(t=>t.autoFee===true && t.status!=='cancelled'
       && (t.billingMonth||ym(t.date))===month);
   }
-  const total=sum(items)+sum(feeItems),paid=sum(items,null,true)+sum(feeItems,null,true),pending=sum(items,null,false)+sum(feeItems,null,false);let lines=[`──────────────`,`📋 ${entity.name} ${reportMode==='room'?'청소 정산':'지급 내역'}`,monthText(month),`──────────────`,``];items.forEach((t,i)=>lines.push(`${i+1}. ${dateText(t.date)}  ${money(t.netAmount||t.amount)}${t.memo?' / '+t.memo:''}${!t.paid?' ('+(type==='income'?'미수금':'미지급')+')':''}`));
+  const total=sum(items)+sum(feeItems),paid=sum(items,null,true)+sum(feeItems,null,true),pending=sum(items,null,false)+sum(feeItems,null,false);let lines=[`──────────────`,`📋 ${entity.name} ${reportMode==='room'?'청소 정산':'지급 내역'}`,monthText(month),`──────────────`,``];if(isPentAll){
+    /* 통합 보고서는 건별 나열 대신 객실별로 묶어서 보여줍니다 */
+    lines.push('── 객실별 청소 건수 ──');
+    (entity._rooms||[]).forEach(r=>{
+      const n=items.filter(t=>String(t.targetId)===String(r.id)).length;
+      const done=items.filter(t=>String(t.targetId)===String(r.id)&&t.status==='done').length;
+      lines.push(`${roomTitleOf(r.name)||r.name}   ${n}건${done?' (완료 '+done+')':''}`);
+    });
+    lines.push('','합계 청소 '+items.length+'건');
+  }else{
+    items.forEach((t,i)=>lines.push(`${i+1}. ${dateText(t.date)}  ${money(t.netAmount||t.amount)}${t.memo?' / '+t.memo:''}${!t.paid?' ('+(type==='income'?'미수금':'미지급')+')':''}`));
+  }
   if(feeItems.length){
     lines.push('','── 위탁관리비 ──');
     feeItems.forEach(t=>lines.push(`${dateText(t.date)}  ${money(t.netAmount||t.amount)}${t.memo?'  '+t.memo:''}${!t.paid?'  (미수금)':''}`));
   }
-  lines.push('',`청소 ${items.length}건${feeItems.length?' + 관리비 '+feeItems.length+'건':''}  ${money(total)}`,`${reportMode==='room'?'입금':'지급'} 완료  ${money(paid)}`,`${reportMode==='room'?'미수금':'미지급'}  ${money(pending)}`,'──────────────');$('#reportBox').textContent=lines.join('\n');$('#reportBox').style.display='block';$('#copyReport').style.display='block'}
+  lines.push('',`${isPentAll?'총 정산액':'청소 '+items.length+'건'+(feeItems.length?' + 관리비 '+feeItems.length+'건':'')}  ${money(total)}`,`${reportMode==='room'?'입금':'지급'} 완료  ${money(paid)}`,`${reportMode==='room'?'미수금':'미지급'}  ${money(pending)}`,'──────────────');$('#reportBox').textContent=lines.join('\n');$('#reportBox').style.display='block';$('#copyReport').style.display='block'}
   function copyReport(){navigator.clipboard?.writeText($('#reportBox').textContent).then(()=>toast('보고서 문구를 복사했어요')).catch(()=>toast('복사에 실패했어요'))}
   function exportData(){const data={app:'roommade-one',version:1,exportedAt:new Date().toISOString(),currentBranch:state.branch,rooms:state.rooms,staff:state.staff,transactions:state.transactions};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`roommade-one-${today()}.json`;a.click();URL.revokeObjectURL(a.href);toast('백업 파일을 만들었어요')}
   function importData(file){
@@ -5659,6 +5694,7 @@ h1,h2,h3{color:var(--n-ink)}
   });
   {const rt=$('#reportTarget');if(rt)rt.addEventListener('change',function(){
     const hint=$('#reportPentHint'); if(!hint)return;
+    if(rt.value==='__PENT__'){ hint.style.display='block'; return; }
     const r=(state.rooms||[]).find(x=>String(x.id)===String(rt.value));
     hint.style.display=(r&&r.branch==='펜트하우스')?'block':'none';
   });}
