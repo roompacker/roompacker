@@ -495,7 +495,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v18.5</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v18.6</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -5072,7 +5072,7 @@ h1,h2,h3{color:var(--n-ink)}
       if(cleanCount>BASE_LIMIT){ fee = BASE_FEE + (cleanCount-BASE_LIMIT)*OVER_FEE; }
       const _MAX=maxFeeOf(mKey,cfg); if(fee>_MAX) fee=_MAX;
       const overCnt=Math.max(0,cleanCount-BASE_LIMIT);
-      const memo='위탁관리비 ('+cleanCount+'회'+(overCnt>0?(' / 초과 '+overCnt+'건'):'')+(fee>=MAX_FEE&&overCnt>0?' / 상한도달':'')+')';
+      const memo='위탁관리비 ('+cleanCount+'회'+(overCnt>0?(' / 초과 '+overCnt+'건'):'')+(fee>=_MAX&&overCnt>0?' / 상한도달':'')+')';
       const existing=state.transactions.find(t=>t.autoFee===true && (t.billingMonth===mKey||(t.date||'').slice(0,7)===mKey) && t.branch===cfg.branch);
       if(!existing){
         state.transactions.push({
