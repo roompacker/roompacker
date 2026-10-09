@@ -200,6 +200,20 @@ html,body{background:linear-gradient(180deg,#EFF2F9 0%,#EFF2F9 100%)}
 .tledit{flex:0 0 42px!important;background:var(--card,#FCFCFA);border:1px solid var(--line,#DDE0D8)!important;
   color:var(--navy,#2C5C87);font-size:14px!important}
 
+
+/* ═══ 📑 관리 탭 챕터 ═══ */
+.mgTabs{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;margin-bottom:4px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none}
+.mgTabs::-webkit-scrollbar{display:none}
+.mgTab{flex-shrink:0;border:1px solid var(--line,#DDE0D8);background:var(--card,#FCFCFA);
+  color:var(--sub,#7C8894);border-radius:99px;padding:9px 14px;font-size:12px;font-weight:800;
+  white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.mgTab.active{background:var(--navy,#2C5C87);border-color:var(--navy,#2C5C87);color:#fff;
+  box-shadow:0 2px 8px rgba(44,92,135,.22)}
+.mgPane{display:none}
+.mgPane.show{display:block;animation:mgIn .18s ease}
+@keyframes mgIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
 </style>
 <style id="roommade-trend-refresh">
 /* ROOMMADE ONE · 2026 mobile product UI refresh
@@ -495,7 +509,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v18.7</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v18.9</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -699,6 +713,18 @@ h1,h2,h3{color:var(--n-ink)}
 
     <section class="view" data-view="manage">
       <div class="view-title"><div class="eyebrow" style="color:#7B90C2;letter-spacing:1.2px;font-size:10px;">CONTROL CENTER</div><h1>관리와 자료</h1><p>객실·직원·비품을 한 곳에서 관리하고 필요한 순간에만 펼쳐보세요.</p></div>
+
+      <div class="mgTabs" id="mgTabs">
+        <button class="mgTab active" data-mg="link">📅 연동</button>
+        <button class="mgTab" data-mg="rooms">🏠 객실</button>
+        <button class="mgTab" data-mg="staff">👥 직원</button>
+        <button class="mgTab" data-mg="supply">📦 비품</button>
+        <button class="mgTab" data-mg="fee">💰 관리비</button>
+        <button class="mgTab" data-mg="report">📋 보고서</button>
+        <button class="mgTab" data-mg="data">💾 자료</button>
+      </div>
+
+      <div class="mgPane" data-mgpane="link">
       <div class="section" style="margin-top:0"><div class="card manageblock"><div class="managehead"><b>📅 에어비앤비 자동 연동</b><span><button class="addmini" id="icalTestBtn" style="margin-right:5px;">🔍 연결 테스트</button><button class="addmini" id="icalSyncBtn">🔄 지금 동기화</button></span></div>
         <div style="padding:0 14px 14px;">
           <div class="field" style="margin-bottom:6px;"><label>중계 주소 (Apps Script)</label><input id="icalProxyInput" placeholder="https://script.google.com/macros/s/..../exec" /></div>
@@ -706,10 +732,18 @@ h1,h2,h3{color:var(--n-ink)}
           <div id="icalStatus" style="font-size:12px;color:var(--sub);line-height:1.7;"></div>
         </div>
       </div></div>
+      </div>
+      <div class="mgPane" data-mgpane="rooms">
       <div class="section" style="margin-top:0"><div class="card manageblock"><div class="managehead"><b>🏠 객실 관리</b><button class="addmini" data-quick="room">+ 추가</button></div><div id="roomList"></div></div></div>
+      </div>
+      <div class="mgPane" data-mgpane="staff">
       <div class="section"><div class="card manageblock"><div class="managehead"><b>👥 직원 관리</b><button class="addmini" data-quick="staff">+ 추가</button></div><div id="staffList"></div></div></div>
+      </div>
+      <div class="mgPane" data-mgpane="supply">
       <div class="section"><div class="card manageblock"><div class="managehead"><b>📦 비품 · 소모품</b><button class="addmini" data-quick="supply">+ 추가</button></div><div id="supplyList"></div></div></div>
       <div class="section">
+      </div>
+      <div class="mgPane" data-mgpane="fee">
         <div class="sectitle"><h2>💰 월 고정 관리비 (자동등록)</h2></div>
         <div class="card formcard">
           <div style="font-size:11px;color:var(--muted);margin-bottom:10px;" id="mfRuleText">청소 건수에 따라 매월 자동 계산돼요.</div>
@@ -731,7 +765,6 @@ h1,h2,h3{color:var(--n-ink)}
           <!-- 📊 이번 달 관리비 현황 (50건 초과 · 350만원 상한 알림) -->
           <div id="mfGauge" style="margin-top:12px;"></div>
           <div id="pentBoard"></div>
-          <div id="notiBox" class="card" style="margin-top:12px;"></div>
           <button id="recalcFeeBtn" style="width:100%;margin-top:11px;border:0;background:#2C5C87;color:#FFFFFF;border-radius:12px;padding:12px;font-size:12px;font-weight:800;">🔧 관리비 금액 다시 계산하기</button>
           <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:5px;">지금 청소 건수로 관리비를 맞춰요</div>
           <button id="auditBtn" style="width:100%;margin-top:11px;border:1px solid var(--line);background:#FFFFFF;color:var(--navy);border-radius:12px;padding:12px;font-size:12px;font-weight:800;">🩺 기록 검사하고 자동으로 고치기</button>
@@ -752,6 +785,8 @@ h1,h2,h3{color:var(--n-ink)}
       </div>
 
       <div class="section">
+      </div>
+      <div class="mgPane" data-mgpane="report">
         <div class="sectitle"><h2>정산 보고서</h2></div>
         <div class="card formcard">
           <div class="segment" id="reportSegment"><button class="segbtn active" data-report="room">객실 정산</button><button class="segbtn" data-report="staff">직원 지급</button></div>
@@ -765,6 +800,9 @@ h1,h2,h3{color:var(--n-ink)}
         </div>
       </div>
       <div class="section">
+      </div>
+      <div class="mgPane" data-mgpane="data">
+          <div id="notiBox" class="card" style="margin-bottom:12px;"></div>
         <div class="sectitle"><h2>데이터 관리</h2></div>
         <div class="card formcard">
           <!-- 🛟 클라우드에서 되살리기 (칸을 넓게, 위험 버튼과 분리) -->
@@ -823,7 +861,8 @@ h1,h2,h3{color:var(--n-ink)}
   </div>
 </div>
 
-<div class="modal" id="bookModal">
+
+      </div><div class="modal" id="bookModal">
   <div class="sheet">
     <div class="grab"></div><div class="sheethead"><h3>🆕 예약 등록</h3><button class="close" data-close="bookModal">×</button></div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">손님 한 팀을 등록하면 청소는 자동으로 만들어져요.</div>
@@ -4341,6 +4380,21 @@ h1,h2,h3{color:var(--n-ink)}
     }catch(e){}
   }
 
+
+  /* 📑 관리 탭 챕터 전환
+     관리 화면이 길어서 필요한 부분만 보이게 나눴습니다. */
+  let mgPane='link';
+  function showMgPane(key){
+    mgPane=key||'link';
+    $$('.mgPane').forEach(function(el){
+      el.classList.toggle('show', el.dataset.mgpane===mgPane);
+    });
+    $$('.mgTab').forEach(function(b){
+      b.classList.toggle('active', b.dataset.mg===mgPane);
+    });
+    try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){}
+  }
+
   function renderNotiUI(){
     const box=$('#notiBox'); if(!box)return;
     const c=loadNoti();
@@ -5615,6 +5669,8 @@ h1,h2,h3{color:var(--n-ink)}
     }
     if(ev.target.closest('#notiOff')){disableNoti();return;}
     if(ev.target.closest('#notiTest')){showWeekNoti(true);return;}
+    const mt=ev.target.closest('[data-mg]');
+    if(mt){ showMgPane(mt.dataset.mg); return; }
     if(ev.target.closest('#mfSave')){ try{saveMFForm();}catch(e){alert('저장 오류: '+e.message);} return; }
     if(ev.target.closest('#incSave')){ try{saveIncentive();}catch(e){} return; }
     if(ev.target.closest('#recalcFeeBtn')){recalcFeeNow();return;}
@@ -5783,6 +5839,7 @@ h1,h2,h3{color:var(--n-ink)}
   $('#todayBtn').addEventListener('click',()=>{scheduleMonth=currentYM();insightMonth=currentYM();selectedDate=today();setView('home')});
   $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id)}));
 
+  try{ showMgPane('link'); }catch(e){}
   applyRole();fillHostPreview();setBranch(state.branch||'전체');$('#reportMonth').value=currentYM();
   try{ detachFeeFromRoom(); }catch(e){}   // 관리비가 객실에 붙어 있으면 분리
   try{ checkNotiTime(); }catch(e){}   // 알림 시각이 지났으면 보냄
