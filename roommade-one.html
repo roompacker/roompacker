@@ -511,7 +511,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v19.0</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v19.1</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1559,7 +1559,10 @@ h1,h2,h3{color:var(--n-ink)}
     return planned.filter(p=>{const k=p.targetId+'|'+p.date;if(seen.has(k))return false;seen.add(k);return true;});
   }
 
-  function setView(view){if(!roleCanView(view))view='home';if(!viewGuard&&view!==activeView){viewHistory.push(activeView);if(viewHistory.length>20)viewHistory.shift();}activeView=view;applyRole();$$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===view));$$('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.nav===view));window.scrollTo({top:0,behavior:'smooth'});render();}
+  function setView(view){if(!roleCanView(view))view='home';if(!viewGuard&&view!==activeView){viewHistory.push(activeView);if(viewHistory.length>20)viewHistory.shift();}activeView=view;applyRole();$$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===view));$$('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.nav===view));window.scrollTo({top:0,behavior:'smooth'});render();
+    // 관리 탭을 열면 챕터 표시를 다시 맞춥니다
+    if(view==='manage'){ try{ showMgPane(mgPane||'link'); }catch(e){} }
+  }
   function setBranch(branch){state.branch=branch;save();$$('.branchbtn').forEach(b=>b.classList.toggle('active',b.dataset.branch===branch));render();}
 
   function render(){
@@ -1578,9 +1581,6 @@ h1,h2,h3{color:var(--n-ink)}
     try{ renderPentBoard(); }catch(e){ console.error('pentBoard',e); }
     try{ renderNotiUI(); }catch(e){}
     try{ renderIncentives(); }catch(e){ console.error('inc',e); }
-  
-    // 관리 탭을 열면 챕터 표시를 다시 맞춥니다
-    if(v==='manage'){ try{ showMgPane(mgPane||'link'); }catch(e){} }
   }
   function renderHome(){
     const jobs=branchFilter(state.transactions).filter(t=>t.type==='income'&&!t.checkinOnly&&t.date===today()&&t.status!=='cancelled').sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
