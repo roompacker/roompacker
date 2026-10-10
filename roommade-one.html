@@ -511,7 +511,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v19.3</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v19.4</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -805,7 +805,7 @@ h1,h2,h3{color:var(--n-ink)}
       <div class="section">
       </div>
       <div class="mgPane" data-mgpane="data">
-          <div id="notiBox" class="card" style="margin-bottom:12px;"></div>
+          <!-- v19.4: 잠금화면 알림 제거 (갤럭시 크롬에서 작동 안 함) -->
         <div class="sectitle"><h2>데이터 관리</h2></div>
         <div class="card formcard">
           <!-- 🛟 클라우드에서 되살리기 (칸을 넓게, 위험 버튼과 분리) -->
@@ -5856,7 +5856,7 @@ h1,h2,h3{color:var(--n-ink)}
   try{ showMgPane('link'); }catch(e){}
   applyRole();fillHostPreview();setBranch(state.branch||'전체');$('#reportMonth').value=currentYM();
   try{ detachFeeFromRoom(); }catch(e){}   // 관리비가 객실에 붙어 있으면 분리
-  try{ checkNotiTime(); }catch(e){}   // 알림 시각이 지났으면 보냄
+  /* v19.4: 잠금화면 알림 제거 → checkNotiTime 호출 안 함 */
   applyMonthlyFee();  // 빠진 달 관리비 자동등록
   fillMFForm();       // 설정 폼에 현재값 표시
   render();
