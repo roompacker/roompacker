@@ -511,7 +511,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v19.2</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v19.3</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -745,7 +745,7 @@ h1,h2,h3{color:var(--n-ink)}
       <div class="section"><div class="card manageblock"><div class="managehead"><b>📦 비품 · 소모품</b><button class="addmini" data-quick="supply">+ 추가</button></div><div id="supplyList"></div></div></div>
       <div class="section">
       </div>
-      </div><!-- /supply pane 닫기 (v19.2 버그수정) -->
+      </div><!-- /supply pane 닫기 (v19.3 버그수정) -->
       <div class="mgPane" data-mgpane="fee">
         <div class="sectitle"><h2>💰 월 고정 관리비 (자동등록)</h2></div>
         <div class="card formcard">
@@ -1593,7 +1593,7 @@ h1,h2,h3{color:var(--n-ink)}
     $('#homeSubtext').textContent=activeRole==='host'?'예약·청소·준비상태만 간단히 보여드려요.':'예약 하나를 입력하면 체크아웃·셋팅·배정까지 이어집니다.';
     $('#homeDate').textContent=dateText(today());$('#homeBranchLabel').textContent=branchLabel;
     $('#homeMonthLabel').textContent='오늘의 청소 일정';$('#homeNet').textContent=jobs.length+'건';$('#homeIncome').textContent=done+'건';$('#homeExpense').textContent=pending+'건';$('#homeHeroSubline').textContent=jobs.length?(progress+'% 완료 · '+(pending?'대기 '+pending+'건':'모든 작업 완료')):'오늘 예정된 청소가 없어요';$('#homeProgressBar').style.width=progress+'%';
-    $('#homeReceivable').textContent=short(recv)+'원';$('#homePayable').textContent=short(pay)+'원';$('#homeMargin').textContent=margin+'%';$('#financeSummaryText').textContent='순익 '+short(net)+'원 · 작업 '+income+'건';
+    $('#homeReceivable').textContent=short(recv)+'원';$('#homePayable').textContent=short(pay)+'원';$('#homeMargin').textContent=margin+'%';$('#financeSummaryText').textContent='순익 '+short(net)+'원 · 작업 '+tx.filter(t=>t.type==='income'&&!t.checkinOnly&&!t.autoFee&&t.status!=='cancelled').length+'건';
     $('#homeSmartStrip').innerHTML=attention?`<div class="smart-icon">⚠️</div><div><b>오늘 확인할 항목 ${attention}건</b><small>얼리·레이트 체크인/아웃 또는 추가 셋팅이 있어요.</small></div>`:pending?`<div class="smart-icon">✨</div><div><b>다음 작업을 확인하세요</b><small>${pending}건이 대기 중이에요. 완료 버튼으로 바로 처리할 수 있습니다.</small></div>`:`<div class="smart-icon">✅</div><div><b>오늘 운영이 정리됐어요</b><small>특이사항이 생기면 일정에서 바로 추가하세요.</small></div>`;
     let jobsHtml = jobs.length?jobs.map((t,i)=>jobHTML(t,i)).join(''):'';
     $('#todayJobs').innerHTML=jobsHtml||empty('☕','오늘 등록된 청소 일정이 없어요');
@@ -1608,7 +1608,13 @@ h1,h2,h3{color:var(--n-ink)}
     const jobs=branchFilter(state.transactions).filter(t=>t.type==='income'&&t.date===date&&t.status!=='cancelled').sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
     const checkouts=jobs.filter(t=>t.outNights||t.outGuests||t.outSupplies);
     // 입실일이 '오늘'인 것만 (공실이 끼면 입실은 다른 날이라 inDate로 판단)
-    const checkins=jobs.filter(t=>t.inNights&&((t.inDate||t.date)===selectedDate));
+    /* v19.3 버그수정: 청소일이 오늘이 아니어도(공실 후 입실) 입실일이 오늘이면 표시
+       + 달력에서 고른 날짜(selectedDate)가 아닌 '오늘' 기준으로 판단 */
+    const _ciSeen={};
+    const checkins=branchFilter(state.transactions)
+      .filter(t=>t.type==='income'&&t.status!=='cancelled'&&t.inNights&&((t.inDate||t.date)===date))
+      .sort((a,b)=>(a.checkinOnly?1:0)-(b.checkinOnly?1:0))
+      .filter(t=>{const k=t.targetId||t.id;if(_ciSeen[k])return false;_ciSeen[k]=1;return true;});
     const expenses=branchFilter(state.transactions).filter(t=>t.type==='expense'&&t.date===date&&t.status!=='cancelled');
     const assigned=jobs.filter(t=>Array.isArray(t.assignedStaffIds)&&t.assignedStaffIds.length);
     const unassigned=jobs.filter(t=>!Array.isArray(t.assignedStaffIds)||!t.assignedStaffIds.length);
