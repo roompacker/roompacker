@@ -252,15 +252,19 @@ body.fixed .stagebox{padding:8px 10px}
 body.fixed .stage-mid{margin-top:0;align-items:center}
 body.fixed .views button{padding:8px 0 6px}
 body.fixed .compare{padding:9px 4px}
-body.fixed #scr-bg .phone{width:clamp(110px, calc((100dvh - 420px) / 2.2), 210px)}
+body.fixed #scr-bg .phone{width:clamp(100px, calc((100dvh - 460px) / 2.2), 190px)}
 body.fixed .tools button{padding:9px 0 8px;gap:4px;font-size:12.5px}
 body.fixed .pcard{margin:8px 16px 8px;padding:8px 12px 8px}
 body.fixed .pcard .cap{display:none}
 body.fixed .seg.small{margin:0 auto 8px}
 body.fixed .seg.small button{min-height:34px}
-body.fixed .pcard .phone{width:clamp(110px, calc((100dvh - 390px) / 2.25), 260px)}
+body.fixed .pcard .phone{width:clamp(100px, calc((100dvh - 440px) / 2.25), 230px)}
 body.fixed .pcap{margin-top:6px;font-size:12px}
 body.fixed .hero{padding-top:18px}
+/* 조절 막대 보호: 위아래로 밀면 스크롤, 옆으로 밀 때만 막대가 움직여요 */
+.rwrap{display:block;position:relative;touch-action:pan-y;padding:4px 0;cursor:pointer}
+.rwrap input[type=range]{pointer-events:none;display:block}
+.rwrap.drag input[type=range]{filter:brightness(.92)}
 @media (prefers-reduced-motion: reduce){ *{transition:none !important} }
 </style>
 </head>
@@ -2123,13 +2127,57 @@ $('hSet').addEventListener('click', ()=>{
 });
 
 // =====================================================
-// 17. 시작
+// 17. 조절 막대 보호 (스크롤 중 실수로 값이 바뀌지 않게)
+//  - 손가락을 위아래로 밀면 → 화면 스크롤만
+//  - 옆으로 밀면 → 그때부터 막대가 손가락을 따라 움직임
+// =====================================================
+function setRangeFromX(r, x){
+  const rect = r.getBoundingClientRect(), thumb = 22;
+  const t = clamp((x - rect.left - thumb/2)/(rect.width - thumb), 0, 1);
+  const min = Number(r.min||0), max = Number(r.max||100), step = Number(r.step||1);
+  let v = min + t*(max-min);
+  v = Math.round((v-min)/step)*step + min;
+  v = Number(v.toFixed(4));
+  if(String(v) !== r.value){ r.value = v; r.dispatchEvent(new Event('input', {bubbles:true})); }
+}
+function protectRanges(root){
+  root.querySelectorAll('input[type=range]').forEach(r=>{
+    if(r.dataset.rw) return;
+    r.dataset.rw = '1';
+    const w = document.createElement('span');
+    w.className = 'rwrap';
+    r.parentNode.insertBefore(w, r);
+    w.appendChild(r);
+    let g = null;
+    w.addEventListener('pointerdown', e=>{ g = {x:e.clientX, y:e.clientY, id:e.pointerId, on:false}; });
+    w.addEventListener('pointermove', e=>{
+      if(!g || e.pointerId !== g.id) return;
+      const dx = e.clientX - g.x, dy = e.clientY - g.y;
+      if(!g.on){
+        if(Math.abs(dy) > 8 && Math.abs(dy) >= Math.abs(dx)){ g = null; return; }   // 세로로 밀면 스크롤로 판단
+        if(Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)*1.2){
+          g.on = true; w.classList.add('drag');
+          try{ w.setPointerCapture(e.pointerId); }catch(_){}
+        }else return;
+      }
+      e.preventDefault();
+      setRangeFromX(r, e.clientX);
+    });
+    const end = ()=>{ if(g && g.on) r.dispatchEvent(new Event('change', {bubbles:true})); g = null; w.classList.remove('drag'); };
+    w.addEventListener('pointerup', end);
+    w.addEventListener('pointercancel', end);
+  });
+}
+
+// =====================================================
+// 18. 시작
 // =====================================================
 function ensureFont(f){
   try{ document.fonts.load(`${f.w} 40px ${f.css}`).then(()=>{ scheduleRender(); }); }catch(e){}
 }
 (async function start(){
   try{
+    protectRanges(document);
     buildPals(); buildLays(); buildFonts(); buildStickers(); buildBoardTpls(); buildShapes();
     try{ photoURL = localStorage.getItem(KEY_PHOTO); }catch(e){ photoURL = null; }
     if(photoURL) photoImg = await waitImg(photoURL);
