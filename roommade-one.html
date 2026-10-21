@@ -511,7 +511,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v19.5</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v19.6</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -948,7 +948,16 @@ h1,h2,h3{color:var(--n-ink)}
         <div style="margin-top:7px;"><label style="font-size:9px;color:var(--sub);font-weight:800;">입실일 <span style="color:#B8A06A;">(공실 안내 계산 기준)</span></label><div style="display:flex;gap:6px;margin-top:3px;"><input type="date" id="txInDate" style="flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;"><button type="button" id="txClearIn" style="flex-shrink:0;border:1px solid #F0D9A8;background:#FFF4DE;color:#C4922E;border-radius:10px;padding:0 11px;font-size:10px;font-weight:800;">입실 취소</button></div></div>
         <label style="font-size:9px;color:var(--sub);font-weight:800;">준비물 (토퍼·수건 등)</label>
         <input type="text" id="txInSupplies" placeholder="비워두면 아래대로 자동 준비" style="width:100%;border:1px solid var(--line);border-radius:10px;background:white;padding:9px;margin-top:3px;">
-        <div id="txLockInfo" style="display:none;background:#E2F4EA;border-radius:10px;padding:9px 11px;margin-top:6px;">
+        <div style="background:#F3E8FF;border:1px solid #DDC4F5;border-radius:12px;padding:11px 12px;margin-top:8px;">
+            <label style="display:flex;align-items:center;gap:9px;cursor:pointer;">
+              <input type="checkbox" id="txReviewOnly" style="width:20px;height:20px;flex-shrink:0;" />
+              <span style="flex:1;">
+                <b style="font-size:12.5px;color:#6B3FA0;display:block;">🎭 리뷰용 예약 (실제 청소 없음)</b>
+                <small style="font-size:10.5px;color:#8B5FBF;line-height:1.5;">청소 건수·관리비·정산·직원지급에서 모두 빠져요</small>
+              </span>
+            </label>
+          </div>
+          <div id="txLockInfo" style="display:none;background:#E2F4EA;border-radius:10px;padding:9px 11px;margin-top:6px;">
             <div style="font-size:10px;color:#3B8360;font-weight:800;">🔒 직접 고치신 항목이 있어요</div>
             <div id="txLockText" style="font-size:11px;color:#3B8360;margin-top:3px;line-height:1.5;"></div>
             <button type="button" id="txUnlock" style="width:100%;margin-top:7px;border:1px solid #9FD9BC;background:#FFFFFF;color:#3B8360;border-radius:8px;padding:7px;font-size:10px;font-weight:800;">자동 갱신 다시 허용하기</button>
@@ -1390,7 +1399,7 @@ h1,h2,h3{color:var(--n-ink)}
     fees.forEach(t=>{
       const mKey=t.billingMonth||(t.date||'').slice(0,7);
       const cnt=(state.transactions||[]).filter(x=>
-        x.type==='income' && !x.autoFee && !x.checkinOnly && x.status!=='cancelled' &&
+        x.type==='income' && !x.autoFee && !x.checkinOnly && !x.reviewOnly && x.status!=='cancelled' &&
         (x.billingMonth||(x.date||'').slice(0,7))===mKey &&
         (rids.indexOf(String(x.targetId))>=0 || x.branch===cfg.branch)
       ).length;
@@ -1447,7 +1456,7 @@ h1,h2,h3{color:var(--n-ink)}
         // 지점 표시가 빠진 기록도 있어서, '그 지점 객실'을 기준으로 셉니다
         const roomIds=(state.rooms||[]).filter(r=>r.branch===cfg.branch).map(r=>String(r.id));
         const cnt=(state.transactions||[]).filter(x=>
-          x.type==='income' && !x.autoFee && !x.checkinOnly && x.status!=='cancelled' &&
+          x.type==='income' && !x.autoFee && !x.checkinOnly && !x.reviewOnly && x.status!=='cancelled' &&
           (x.billingMonth||(x.date||'').slice(0,7))===mKey &&
           (roomIds.indexOf(String(x.targetId))>=0 || x.branch===cfg.branch)
         ).length;
@@ -1601,7 +1610,7 @@ h1,h2,h3{color:var(--n-ink)}
     $('#homeSubtext').textContent=activeRole==='host'?'예약·청소·준비상태만 간단히 보여드려요.':'예약 하나를 입력하면 체크아웃·셋팅·배정까지 이어집니다.';
     $('#homeDate').textContent=dateText(today());$('#homeBranchLabel').textContent=branchLabel;
     $('#homeMonthLabel').textContent='오늘의 청소 일정';$('#homeNet').textContent=jobs.length+'건';$('#homeIncome').textContent=done+'건';$('#homeExpense').textContent=pending+'건';$('#homeHeroSubline').textContent=jobs.length?(progress+'% 완료 · '+(pending?'대기 '+pending+'건':'모든 작업 완료')):'오늘 예정된 청소가 없어요';$('#homeProgressBar').style.width=progress+'%';
-    $('#homeReceivable').textContent=short(recv)+'원';$('#homePayable').textContent=short(pay)+'원';$('#homeMargin').textContent=margin+'%';$('#financeSummaryText').textContent='순익 '+short(net)+'원 · 작업 '+tx.filter(t=>t.type==='income'&&!t.checkinOnly&&!t.autoFee&&t.status!=='cancelled').length+'건';
+    $('#homeReceivable').textContent=short(recv)+'원';$('#homePayable').textContent=short(pay)+'원';$('#homeMargin').textContent=margin+'%';$('#financeSummaryText').textContent='순익 '+short(net)+'원 · 작업 '+tx.filter(t=>t.type==='income'&&!t.checkinOnly&&!t.autoFee&&!t.reviewOnly&&t.status!=='cancelled').length+'건';
     $('#homeSmartStrip').innerHTML=attention?`<div class="smart-icon">⚠️</div><div><b>오늘 확인할 항목 ${attention}건</b><small>얼리·레이트 체크인/아웃 또는 추가 셋팅이 있어요.</small></div>`:pending?`<div class="smart-icon">✨</div><div><b>다음 작업을 확인하세요</b><small>${pending}건이 대기 중이에요. 완료 버튼으로 바로 처리할 수 있습니다.</small></div>`:`<div class="smart-icon">✅</div><div><b>오늘 운영이 정리됐어요</b><small>특이사항이 생기면 일정에서 바로 추가하세요.</small></div>`;
     let jobsHtml = jobs.length?jobs.map((t,i)=>jobHTML(t,i)).join(''):'';
     $('#todayJobs').innerHTML=jobsHtml||empty('☕','오늘 등록된 청소 일정이 없어요');
@@ -2420,7 +2429,7 @@ h1,h2,h3{color:var(--n-ink)}
        (묶음 버튼은 여러 달이 한꺼번에 처리돼서 불편했어요) */
     const oneBtn=(canFinance&&!t.paid&&!t.checkinOnly&&Number(t.netAmount||t.amount||0)>0)
       ? `<button data-pay-one="${t.id}" style="margin-top:4px;border:1px solid ${isIn?'#9FD9BC':'#E4C7C1'};background:#FFFFFF;color:${isIn?'#3B8360':'#9A5F55'};border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;white-space:nowrap;">${isIn?'✅ 입금됨':'✅ 지급됨'}</button>` : '';
-    const amount=t.checkinOnly?`<div class="txamt"><small class="status wait">🏠 입실 셋팅</small></div>`:isPent?`<div class="txamt" data-edit-tx="${t.id}"><small class="status book">월 정액</small></div>`:canFinance?`<div class="txamt"><b class="${t.type}" data-edit-tx="${t.id}">${isIn?'+':'-'}${money(t.netAmount||t.amount)}</b><small>${t.paid?(isIn?'입금완료':'지급완료'):(isIn?'미수금':'미지급')}</small>${oneBtn}</div>`:`<div class="txamt"><small class="status ${t.status==='done'?'done':'wait'}">${t.status==='done'?'완료':'대기'}</small></div>`;
+    const amount=t.checkinOnly?`<div class="txamt"><small class="status wait">🏠 입실 셋팅</small></div>`:t.reviewOnly?`<div class="txamt"><small class="status" style="background:#F3E8FF;color:#6B3FA0;">🎭 리뷰용</small></div>`:isPent?`<div class="txamt" data-edit-tx="${t.id}"><small class="status book">월 정액</small></div>`:canFinance?`<div class="txamt"><b class="${t.type}" data-edit-tx="${t.id}">${isIn?'+':'-'}${money(t.netAmount||t.amount)}</b><small>${t.paid?(isIn?'입금완료':'지급완료'):(isIn?'미수금':'미지급')}</small>${oneBtn}</div>`:`<div class="txamt"><small class="status ${t.status==='done'?'done':'wait'}">${t.status==='done'?'완료':'대기'}</small></div>`;
     const statusButton=isIn?`<button class="jobdone ${t.status==='done'?'is-done':''}" data-toggle-status="${t.id}">${t.status==='done'?'완료':'완료 처리'}</button>`:'';
     return `<div class="txrow"><div class="txico ${t.type}" data-edit-tx="${t.id}">${isIn?'＋':'−'}</div><div class="txmain" data-edit-tx="${t.id}"><b>${name}</b><small>${dateText(t.date)}</small>${detail}</div>${statusButton}${amount}${kakao}</div>`;
   }
@@ -2684,6 +2693,7 @@ h1,h2,h3{color:var(--n-ink)}
       // 에어비앤비 예약번호가 붙은 기록이면 (손으로 고친 것 포함) 취소 대상으로 봅니다
       if(t.targetId!==roomId||!t.icalUid)return true;
       if(feedUids[t.icalUid])return true;
+      if(t.reviewOnly)return true;               // v19.6: 리뷰용 표시한 건은 보존
       if(t.paid||t.status==='done')return true;   // 이미 청소·정산 끝난 건만 보존
       if((t.date||'')<td)return true;             // 지난 일정도 보존
       removed++;
@@ -4173,10 +4183,12 @@ h1,h2,h3{color:var(--n-ink)}
     ['txOutNights','txOutGuests','txOutTime','txOutSupplies','txInNights','txInGuests','txInTime','txInSupplies','txInDate'].forEach(function(fid){ var el=$('#'+fid); if(el) el.value=''; });
     const prefBranch=state.branch==='전체'?'영종점':state.branch;$('#txBranchInput').value=prefBranch;$('#txAmountInput').value='';
     txStaffSel=[];   // 새로 열 때는 담당자 선택 초기화 (수정이면 아래에서 다시 채움)
+    if($('#txReviewOnly'))$('#txReviewOnly').checked=false;
     if(editId){const t=state.transactions.find(x=>x.id===editId);if(t){txType=t.type;$('#txDateInput').value=t.date;$('#txBillingInput').value=t.billingMonth||ym(t.date);$('#txBranchInput').value=t.branch;$('#txAmountInput').value=t.amount;$('#txMemoInput').value=t.memo||'';$('#txPaidInput').checked=!!t.paid;$('#txStatusInput').value=t.status||'done';
       $('#txOutNights').value=t.outNights||t.nights||'';$('#txOutGuests').value=t.outGuests||t.guests||'';$('#txOutTime').value=t.outTime||'';$('#txOutSupplies').value=t.outSupplies||'';
       $('#txInNights').value=t.inNights||'';$('#txInGuests').value=t.inGuests||'';$('#txInTime').value=t.inTime||'';$('#txInSupplies').value=t.inSupplies||'';if($('#txInDate'))$('#txInDate').value=t.inDate||'';
       txStaffSel=Array.isArray(t.assignedStaffIds)?t.assignedStaffIds.map(String):[];
+      if($('#txReviewOnly'))$('#txReviewOnly').checked=!!t.reviewOnly;
     }}
     updateTxType();if(editId){const t=state.transactions.find(x=>x.id===editId);$('#txTargetInput').value=t.targetId}openModal('txModal')
   }
@@ -4321,7 +4333,7 @@ h1,h2,h3{color:var(--n-ink)}
     const we=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 
     const list=(state.transactions||[]).filter(t=>
-      t.type==='income'&&!t.checkinOnly&&t.status!=='cancelled'&&
+      t.type==='income'&&!t.checkinOnly&&!t.reviewOnly&&t.status!=='cancelled'&&
       (t.date||'')>=ws&&(t.date||'')<=we);
     const todayList=list.filter(t=>t.date===td);
     const done=list.filter(t=>t.status==='done').length;
@@ -4522,6 +4534,12 @@ h1,h2,h3{color:var(--n-ink)}
         const s=(state.staff||[]).find(x=>String(x.id)===String(sid));
         return s?s.name:'';
       }).filter(Boolean);
+    }
+    /* 🎭 v19.6 리뷰용 예약: 금액 0 · 담당 직원 없음 → 정산·직원지급에서 빠짐 */
+    obj.reviewOnly = !!(txType==='income' && $('#txReviewOnly') && $('#txReviewOnly').checked);
+    if(obj.reviewOnly){
+      obj.amount=0; obj.netAmount=0; obj.taxAmount=0;
+      obj.assignedStaffIds=[]; obj.assignedStaffNames=[];
     }
     /* 🔁 같은 날·같은 객실 기록이 이미 있으면 새로 만들지 않고 '덮어쓰기' 합니다.
        (중복 기록이 쌓이는 것을 막아요. 이미 완료·결제된 건은 건드리지 않습니다.) */
@@ -4888,7 +4906,7 @@ h1,h2,h3{color:var(--n-ink)}
 
     const mKey=currentYM();
     const inMonth=(state.transactions||[]).filter(t=>
-      t.type==='income' && !t.autoFee && !t.checkinOnly && t.status!=='cancelled' &&
+      t.type==='income' && !t.autoFee && !t.checkinOnly && !t.reviewOnly && t.status!=='cancelled' &&
       (t.billingMonth||(t.date||'').slice(0,7))===mKey &&
       rooms.some(r=>String(r.id)===String(t.targetId))
     );
@@ -4983,7 +5001,7 @@ h1,h2,h3{color:var(--n-ink)}
     const MAX_FEE=maxFeeOf(mKey,cfg);
     const _rid2=(state.rooms||[]).filter(r=>r.branch===cfg.branch).map(r=>String(r.id));
     const cleanCount=state.transactions.filter(t=>
-      t.type==='income' && !t.autoFee && !t.checkinOnly && t.status!=='cancelled' &&
+      t.type==='income' && !t.autoFee && !t.checkinOnly && !t.reviewOnly && t.status!=='cancelled' &&
       (t.billingMonth||(t.date||'').slice(0,7))===mKey &&
       (_rid2.indexOf(String(t.targetId))>=0 || t.branch===cfg.branch)
     ).length;
@@ -5144,7 +5162,7 @@ h1,h2,h3{color:var(--n-ink)}
       // 그달 펜트하우스 '청소 건수' 세기 (자동관리비 자신은 제외, 취소 제외)
       const _rids=(state.rooms||[]).filter(r=>r.branch===cfg.branch).map(r=>String(r.id));
       const cleanCount = state.transactions.filter(t =>
-        t.type==='income' && !t.autoFee && !t.checkinOnly && t.status!=='cancelled' &&
+        t.type==='income' && !t.autoFee && !t.checkinOnly && !t.reviewOnly && t.status!=='cancelled' &&
         (t.billingMonth||(t.date||'').slice(0,7))===mKey &&
         (_rids.indexOf(String(t.targetId))>=0 || t.branch===cfg.branch)
       ).length;
@@ -5445,7 +5463,7 @@ h1,h2,h3{color:var(--n-ink)}
       const pentRooms=(state.rooms||[]).filter(r=>r.branch==='펜트하우스');
       const ids=pentRooms.map(r=>String(r.id));
       entity={name:'펜트하우스 4객실', branch:'펜트하우스', _rooms:pentRooms};
-      items=state.transactions.filter(t=>t.type==='income'&&!t.checkinOnly&&!t.autoFee
+      items=state.transactions.filter(t=>t.type==='income'&&!t.checkinOnly&&!t.autoFee&&!t.reviewOnly
         && ids.indexOf(String(t.targetId))>=0
         && (t.billingMonth||ym(t.date))===month && t.status!=='cancelled')
         .sort((a,b)=>a.date.localeCompare(b.date));
