@@ -511,7 +511,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v19.4</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v19.5</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1313,7 +1313,13 @@ h1,h2,h3{color:var(--n-ink)}
     return s;
   }
   let state=loadState();
+  let _feeSyncing=false;   // v19.5: 저장할 때마다 관리비 횟수 자동 갱신
   function save(){
+    if(!_feeSyncing && typeof applyMonthlyFee==='function'){
+      _feeSyncing=true;
+      try{ applyMonthlyFee(); }catch(e){}
+      _feeSyncing=false;
+    }
     /* 저장은 단순하게 — 중간에 막는 장치를 모두 없앴습니다.
        (검증·감시 코드가 오히려 저장을 방해하고 있었어요) */
     try{
@@ -1392,7 +1398,8 @@ h1,h2,h3{color:var(--n-ink)}
       let fee=FEE; if(cnt>BASE)fee=FEE+(cnt-BASE)*OVER; if(fee>MAX)fee=MAX;
       const cur=Number(t.netAmount||t.amount||0);
       lines.push(mKey+'  청소 '+cnt+'건  '+money(cur)+(cur!==fee?('  →  '+money(fee)):'  (그대로)'));
-      if(cur!==fee)plan.push({t:t,fee:fee,cnt:cnt,BASE:BASE,MAX:MAX});
+      const _m='위탁관리비 ('+cnt+'회'+(cnt>BASE?' / 초과 '+(cnt-BASE)+'건':'')+(fee>=MAX&&cnt>BASE?' / 상한도달':'')+')';
+      if(cur!==fee || t.memo!==_m)plan.push({t:t,fee:fee,cnt:cnt,BASE:BASE,MAX:MAX});
     });
 
     const msg=['🔧 관리비 다시 계산','',
@@ -1446,9 +1453,10 @@ h1,h2,h3{color:var(--n-ink)}
         ).length;
         const BASE=cfg.baseCount||50, FEE=cfg.amount||0, OVER=cfg.overFee||50000, MAX=maxFeeOf(mKey,cfg);
         let fee=FEE; if(cnt>BASE)fee=FEE+(cnt-BASE)*OVER; if(fee>MAX)fee=MAX;
-        if(Number(t.amount||0)!==fee){
+        const _memo='위탁관리비 ('+cnt+'회'+(cnt>BASE?' / 초과 '+(cnt-BASE)+'건':'')+(fee>=MAX&&cnt>BASE?' / 상한도달':'')+')';
+        if(Number(t.amount||0)!==fee || t.memo!==_memo){   // v19.5: 횟수만 바뀌어도 갱신
           t.amount=fee; t.netAmount=fee; t.taxAmount=0;
-          t.memo='위탁관리비 ('+cnt+'회'+(cnt>BASE?' / 초과 '+(cnt-BASE)+'건':'')+(fee>=MAX&&cnt>BASE?' / 상한도달':'')+')';
+          t.memo=_memo; t.cleanCount=cnt;
           n++;
         }
       }
@@ -5161,9 +5169,10 @@ h1,h2,h3{color:var(--n-ink)}
           createdAt:Date.now()+added
         });
         added++;
-      }else if(existing.amount!==fee && !existing.paid){
+      }else if((existing.amount!==fee || existing.memo!==memo || existing.netAmount!==fee) && !existing.paid){
+        /* v19.5: 금액이 같아도 청소 횟수가 바뀌면 메모(○회)를 새로 고침 */
         // 청소건수가 바뀌어 금액이 달라졌으면 갱신 (단, 이미 입금완료면 안 건드림)
-        existing.amount=fee; existing.netAmount=fee; existing.memo=memo;
+        existing.amount=fee; existing.netAmount=fee; existing.taxAmount=0; existing.memo=memo; existing.cleanCount=cleanCount;
         changed++;
       }
       d.setMonth(d.getMonth()+1);
