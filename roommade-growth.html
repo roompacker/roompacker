@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>룸메이드 성장 계산기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ===== 색상 토큰 (라이트) ===== */
+:root{
+  --bg:#F3F6F5; --surface:#FFFFFF; --ink:#1C2B33; --muted:#5E6E73; --line:#D8E1DF;
+  --pent:#2F6B5A; --clean:#5C8FB8; --yj:#E2A93B; --extra:#9A6FB0; --warn:#B4472F;
+  --input:#F7FAF9;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+/* ===== 다크 모드 ===== */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121A1D; --surface:#1B262A; --ink:#E6EEEC; --muted:#9AABAF; --line:#2E3D42;
+    --pent:#5FB39A; --clean:#7FB0D8; --yj:#F0C060; --extra:#C29BD6; --warn:#E8765C;
+    --input:#152024; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121A1D; --surface:#1B262A; --ink:#E6EEEC; --muted:#9AABAF; --line:#2E3D42;
+  --pent:#5FB39A; --clean:#7FB0D8; --yj:#F0C060; --extra:#C29BD6; --warn:#E8765C;
+  --input:#152024; color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-size:16px; line-height:1.55;
+}
+.wrap{max-width:560px; margin:0 auto; padding:20px 16px 48px}
+h1{font-size:1.5rem; margin:4px 0 4px; letter-spacing:-0.02em}
+.sub{color:var(--muted); margin:0 0 18px; font-size:.95rem}
+
+/* ===== 결과 영역 (핵심) ===== */
+.result{background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:18px 16px}
+.times{display:flex; align-items:baseline; gap:8px; margin-bottom:14px}
+.times b{font-size:3rem; line-height:1; letter-spacing:-0.03em}
+.times span{color:var(--muted)}
+.row-label{display:flex; justify-content:space-between; font-size:.9rem; margin:10px 0 4px}
+.row-label strong{font-weight:700}
+.bar{display:flex; height:22px; border-radius:6px; overflow:hidden; background:var(--line)}
+.bar i{display:block; height:100%; transition:width .3s}
+.legend{display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:12px; font-size:.82rem; color:var(--muted)}
+.legend em{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:-1px}
+.note{margin-top:12px; font-size:.88rem; padding:10px 12px; border-radius:10px; background:var(--input)}
+.note.warn{color:var(--warn)}
+
+/* ===== 탭 ===== */
+.tabs{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin:22px 0 12px; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:5px}
+.tabs button{font:inherit; border:0; padding:11px; border-radius:10px; background:transparent; color:var(--muted); font-weight:500}
+.tabs button[aria-selected="true"]{background:var(--ink); color:var(--bg); font-weight:700}
+
+/* ===== 입력 그룹 ===== */
+.group{background:var(--surface); border:1px solid var(--line); border-left:5px solid var(--c); border-radius:12px; padding:14px; margin-bottom:12px}
+.group h2{font-size:1.02rem; margin:0 0 2px}
+.group p.hint{margin:0 0 10px; color:var(--muted); font-size:.84rem}
+.field{display:grid; grid-template-columns:1fr 128px; align-items:center; gap:8px; margin-top:8px}
+.field label{font-size:.92rem}
+.field .box{display:flex; align-items:center; background:var(--input); border:1px solid var(--line); border-radius:9px; padding:0 8px}
+.field input{width:100%; font:inherit; border:0; background:transparent; color:var(--ink); padding:9px 0; text-align:right; min-width:0}
+.field input:focus{outline:none}
+.field .box:focus-within{border-color:var(--ink)}
+.field small{color:var(--muted); margin-left:4px; white-space:nowrap}
+.calc{margin-top:10px; font-size:.88rem; color:var(--muted)}
+.calc strong{color:var(--ink)}
+
+.actions{display:flex; gap:8px; margin-top:16px}
+.actions button{flex:1; font:inherit; padding:12px; border-radius:10px; border:1px solid var(--line); background:var(--surface); color:var(--ink)}
+button:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>룸메이드 성장 계산기</h1>
+  <p class="sub">지금 수익과 목표 수익을 각각 넣으면, 몇 배가 되는지와 어디서 돈이 나오는지 보여줘요. 금액은 실제 숫자로 바꿔 쓰세요.</p>
+
+  <!-- ===== 결과 ===== -->
+  <section class="result" aria-live="polite">
+    <div class="times"><b id="times">-</b><span>지금 대비 목표 이익</span></div>
+    <div class="row-label"><span>지금 월 이익</span><strong id="nowTotal">-</strong></div>
+    <div class="bar" id="nowBar"></div>
+    <div class="row-label"><span>목표 월 이익</span><strong id="goalTotal">-</strong></div>
+    <div class="bar" id="goalBar"></div>
+    <div class="legend">
+      <span><em style="background:var(--pent)"></em>월정액 위탁</span>
+      <span><em style="background:var(--clean)"></em>건당 청소</span>
+      <span><em style="background:var(--yj)"></em>영종 파트너</span>
+      <span><em style="background:var(--extra)"></em>부가 수익</span>
+    </div>
+    <div class="note" id="riskNote"></div>
+  </section>
+
+  <!-- ===== 탭 ===== -->
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tabNow" aria-selected="true">지금 숫자</button>
+    <button role="tab" id="tabGoal" aria-selected="false">목표 숫자</button>
+  </div>
+
+  <!-- ===== 입력 폼 (탭에 따라 지금/목표 값이 채워짐) ===== -->
+  <div id="form">
+    <div class="group" style="--c:var(--pent)">
+      <h2>월정액 위탁 고객</h2>
+      <p class="hint">펜트처럼 청소 + 예약·스케줄 관리를 묶어 매달 고정으로 받는 고객</p>
+      <div class="field"><label for="pentN">고객 수</label><div class="box"><input id="pentN" inputmode="decimal"><small>명</small></div></div>
+      <div class="field"><label for="pentFee">고객 1명당 월 매출</label><div class="box"><input id="pentFee" inputmode="decimal"><small>만원</small></div></div>
+      <div class="field"><label for="pentCost">고객 1명당 월 비용</label><div class="box"><input id="pentCost" inputmode="decimal"><small>만원</small></div></div>
+      <div class="calc" id="pentCalc"></div>
+    </div>
+
+    <div class="group" style="--c:var(--clean)">
+      <h2>건당 청소</h2>
+      <p class="hint">송도 일반 객실처럼 한 번 청소할 때마다 받는 일</p>
+      <div class="field"><label for="cleanCnt">한 달 청소 건수</label><div class="box"><input id="cleanCnt" inputmode="decimal"><small>건</small></div></div>
+      <div class="field"><label for="cleanPrice">건당 받는 금액</label><div class="box"><input id="cleanPrice" inputmode="decimal"><small>원</small></div></div>
+      <div class="field"><label for="cleanLabor">건당 인건비·소모품</label><div class="box"><input id="cleanLabor" inputmode="decimal"><small>원</small></div></div>
+      <div class="calc" id="cleanCalc"></div>
+    </div>
+
+    <div class="group" style="--c:var(--yj)">
+      <h2>영종 파트너</h2>
+      <p class="hint">현장 파트너가 청소하고, 받은 금액을 비율로 나누는 방식</p>
+      <div class="field"><label for="yjCnt">한 달 청소 건수</label><div class="box"><input id="yjCnt" inputmode="decimal"><small>건</small></div></div>
+      <div class="field"><label for="yjPrice">건당 받는 금액</label><div class="box"><input id="yjPrice" inputmode="decimal"><small>원</small></div></div>
+      <div class="field"><label for="yjShare">파트너 몫</label><div class="box"><input id="yjShare" inputmode="decimal"><small>%</small></div></div>
+      <div class="calc" id="yjCalc"></div>
+    </div>
+
+    <div class="group" style="--c:var(--extra)">
+      <h2>부가 수익</h2>
+      <p class="hint">린넨 공급, 오픈 셋팅, 게스트 페이지·입지분석 판매 등</p>
+      <div class="field"><label for="exRev">월 매출</label><div class="box"><input id="exRev" inputmode="decimal"><small>만원</small></div></div>
+      <div class="field"><label for="exCost">월 비용</label><div class="box"><input id="exCost" inputmode="decimal"><small>만원</small></div></div>
+      <div class="calc" id="exCalc"></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button id="copyBtn">지금 숫자를 목표에 복사</button>
+    <button id="resetBtn">처음 값으로</button>
+  </div>
+</div>
+
+<script>
+// ===== 기본값 =====
+const DEFAULTS = {
+  now:  {pentN:1, pentFee:320, pentCost:200, cleanCnt:20, cleanPrice:35000, cleanLabor:22000, yjCnt:6,  yjPrice:23000, yjShare:70, exRev:0,   exCost:0},
+  goal: {pentN:3, pentFee:320, pentCost:200, cleanCnt:30, cleanPrice:35000, cleanLabor:22000, yjCnt:90, yjPrice:23000, yjShare:70, exRev:100, exCost:40}
+};
+const KEY = 'roommade-growth-시나리오';   // localStorage 키 (앱이름-항목명)
+const FIELDS = Object.keys(DEFAULTS.now);
+
+let data = load();
+let tab = 'now';
+
+// ===== 저장/불러오기 =====
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw){
+      const d = JSON.parse(raw);
+      if(d && d.now && d.goal) return d;
+    }
+  }catch(e){ console.error('불러오기 실패', e); }
+  return JSON.parse(JSON.stringify(DEFAULTS));
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(data)); }
+  catch(e){ console.error('저장 실패', e); }
+}
+
+// ===== 계산 =====
+const num = v => { const n = parseFloat(String(v).replace(/,/g,'')); return isNaN(n) ? 0 : n; };
+function calc(s){
+  const pent  = num(s.pentN) * (num(s.pentFee) - num(s.pentCost));                 // 만원
+  const clean = num(s.cleanCnt) * (num(s.cleanPrice) - num(s.cleanLabor)) / 10000; // 만원
+  const yjRev = num(s.yjCnt) * num(s.yjPrice) / 10000;
+  const share = Math.min(Math.max(num(s.yjShare),0),100) / 100;
+  const yj    = yjRev * (1 - share);
+  const partner = yjRev * share;
+  const extra = num(s.exRev) - num(s.exCost);
+  const total = pent + clean + yj + extra;
+  // 파트너가 월 200만원 받으려면 필요한 건수
+  const need200 = (num(s.yjPrice) * share) > 0 ? Math.ceil(2000000 / (num(s.yjPrice) * share)) : 0;
+  return {pent, clean, yj, partner, extra, total, need200};
+}
+const won = m => (Math.round(m*10)/10).toLocaleString('ko-KR') + '만원';
+
+// ===== 화면 그리기 =====
+function drawBar(el, r, max){
+  const parts = [['pent',r.pent],['clean',r.clean],['yj',r.yj],['extra',r.extra]];
+  el.innerHTML = '';
+  parts.forEach(([k,v])=>{
+    if(v <= 0 || max <= 0) return;
+    const i = document.createElement('i');
+    i.style.width = (v / max * 100) + '%';
+    i.style.background = 'var(--' + k + ')';
+    el.appendChild(i);
+  });
+}
+function render(){
+  try{
+    const n = calc(data.now), g = calc(data.goal);
+    const max = Math.max(n.total, g.total, 1);
+    drawBar(document.getElementById('nowBar'), n, max);
+    drawBar(document.getElementById('goalBar'), g, max);
+    document.getElementById('nowTotal').textContent = won(n.total);
+    document.getElementById('goalTotal').textContent = won(g.total);
+    document.getElementById('times').textContent = n.total > 0 ? '×' + (g.total / n.total).toFixed(1) : '-';
+
+    // 위험 안내: 한 가지 수익원 의존도
+    const r = tab === 'now' ? n : g;
+    const note = document.getElementById('riskNote');
+    const dep = r.total > 0 ? Math.round(r.pent / r.total * 100) : 0;
+    if(dep >= 60){
+      note.className = 'note warn';
+      note.textContent = (tab==='now'?'지금':'목표') + ' 이익의 ' + dep + '%가 월정액 위탁에서 나와요. 고객이 1~2명뿐이면 한 명만 빠져도 크게 흔들려요.';
+    }else{
+      note.className = 'note';
+      note.textContent = (tab==='now'?'지금':'목표') + ' 이익 중 월정액 위탁 비중은 ' + dep + '%예요.';
+    }
+
+    // 그룹별 소계
+    document.getElementById('pentCalc').innerHTML  = '월 이익 <strong>' + won(r.pent) + '</strong>';
+    document.getElementById('cleanCalc').innerHTML = '월 이익 <strong>' + won(r.clean) + '</strong>';
+    document.getElementById('yjCalc').innerHTML    = '롤리 몫 <strong>' + won(r.yj) + '</strong> · 파트너 월수입 <strong>' + won(r.partner) + '</strong><br>파트너가 월 200만원 받으려면 <strong>' + r.need200.toLocaleString('ko-KR') + '건</strong> 필요';
+    document.getElementById('exCalc').innerHTML    = '월 이익 <strong>' + won(r.extra) + '</strong>';
+  }catch(e){ console.error('계산 오류', e); }
+}
+
+// ===== 탭 전환 시 입력칸 채우기 =====
+function fill(){
+  FIELDS.forEach(f=>{ document.getElementById(f).value = data[tab][f]; });
+  document.getElementById('tabNow').setAttribute('aria-selected', tab==='now');
+  document.getElementById('tabGoal').setAttribute('aria-selected', tab==='goal');
+  render();
+}
+
+// ===== 이벤트 연결 =====
+FIELDS.forEach(f=>{
+  document.getElementById(f).addEventListener('input', e=>{
+    data[tab][f] = e.target.value;
+    save(); render();
+  });
+});
+document.getElementById('tabNow').addEventListener('click', ()=>{ tab='now'; fill(); });
+document.getElementById('tabGoal').addEventListener('click', ()=>{ tab='goal'; fill(); });
+document.getElementById('copyBtn').addEventListener('click', ()=>{
+  data.goal = JSON.parse(JSON.stringify(data.now));
+  save(); tab='goal'; fill();
+});
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(!confirm('입력한 숫자를 모두 처음 값으로 되돌릴까요?')) return;
+  data = JSON.parse(JSON.stringify(DEFAULTS));
+  save(); fill();
+});
+
+fill();
+</script>
+</body>
+</html>
