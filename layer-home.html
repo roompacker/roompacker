@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f2ede4">
+<meta name="mobile-web-app-capable" content="yes">
+<title>레이어 홈</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Jost:wght@200;300;400;500&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ===================== 색상·글꼴 ===================== */
+:root{
+  --bg:#f2ede4; --card:#f6f1e9; --hi:#fffdf8; --lo:#d6ccbc;
+  --ink:#1c2b48; --sub:#6c7488; --line:rgba(28,43,72,.1);
+  --sea:#1f4e8c; --sea2:#3f7cc4; --sun:#f3b544; --rose:#d9577a;
+  --serif:'Gowun Batang',serif; --num:'Jost',system-ui,sans-serif;
+  --pen:'Nanum Pen Script',cursive; --sans:'Noto Sans KR',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){color-scheme:dark;
+    --bg:#141a29; --card:#1a2235; --hi:#222c44; --lo:#0b0f1a;
+    --ink:#eef0f6; --sub:#9aa3b8; --line:rgba(255,255,255,.08)}
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);overscroll-behavior-y:contain}
+body{padding:calc(14px + env(safe-area-inset-top)) 18px calc(110px + env(safe-area-inset-bottom))}
+button,input,textarea,select{font:inherit;color:inherit}
+button{border:0;background:none;cursor:pointer;text-align:inherit}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--sea2);outline-offset:3px}
+svg{display:block}
+.neu{background:var(--card);box-shadow:8px 8px 18px var(--lo),-8px -8px 18px var(--hi)}
+.neu-in{background:var(--card);box-shadow:inset 4px 4px 10px var(--lo),inset -4px -4px 10px var(--hi)}
+
+/* ===================== 상단 인사 ===================== */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.top h1{font-family:var(--serif);font-size:24px;font-weight:700;line-height:1.3}
+.top p{font-size:13px;color:var(--sub);margin-top:3px}
+.avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;color:var(--sea)}
+.search{display:flex;align-items:center;gap:10px;border-radius:22px;padding:0 16px;height:48px;margin-bottom:22px;color:var(--sub)}
+.search input{flex:1;border:0;background:none;outline:none;font-size:15px;color:var(--ink)}
+.search input::placeholder{color:var(--sub)}
+
+/* ===================== 메인 그림(사진) ===================== */
+.hero{position:relative;height:350px;border-radius:44px 120px 64px 96px / 64px 86px 120px 72px;overflow:hidden;
+  box-shadow:12px 14px 28px var(--lo),-8px -8px 20px var(--hi)}
+.hero>svg,.hero>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,25,55,.35),transparent 45%,rgba(10,25,55,.35));pointer-events:none}
+.hero-txt{position:absolute;left:26px;top:26px;z-index:2;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.25)}
+.clock{font-family:var(--num);font-weight:200;font-size:78px;line-height:.95;letter-spacing:-.01em}
+.hero-date{font-family:var(--serif);font-size:16px;margin-top:6px;opacity:.95}
+.hero-cap{position:absolute;right:22px;top:150px;z-index:2;font-family:var(--pen);font-size:30px;color:#fff;transform:rotate(-8deg);max-width:48%;text-align:right;line-height:1;text-shadow:0 2px 10px rgba(0,0,0,.3)}
+.thumbs{position:absolute;left:18px;bottom:18px;z-index:3;display:flex;gap:8px;max-width:calc(100% - 36px);overflow-x:auto;padding:4px;scrollbar-width:none}
+.thumbs::-webkit-scrollbar{display:none}
+.thumb{position:relative;flex:0 0 46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,.75);background-size:cover;background-position:center;box-shadow:0 4px 10px rgba(0,0,0,.25)}
+.thumb.on{border:3px solid #fff;transform:scale(1.08)}
+.thumb.def{background:linear-gradient(180deg,#2d5f9e,#7fb0dc 50%,#f6c98a 60%,#1f4e8c 62%)}
+.thumb.add{background:rgba(255,255,255,.85);color:var(--sea);display:grid;place-items:center;font-size:22px}
+.thumb .rm{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#fff;color:#c33;font-size:13px;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+
+/* ===================== 날씨 + 일정 ===================== */
+.duo{display:grid;grid-template-columns:44% 1fr;gap:14px;margin-top:22px;align-items:stretch}
+.wcard{position:relative;min-height:176px;border-radius:58% 42% 50% 50% / 46% 54% 46% 54%;overflow:hidden;color:#fff;padding:22px 16px;
+  background:radial-gradient(circle at 78% 22%,#ffe39a 0 14%,#f7c45c 15% 20%,transparent 34%),linear-gradient(160deg,#3f7cc4,#1f4e8c);
+  box-shadow:10px 12px 24px var(--lo),-8px -8px 18px var(--hi);display:flex;flex-direction:column;justify-content:flex-end;text-align:center}
+.wcard .t{font-family:var(--num);font-weight:300;font-size:46px;line-height:1}
+.wcard .d{font-size:14px;margin-top:2px}
+.wcard .l{font-size:11.5px;opacity:.85;margin-top:8px}
+.ccard{border-radius:28px;padding:16px;display:flex;flex-direction:column}
+.chead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.chead h3,.sec-h h2{font-family:var(--serif);font-size:17px;font-weight:700}
+.more{font-size:12px;color:var(--sea2);font-weight:500}
+.ev{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.ev:first-of-type{border-top:0}
+.ev .dt{flex:0 0 44px;height:44px;border-radius:14px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--num);line-height:1.1}
+.ev .dt b{font-size:17px;font-weight:500} .ev .dt small{font-size:10px;color:var(--sub)}
+.ev .et{flex:1;min-width:0;font-size:13.5px} .ev .et p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev .et small{font-size:11.5px;color:var(--sub)}
+.none{font-size:13px;color:var(--sub);line-height:1.6;padding:6px 0}
+
+/* ===================== 섹션 공통 ===================== */
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;margin:30px 4px 14px}
+.sec-h p{font-size:12px;color:var(--sub);margin-top:2px}
+.row{display:flex;gap:14px;overflow-x:auto;padding:12px 18px 22px;margin:-8px -18px 0;scrollbar-width:none}
+.row::-webkit-scrollbar{display:none}
+.app{flex:0 0 88px;border-radius:24px;padding:14px 8px 12px;text-align:center}
+.app i{width:46px;height:46px;border-radius:16px;margin:0 auto 8px;display:grid;place-items:center;font-style:normal;font-family:var(--serif);font-weight:700;font-size:19px;color:#fff}
+.app span{display:block;font-size:12px;line-height:1.3;word-break:keep-all}
+.ppl{flex:0 0 64px;text-align:center;font-size:12px}
+.ppl i{width:58px;height:58px;border-radius:50%;margin:0 auto 6px;display:grid;place-items:center;font-style:normal;font-family:var(--serif);font-weight:700;font-size:20px;color:var(--sea)}
+
+/* ===================== 메모 + 지도 카드 ===================== */
+.memo-card{position:relative;margin-top:18px;border-radius:30px 30px 80px 30px;overflow:hidden;min-height:170px;padding:22px 22px 70px;
+  background:linear-gradient(165deg,#e6eef8,#f7eedf);box-shadow:10px 12px 24px var(--lo),-8px -8px 18px var(--hi);color:#1c2b48}
+.memo-card h3{font-family:var(--serif);font-size:16px}
+.memo-card q{display:block;font-family:var(--serif);font-size:20px;line-height:1.5;margin-top:10px;quotes:"“" "”";display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.memo-card small{display:block;font-size:12px;color:#6c7488;margin-top:6px}
+.memo-card svg{position:absolute;left:0;right:0;bottom:0;width:100%;height:70px}
+.map-card{position:relative;margin-top:22px;border-radius:80px 30px 30px 30px;overflow:hidden;min-height:160px;padding:22px;
+  background:#e9eef5;box-shadow:10px 12px 24px var(--lo),-8px -8px 18px var(--hi);color:#1c2b48}
+.map-card>svg{position:absolute;right:-10px;top:0;height:100%;width:66%}
+.map-card h3{position:relative;font-family:var(--serif);font-size:18px}
+.map-card p{position:relative;font-size:12.5px;color:#56607a;margin-top:4px;max-width:52%;line-height:1.5}
+.pill{position:relative;display:inline-block;margin-top:16px;padding:9px 16px;border-radius:20px;background:#fff;font-size:13px;font-weight:500;color:var(--sea);box-shadow:0 4px 12px rgba(31,78,140,.15)}
+
+/* ===================== 하단 메뉴 ===================== */
+.nav{position:fixed;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:20;display:flex;justify-content:space-around;
+  border-radius:28px;padding:8px 6px}
+.nav button{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--sub);padding:6px 8px;border-radius:18px;min-width:56px}
+.nav button svg{width:22px;height:22px}
+.nav button.on{background:var(--sea);color:#fff}
+
+/* ===================== 아래에서 올라오는 창 ===================== */
+.dim{position:fixed;inset:0;z-index:40;background:rgba(15,22,40,.4);opacity:0;pointer-events:none;transition:opacity .3s}
+.dim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:50;max-height:88vh;display:flex;flex-direction:column;background:var(--bg);
+  border-radius:30px 30px 0 0;transform:translateY(105%);transition:transform .38s cubic-bezier(.2,.85,.25,1);
+  padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -10px 30px rgba(0,0,0,.18);visibility:hidden;transition:transform .38s cubic-bezier(.2,.85,.25,1),visibility 0s .38s}
+.sheet.open{transform:translateY(0);visibility:visible;transition:transform .38s cubic-bezier(.2,.85,.25,1),visibility 0s}
+@media (prefers-reduced-motion:reduce){.sheet,.dim{transition-duration:.01s}}
+.grab{padding:10px 0 2px;touch-action:none}
+.grab span{display:block;width:44px;height:5px;border-radius:3px;background:var(--lo);margin:0 auto}
+.sh-head{display:flex;align-items:center;justify-content:space-between;padding:8px 22px 12px;touch-action:none}
+.sh-head h2{font-family:var(--serif);font-size:22px}
+.x{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:16px}
+.sh-body{overflow-y:auto;padding:4px 20px 24px}
+.field{width:100%;border:0;outline:none;border-radius:16px;padding:13px 15px;font-size:15px;margin-bottom:8px;color:var(--ink)}
+.field::placeholder{color:var(--sub)}
+textarea.field{min-height:96px;resize:none;line-height:1.6}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{display:block;width:100%;padding:14px;border-radius:16px;background:var(--sea);color:#fff;font-weight:700;font-size:15px;text-align:center;margin-top:2px}
+.btn.ghost{background:var(--card);color:var(--sea);box-shadow:6px 6px 14px var(--lo),-6px -6px 14px var(--hi)}
+.btn.warn{background:transparent;color:#c0392b;box-shadow:none;border:1px solid rgba(192,57,43,.35)}
+.lbl{font-family:var(--serif);font-weight:700;font-size:15px;margin:22px 2px 10px}
+.it{display:flex;gap:12px;align-items:center;border-radius:18px;padding:13px 14px;margin-bottom:10px}
+.it .tx{flex:1;min-width:0;font-size:14.5px;line-height:1.55;word-break:break-word;white-space:pre-wrap}
+.it .tx small{display:block;font-size:12px;color:var(--sub);white-space:normal}
+.it .wh{font-family:var(--num);font-size:14px;min-width:62px;color:var(--sea)}
+.del{color:var(--sub);font-size:18px;padding:2px 6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:9px 14px;border-radius:20px;font-size:13.5px;background:var(--card);box-shadow:4px 4px 10px var(--lo),-4px -4px 10px var(--hi)}
+.note{font-size:12.5px;line-height:1.6;color:var(--sub);border-radius:14px;padding:11px 13px;margin-bottom:14px}
+.past{opacity:.5}
+.empty{text-align:center;color:var(--sub);font-size:14px;line-height:1.7;padding:24px 8px}
+/* 날씨 상세 */
+.wnow{display:flex;align-items:center;justify-content:space-between}
+.wnow .big{font-family:var(--num);font-weight:200;font-size:84px;line-height:1}
+.wnow .ic{font-size:60px}
+.hours{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 14px;scrollbar-width:none}
+.hours::-webkit-scrollbar{display:none}
+.hr{flex:0 0 62px;border-radius:18px;padding:11px 4px;text-align:center;font-size:12px}
+.hr i{display:block;font-style:normal;font-size:22px;margin:5px 0 2px}
+.hr b{display:block;font-family:var(--num);font-weight:400;font-size:16px}
+.day{display:flex;align-items:center;gap:10px;padding:12px 4px;border-bottom:1px solid var(--line);font-size:14.5px}
+.day:last-child{border-bottom:0}
+.day .a{width:56px}.day .e{font-size:20px}.day .r{flex:1;color:var(--sub);font-size:12.5px}.day .t{font-family:var(--num)}
+.status{font-size:12.5px;color:var(--sub);margin:10px 2px}
+</style>
+</head>
+<body>
+
+<!-- ===================== 상단 ===================== -->
+<header class="top">
+  <div><h1 id="greet">안녕하세요</h1><p id="todaytxt"></p></div>
+  <button class="avatar neu" id="btn-set" aria-label="설정">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
+  </button>
+</header>
+<label class="search neu-in">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+  <input id="q" type="search" placeholder="구글에서 검색" enterkeyhint="search" aria-label="검색">
+</label>
+
+<!-- ===================== 메인 사진 ===================== -->
+<section class="hero" id="hero">
+  <svg id="art" viewBox="0 0 400 350" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b5c9c"/><stop offset=".45" stop-color="#83b3dc"/><stop offset=".62" stop-color="#f6cf92"/></linearGradient>
+      <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a78bd"/><stop offset="1" stop-color="#173a72"/></linearGradient>
+      <filter id="paint" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".02" numOctaves="3" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="16"/></filter>
+      <filter id="strokes"><feTurbulence type="fractalNoise" baseFrequency=".035 .7" numOctaves="2" seed="3"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .16 0"/></filter>
+    </defs>
+    <g filter="url(#paint)">
+      <rect x="-20" y="-20" width="440" height="260" fill="url(#sky)"/>
+      <circle cx="292" cy="150" r="70" fill="#ffe2a0" opacity=".35"/>
+      <circle cx="292" cy="150" r="34" fill="#ffd77c"/>
+      <g fill="#fff" opacity=".75"><ellipse cx="90" cy="60" rx="70" ry="16"/><ellipse cx="140" cy="48" rx="40" ry="14"/><ellipse cx="330" cy="70" rx="60" ry="13"/><ellipse cx="250" cy="96" rx="44" ry="10"/></g>
+      <path d="M-20 205 L60 170 L120 188 L190 160 L260 192 L330 172 L420 200 L420 230 L-20 230Z" fill="#4f74a8" opacity=".9"/>
+      <rect x="-20" y="205" width="440" height="170" fill="url(#sea)"/>
+      <g fill="#ffd98a" opacity=".7"><rect x="262" y="214" width="60" height="4" rx="2"/><rect x="270" y="228" width="44" height="3" rx="2"/><rect x="276" y="242" width="32" height="3" rx="2"/><rect x="282" y="258" width="20" height="3" rx="2"/></g>
+      <g fill="#fff" opacity=".5"><rect x="40" y="250" width="70" height="2" rx="1"/><rect x="170" y="270" width="80" height="2" rx="1"/><rect x="300" y="290" width="70" height="2" rx="1"/></g>
+      <path d="M-20 300 Q40 250 110 262 L150 350 L-20 360Z" fill="#c9b79c"/>
+      <g fill="#fbf7ef"><rect x="0" y="262" width="34" height="30"/><rect x="30" y="250" width="40" height="40"/><rect x="66" y="272" width="30" height="26"/><rect x="10" y="292" width="48" height="34"/><rect x="58" y="298" width="40" height="30"/></g>
+      <g fill="#2a5db0"><path d="M30 250 a20 18 0 0 1 40 0Z"/><path d="M66 272 a15 13 0 0 1 30 0Z"/><rect x="40" y="266" width="7" height="12" rx="3"/><rect x="20" y="304" width="7" height="12" rx="3"/><rect x="72" y="308" width="7" height="11" rx="3"/></g>
+      <g fill="#d9577a"><circle cx="104" cy="300" r="8"/><circle cx="114" cy="292" r="6"/><circle cx="96" cy="312" r="6"/><circle cx="8" cy="330" r="9"/></g>
+      <g fill="#5f8f4e"><circle cx="110" cy="310" r="6"/><circle cx="18" cy="338" r="7"/></g>
+      <path d="M200 238 l10 0 l-5 -16Z" fill="#fff"/><path d="M340 250 l8 0 l-4 -13Z" fill="#fff"/>
+    </g>
+    <rect width="400" height="350" filter="url(#strokes)"/>
+  </svg>
+  <img id="heroimg" alt="" hidden>
+  <div class="hero-txt"><div class="clock" id="clock">00:00</div><div class="hero-date" id="herodate"></div></div>
+  <button class="hero-cap" id="cap" aria-label="문구 바꾸기">오늘도 천천히</button>
+  <div class="thumbs" id="thumbs"></div>
+  <input type="file" id="pick" accept="image/*" multiple hidden>
+</section>
+
+<!-- ===================== 날씨 + 일정 ===================== -->
+<div class="duo">
+  <button class="wcard" id="wcard" aria-label="날씨 자세히">
+    <div class="t" id="wt">--°</div><div class="d" id="wd">불러오는 중</div><div class="l" id="wl">📍 위치 확인 중</div>
+  </button>
+  <div class="ccard neu">
+    <div class="chead"><h3>다가오는 일정</h3><button class="more" data-open="s-cal">전체</button></div>
+    <div id="evprev"></div>
+  </div>
+</div>
+
+<!-- ===================== 내 앱 ===================== -->
+<div class="sec-h"><div><h2>내 앱</h2><p>누르면 바로 열려요</p></div><button class="more" data-open="s-apps">편집</button></div>
+<div class="row" id="approw"></div>
+
+<!-- ===================== 자주 연락 ===================== -->
+<div class="sec-h" style="margin-top:12px"><div><h2>자주 연락</h2><p>누르고 전화·문자 선택</p></div><button class="more" data-open="s-ct">편집</button></div>
+<div class="row" id="pplrow"></div>
+
+<!-- ===================== 메모 카드 ===================== -->
+<button class="memo-card" id="memocard" style="display:block;width:100%;text-align:left">
+  <h3>최근 메모</h3>
+  <q id="memoq">떠오른 생각을 적어 두세요</q>
+  <small id="memod"></small>
+  <svg viewBox="0 0 400 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 40 Q60 18 120 34 T240 30 T400 26 V70 H0Z" fill="#3f7cc4" opacity=".55"/><path d="M0 52 Q80 34 160 48 T320 44 T400 46 V70 H0Z" fill="#1f4e8c" opacity=".8"/></svg>
+</button>
+
+<!-- ===================== 지도 카드 ===================== -->
+<button class="map-card" id="mapcard" style="display:block;width:100%;text-align:left">
+  <svg viewBox="0 0 260 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g fill="#9cbbe0" opacity=".9"><path d="M30 40 q30-24 64-10 q20 14 4 34 q-18 20-46 12 q-30-8-22-36z"/><path d="M120 22 q40-10 70 8 q24 18 6 38 q-30 18-60 6 q-28-14-16-52z"/><path d="M150 90 q30-6 50 14 q10 24-14 34 q-30 6-42-14 q-8-22 6-34z"/><path d="M60 100 q24-4 30 18 q2 22-20 26 q-22 0-22-20 q0-18 12-24z"/></g>
+    <path d="M70 60 Q130 20 180 70 T200 120" fill="none" stroke="#1f4e8c" stroke-width="2" stroke-dasharray="3 5"/>
+    <circle cx="70" cy="60" r="5" fill="#f3b544"/><circle cx="180" cy="70" r="5" fill="#d9577a"/><circle cx="200" cy="120" r="5" fill="#1f4e8c"/>
+  </svg>
+  <h3>장소 바로가기</h3>
+  <p id="mapsub">저장한 장소를 누르면 구글 지도가 열려요</p>
+  <span class="pill">장소 열기</span>
+</button>
+
+<!-- ===================== 하단 메뉴 ===================== -->
+<nav class="nav neu" aria-label="메뉴">
+  <button class="on" id="nav-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg>홈</button>
+  <button data-open="s-cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>일정</button>
+  <button data-open="s-memo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7"/></svg>메모</button>
+  <button data-open="s-ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h4l2 5-3 2a11 11 0 005 5l2-3 5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg>연락</button>
+  <button data-open="s-place"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>장소</button>
+</nav>
+
+<div class="dim" id="dim"></div>
+
+<!-- 일정 창 -->
+<section class="sheet" id="s-cal" aria-hidden="true">
+  <div class="grab"><span></span></div>
+  <div class="sh-head"><h2>일정</h2><button class="x neu" data-close aria-label="닫기">✕</button></div>
+  <div class="sh-body">
+    <div class="two"><input class="field neu-in" type="date" id="evdate"><input class="field neu-in" type="time" id="evtime"></div>
+    <input class="field neu-in" id="evtext" placeholder="무슨 일정인가요?">
+    <button class="btn" id="evadd">일정 추가</button>
+    <div id="evlist"></div>
+  </div>
+</section>
+
+<!-- 메모 창 -->
+<section class="sheet" id="s-memo" aria-hidden="true">
+  <div class="grab"><span></span></div>
+  <div class="sh-head"><h2>메모</h2><button class="x neu" data-close aria-label="닫기">✕</button></div>
+  <div class="sh-body">
+    <textarea class="field neu-in" id="memoin" placeholder="떠오른 생각을 적어 두세요"></textarea>
+    <button class="btn" id="memoadd">메모 저장</button>
+    <div class="lbl">저장한 메모</div>
+    <div id="memolist"></div>
+  </div>
+</section>
+
+<!-- 연락 창 -->
+<section class="sheet" id="s-ct" aria-hidden="true">
+  <div class="grab"><span></span></div>
+  <div class="sh-head"><h2>연락</h2><button class="x neu" data-close aria-label="닫기">✕</button></div>
+  <div class="sh-body">
+    <div class="note neu-in">휴대폰 문자는 보안 때문에 웹에서 읽을 수 없어요. 대신 버튼 한 번으로 전화·문자를 보낼 수 있어요.</div>
+    <div class="two"><input class="field neu-in" id="ctname" placeholder="이름"><input class="field neu-in" id="ctnum" type="tel" placeholder="010-0000-0000"></div>
+    <button class="btn" id="ctadd">연락처 추가</button>
+    <div class="lbl">연락처</div>
+    <div id="ctlist"></div>
+    <div class="lbl">자주 쓰는 문장</div>
+    <div class="chips" id="tplchips"></div>
+    <div class="two" style="grid-template-columns:1fr auto;margin-top:10px"><input class="field neu-in" id="tplin" placeholder="문장 추가"><button class="chip" id="tpladd" style="margin-bottom:8px">추가</button></div>
+  </div>
+</section>
+
+<!-- 연락처 선택 창 -->
+<section class="sheet" id="s-act" aria-hidden="true">
+  <div class="grab"><span></span></div>
+  <div class="sh-head"><h2 id="actname">연락</h2><button class="x neu" data-close aria-label="닫기">✕</button></div>
+  <div class="sh-body" id="actbody"></div>
+</section>
+
+<!-- 장소 창 -->
+<section class="sheet" id="s-place" aria-hidden="true">
+  <div class="grab"><span></span></div>
+  <div class="sh-head"><h2>장소</h2><button class="x neu" data-close aria-label="닫기">✕</button></div>
+  <div class="sh-body">
+    <input class="field neu-in" id="plquick" placeholder="바로 찾기 (예: 근처 편의점)" enterkeyhint="search">
+    <button class="btn ghost" id="plgo">구글 지도에서 찾기</button>
+    <div class="lbl">장소 저장하기</div>
+    <input class="field neu-in" id="plname" placeholder="이름 (예: 사무실)">
+    <input class="field neu-in" id="pladdr" placeholder="주소나 장소 이름">
+    <button class="btn" id="pladd">장소 저장</button>
+    <div class="lbl">저장한 장소</div>
+    <div id="pllist"></div>
+  </div>
+</section>
+
+<!-- 날씨 창 -->
+<section class="sheet" id="s-weather" aria-hidden="true">
+  <div class="grab"><span></span></div>
+  <div class="sh-head"><h2>날씨</h2><button class="x neu" data-close aria-label="닫기">✕</button></div>
+  <div class="sh-body">
+    <div id="wbox"></div>
+    <div class="status" id="wstatus"></div>
+    <button class="btn ghost" id="wrefresh">새로고침</button>
+  </div>
+</section>
+
+<!-- 내 앱 편집 창 -->
+<section class="sheet" id="s-apps" aria-hidden="true">
+  <div class="grab"><span></span></div>
+  <div class="sh-head"><h2>내 앱 편집</h2><button class="x neu" data-close aria-label="닫기">✕</button></div>
+  <div class="sh-body">
+    <input class="field neu-in" id="apname" placeholder="이름 (예: 룸메이드원)">
+    <input class="field neu-in" id="apurl" type="url" placeholder="주소 (https://...)">
+    <button class="btn" id="apadd">앱 추가</button>
+    <div class="lbl">등록된 앱</div>
+    <div id="aplist"></div>
+  </div>
+</section>
+
+<!-- 설정 창 -->
+<section class="sheet" id="s-set" aria-hidden="true">
+  <div class="grab"><span></span></div>
+  <div class="sh-head"><h2>설정</h2><button class="x neu" data-close aria-label="닫기">✕</button></div>
+  <div class="sh-body">
+    <div class="lbl" style="margin-top:4px">인사말에 쓸 이름</div>
+    <input class="field neu-in" id="setname" placeholder="이름">
+    <div class="lbl">사진 위 손글씨 문구</div>
+    <input class="field neu-in" id="setcap" placeholder="오늘도 천천히">
+    <button class="btn" id="setsave">저장</button>
+    <div class="lbl">데이터</div>
+    <button class="btn warn" id="setreset">모든 데이터 지우기</button>
+  </div>
+</section>
+
+<script>
+/* ===================== 기본 도구 ===================== */
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+const K=n=>'레이어홈-'+n;  // 저장 키: 앱이름-항목명
+const store={
+  get(n,d){try{const v=localStorage.getItem(K(n));return v?JSON.parse(v):d}catch(e){return d}},
+  set(n,v){try{localStorage.setItem(K(n),JSON.stringify(v));return true}catch(e){return false}}
+};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const DAYS=['일','월','화','수','목','금','토'];
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const clean=n=>String(n).replace(/[^0-9+]/g,'');
+const on=(el,ev,fn)=>{if(el)el.addEventListener(ev,e=>{try{fn(e)}catch(err){console.error(err)}})};
+
+/* ===================== 이전 버전 데이터 옮기기 ===================== */
+try{
+  [['lh-memos','메모'],['lh-events','일정'],['lh-contacts','연락처'],['lh-tpls','문장']].forEach(([o,n])=>{
+    if(localStorage.getItem(K(n))===null&&localStorage.getItem(o)!==null)localStorage.setItem(K(n),localStorage.getItem(o));
+  });
+}catch(e){}
+
+/* ===================== 인사말·시계 ===================== */
+let myName=store.get('이름','롤리');
+let caption=store.get('문구','오늘도 천천히');
+function tick(){
+  const d=new Date(),h=d.getHours();
+  const hi=h<5?'편안한 밤 보내세요':h<11?'좋은 아침이에요':h<17?'좋은 오후예요':h<22?'좋은 저녁이에요':'편안한 밤 보내세요';
+  $('#greet').textContent=myName?`${myName}님, ${hi}`:hi;
+  const ds=`${d.getMonth()+1}월 ${d.getDate()}일 ${DAYS[d.getDay()]}요일`;
+  $('#todaytxt').textContent='오늘 하루도 가볍게 시작해요';
+  $('#clock').textContent=pad(h)+':'+pad(d.getMinutes());
+  $('#herodate').textContent=ds;
+}
+function renderCap(){$('#cap').textContent=caption||' '}
+tick();setInterval(tick,5000);renderCap();
+
+/* ===================== 아래 창 열기·닫기 ===================== */
+let cur=null;
+function openSheet(id){
+  const el=document.getElementById(id);if(!el)return;
+  if(cur){const c=document.getElementById(cur);c.classList.remove('open');c.setAttribute('aria-hidden','true')}
+  else history.pushState({sheet:1},'');   // 휴대폰 뒤로가기로 닫히게
+  cur=id;el.classList.add('open');el.setAttribute('aria-hidden','false');$('#dim').classList.add('on');
+  if(id==='s-weather')loadWeather();
+  if(id==='s-set'){$('#setname').value=myName;$('#setcap').value=caption}
+}
+function hideSheet(){
+  if(!cur)return;
+  const c=document.getElementById(cur);c.classList.remove('open');c.setAttribute('aria-hidden','true');
+  $('#dim').classList.remove('on');cur=null;
+}
+window.addEventListener('popstate',hideSheet);
+on($('#dim'),'click',()=>history.back());
+$$('[data-close]').forEach(b=>on(b,'click',()=>history.back()));
+$$('[data-open]').forEach(b=>on(b,'click',()=>openSheet(b.dataset.open)));
+on($('#nav-home'),'click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+// 손잡이를 아래로 쓸어내리면 닫기
+$$('.grab,.sh-head').forEach(el=>{
+  let y0=null;
+  on(el,'pointerdown',e=>{if(e.target.closest('button'))return;y0=e.clientY});
+  on(el,'pointerup',e=>{if(y0!==null&&e.clientY-y0>60&&cur)history.back();y0=null});
+  on(el,'pointercancel',()=>{y0=null});
+});
+
+/* ===================== 검색 ===================== */
+on($('#q'),'keydown',e=>{
+  if(e.key!=='Enter')return;
+  const v=e.target.value.trim();if(!v)return;
+  window.open('https://www.google.com/search?q='+encodeURIComponent(v),'_blank');
+  e.target.value='';
+});
+
+/* ===================== 사진 갤러리 ===================== */
+let photos=store.get('사진',[]);
+let pidx=store.get('사진선택',-1);
+function renderHero(){
+  if(pidx>=photos.length)pidx=photos.length-1;
+  const img=$('#heroimg');
+  if(pidx>=0){img.src=photos[pidx];img.hidden=false;$('#art').style.display='none'}
+  else{img.hidden=true;img.removeAttribute('src');$('#art').style.display=''}
+  let h=`<button class="thumb def ${pidx<0?'on':''}" data-p="-1" aria-label="기본 그림"></button>`;
+  photos.forEach((p,i)=>{
+    h+=`<button class="thumb ${pidx===i?'on':''}" data-p="${i}" style="background-image:url(${p})" aria-label="사진 ${i+1}">${pidx===i?'<span class="rm" data-rm="'+i+'">✕</span>':''}</button>`;
+  });
+  h+='<button class="thumb add" id="padd" aria-label="사진 추가">+</button>';
+  $('#thumbs').innerHTML=h;
+}
+on($('#thumbs'),'click',e=>{
+  const rm=e.target.closest('[data-rm]');
+  if(rm){
+    if(!confirm('이 사진을 지울까요?'))return;
+    photos.splice(+rm.dataset.rm,1);pidx=-1;
+    store.set('사진',photos);store.set('사진선택',pidx);renderHero();return;
+  }
+  if(e.target.closest('#padd')){$('#pick').click();return}
+  const t=e.target.closest('[data-p]');if(!t)return;
+  pidx=+t.dataset.p;store.set('사진선택',pidx);renderHero();
+});
+// 사진을 휴대폰에 맞게 줄여서 저장
+function shrink(file){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(file),img=new Image();
+    img.addEventListener('load',()=>{
+      try{
+        const max=1080,s=Math.min(1,max/Math.max(img.width,img.height));
+        const c=document.createElement('canvas');c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        URL.revokeObjectURL(url);res(c.toDataURL('image/jpeg',.72));
+      }catch(err){rej(err)}
+    });
+    img.addEventListener('error',()=>{URL.revokeObjectURL(url);rej(new Error('사진 읽기 실패'))});
+    img.src=url;
+  });
+}
+on($('#pick'),'change',async e=>{
+  const files=[...e.target.files];e.target.value='';
+  for(const f of files){
+    try{
+      const data=await shrink(f);photos.push(data);
+      if(!store.set('사진',photos)){photos.pop();alert('저장 공간이 부족해요. 사진 몇 장을 지운 뒤 다시 추가해 주세요.');break}
+      pidx=photos.length-1;
+    }catch(err){alert('사진을 불러오지 못했어요. 다른 사진으로 시도해 주세요.')}
+  }
+  store.set('사진선택',pidx);renderHero();
+});
+on($('#cap'),'click',()=>openSheet('s-set'));
+
+/* ===================== 일정 ===================== */
+let events=store.get('일정',[]);
+$('#evdate').value=ymd(new Date());
+const dLabel=s=>{const d=new Date(s+'T00:00');return `${d.getMonth()+1}/${d.getDate()} (${DAYS[d.getDay()]})`};
+function renderCal(){
+  const today=ymd(new Date());
+  const all=[...events].sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||'')));
+  const tod=all.filter(e=>e.date===today),up=all.filter(e=>e.date>today),past=all.filter(e=>e.date<today).reverse().slice(0,10);
+  const row=(e,cls='')=>`<div class="it neu ${cls}"><div class="wh">${dLabel(e.date).split(' ')[0]}<br>${e.time||'종일'}</div><div class="tx">${esc(e.t)}</div><button class="del" data-ev="${e.id}" aria-label="삭제">✕</button></div>`;
+  let h='<div class="lbl">오늘</div>'+(tod.length?tod.map(e=>row(e)).join(''):'<div class="empty">오늘 일정이 없어요.</div>');
+  if(up.length)h+='<div class="lbl">다가오는 일정</div>'+up.map(e=>row(e)).join('');
+  if(past.length)h+='<div class="lbl">지난 일정</div>'+past.map(e=>row(e,'past')).join('');
+  $('#evlist').innerHTML=h;
+  const next=[...tod,...up].slice(0,2);
+  $('#evprev').innerHTML=next.length?next.map(e=>{
+    const d=new Date(e.date+'T00:00');
+    return `<div class="ev"><div class="dt"><b>${d.getDate()}</b><small>${DAYS[d.getDay()]}요일</small></div><div class="et"><p>${esc(e.t)}</p><small>${e.date===today?'오늘':dLabel(e.date)} ${e.time||'종일'}</small></div></div>`;
+  }).join(''):'<div class="none">예정된 일정이 없어요.<br>전체를 눌러 추가해 보세요.</div>';
+}
+on($('#evadd'),'click',()=>{
+  const t=$('#evtext').value.trim(),date=$('#evdate').value;
+  if(!t||!date){alert('날짜와 일정 내용을 입력해 주세요.');return}
+  events.push({id:Date.now(),date,time:$('#evtime').value,t});store.set('일정',events);
+  $('#evtext').value='';$('#evtime').value='';renderCal();
+});
+on($('#evlist'),'click',e=>{
+  const b=e.target.closest('[data-ev]');if(!b||!confirm('이 일정을 지울까요?'))return;
+  events=events.filter(x=>String(x.id)!==b.dataset.ev);store.set('일정',events);renderCal();
+});
+
+/* ===================== 메모 ===================== */
+let memos=store.get('메모',[]);
+function renderMemo(){
+  $('#memolist').innerHTML=memos.length?memos.map(m=>{
+    const d=new Date(m.d);
+    return `<div class="it neu"><div class="tx">${esc(m.t)}<small>${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}</small></div><button class="del" data-memo="${m.id}" aria-label="삭제">✕</button></div>`;
+  }).join(''):'<div class="empty">아직 메모가 없어요.<br>위 칸에 적고 저장을 눌러 보세요.</div>';
+  if(memos[0]){
+    const d=new Date(memos[0].d);
+    $('#memoq').textContent=memos[0].t;$('#memod').textContent=`${d.getMonth()+1}월 ${d.getDate()}일`;
+  }else{$('#memoq').textContent='떠오른 생각을 적어 두세요';$('#memod').textContent='눌러서 메모 쓰기'}
+}
+on($('#memoadd'),'click',()=>{
+  const v=$('#memoin').value.trim();if(!v)return;
+  memos.unshift({id:Date.now(),t:v,d:new Date().toISOString()});store.set('메모',memos);
+  $('#memoin').value='';renderMemo();
+});
+on($('#memolist'),'click',e=>{
+  const b=e.target.closest('[data-memo]');if(!b||!confirm('이 메모를 지울까요?'))return;
+  memos=memos.filter(m=>String(m.id)!==b.dataset.memo);store.set('메모',memos);renderMemo();
+});
+on($('#memocard'),'click',()=>openSheet('s-memo'));
+
+/* ===================== 내 앱 ===================== */
+const BASE='https://roompacker.github.io/roompacker/';
+const COLORS=['#1f4e8c','#d9577a','#3f7cc4','#e0a53a','#5f8f4e','#7b5ea7','#2f8f9d','#c0693b'];
+let apps=store.get('앱',[
+  {id:1,name:'룸메이드원',url:BASE+'roommade-one.html'},
+  {id:2,name:'캘린더',url:BASE+'roommade-cal.html'},
+  {id:3,name:'체크포인트',url:BASE+'roommade_checkpoint_checklist.html'},
+  {id:4,name:'매뉴얼',url:BASE+'roommade-manual.html'},
+  {id:5,name:'펜트',url:BASE+'roommade-pent.html'},
+  {id:6,name:'셀프택스',url:BASE+'self-tax.html'},
+  {id:7,name:'입지분석',url:BASE+'roommade-area.html'},
+  {id:8,name:'워커',url:BASE+'roommade-worker.html'}
+]);
+function renderApps(){
+  $('#approw').innerHTML=apps.map((a,i)=>`<a class="app neu" href="${esc(a.url)}" target="_blank" rel="noopener"><i style="background:${COLORS[i%COLORS.length]}">${esc(a.name.slice(0,1))}</i><span>${esc(a.name)}</span></a>`).join('')
+    +'<button class="app neu" data-open-apps><i style="background:var(--lo);color:var(--ink)">+</i><span>추가</span></button>';
+  $('#aplist').innerHTML=apps.length?apps.map(a=>`<div class="it neu"><div class="tx">${esc(a.name)}<small>${esc(a.url)}</small></div><button class="del" data-ap="${a.id}" aria-label="삭제">✕</button></div>`).join(''):'<div class="empty">등록된 앱이 없어요.</div>';
+}
+on($('#approw'),'click',e=>{if(e.target.closest('[data-open-apps]'))openSheet('s-apps')});
+on($('#apadd'),'click',()=>{
+  const name=$('#apname').value.trim();let url=$('#apurl').value.trim();
+  if(!name||!url){alert('이름과 주소를 입력해 주세요.');return}
+  if(!/^https?:\/\//.test(url))url='https://'+url;
+  apps.push({id:Date.now(),name,url});store.set('앱',apps);
+  $('#apname').value='';$('#apurl').value='';renderApps();
+});
+on($('#aplist'),'click',e=>{
+  const b=e.target.closest('[data-ap]');if(!b||!confirm('이 앱을 목록에서 뺄까요?'))return;
+  apps=apps.filter(a=>String(a.id)!==b.dataset.ap);store.set('앱',apps);renderApps();
+});
+
+/* ===================== 연락 ===================== */
+let contacts=store.get('연락처',[]);
+let tpls=store.get('문장',['지금 가는 중이에요','도착했어요','잠시 후 연락드릴게요','지금 통화 가능하세요?']);
+function renderCt(){
+  $('#pplrow').innerHTML=contacts.map(c=>`<button class="ppl" data-who="${c.id}"><i class="neu">${esc(c.name.slice(0,1))}</i>${esc(c.name)}</button>`).join('')
+    +`<button class="ppl" data-open-ct><i class="neu">+</i>추가</button>`;
+  $('#ctlist').innerHTML=contacts.length?contacts.map(c=>`<div class="it neu"><div class="tx">${esc(c.name)}<small>${esc(c.num)}</small></div><a class="chip" href="sms:${clean(c.num)}">문자</a><a class="chip" href="tel:${clean(c.num)}">전화</a><button class="del" data-ct="${c.id}" aria-label="삭제">✕</button></div>`).join(''):'<div class="empty">연락처를 추가하면<br>홈에서 바로 전화·문자를 보낼 수 있어요.</div>';
+  $('#tplchips').innerHTML=tpls.map((t,i)=>`<span class="chip">${esc(t)} <button class="del" data-tpl="${i}" aria-label="삭제" style="font-size:13px">✕</button></span>`).join('');
+}
+on($('#pplrow'),'click',e=>{
+  if(e.target.closest('[data-open-ct]')){openSheet('s-ct');return}
+  const b=e.target.closest('[data-who]');if(!b)return;
+  const c=contacts.find(x=>String(x.id)===b.dataset.who);if(!c)return;
+  $('#actname').textContent=c.name;
+  const n=clean(c.num);
+  $('#actbody').innerHTML=`<div class="two" style="margin-bottom:6px"><a class="btn" href="tel:${n}">전화</a><a class="btn ghost" href="sms:${n}">문자</a></div>
+    <div class="lbl">바로 보낼 문장</div><div class="chips">${tpls.map(t=>`<a class="chip" href="sms:${n}?body=${encodeURIComponent(t)}">${esc(t)}</a>`).join('')}</div>`;
+  openSheet('s-act');
+});
+on($('#ctadd'),'click',()=>{
+  const name=$('#ctname').value.trim(),num=$('#ctnum').value.trim();
+  if(!name||!clean(num)){alert('이름과 전화번호를 입력해 주세요.');return}
+  contacts.push({id:Date.now(),name,num});store.set('연락처',contacts);
+  $('#ctname').value='';$('#ctnum').value='';renderCt();
+});
+on($('#ctlist'),'click',e=>{
+  const b=e.target.closest('[data-ct]');if(!b||!confirm('이 연락처를 지울까요?'))return;
+  contacts=contacts.filter(c=>String(c.id)!==b.dataset.ct);store.set('연락처',contacts);renderCt();
+});
+on($('#tplchips'),'click',e=>{
+  const b=e.target.closest('[data-tpl]');if(!b)return;
+  tpls.splice(+b.dataset.tpl,1);store.set('문장',tpls);renderCt();
+});
+on($('#tpladd'),'click',()=>{
+  const v=$('#tplin').value.trim();if(!v)return;
+  tpls.push(v);store.set('문장',tpls);$('#tplin').value='';renderCt();
+});
+
+/* ===================== 장소 ===================== */
+let places=store.get('장소',[]);
+const mapUrl=q=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);
+function renderPlaces(){
+  $('#pllist').innerHTML=places.length?places.map(p=>`<div class="it neu"><div class="tx">${esc(p.name)}<small>${esc(p.q)}</small></div><a class="chip" href="${mapUrl(p.q)}" target="_blank" rel="noopener">지도</a><button class="del" data-pl="${p.id}" aria-label="삭제">✕</button></div>`).join(''):'<div class="empty">자주 가는 곳을 저장해 두면<br>한 번에 지도를 열 수 있어요.</div>';
+  $('#mapsub').textContent=places.length?`저장한 장소 ${places.length}곳 · 누르면 지도가 열려요`:'자주 가는 곳을 저장하고 한 번에 지도로 열어요';
+}
+on($('#mapcard'),'click',()=>openSheet('s-place'));
+const quickGo=()=>{const v=$('#plquick').value.trim();if(v)window.open(mapUrl(v),'_blank')};
+on($('#plgo'),'click',quickGo);
+on($('#plquick'),'keydown',e=>{if(e.key==='Enter')quickGo()});
+on($('#pladd'),'click',()=>{
+  const name=$('#plname').value.trim(),q=$('#pladdr').value.trim();
+  if(!name||!q){alert('이름과 주소를 입력해 주세요.');return}
+  places.push({id:Date.now(),name,q});store.set('장소',places);
+  $('#plname').value='';$('#pladdr').value='';renderPlaces();
+});
+on($('#pllist'),'click',e=>{
+  const b=e.target.closest('[data-pl]');if(!b||!confirm('이 장소를 지울까요?'))return;
+  places=places.filter(p=>String(p.id)!==b.dataset.pl);store.set('장소',places);renderPlaces();
+});
+
+/* ===================== 날씨 (Open-Meteo 무료) ===================== */
+const WMO={0:['맑음','☀️'],1:['대체로 맑음','🌤️'],2:['구름 조금','⛅'],3:['흐림','☁️'],45:['안개','🌫️'],48:['안개','🌫️'],
+51:['약한 이슬비','🌦️'],53:['이슬비','🌦️'],55:['이슬비','🌧️'],56:['어는 이슬비','🌧️'],57:['어는 이슬비','🌧️'],
+61:['약한 비','🌦️'],63:['비','🌧️'],65:['강한 비','🌧️'],66:['어는 비','🌧️'],67:['어는 비','🌧️'],
+71:['약한 눈','🌨️'],73:['눈','🌨️'],75:['많은 눈','❄️'],77:['싸락눈','🌨️'],80:['소나기','🌦️'],81:['소나기','🌧️'],82:['강한 소나기','⛈️'],
+85:['눈 소나기','🌨️'],86:['강한 눈 소나기','❄️'],95:['뇌우','⛈️'],96:['뇌우·우박','⛈️'],99:['뇌우·우박','⛈️']};
+const wx=c=>WMO[c]||['날씨 정보','🌡️'];
+let wLoading=false;
+async function loadWeather(force){
+  const cache=store.get('날씨',null);
+  if(cache)renderWeather(cache);
+  if(wLoading||(cache&&!force&&Date.now()-cache.at<30*60*1000))return;
+  wLoading=true;$('#wstatus').textContent='날씨를 불러오는 중…';
+  let pos={lat:37.4563,lon:126.7052,name:'인천 (기본 위치)'};
+  try{
+    const p=await new Promise((res,rej)=>navigator.geolocation?navigator.geolocation.getCurrentPosition(res,rej,{timeout:7000,maximumAge:600000}):rej());
+    pos={lat:p.coords.latitude.toFixed(3),lon:p.coords.longitude.toFixed(3),name:'현재 위치'};
+  }catch(e){}
+  try{
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${pos.lat}&longitude=${pos.lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=5`;
+    const r=await fetch(url);if(!r.ok)throw new Error('응답 오류');
+    const obj={at:Date.now(),name:pos.name,data:await r.json()};
+    store.set('날씨',obj);renderWeather(obj);
+  }catch(e){
+    $('#wstatus').textContent='날씨를 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침을 눌러 주세요.';
+    if(!cache){$('#wd').textContent='불러오기 실패';$('#wl').textContent='눌러서 다시 시도'}
+  }
+  wLoading=false;
+}
+function renderWeather(o){
+  try{
+    const D=o.data,c=D.current,[desc,ico]=wx(c.weather_code);
+    $('#wt').textContent=Math.round(c.temperature_2m)+'°';$('#wd').textContent=ico+' '+desc;
+    $('#wl').textContent=`📍 ${o.name.replace(' (기본 위치)','')} · ${Math.round(D.daily.temperature_2m_min[0])}°/${Math.round(D.daily.temperature_2m_max[0])}°`;
+    const idx=Math.max(0,D.hourly.time.findIndex(t=>t.slice(0,13)===c.time.slice(0,13)));
+    const hours=D.hourly.time.slice(idx,idx+12).map((t,i)=>{
+      const k=idx+i,pp=D.hourly.precipitation_probability[k];
+      return `<div class="hr neu">${i===0?'지금':(+t.slice(11,13))+'시'}<i>${wx(D.hourly.weather_code[k])[1]}</i><b>${Math.round(D.hourly.temperature_2m[k])}°</b>${pp>=30?'☂ '+pp+'%':'&nbsp;'}</div>`;
+    }).join('');
+    const days=D.daily.time.map((t,i)=>{
+      const d=new Date(t+'T00:00');
+      return `<div class="day"><span class="a">${i===0?'오늘':DAYS[d.getDay()]+'요일'}</span><span class="e">${wx(D.daily.weather_code[i])[1]}</span><span class="r">비 ${D.daily.precipitation_probability_max[i]??0}%</span><span class="t">${Math.round(D.daily.temperature_2m_min[i])}° / ${Math.round(D.daily.temperature_2m_max[i])}°</span></div>`;
+    }).join('');
+    $('#wbox').innerHTML=`<div class="wnow"><div class="big">${Math.round(c.temperature_2m)}°</div><div class="ic">${ico}</div></div>
+      <p style="font-family:var(--serif);font-size:19px;margin-top:4px">${desc}</p>
+      <p class="status" style="margin-top:4px">${esc(o.name)} · 체감 ${Math.round(c.apparent_temperature)}° · 습도 ${c.relative_humidity_2m}% · 바람 ${Math.round(c.wind_speed_10m)}km/h</p>
+      <div class="lbl">시간별</div><div class="hours">${hours}</div>
+      <div class="lbl">5일 예보</div><div>${days}</div>`;
+    const t=new Date(o.at);$('#wstatus').textContent=`${pad(t.getHours())}:${pad(t.getMinutes())} 기준`;
+  }catch(e){console.error(e)}
+}
+on($('#wcard'),'click',()=>openSheet('s-weather'));
+on($('#wrefresh'),'click',()=>loadWeather(true));
+
+/* ===================== 설정 ===================== */
+on($('#btn-set'),'click',()=>openSheet('s-set'));
+on($('#setsave'),'click',()=>{
+  myName=$('#setname').value.trim();caption=$('#setcap').value.trim();
+  store.set('이름',myName);store.set('문구',caption);tick();renderCap();history.back();
+});
+on($('#setreset'),'click',()=>{
+  if(!confirm('메모·일정·사진·연락처 등 모든 데이터를 지울까요? 되돌릴 수 없어요.'))return;
+  try{Object.keys(localStorage).filter(k=>k.startsWith('레이어홈-')).forEach(k=>localStorage.removeItem(k))}catch(e){}
+  location.reload();
+});
+
+/* ===================== 시작 ===================== */
+renderHero();renderCal();renderMemo();renderApps();renderCt();renderPlaces();loadWeather();
+</script>
+</body>
+</html>
