@@ -539,6 +539,10 @@ html,body,.app{background:var(--n-bg)!important}
 .toast{background:var(--n-navy)!important}
 /* 예전 큰 보라 카드는 새 '오늘의 포커스'로 대체 (숫자 계산은 그대로 살아있음) */
 .ops-hero{display:none!important}
+/* v20.1 버그수정: 정산 '받을 돈' 큰 카드 — 크림 바탕에 흰 글씨라 안 보이던 문제 → 네이비 타일로 */
+.card.settlehero{background:var(--n-navy)!important;color:#FBF5EA!important}
+.card.settlehero strong{color:#FFFFFF!important;font-size:32px!important;font-weight:900!important}
+.card.settlehero small,.card.settlehero p{color:rgba(251,245,234,.85)!important}
 
 /* ── 레트로 보드 ── */
 .retro-board{display:grid;gap:10px;margin:12px 0 4px}
@@ -616,7 +620,7 @@ html,body,.app{background:var(--n-bg)!important}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v20.0</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v20.1</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
