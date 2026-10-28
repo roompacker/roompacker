@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="format-detection" content="telephone=no" />
-<meta name="theme-color" content="#ECE6F8" />
+<meta name="theme-color" content="#F1E8D8" />
 <meta name="google" content="notranslate" />
 <meta name="robots" content="notranslate" />
 <link rel="manifest" id="appManifest" />
@@ -499,6 +499,111 @@ h1,h2,h3{color:var(--n-ink)}
 .role-choice.active{background:var(--n-navy-bg);border-color:var(--n-navy2)}
 .flowempty{background:#F7F8F4;color:var(--n-sub);border-bottom-color:#EFF0EA}
 </style>
+<style id="roommade-vintage-retro">
+/* ═══════════════════════════════════════════════
+   🎨 v20.0 빈티지 레트로 디자인 (참고: Habit Tracker Vintage Retro)
+   크림 바탕 + 네이비 · 번트오렌지 · 세이지 · 머스타드 블록
+   ※ 그라데이션 없음(단색)
+   ═══════════════════════════════════════════════ */
+:root{
+  --n-bg:#F1E8D8;--n-bg2:#E9DDC8;--n-card:#FBF5EA;--n-line:#E5D8C2;
+  --n-ink:#26323F;--n-sub:#7A7062;--n-muted:#A3977F;
+  --n-navy:#26384C;--n-navy2:#34506B;--n-navy-bg:#E4E2DA;--n-navy-ink:#26384C;
+  --n-dusty:#8FA3A8;--n-dusty-bg:#E6E4DC;
+  --n-sage:#B7D1AE;--n-sage-bg:#DCE7D3;--n-sage-ink:#2F5B3E;
+  --n-clay:#D9622B;--n-clay-bg:#F6DCCB;--n-clay-ink:#A8461B;
+  --n-sand-bg:#F3E2BC;--n-sand-ink:#7D5A12;
+  --r-orange:#D9622B;--r-mustard:#D6A73A;--r-peach:#F4CDB0;--r-green:#2F5B3E;
+}
+html,body,.app{background:var(--n-bg)!important}
+.topbar{background:rgba(241,232,216,.96)!important;border-bottom:1px dashed var(--n-line)!important}
+.logo{background:var(--r-orange)!important;border-radius:50%!important;box-shadow:none!important}
+.brand strong{font-weight:900;letter-spacing:-.5px}
+.branchbar{background:var(--n-bg2)!important;border:0!important;border-radius:99px!important}
+.branchbtn{border-radius:99px!important}
+.branchbtn.active{background:var(--n-navy)!important;color:#FBF5EA!important}
+.eyebrow{background:transparent!important;color:var(--n-muted)!important;letter-spacing:1.6px!important;font-size:9px!important;font-weight:900!important;text-transform:uppercase;padding:0!important}
+.card,.ops-card,.monthnav{background:var(--n-card)!important;border:0!important;border-radius:24px!important;box-shadow:none!important}
+.ops-label{background:transparent!important;letter-spacing:1.5px;font-size:9px!important}
+.primary,.paybtn,.addmini{background:var(--n-navy)!important;border-radius:99px!important}
+.ops-book-main{background:var(--r-orange)!important}
+.segment{background:var(--n-bg2)!important;border-radius:99px!important}
+.segbtn{border-radius:99px!important}.segbtn.active{background:var(--n-navy)!important;color:#FBF5EA!important}
+.day{background:#F4EBDB!important;border-radius:12px!important}
+.day.selected{background:var(--r-orange)!important;color:#fff!important}
+.status.done{background:var(--n-sage-bg)!important;color:var(--r-green)!important}
+.bottomnav{background:rgba(251,245,234,.97)!important;border-top:1px dashed var(--n-line)!important}
+.navbtn.active{color:var(--r-orange)!important}
+.navbtn.active i{background:var(--n-clay-bg)!important;color:var(--r-orange)!important;border-radius:99px!important}
+.fab{background:var(--r-orange)!important;border-radius:50%!important;box-shadow:0 8px 18px rgba(217,98,43,.32)!important}
+.toast{background:var(--n-navy)!important}
+/* 예전 큰 보라 카드는 새 '오늘의 포커스'로 대체 (숫자 계산은 그대로 살아있음) */
+.ops-hero{display:none!important}
+
+/* ── 레트로 보드 ── */
+.retro-board{display:grid;gap:10px;margin:12px 0 4px}
+.rt-row{display:grid;grid-template-columns:1.05fr 1fr;gap:10px}
+.rt-col{display:grid;gap:10px}
+.rt-tile{border:0;border-radius:24px;padding:14px 15px;text-align:left;position:relative;overflow:hidden;color:var(--n-ink);background:var(--n-card);width:100%}
+.rt-tile small{display:block;font-size:9px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;opacity:.75}
+.rt-big{display:block;font-size:40px;font-weight:900;letter-spacing:-1.8px;line-height:1;margin-top:8px}
+.rt-big em{font-size:12px;font-style:normal;font-weight:800;letter-spacing:0;margin-left:4px;opacity:.8}
+.rt-mid{display:block;font-size:26px;font-weight:900;letter-spacing:-1px;line-height:1;margin-top:6px}
+.rt-ico{position:absolute;right:13px;top:12px;font-size:22px;opacity:.9}
+.rt-navy{background:var(--n-navy);color:#FBF5EA}
+.rt-orange{background:var(--r-orange);color:#FFF4EA}
+.rt-sage{background:var(--n-sage);color:var(--r-green)}
+.rt-mustard{background:var(--r-mustard);color:#3B2C0C}
+.rt-peach{background:var(--r-peach);color:#7E3E19}
+.rt-cream{background:var(--n-card);color:var(--n-ink)}
+.rt-green{background:var(--r-green);color:#EAF2E4}
+.rt-focus{min-height:160px;display:flex;flex-direction:column;justify-content:flex-end}
+.rt-focus .rt-ico{font-size:40px;right:auto;left:50%;top:22px;transform:translateX(-50%)}
+.rt-dots{display:flex;gap:5px;margin-top:9px}
+.rt-dots i{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.28}
+.rt-dots i.on{opacity:1}
+.rt-card{background:var(--n-card);border-radius:24px;padding:14px 15px}
+.rt-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.rt-head span{font-size:9px;font-weight:900;letter-spacing:1.6px;color:var(--n-muted);text-transform:uppercase}
+.rt-head b{font-size:10px;font-weight:900;background:var(--r-orange);color:#fff;border-radius:99px;padding:4px 9px}
+.rt-task{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px dashed var(--n-line);cursor:pointer}
+.rt-task:first-of-type{border-top:0}
+.rt-tdot{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:12px;flex-shrink:0}
+.rt-tmain{flex:1;min-width:0}
+.rt-tmain b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rt-tmain small{display:block;font-size:10px;color:var(--n-sub);margin-top:1px}
+.rt-check{width:30px;height:30px;border-radius:50%;border:2px solid var(--n-line);background:transparent;flex-shrink:0;font-size:13px;color:transparent;font-weight:900;padding:0}
+.rt-check.done{background:var(--r-green);border-color:var(--r-green);color:#fff}
+.rt-check.wait{border-color:var(--r-orange)}
+.rt-more{width:100%;border:0;background:var(--n-bg2);border-radius:99px;padding:9px;margin-top:8px;font-size:11px;font-weight:800;color:var(--n-sub)}
+.rt-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.rt-week div{font-size:9px;font-weight:900;color:var(--n-muted)}
+.rt-week i{display:block;width:22px;height:22px;margin:5px auto 0;border-radius:50%;background:var(--n-bg2);font-style:normal;font-size:10px;line-height:22px;font-weight:900;color:var(--n-sub)}
+.rt-week i.l1{background:var(--r-peach);color:#7E3E19}
+.rt-week i.l2{background:var(--n-sage);color:var(--r-green)}
+.rt-week i.l3{background:var(--r-green);color:#fff}
+.rt-week i.today{outline:2px solid var(--r-orange);outline-offset:1px}
+.rt-heat{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.rt-heat .wk{font-size:9px;font-weight:900;color:var(--n-muted);text-align:center;padding-bottom:2px}
+.rt-cell{aspect-ratio:1/1;border:0;border-radius:9px;background:var(--n-bg2);font-size:9px;font-weight:900;color:transparent;padding:0}
+.rt-cell.blank{background:transparent;pointer-events:none}
+.rt-cell.l1{background:var(--r-peach)}
+.rt-cell.l2{background:var(--n-sage)}
+.rt-cell.l3{background:var(--r-green)}
+.rt-cell.today{background:var(--r-orange)!important;color:#fff}
+.rt-cell.show{color:rgba(38,50,63,.55)}.rt-cell.l3.show{color:rgba(255,255,255,.75)}
+.rt-legend{display:flex;justify-content:flex-end;align-items:center;gap:4px;margin-top:9px;font-size:9px;color:var(--n-muted);font-weight:800}
+.rt-legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.rt-rooms{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rt-room{min-height:118px;cursor:pointer}
+.rt-room .rt-rname{display:block;font-size:12px;font-weight:900;line-height:1.25;padding-right:26px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rt-room small{margin-top:2px}
+.rt-ring{width:62px;height:62px;flex-shrink:0}
+.rt-trend svg{width:100%;height:70px;display:block;margin-top:6px}
+.rt-trendlab{display:flex;justify-content:space-between;font-size:8px;font-weight:900;opacity:.6;margin-top:4px}
+.rt-banner{display:flex;align-items:flex-end;justify-content:space-between}
+.rt-sub2{font-size:10px;font-weight:800;opacity:.85;margin-top:6px;display:block}
+</style>
 </head>
 <body class="notranslate" translate="no">
 <div class="app">
@@ -511,7 +616,7 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v19.6</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v20.0</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -534,6 +639,9 @@ h1,h2,h3{color:var(--n-ink)}
         <button class="ops-date-button"><span>오늘 업무일</span><b id="homeDate">오늘</b><small id="homeBranchLabel">전체 지점</small></button>
         <button class="primary ops-book-main" data-quick="book"><span>＋</span> 예약+청소</button>
       </div>
+
+      <!-- 🎨 v20.0 레트로 보드 -->
+      <div id="retroBoard" class="retro-board"></div>
 
       <div class="hero todayhero ops-hero">
         <div class="eyebrow" id="homeMonthLabel">오늘의 전체 운영</div>
@@ -1599,7 +1707,191 @@ h1,h2,h3{color:var(--n-ink)}
     try{ renderPentBoard(); }catch(e){ console.error('pentBoard',e); }
     try{ renderNotiUI(); }catch(e){}
     try{ renderIncentives(); }catch(e){ console.error('inc',e); }
+    try{ renderRetro(); }catch(e){ console.error('retro',e); }
   }
+
+  // ═══════════════════════════════════════════════
+  // 🎨 v20.0 레트로 보드 (오늘의 포커스 · 히트맵 · 객실 타일)
+  // 참고 디자인: Habit Tracker Vintage Retro
+  // ═══════════════════════════════════════════════
+  const RT_WD=['일','월','화','수','목','금','토'];
+  const RT_COLORS=['rt-navy','rt-cream','rt-peach','rt-sage','rt-cream','rt-mustard'];
+  // 청소 1건으로 세는 기록 (입실셋팅 카드·취소·리뷰용 제외)
+  function rtCleans(){
+    try{
+      return branchFilter(state.transactions).filter(t=>t.type==='income'&&!t.checkinOnly&&!t.reviewOnly&&t.status!=='cancelled'&&t.date);
+    }catch(e){ return []; }
+  }
+  function rtCountByDate(list){ const m={}; list.forEach(t=>{m[t.date]=(m[t.date]||0)+1;}); return m; }
+  function rtLevel(n){ return n<=0?'':(n===1?'l1':(n<=3?'l2':'l3')); }
+  function rtShift(dateStr,days){ const d=new Date(dateStr+'T00:00:00'); d.setDate(d.getDate()+days); return ymd(d); }
+  function rtDots(n,on){ let h=''; for(let i=0;i<n;i++)h+=`<i class="${i<on?'on':''}"></i>`; return `<span class="rt-dots">${h}</span>`; }
+
+  function renderRetro(){
+    const el=$('#retroBoard'); if(!el)return;
+    try{
+      const t0=today(), month=currentYM();
+      const cleans=rtCleans(), byDate=rtCountByDate(cleans);
+      const canMoney=activeRole==='admin'||activeRole==='director';
+
+      // ① 오늘 청소 목록
+      const todays=cleans.filter(t=>t.date===t0).sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
+      const done=todays.filter(t=>t.status==='done').length;
+
+      // ② 연속 작업일 (오늘 일정이 없으면 어제부터 셉니다)
+      let streak=0, d=byDate[t0]?t0:rtShift(t0,-1);
+      while(byDate[d]&&streak<400){ streak++; d=rtShift(d,-1); }
+
+      // ③ 이번 달 최다 하루
+      const monthDays=Object.keys(byDate).filter(k=>k.slice(0,7)===month);
+      const best=monthDays.reduce((m,k)=>Math.max(m,byDate[k]),0);
+      const monthTotal=monthDays.reduce((s,k)=>s+byDate[k],0);
+      const monthDone=cleans.filter(t=>t.date.slice(0,7)===month&&t.status==='done').length;
+      const pct=monthTotal?Math.round(monthDone/monthTotal*100):0;
+
+      // ④ 이번 주 (월~일)
+      const now=new Date(t0+'T00:00:00'); const mon=rtShift(t0,-((now.getDay()+6)%7));
+      let weekTotal=0, weekHtml='';
+      for(let i=0;i<7;i++){
+        const ds=rtShift(mon,i), n=byDate[ds]||0; weekTotal+=n;
+        weekHtml+=`<div>${RT_WD[(i+1)%7]}<i class="${rtLevel(n)}${ds===t0?' today':''}">${n||''}</i></div>`;
+      }
+
+      // ⑤ 이번 달 히트맵
+      const [yy,mm]=month.split('-').map(Number);
+      const first=new Date(yy,mm-1,1).getDay(), last=new Date(yy,mm,0).getDate();
+      let heat=RT_WD.map(w=>`<div class="wk">${w}</div>`).join('');
+      for(let i=0;i<first;i++)heat+='<span class="rt-cell blank"></span>';
+      for(let dd=1;dd<=last;dd++){
+        const ds=month+'-'+pad(dd), n=byDate[ds]||0;
+        heat+=`<button class="rt-cell ${rtLevel(n)}${ds===t0?' today':''}${n?' show':''}" data-retro-day="${ds}" title="${dd}일 ${n}건">${n?n:''}</button>`;
+      }
+
+      // ⑥ 6개월 추이 (꺾은선)
+      const months=[]; for(let i=5;i>=0;i--){ const dt=new Date(yy,mm-1-i,1); months.push(dt.getFullYear()+'-'+pad(dt.getMonth()+1)); }
+      const mCounts=months.map(m=>cleans.filter(t=>t.date.slice(0,7)===m).length);
+      const mMax=Math.max(1,...mCounts);
+      const pts=mCounts.map((v,i)=>[10+i*56,62-(v/mMax)*52]);
+      let path='M'+pts[0][0]+' '+pts[0][1];
+      for(let i=1;i<pts.length;i++){ const [x0,y0]=pts[i-1],[x1,y1]=pts[i],cx=(x0+x1)/2; path+=` C${cx} ${y0} ${cx} ${y1} ${x1} ${y1}`; }
+      const lastPt=pts[pts.length-1];
+
+      // ⑦ 객실 타일 (이번 달 청소 많은 순)
+      let rooms=(state.rooms||[]).filter(r=>!r.archived);
+      if(activeRole==='host'){ const ids=new Set(hostRooms().map(r=>r.id)); rooms=rooms.filter(r=>ids.has(r.id)); }
+      else if(state.branch!=='전체') rooms=rooms.filter(r=>r.branch===state.branch);
+      const roomRows=rooms.map(r=>{
+        const mine=cleans.filter(t=>t.targetId===r.id);
+        const cnt=mine.filter(t=>t.date.slice(0,7)===month).length;
+        const set=new Set(mine.map(t=>t.date)); let on=0;
+        for(let i=6;i>=0;i--) if(set.has(rtShift(t0,-i))) on++;
+        return {r,cnt,on};
+      }).sort((a,b)=>b.cnt-a.cnt).slice(0,8);
+
+      // ── 화면 그리기 ──
+      const R=[];
+      R.push(`<div class="rt-row">
+        <button class="rt-tile rt-navy rt-focus" data-ops-jump="opsAllBlock">
+          <span class="rt-ico">🧹</span>
+          <small>연속 작업</small>
+          <span class="rt-big">${streak}<em>일</em></span>
+        </button>
+        <div class="rt-col">
+          <button class="rt-tile rt-orange" data-ops-jump="opsAllBlock">
+            <span class="rt-ico">✓</span><small>오늘 완료</small>
+            <span class="rt-mid">${done}/${todays.length}</span>
+            ${rtDots(Math.min(8,Math.max(todays.length,1)),Math.min(8,done))}
+          </button>
+          <button class="rt-tile rt-sage" data-goto="schedule">
+            <span class="rt-ico">🏆</span><small>이번 달 최다</small>
+            <span class="rt-mid">${best}<em style="font-size:11px;font-style:normal;margin-left:3px">건/일</em></span>
+          </button>
+        </div>
+      </div>`);
+
+      // 오늘의 할 일 (동그라미 = 완료 체크)
+      const showN=6;
+      const taskRows=todays.slice(0,showN).map((t,i)=>{
+        const c=['#F6DCCB','#DCE7D3','#F3E2BC','#E4E2DA'][i%4];
+        const ic=t.outNights||t.outGuests?'🚪':(t.inNights?'🛏️':'🧺');
+        const staff=Array.isArray(t.assignedStaffNames)&&t.assignedStaffNames.length?t.assignedStaffNames.join(', '):'미배정';
+        const info=[t.outTime?('퇴실 '+t.outTime):'', t.inNights?('입실 '+(t.inTime||'16:00')):'', staff].filter(Boolean).join(' · ');
+        const isDone=t.status==='done';
+        return `<div class="rt-task" data-edit-tx="${t.id}">
+          <span class="rt-tdot" style="background:${c}">${ic}</span>
+          <span class="rt-tmain"><b>${esc(roomTitleOf(t.targetName||roomName(t.targetId)))}</b><small>${esc(info)}</small></span>
+          <button class="rt-check ${isDone?'done':'wait'}" data-toggle-status="${t.id}" aria-label="완료 체크">✓</button>
+        </div>`;
+      }).join('');
+      R.push(`<div class="rt-card">
+        <div class="rt-head"><span>오늘의 청소</span><b>${dateText(t0)}</b></div>
+        ${taskRows||'<div class="empty" style="padding:16px"><div class="big">☕</div>오늘 등록된 청소가 없어요</div>'}
+        ${todays.length>showN?`<button class="rt-more" data-ops-jump="opsAllBlock">＋ ${todays.length-showN}건 더 보기</button>`:''}
+      </div>`);
+
+      // 이번 주 + 머스타드 타일
+      R.push(`<div class="rt-row" style="grid-template-columns:1.6fr 1fr">
+        <div class="rt-card"><div class="rt-head" style="margin-bottom:6px"><span>이번 주</span></div><div class="rt-week">${weekHtml}</div></div>
+        <button class="rt-tile rt-mustard" data-goto="schedule"><span class="rt-ico">📅</span><small>주간 합계</small><span class="rt-mid">${weekTotal}<em style="font-size:11px;font-style:normal;margin-left:3px">건</em></span></button>
+      </div>`);
+
+      // 히트맵
+      R.push(`<div class="rt-card">
+        <div class="rt-head"><span>${monthText(month)} 청소 히트맵</span><b style="background:var(--n-navy)">${monthTotal}건</b></div>
+        <div class="rt-heat">${heat}</div>
+        <div class="rt-legend">적음 <i style="background:var(--n-bg2)"></i><i style="background:var(--r-peach)"></i><i style="background:var(--n-sage)"></i><i style="background:var(--r-green)"></i> 많음</div>
+      </div>`);
+
+      // 완료율 링 + 6개월 추이
+      const circ=2*Math.PI*24, off=circ*(1-pct/100);
+      R.push(`<div class="rt-row" style="grid-template-columns:1fr 1.5fr">
+        <div class="rt-tile rt-navy" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <small style="align-self:flex-start">이달 완료율</small>
+          <svg class="rt-ring" viewBox="0 0 60 60" style="margin-top:8px"><circle cx="30" cy="30" r="24" fill="none" stroke="rgba(251,245,234,.18)" stroke-width="6"/><circle cx="30" cy="30" r="24" fill="none" stroke="#D9622B" stroke-width="6" stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 30 30)"/><text x="30" y="34" text-anchor="middle" font-size="12" font-weight="900" fill="#FBF5EA">${pct}%</text></svg>
+        </div>
+        <div class="rt-tile rt-navy rt-trend">
+          <small>6개월 추이</small>
+          <svg viewBox="0 0 300 70" preserveAspectRatio="none"><path d="${path}" fill="none" stroke="#D9622B" stroke-width="3" stroke-linecap="round"/><circle cx="${lastPt[0]}" cy="${lastPt[1]}" r="5" fill="#FBF5EA"/></svg>
+          <div class="rt-trendlab">${months.map(m=>`<span>${Number(m.slice(5))}월</span>`).join('')}</div>
+        </div>
+      </div>`);
+
+      // 객실 타일
+      if(roomRows.length){
+        R.push(`<div class="rt-head" style="margin:6px 4px 0"><span>객실별 · 이번 달 청소</span></div>`);
+        R.push(`<div class="rt-rooms">${roomRows.map((x,i)=>`
+          <button class="rt-tile rt-room ${RT_COLORS[i%RT_COLORS.length]}" data-room-month="${x.r.id}">
+            <span class="rt-ico">🏠</span>
+            <span class="rt-rname">${esc(roomTitleOf(x.r.name))}</span>
+            <small>${esc(x.r.branch||'')}</small>
+            <span class="rt-big" style="font-size:34px">${pad(x.cnt)}</span>
+            <small style="margin-top:4px">최근 7일</small>
+            ${rtDots(7,x.on)}
+          </button>`).join('')}</div>`);
+      }
+
+      // 오렌지 배너
+      let net='';
+      if(canMoney){ try{ const tx=monthTx(month); net=short(sum(tx,'income')-sum(tx,'expense'))+'원'; }catch(e){} }
+      R.push(`<button class="rt-tile rt-orange rt-banner" data-goto="${canMoney?'insight':'schedule'}">
+        <div><small>이번 달 총 청소</small><span class="rt-big">${monthTotal}<em>건</em></span>${net?`<span class="rt-sub2">순익 ${net}</span>`:''}</div>
+        <span style="font-size:34px">🧺</span>
+      </button>`);
+
+      el.innerHTML=R.join('');
+    }catch(e){
+      console.error('retro',e);
+      el.innerHTML='';
+    }
+  }
+  // 히트맵 날짜 누르면 → 일정 탭의 그 날짜로 이동
+  document.addEventListener('click',function(ev){
+    try{
+      const c=ev.target.closest('[data-retro-day]'); if(!c)return;
+      selectedDate=c.dataset.retroDay; scheduleMonth=selectedDate.slice(0,7);
+      setView('schedule');
+    }catch(e){ console.error('retroDay',e); }
+  });
   function renderHome(){
     const jobs=branchFilter(state.transactions).filter(t=>t.type==='income'&&!t.checkinOnly&&t.date===today()&&t.status!=='cancelled').sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));
     const tx=monthTx(currentYM()), income=sum(tx,'income'),expense=sum(tx,'expense'),net=income-expense,recv=sum(tx,'income',false),pay=sum(tx,'expense',false),margin=income?Math.round(net/income*100):0;
@@ -3353,7 +3645,7 @@ h1,h2,h3{color:var(--n-ink)}
           return !!t.inSupplies||(base>0&&guests>base);
         }).length;
         const hostLabel=room.hostName?`<small style="display:block;color:var(--navy);font-size:10px;margin-bottom:3px;">👤 ${esc(room.hostName)}</small>`:'';
-        html+=`<button class="card group" data-room-month="${room.id}" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;border:1px solid var(--line);padding:14px 16px;"><div style="display:flex;align-items:center;gap:11px;min-width:0;"><div style="width:42px;height:42px;border-radius:14px;background:var(--sky);display:grid;place-items:center;font-size:18px;flex-shrink:0;">🏠</div><div style="min-width:0;">${hostLabel}<b style="font-size:15px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(ho)}${t.icalChanged?'<span style="margin-left:6px;background:#EFE6D4;color:#8A6E38;border-radius:6px;padding:2px 6px;font-size:9px;font-weight:900;vertical-align:middle;">🆕 변경</span>':''}</b>${roomSpecsHTML(room.name)}<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;"><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#EFF2F9;color:var(--navy);">예약 ${reservations}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#EDF7F4;color:#358879;">청소완료 ${done}/${cleans.length}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:${prep?'#FFF1E5':'#F8F7F9'};color:${prep?'var(--amber)':'var(--muted)'};">준비 ${prep}</span></div></div></div><span style="color:var(--muted);font-size:16px;flex-shrink:0;">›</span></button>`;
+        html+=`<button class="card group" data-room-month="${room.id}" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;border:1px solid var(--line);padding:14px 16px;"><div style="display:flex;align-items:center;gap:11px;min-width:0;"><div style="width:42px;height:42px;border-radius:14px;background:var(--sky);display:grid;place-items:center;font-size:18px;flex-shrink:0;">🏠</div><div style="min-width:0;">${hostLabel}<b style="font-size:15px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(ho)}${cleans.some(t=>t.icalChanged)?'<span style="margin-left:6px;background:#EFE6D4;color:#8A6E38;border-radius:6px;padding:2px 6px;font-size:9px;font-weight:900;vertical-align:middle;">🆕 변경</span>':''}</b>${roomSpecsHTML(room.name)}<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;"><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#EFF2F9;color:var(--navy);">예약 ${reservations}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:#EDF7F4;color:#358879;">청소완료 ${done}/${cleans.length}</span><span style="font-size:9px;font-weight:800;padding:5px 7px;border-radius:99px;background:${prep?'#FFF1E5':'#F8F7F9'};color:${prep?'var(--amber)':'var(--muted)'};">준비 ${prep}</span></div></div></div><span style="color:var(--muted);font-size:16px;flex-shrink:0;">›</span></button>`;
       });
     });
     $('#boardList').innerHTML=html;
