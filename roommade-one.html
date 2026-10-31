@@ -620,7 +620,7 @@ html,body,.app{background:var(--n-bg)!important}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v20.1</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v20.2</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1750,8 +1750,12 @@ html,body,.app{background:var(--n-bg)!important}
       const monthDays=Object.keys(byDate).filter(k=>k.slice(0,7)===month);
       const best=monthDays.reduce((m,k)=>Math.max(m,byDate[k]),0);
       const monthTotal=monthDays.reduce((s,k)=>s+byDate[k],0);
-      const monthDone=cleans.filter(t=>t.date.slice(0,7)===month&&t.status==='done').length;
-      const pct=monthTotal?Math.round(monthDone/monthTotal*100):0;
+      /* v20.2: 완료율은 '어제까지' 일정만 계산 (오늘 아직 안 끝난 청소 때문에 100%가 안 되는 문제) */
+      const pastList=cleans.filter(t=>t.date.slice(0,7)===month&&t.date<t0);
+      const pastDone=pastList.filter(t=>t.status==='done').length;
+      const missed=pastList.filter(t=>t.status!=='done').sort((a,b)=>a.date<b.date?-1:1);
+      const pct=pastList.length?Math.round(pastDone/pastList.length*100):100;
+      const pctLabel=pastList.length?(pastDone+' / '+pastList.length+'건'):'아직 지난 일정 없음';
 
       // ④ 이번 주 (월~일)
       const now=new Date(t0+'T00:00:00'); const mon=rtShift(t0,-((now.getDay()+6)%7));
@@ -1852,6 +1856,8 @@ html,body,.app{background:var(--n-bg)!important}
         <div class="rt-tile rt-navy" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
           <small style="align-self:flex-start">이달 완료율</small>
           <svg class="rt-ring" viewBox="0 0 60 60" style="margin-top:8px"><circle cx="30" cy="30" r="24" fill="none" stroke="rgba(251,245,234,.18)" stroke-width="6"/><circle cx="30" cy="30" r="24" fill="none" stroke="#D9622B" stroke-width="6" stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 30 30)"/><text x="30" y="34" text-anchor="middle" font-size="12" font-weight="900" fill="#FBF5EA">${pct}%</text></svg>
+          <small style="margin-top:6px;opacity:.85">어제까지 ${pctLabel}</small>
+          ${missed.length?`<button data-retro-day="${missed[0].date}" style="margin-top:8px;width:100%;border:0;border-radius:10px;padding:7px 6px;background:#D9622B;color:#FBF5EA;font-size:11px;font-weight:900;">⚠ 체크 안 된 청소 ${missed.length}건</button>`:''}
         </div>
         <div class="rt-tile rt-navy rt-trend">
           <small>6개월 추이</small>
