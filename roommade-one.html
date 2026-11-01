@@ -644,6 +644,45 @@ html,body,.app{background:var(--n-bg)!important}
 .pv-none{font-size:11px;color:#7A756B}
 .pv-foot{display:flex;justify-content:space-between;font-size:9px;letter-spacing:1.5px;color:#A19B8F;margin:6px 4px 14px;text-transform:uppercase}
 </style>
+<style id="roommade-pent-vacancy-2">
+/* 🌿 v20.3 펜트 공실 — 통합 보기 · 박수 글자 */
+.pv-tabs{display:flex;gap:6px;overflow-x:auto;margin:14px 0 2px;padding-bottom:2px;scrollbar-width:none}
+.pv-tabs::-webkit-scrollbar{display:none}
+.pv-tab{flex-shrink:0;border:1px solid #E1DBCF;background:#FFFFFF;color:#4A463F;border-radius:99px;padding:8px 13px;font-size:12px;font-weight:700}
+.pv-tab.on{background:#1F1F1F;border-color:#1F1F1F;color:#FBFAF4}
+.pv-px{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;overflow:hidden}
+.pv-px .dn{font-size:9px;font-weight:700;opacity:.75}
+.pv-px .lb{font-size:9px;font-weight:900;margin-top:1px;letter-spacing:-.3px;white-space:nowrap}
+.pv-px.one{background:#A7B8CF;color:#FFFFFF}
+.pv-px.multi{background:#B5A8C9;color:#FFFFFF}
+.pv-px.long{background:#9FB3A6;color:#FFFFFF}
+.pv-px.free{background:#DFC86E;color:#5E4B0E}
+.pv-today-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px dashed #E1DBCF;cursor:pointer}
+.pv-today-row:first-of-type{border-top:0}
+.pv-chip{flex-shrink:0;min-width:54px;text-align:center;border-radius:99px;padding:6px 8px;font-size:11px;font-weight:900}
+.pv-chip.one{background:#A7B8CF;color:#fff}.pv-chip.multi{background:#B5A8C9;color:#fff}.pv-chip.long{background:#9FB3A6;color:#fff}.pv-chip.free{background:#DFC86E;color:#5E4B0E}
+.pv-tr-main{flex:1;min-width:0}
+.pv-tr-main b{display:block;font-size:14px;color:#1F1F1F}
+.pv-tr-main small{display:block;font-size:11px;color:#7A756B;margin-top:2px}
+.pv-tr-go{color:#A19B8F;font-size:16px}
+.pv-gantt{overflow-x:auto;margin:14px -4px 0;padding:0 4px 4px;-webkit-overflow-scrolling:touch}
+.pv-gg{display:grid;gap:4px 3px;align-items:stretch}
+.pv-gname{position:sticky;left:0;z-index:2;background:#FBFAF4;border:0;text-align:left;font-size:11px;font-weight:900;color:#1F1F1F;padding:0 6px 0 0;display:flex;align-items:center}
+.pv-gname span{background:#F3F0E8;border-radius:10px;padding:8px 7px;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-gday{border:0;background:transparent;font-size:9px;font-weight:800;color:#A19B8F;padding:2px 0;border-radius:8px;line-height:1.2}
+.pv-gday b{display:block;font-size:11px;color:#4A463F}
+.pv-gday.sun b{color:#C0645A}.pv-gday.sat b{color:#5878A8}
+.pv-gday.sel{background:#1F1F1F;color:#FBFAF4}.pv-gday.sel b{color:#FBFAF4}
+.pv-gday.today b{text-decoration:underline;text-underline-offset:2px}
+.pv-seg{border:0;border-radius:9px;min-height:38px;font-size:10px;font-weight:900;padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-seg.one{background:#A7B8CF;color:#fff}.pv-seg.multi{background:#B5A8C9;color:#fff}.pv-seg.long{background:#9FB3A6;color:#fff}.pv-seg.free{background:#DFC86E;color:#5E4B0E}
+.pv-seg.past{opacity:.38}
+.pv-hint{font-size:10px;color:#A19B8F;margin-top:8px;text-align:center}
+.pv-daybox{margin-top:12px;background:#F3F0E8;border-radius:18px;padding:12px 13px}
+.pv-daybox > b{display:block;font-size:13px;color:#1F1F1F;margin-bottom:8px}
+.pv-dayline{display:flex;align-items:center;gap:8px;font-size:12px;color:#262626;padding:4px 0}
+.pv-dayline .pv-chip{min-width:58px;padding:4px 7px;font-size:10px}
+</style>
 </head>
 <body class="notranslate" translate="no">
 <div class="app">
@@ -656,7 +695,7 @@ html,body,.app{background:var(--n-bg)!important}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v20.2</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v20.3</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -793,8 +832,9 @@ html,body,.app{background:var(--n-bg)!important}
         <div class="pv-card">
           <div class="pv-top"><span class="pv-label">Penthouse · Vacancy</span><span class="pv-meta" id="pvRoomCount">펜트하우스</span></div>
           <div class="pv-title">예약된 날, 비어있는 날.</div>
-          <p class="pv-sub">장박·일반 예약으로 막힌 날과<br>아직 예약을 받을 수 있는 공실을 호실별로 보여드려요.</p>
+          <p class="pv-sub">1박·연박·장박 예약과 몇 박이 비었는지<br>4객실 통합으로, 또 호실별로 보여드려요.</p>
           <div class="pv-nav"><button data-pv-month="-1">‹</button><b id="pvMonthTitle">이번 달</b><button data-pv-month="1">›</button></div>
+          <div class="pv-tabs" id="pvTabs"></div>
           <div class="pv-stats" id="pvStats"></div>
         </div>
         <div id="pvRooms"></div>
@@ -1766,101 +1806,241 @@ html,body,.app{background:var(--n-bg)!important}
   }
 
   // ═══════════════════════════════════════════════
-  // 🌿 v20.2 펜트 공실 달력 — 호실별 · 월별 픽셀 달력
+  // 🌿 v20.3 펜트 공실 — 4객실 통합 + 호실별 · 1박/연박/장박/공실 N박 글자
   //   박(밤) 기준: 체크인 날부터 (박수)일 동안 '예약됨'
   //   체크아웃 날은 비어있으니 새 예약을 받을 수 있는 날로 셉니다
   // ═══════════════════════════════════════════════
-  let pvMonth=currentYM();
+  let pvMonth=currentYM(), pvSel='all', pvDay=today();
   const PV_LONG=7;   // 7박 이상이면 '장박'
+  const PV_WD=['일','월','화','수','목','금','토'];
   function pvShift(ds,n){ const d=new Date(ds+'T00:00:00'); d.setDate(d.getDate()+n); return ymd(d); }
+  function pvMD(ds){ return Number(ds.slice(5,7))+'/'+Number(ds.slice(8)); }
+  function pvKind(n){ return n>=PV_LONG?'long':(n>=2?'multi':'one'); }
   function pvRooms(){
     let rooms=(state.rooms||[]).filter(r=>!r.archived&&r.branch==='펜트하우스');
     if(activeRole==='host'){ const ids=new Set(hostRooms().map(r=>r.id)); rooms=rooms.filter(r=>ids.has(r.id)); }
     return rooms;
   }
-  // 객실 하나의 '밤별 예약 지도' 만들기 → { 'YYYY-MM-DD': {long:true/false, id:거래id} }
+  function pvTitle(room){ return roomTitleOf(room.name)||room.name; }
+  function pvShort(room){ const t=pvTitle(room); const m=t.match(/[A-Za-z]?\d{3,4}\s*호?/g); return m?m[m.length-1].replace(/\s/g,''):t.slice(-6); }
+  // 객실 하나의 '밤별 예약 지도' → { 날짜: {n:박수, ci:체크인일, id:거래id} }
   function pvNightMap(roomId){
     const map={};
     const mark=(ci,n,id)=>{
       n=parseInt(n,10); if(!ci||!n||n<=0||n>370)return;
-      const long=n>=PV_LONG;
-      for(let i=0;i<n;i++){ const d=pvShift(ci,i); if(!map[d]||long) map[d]={long,id}; }
+      for(let i=0;i<n;i++){ const d=pvShift(ci,i); if(!map[d]||map[d].n<n) map[d]={n,ci,id}; }
     };
     (state.transactions||[]).forEach(t=>{
       if(t.type!=='income'||t.status==='cancelled'||t.autoFee||String(t.targetId)!==String(roomId))return;
-      if(t.inNights) mark(t.inDate||t.date, t.inNights, t.id);                       // 이 청소 뒤 들어오는 예약
+      if(t.inNights) mark(t.inDate||t.date, t.inNights, t.id);                                    // 이 청소 뒤 들어오는 예약
       if(t.outNights&&t.date) mark(pvShift(t.date,-parseInt(t.outNights,10)), t.outNights, t.id); // 이 청소 날 나간 예약
     });
     return map;
   }
+  // 그 날짜가 속한 '연속 공실'의 시작·끝·박수 (달을 넘어가도 이어서 셈, 최대 90일)
+  //   · 앞으로의 공실은 '오늘'부터 셉니다 (지난 날은 빼고)
+  //   · 90일 안에 다음 예약이 없으면 '다음 예약 없음'
+  function pvFreeRun(map,ds){
+    const t0=today(), future=ds>=t0;
+    const lo=future?t0:pvMonth+'-01', hi=future?null:pvShift(t0,-1);
+    let s=ds,e=ds,k=0;
+    while(s>lo&&!map[pvShift(s,-1)]&&k<90){ s=pvShift(s,-1); k++; }
+    k=0; while((!hi||e<hi)&&!map[pvShift(e,1)]&&k<90){ e=pvShift(e,1); k++; }
+    const n=Math.round((new Date(e+'T00:00:00')-new Date(s+'T00:00:00'))/864e5)+1;
+    return {s,e,n,open:future&&k>=90};
+  }
+  function pvFreeLabel(r){ return r.open?'공실 · 예약없음':'공실 '+r.n+'박'; }
+  // 하루 상태 글 (통합 보기 · 오늘 한눈에)
+  function pvStatus(map,ds){
+    const info=map[ds];
+    if(info){
+      const idx=Math.round((new Date(ds+'T00:00:00')-new Date(info.ci+'T00:00:00'))/864e5)+1;
+      const out=pvShift(info.ci,info.n);
+      const kind=pvKind(info.n);
+      const chip=info.n===1?'1박':(kind==='long'?'장박':'연박');
+      const txt=info.n===1?('1박 예약 · '+pvMD(out)+' 퇴실'):(info.n+'박 중 '+idx+'박째 · '+pvMD(out)+' 퇴실');
+      return {kind,chip,txt,id:info.id};
+    }
+    const r=pvFreeRun(map,ds);
+    const nextIn=r.open?'':(' · '+pvMD(pvShift(r.e,1))+' 입실 예정');
+    return {kind:'free',chip:r.open?'공실':('공실\u00A0'+r.n+'박'),txt:r.open?(pvMD(r.s)+'부터 다음 예약 없음'):(pvMD(r.s)+' ~ '+pvMD(r.e)+' 비어있음'+nextIn),run:r};
+  }
+
   function renderPentVac(){
     const wrap=$('#schedPentWrap'); if(!wrap||wrap.style.display==='none')return;
     try{
       const t0=today(), rooms=pvRooms();
+      if(pvSel!=='all'&&!rooms.some(r=>String(r.id)===String(pvSel)))pvSel='all';
       const [yy,mm]=pvMonth.split('-').map(Number);
       const last=new Date(yy,mm,0).getDate(), first=new Date(yy,mm-1,1).getDay();
+      if(pvDay.slice(0,7)!==pvMonth) pvDay=(t0.slice(0,7)===pvMonth)?t0:pvMonth+'-01';
       $('#pvMonthTitle').textContent=monthText(pvMonth);
       $('#pvRoomCount').textContent='펜트하우스 '+rooms.length+'실';
       if(!rooms.length){
-        $('#pvStats').innerHTML='';
+        $('#pvTabs').innerHTML=''; $('#pvStats').innerHTML='';
         $('#pvRooms').innerHTML='<div class="pv-card"><div class="pv-none" style="text-align:center;padding:14px 0">🌿 펜트하우스 객실이 없어요<br>관리 탭에서 객실 지점을 \'펜트하우스\'로 등록해 주세요.</div></div>';
         return;
       }
-      let sumBooked=0, sumFree=0, sumDays=0;
-      const WD=['일','월','화','수','목','금','토'];
-      const cards=rooms.map(room=>{
-        const map=pvNightMap(room.id);
-        let booked=0, longN=0, freeFuture=0, grid=WD.map(w=>`<div class="pv-wk">${w}</div>`).join('');
-        for(let i=0;i<first;i++) grid+='<span class="pv-px blank"></span>';
-        const gaps=[]; let run=null;
-        for(let d=1;d<=last;d++){
-          const ds=pvMonth+'-'+pad(d), info=map[ds], past=ds<t0;
-          let cls='', attr='';
-          if(info){ booked++; if(info.long)longN++; cls=info.long?'long':'short'; attr=`data-edit-tx="${info.id}"`; }
-          else{ cls='free'; attr=`data-pv-free="${ds}" data-pv-room="${esc(roomTitleOf(room.name)||room.name)}"`; if(!past)freeFuture++; }
-          // 앞으로의 연속 공실 구간 모으기
-          if(!info&&!past){ if(run)run.end=ds,run.n++; else run={start:ds,end:ds,n:1}; }
-          else if(run){ gaps.push(run); run=null; }
-          grid+=`<button class="pv-px ${cls}${past?' past':''}${ds===t0?' today':''}" ${attr} title="${d}일">${d}</button>`;
-        }
-        if(run)gaps.push(run);
-        sumBooked+=booked; sumFree+=freeFuture; sumDays+=last;
-        const occ=Math.round(booked/last*100);
-        const md=s=>Number(s.slice(5,7))+'/'+Number(s.slice(8));
-        const gapHtml=gaps.length
-          ? gaps.sort((a,b)=>b.n-a.n).slice(0,6).map(g=>`<span class="pv-gap">🟡 ${md(g.start)}${g.n>1?' ~ '+md(g.end):''} · ${g.n}일</span>`).join('')
-          : '<span class="pv-none">이 달은 남은 공실이 없어요 👍</span>';
-        return `<div class="pv-card">
-          <div class="pv-room-head">
-            <div><span class="pv-label">Room</span><h3>${esc(roomTitleOf(room.name)||room.name)}</h3></div>
-            <div class="pv-occ">${occ}%<small>점유율</small></div>
-          </div>
-          <div class="pv-stats">
-            <div class="pv-stat"><small>예약된 밤</small><b>${booked}</b></div>
-            <div class="pv-stat"><small>장박</small><b>${longN}</b></div>
-            <div class="pv-stat"><small>남은 공실</small><b>${freeFuture}</b></div>
-          </div>
-          <div class="pv-grid">${grid}</div>
-          <div class="pv-legend"><span><i style="background:#9FB3A6"></i>장박 예약 (${PV_LONG}박+)</span><span><i style="background:#A7B8CF"></i>일반 예약</span><span><i style="background:#DFC86E"></i>공실 · 예약 가능</span><span><i style="background:#EDEAE2;opacity:.6"></i>지난 날 (흐리게)</span></div>
-          <div class="pv-gaps"><b>예약 받을 수 있는 공실 구간</b>${gapHtml}</div>
-        </div>`;
+      // 탭: 전체 + 호실별
+      $('#pvTabs').innerHTML=`<button class="pv-tab ${pvSel==='all'?'on':''}" data-pv-tab="all">🏢 ${rooms.length}객실 통합</button>`+
+        rooms.map(r=>`<button class="pv-tab ${String(pvSel)===String(r.id)?'on':''}" data-pv-tab="${esc(r.id)}">${esc(pvShort(r))}</button>`).join('');
+
+      // 객실별 이번 달 집계
+      const maps={}; let sumBooked=0,sumFree=0;
+      const stat=rooms.map(r=>{
+        const map=pvNightMap(r.id); maps[r.id]=map;
+        let booked=0,free=0;
+        for(let d=1;d<=last;d++){ const ds=pvMonth+'-'+pad(d); if(map[ds])booked++; else if(ds>=t0)free++; }
+        sumBooked+=booked; sumFree+=free;
+        return {r,map,booked,free,occ:Math.round(booked/last*100)};
       });
+      const sel=pvSel==='all'?null:stat.find(x=>String(x.r.id)===String(pvSel));
+      const S=sel?{occ:sel.occ,b:sel.booked,f:sel.free}:{occ:Math.round(sumBooked/(last*rooms.length)*100),b:sumBooked,f:sumFree};
       $('#pvStats').innerHTML=`
-        <div class="pv-stat"><small>전체 점유율</small><b>${Math.round(sumBooked/sumDays*100)}%</b></div>
-        <div class="pv-stat"><small>예약된 밤</small><b>${sumBooked}</b></div>
-        <div class="pv-stat"><small>남은 공실</small><b>${sumFree}</b></div>`;
-      $('#pvRooms').innerHTML=cards.join('');
+        <div class="pv-stat"><small>${sel?'점유율':'전체 점유율'}</small><b>${S.occ}%</b></div>
+        <div class="pv-stat"><small>예약된 밤</small><b>${S.b}</b></div>
+        <div class="pv-stat"><small>남은 공실</small><b>${S.f}</b></div>`;
+
+      const legend=`<div class="pv-legend"><span><i style="background:#A7B8CF"></i>1박</span><span><i style="background:#B5A8C9"></i>연박 (2~${PV_LONG-1}박)</span><span><i style="background:#9FB3A6"></i>장박 (${PV_LONG}박+)</span><span><i style="background:#DFC86E"></i>공실 · 예약 가능</span></div>`;
+
+      $('#pvRooms').innerHTML = sel ? pvRoomCard(sel,t0,last,first,legend) : pvAllCards(stat,t0,last,legend);
     }catch(e){
       console.error('pentVac',e);
       $('#pvRooms').innerHTML='<div class="pv-card"><div class="pv-none">화면을 그리다 문제가 생겼어요. 새로고침 해주세요.</div></div>';
     }
   }
+
+  // ── 🏢 4객실 통합 보기 ──
+  function pvAllCards(stat,t0,last,legend){
+    const isThisMonth=t0.slice(0,7)===pvMonth;
+    // ① 오늘(또는 고른 날) 한눈에
+    const dayRows=stat.map(x=>{
+      const st=pvStatus(x.map,pvDay);
+      return `<div class="pv-today-row" data-pv-tab="${esc(x.r.id)}">
+        <span class="pv-chip ${st.kind}">${esc(st.chip)}</span>
+        <span class="pv-tr-main"><b>${esc(pvShort(x.r))}</b><small>${esc(st.txt)}</small></span>
+        <span class="pv-tr-go">›</span></div>`;
+    }).join('');
+    const dayTitle=(pvDay===t0?'오늘 ':'')+dateText(pvDay);
+    const card1=`<div class="pv-card">
+      <div class="pv-top"><span class="pv-label">${pvDay===t0?'Today':'Selected Day'}</span><span class="pv-meta">${esc(dayTitle)}</span></div>
+      <div class="pv-title" style="font-size:21px">${esc(dayTitle)} 한눈에</div>
+      <p class="pv-sub">호실을 누르면 그 호실 달력으로 넘어가요.</p>
+      <div style="margin-top:10px">${dayRows}</div>
+    </div>`;
+
+    // ② 한 달 타임라인 (가로로 밀어서 보기)
+    const COLW=34, D=last;
+    let g=`<div class="pv-gg" style="grid-template-columns:74px repeat(${D},${COLW}px)">`;
+    g+=`<div class="pv-gname" style="grid-row:1;grid-column:1"><span style="background:transparent;color:#A19B8F;font-size:9px">호실 \\ 날짜</span></div>`;
+    for(let d=1;d<=D;d++){
+      const ds=pvMonth+'-'+pad(d), wd=new Date(ds+'T00:00:00').getDay();
+      g+=`<button class="pv-gday ${wd===0?'sun':wd===6?'sat':''}${ds===pvDay?' sel':''}${ds===t0?' today':''}" style="grid-row:1;grid-column:${d+1}" data-pv-day="${ds}">${PV_WD[wd]}<b>${d}</b></button>`;
+    }
+    stat.forEach((x,ri)=>{
+      const row=ri+2;
+      g+=`<button class="pv-gname" style="grid-row:${row};grid-column:1" data-pv-tab="${esc(x.r.id)}"><span>${esc(pvShort(x.r))}</span></button>`;
+      let d=1;
+      while(d<=D){
+        const ds=pvMonth+'-'+pad(d), info=x.map[ds];
+        let e=d;
+        if(info){ while(e<D&&x.map[pvMonth+'-'+pad(e+1)]&&x.map[pvMonth+'-'+pad(e+1)].ci===info.ci&&x.map[pvMonth+'-'+pad(e+1)].n===info.n)e++; }
+        else{ const side=ds<t0; while(e<D&&!x.map[pvMonth+'-'+pad(e+1)]&&((pvMonth+'-'+pad(e+1))<t0)===side)e++; }
+        const span=e-d+1, endDs=pvMonth+'-'+pad(e), past=endDs<t0;
+        if(info){
+          const k=pvKind(info.n);
+          const lb=info.n===1?'1박':(span>=2?(k==='long'?'장박 ':'연박 ')+info.n+'박':info.n+'박');
+          g+=`<button class="pv-seg ${k}${past?' past':''}" style="grid-row:${row};grid-column:${d+1} / span ${span}" data-edit-tx="${info.id}" title="${pvMD(info.ci)} 입실 ${info.n}박">${lb}</button>`;
+        }else{
+          const r=pvFreeRun(x.map,ds);
+          const lb=span>=2?(r.open?'공실 · 다음 예약 없음':pvFreeLabel(r)):'공실';
+          g+=`<button class="pv-seg free${past?' past':''}" style="grid-row:${row};grid-column:${d+1} / span ${span}" data-pv-free="${ds}" data-pv-room="${esc(pvShort(x.r))}" data-pv-run="${esc(pvFreeLabel(r))}">${lb}</button>`;
+        }
+        d=e+1;
+      }
+    });
+    g+='</div>';
+    // 고른 날 요약
+    const lines=stat.map(x=>{ const st=pvStatus(x.map,pvDay); return `<div class="pv-dayline"><span class="pv-chip ${st.kind}">${esc(st.chip)}</span><b>${esc(pvShort(x.r))}</b><span style="color:#7A756B;font-size:11px">${esc(st.txt)}</span></div>`; }).join('');
+    const card2=`<div class="pv-card">
+      <div class="pv-top"><span class="pv-label">Month Timeline</span><span class="pv-meta">${monthText(pvMonth)}</span></div>
+      <div class="pv-gantt" id="pvGantt">${g}</div>
+      <div class="pv-hint">👉 옆으로 밀어서 보기 · 날짜를 누르면 위 '한눈에' 카드가 그날로 바뀌어요</div>
+      ${legend}
+    </div>`;
+
+    // ③ 이번 달 공실 구간 모음
+    const gapRows=stat.map(x=>{
+      const runs=[]; let d=1;
+      while(d<=last){
+        const ds=pvMonth+'-'+pad(d);
+        if(!x.map[ds]&&ds>=t0){ const r=pvFreeRun(x.map,ds); runs.push(r); d=(r.e.slice(0,7)>pvMonth)?last+1:Number(r.e.slice(8))+1; }
+        else d++;
+      }
+      return `<div class="pv-dayline" style="align-items:flex-start;padding:7px 0"><b style="min-width:64px">${esc(pvShort(x.r))}</b><span>${runs.length?runs.map(r=>`<span class="pv-gap">${pvMD(r.s)}${r.open?'부터 · 다음 예약 없음':(r.n>1?' ~ '+pvMD(r.e):'')+' · '+r.n+'박'}</span>`).join(''):'<span class="pv-none">남은 공실 없음 👍</span>'}</span></div>`;
+    }).join('');
+    const card3=`<div class="pv-card">
+      <div class="pv-top"><span class="pv-label">Open Nights</span><span class="pv-meta">예약 받을 수 있는 구간</span></div>
+      <div style="margin-top:10px">${gapRows}</div>
+    </div>`;
+
+    // 타임라인을 고른 날 근처로 자동 스크롤
+    setTimeout(()=>{ try{ const gt=$('#pvGantt'); if(gt){ const dn=Number(pvDay.slice(8)); gt.scrollLeft=Math.max(0,(dn-3)*(COLW+3)); } }catch(e){} },30);
+    return card1+card2+card3;
+  }
+
+  // ── 🏠 호실별 보기 (픽셀 달력 + 박수 글자) ──
+  function pvRoomCard(x,t0,last,first,legend){
+    const map=x.map;
+    let grid=PV_WD.map(w=>`<div class="pv-wk">${w}</div>`).join('');
+    for(let i=0;i<first;i++) grid+='<span class="pv-px blank"></span>';
+    let longN=0;
+    for(let d=1;d<=last;d++){
+      const ds=pvMonth+'-'+pad(d), info=map[ds], past=ds<t0, prev=map[pvShift(ds,-1)];
+      let cls,attr,lb='';
+      if(info){
+        if(info.n>=PV_LONG)longN++;
+        cls=pvKind(info.n);
+        const start=(ds===info.ci)||d===1;
+        lb=info.n===1?'1박':(start?info.n+'박':'연박');
+        attr=`data-edit-tx="${info.id}"`;
+      }else{
+        cls='free';
+        const r=pvFreeRun(map,ds);
+        if(prev||d===1||ds===t0) lb=r.open?'계속':r.n+'박';   // 전날이 예약이면 여기서 공실 시작     // 공실 시작 칸에 '공실 N박'
+        attr=`data-pv-free="${ds}" data-pv-room="${esc(pvShort(x.r))}" data-pv-run="${esc(pvFreeLabel(r))}"`;
+        if(lb)lb='공실'+'<br>'+lb;
+      }
+      grid+=`<button class="pv-px ${cls}${past?' past':''}${ds===t0?' today':''}" ${attr}><span class="dn">${d}</span>${lb?`<span class="lb">${lb}</span>`:''}</button>`;
+    }
+    const st=pvStatus(map,t0.slice(0,7)===pvMonth?t0:pvMonth+'-01');
+    return `<div class="pv-card">
+      <div class="pv-room-head">
+        <div><span class="pv-label">Room</span><h3>${esc(pvTitle(x.r))}</h3></div>
+        <div class="pv-occ">${x.occ}%<small>점유율</small></div>
+      </div>
+      <div class="pv-dayline" style="margin-top:10px"><span class="pv-chip ${st.kind}">${esc(st.chip)}</span><span style="font-size:12px;color:#4A463F">${esc(st.txt)}</span></div>
+      <div class="pv-stats">
+        <div class="pv-stat"><small>예약된 밤</small><b>${x.booked}</b></div>
+        <div class="pv-stat"><small>장박 밤</small><b>${longN}</b></div>
+        <div class="pv-stat"><small>남은 공실</small><b>${x.free}</b></div>
+      </div>
+      <div class="pv-grid">${grid}</div>
+      ${legend}
+      <button class="rt-more" data-pv-tab="all" style="margin-top:14px">🏢 4객실 통합으로 돌아가기</button>
+    </div>`;
+  }
+
   document.addEventListener('click',function(ev){
     try{
       const m=ev.target.closest('[data-pv-month]');
       if(m){ const [y,mo]=pvMonth.split('-').map(Number); const d=new Date(y,mo-1+Number(m.dataset.pvMonth),1); pvMonth=d.getFullYear()+'-'+pad(d.getMonth()+1); renderPentVac(); return; }
+      const tb=ev.target.closest('[data-pv-tab]');
+      if(tb){ pvSel=tb.dataset.pvTab; renderPentVac(); try{ $('#schedPentWrap').scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){} return; }
+      const dy=ev.target.closest('[data-pv-day]');
+      if(dy){ pvDay=dy.dataset.pvDay; renderPentVac(); return; }
       const f=ev.target.closest('[data-pv-free]');
-      if(f){ toast('🟡 '+f.dataset.pvRoom+' · '+dateText(f.dataset.pvFree)+' 공실 — 예약 가능'); }
+      if(f){ toast('🟡 '+f.dataset.pvRoom+' · '+dateText(f.dataset.pvFree)+' · '+f.dataset.pvRun+' — 예약 가능'); }
     }catch(e){ console.error('pvClick',e); }
   });
 
