@@ -608,6 +608,42 @@ html,body,.app{background:var(--n-bg)!important}
 .rt-banner{display:flex;align-items:flex-end;justify-content:space-between}
 .rt-sub2{font-size:10px;font-weight:800;opacity:.85;margin-top:6px;display:block}
 </style>
+<style id="roommade-pent-vacancy">
+/* 🌿 v20.2 펜트 공실 달력 (참고: LIFE IN PIXELS 스타일) */
+.pv-card{background:#FBFAF4;border:1px solid #E6E1D6;border-radius:28px;padding:20px 18px 18px;margin-bottom:12px;color:#262626}
+.pv-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pv-label{font-size:10px;font-weight:800;letter-spacing:3px;color:#6F6A60;text-transform:uppercase}
+.pv-meta{font-size:11px;color:#7A756B;font-weight:600}
+.pv-title{font-size:26px;font-weight:600;letter-spacing:-.8px;margin:14px 0 6px;color:#1F1F1F;line-height:1.2}
+.pv-sub{font-size:12px;color:#7A756B;line-height:1.6;margin:0}
+.pv-nav{display:flex;align-items:center;justify-content:space-between;margin:16px 0 4px}
+.pv-nav button{width:38px;height:38px;border-radius:50%;border:1px solid #E1DBCF;background:#FFFFFF;font-size:16px;color:#262626;font-weight:700}
+.pv-nav b{font-size:15px;color:#262626}
+.pv-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.pv-stat{background:#F3F0E8;border-radius:16px;padding:10px 8px;text-align:center}
+.pv-stat small{display:block;font-size:10px;color:#7A756B;font-weight:700}
+.pv-stat b{display:block;font-size:19px;color:#1F1F1F;margin-top:2px;letter-spacing:-.5px}
+.pv-room-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.pv-room-head h3{margin:6px 0 0;font-size:19px;font-weight:600;letter-spacing:-.5px;color:#1F1F1F}
+.pv-occ{font-size:24px;font-weight:600;color:#1F1F1F;letter-spacing:-1px;text-align:right;line-height:1}
+.pv-occ small{display:block;font-size:10px;color:#7A756B;letter-spacing:0;margin-top:4px;font-weight:700}
+.pv-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:16px}
+.pv-wk{font-size:10px;font-weight:700;color:#A19B8F;text-align:center;padding-bottom:2px}
+.pv-px{aspect-ratio:1/1;border:0;border-radius:8px;background:#EDEAE2;padding:0;font-size:10px;font-weight:700;color:rgba(31,31,31,.55);position:relative}
+.pv-px.blank{background:transparent;pointer-events:none}
+.pv-px.long{background:#9FB3A6;color:rgba(255,255,255,.9)}
+.pv-px.short{background:#A7B8CF;color:rgba(255,255,255,.9)}
+.pv-px.free{background:#DFC86E;color:#5E4B0E}
+.pv-px.past{opacity:.38}
+.pv-px.today{outline:3px solid #1F1F1F;outline-offset:1px}
+.pv-legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:14px;font-size:11px;color:#6F6A60;font-weight:600}
+.pv-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.pv-gaps{margin-top:14px;border-top:1px dashed #E1DBCF;padding-top:12px}
+.pv-gaps b{display:block;font-size:12px;color:#262626;margin-bottom:7px}
+.pv-gap{display:inline-flex;align-items:center;gap:5px;background:#F6EDC9;color:#5E4B0E;border-radius:99px;padding:6px 10px;font-size:11px;font-weight:700;margin:0 5px 6px 0}
+.pv-none{font-size:11px;color:#7A756B}
+.pv-foot{display:flex;justify-content:space-between;font-size:9px;letter-spacing:1.5px;color:#A19B8F;margin:6px 4px 14px;text-transform:uppercase}
+</style>
 </head>
 <body class="notranslate" translate="no">
 <div class="app">
@@ -722,6 +758,7 @@ html,body,.app{background:var(--n-bg)!important}
       <div class="segment" style="margin-bottom:12px;">
         <button class="segbtn active" data-sched-view="calendar">📅 월간 달력</button>
         <button class="segbtn" data-sched-view="board">🏢 객실 현황판</button>
+        <button class="segbtn" data-sched-view="pent">🌿 펜트 공실</button>
       </div>
 
       <div id="schedCalendarWrap">
@@ -749,6 +786,19 @@ html,body,.app{background:var(--n-bg)!important}
         </div>
         <div class="hostshare"><div class="hostshare-copy"><b>호스트 공유</b><small>예약·청소·준비상태만 보여주는 링크를 한 번에 관리하세요.</small></div><div class="hostshare-actions"><button id="makeRoomview">링크 만들기</button><button id="notifyUpdate">업데이트</button></div></div>
         <div id="boardList"></div>
+      </div>
+
+      <!-- 🌿 v20.2 펜트 공실 달력 -->
+      <div id="schedPentWrap" style="display:none;">
+        <div class="pv-card">
+          <div class="pv-top"><span class="pv-label">Penthouse · Vacancy</span><span class="pv-meta" id="pvRoomCount">펜트하우스</span></div>
+          <div class="pv-title">예약된 날, 비어있는 날.</div>
+          <p class="pv-sub">장박·일반 예약으로 막힌 날과<br>아직 예약을 받을 수 있는 공실을 호실별로 보여드려요.</p>
+          <div class="pv-nav"><button data-pv-month="-1">‹</button><b id="pvMonthTitle">이번 달</b><button data-pv-month="1">›</button></div>
+          <div class="pv-stats" id="pvStats"></div>
+        </div>
+        <div id="pvRooms"></div>
+        <div class="pv-foot"><span>Every night counts.</span><span>Roommade · Pent</span></div>
       </div>
     </section>
 
@@ -1712,7 +1762,107 @@ html,body,.app{background:var(--n-bg)!important}
     try{ renderNotiUI(); }catch(e){}
     try{ renderIncentives(); }catch(e){ console.error('inc',e); }
     try{ renderRetro(); }catch(e){ console.error('retro',e); }
+    try{ renderPentVac(); }catch(e){ console.error('pentVac',e); }
   }
+
+  // ═══════════════════════════════════════════════
+  // 🌿 v20.2 펜트 공실 달력 — 호실별 · 월별 픽셀 달력
+  //   박(밤) 기준: 체크인 날부터 (박수)일 동안 '예약됨'
+  //   체크아웃 날은 비어있으니 새 예약을 받을 수 있는 날로 셉니다
+  // ═══════════════════════════════════════════════
+  let pvMonth=currentYM();
+  const PV_LONG=7;   // 7박 이상이면 '장박'
+  function pvShift(ds,n){ const d=new Date(ds+'T00:00:00'); d.setDate(d.getDate()+n); return ymd(d); }
+  function pvRooms(){
+    let rooms=(state.rooms||[]).filter(r=>!r.archived&&r.branch==='펜트하우스');
+    if(activeRole==='host'){ const ids=new Set(hostRooms().map(r=>r.id)); rooms=rooms.filter(r=>ids.has(r.id)); }
+    return rooms;
+  }
+  // 객실 하나의 '밤별 예약 지도' 만들기 → { 'YYYY-MM-DD': {long:true/false, id:거래id} }
+  function pvNightMap(roomId){
+    const map={};
+    const mark=(ci,n,id)=>{
+      n=parseInt(n,10); if(!ci||!n||n<=0||n>370)return;
+      const long=n>=PV_LONG;
+      for(let i=0;i<n;i++){ const d=pvShift(ci,i); if(!map[d]||long) map[d]={long,id}; }
+    };
+    (state.transactions||[]).forEach(t=>{
+      if(t.type!=='income'||t.status==='cancelled'||t.autoFee||String(t.targetId)!==String(roomId))return;
+      if(t.inNights) mark(t.inDate||t.date, t.inNights, t.id);                       // 이 청소 뒤 들어오는 예약
+      if(t.outNights&&t.date) mark(pvShift(t.date,-parseInt(t.outNights,10)), t.outNights, t.id); // 이 청소 날 나간 예약
+    });
+    return map;
+  }
+  function renderPentVac(){
+    const wrap=$('#schedPentWrap'); if(!wrap||wrap.style.display==='none')return;
+    try{
+      const t0=today(), rooms=pvRooms();
+      const [yy,mm]=pvMonth.split('-').map(Number);
+      const last=new Date(yy,mm,0).getDate(), first=new Date(yy,mm-1,1).getDay();
+      $('#pvMonthTitle').textContent=monthText(pvMonth);
+      $('#pvRoomCount').textContent='펜트하우스 '+rooms.length+'실';
+      if(!rooms.length){
+        $('#pvStats').innerHTML='';
+        $('#pvRooms').innerHTML='<div class="pv-card"><div class="pv-none" style="text-align:center;padding:14px 0">🌿 펜트하우스 객실이 없어요<br>관리 탭에서 객실 지점을 \'펜트하우스\'로 등록해 주세요.</div></div>';
+        return;
+      }
+      let sumBooked=0, sumFree=0, sumDays=0;
+      const WD=['일','월','화','수','목','금','토'];
+      const cards=rooms.map(room=>{
+        const map=pvNightMap(room.id);
+        let booked=0, longN=0, freeFuture=0, grid=WD.map(w=>`<div class="pv-wk">${w}</div>`).join('');
+        for(let i=0;i<first;i++) grid+='<span class="pv-px blank"></span>';
+        const gaps=[]; let run=null;
+        for(let d=1;d<=last;d++){
+          const ds=pvMonth+'-'+pad(d), info=map[ds], past=ds<t0;
+          let cls='', attr='';
+          if(info){ booked++; if(info.long)longN++; cls=info.long?'long':'short'; attr=`data-edit-tx="${info.id}"`; }
+          else{ cls='free'; attr=`data-pv-free="${ds}" data-pv-room="${esc(roomTitleOf(room.name)||room.name)}"`; if(!past)freeFuture++; }
+          // 앞으로의 연속 공실 구간 모으기
+          if(!info&&!past){ if(run)run.end=ds,run.n++; else run={start:ds,end:ds,n:1}; }
+          else if(run){ gaps.push(run); run=null; }
+          grid+=`<button class="pv-px ${cls}${past?' past':''}${ds===t0?' today':''}" ${attr} title="${d}일">${d}</button>`;
+        }
+        if(run)gaps.push(run);
+        sumBooked+=booked; sumFree+=freeFuture; sumDays+=last;
+        const occ=Math.round(booked/last*100);
+        const md=s=>Number(s.slice(5,7))+'/'+Number(s.slice(8));
+        const gapHtml=gaps.length
+          ? gaps.sort((a,b)=>b.n-a.n).slice(0,6).map(g=>`<span class="pv-gap">🟡 ${md(g.start)}${g.n>1?' ~ '+md(g.end):''} · ${g.n}일</span>`).join('')
+          : '<span class="pv-none">이 달은 남은 공실이 없어요 👍</span>';
+        return `<div class="pv-card">
+          <div class="pv-room-head">
+            <div><span class="pv-label">Room</span><h3>${esc(roomTitleOf(room.name)||room.name)}</h3></div>
+            <div class="pv-occ">${occ}%<small>점유율</small></div>
+          </div>
+          <div class="pv-stats">
+            <div class="pv-stat"><small>예약된 밤</small><b>${booked}</b></div>
+            <div class="pv-stat"><small>장박</small><b>${longN}</b></div>
+            <div class="pv-stat"><small>남은 공실</small><b>${freeFuture}</b></div>
+          </div>
+          <div class="pv-grid">${grid}</div>
+          <div class="pv-legend"><span><i style="background:#9FB3A6"></i>장박 예약 (${PV_LONG}박+)</span><span><i style="background:#A7B8CF"></i>일반 예약</span><span><i style="background:#DFC86E"></i>공실 · 예약 가능</span><span><i style="background:#EDEAE2;opacity:.6"></i>지난 날 (흐리게)</span></div>
+          <div class="pv-gaps"><b>예약 받을 수 있는 공실 구간</b>${gapHtml}</div>
+        </div>`;
+      });
+      $('#pvStats').innerHTML=`
+        <div class="pv-stat"><small>전체 점유율</small><b>${Math.round(sumBooked/sumDays*100)}%</b></div>
+        <div class="pv-stat"><small>예약된 밤</small><b>${sumBooked}</b></div>
+        <div class="pv-stat"><small>남은 공실</small><b>${sumFree}</b></div>`;
+      $('#pvRooms').innerHTML=cards.join('');
+    }catch(e){
+      console.error('pentVac',e);
+      $('#pvRooms').innerHTML='<div class="pv-card"><div class="pv-none">화면을 그리다 문제가 생겼어요. 새로고침 해주세요.</div></div>';
+    }
+  }
+  document.addEventListener('click',function(ev){
+    try{
+      const m=ev.target.closest('[data-pv-month]');
+      if(m){ const [y,mo]=pvMonth.split('-').map(Number); const d=new Date(y,mo-1+Number(m.dataset.pvMonth),1); pvMonth=d.getFullYear()+'-'+pad(d.getMonth()+1); renderPentVac(); return; }
+      const f=ev.target.closest('[data-pv-free]');
+      if(f){ toast('🟡 '+f.dataset.pvRoom+' · '+dateText(f.dataset.pvFree)+' 공실 — 예약 가능'); }
+    }catch(e){ console.error('pvClick',e); }
+  });
 
   // ═══════════════════════════════════════════════
   // 🎨 v20.0 레트로 보드 (오늘의 포커스 · 히트맵 · 객실 타일)
@@ -1750,12 +1900,8 @@ html,body,.app{background:var(--n-bg)!important}
       const monthDays=Object.keys(byDate).filter(k=>k.slice(0,7)===month);
       const best=monthDays.reduce((m,k)=>Math.max(m,byDate[k]),0);
       const monthTotal=monthDays.reduce((s,k)=>s+byDate[k],0);
-      /* v20.2: 완료율은 '어제까지' 일정만 계산 (오늘 아직 안 끝난 청소 때문에 100%가 안 되는 문제) */
-      const pastList=cleans.filter(t=>t.date.slice(0,7)===month&&t.date<t0);
-      const pastDone=pastList.filter(t=>t.status==='done').length;
-      const missed=pastList.filter(t=>t.status!=='done').sort((a,b)=>a.date<b.date?-1:1);
-      const pct=pastList.length?Math.round(pastDone/pastList.length*100):100;
-      const pctLabel=pastList.length?(pastDone+' / '+pastList.length+'건'):'아직 지난 일정 없음';
+      const monthDone=cleans.filter(t=>t.date.slice(0,7)===month&&t.status==='done').length;
+      const pct=monthTotal?Math.round(monthDone/monthTotal*100):0;
 
       // ④ 이번 주 (월~일)
       const now=new Date(t0+'T00:00:00'); const mon=rtShift(t0,-((now.getDay()+6)%7));
@@ -1856,8 +2002,6 @@ html,body,.app{background:var(--n-bg)!important}
         <div class="rt-tile rt-navy" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
           <small style="align-self:flex-start">이달 완료율</small>
           <svg class="rt-ring" viewBox="0 0 60 60" style="margin-top:8px"><circle cx="30" cy="30" r="24" fill="none" stroke="rgba(251,245,234,.18)" stroke-width="6"/><circle cx="30" cy="30" r="24" fill="none" stroke="#D9622B" stroke-width="6" stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 30 30)"/><text x="30" y="34" text-anchor="middle" font-size="12" font-weight="900" fill="#FBF5EA">${pct}%</text></svg>
-          <small style="margin-top:6px;opacity:.85">어제까지 ${pctLabel}</small>
-          ${missed.length?`<button data-retro-day="${missed[0].date}" style="margin-top:8px;width:100%;border:0;border-radius:10px;padding:7px 6px;background:#D9622B;color:#FBF5EA;font-size:11px;font-weight:900;">⚠ 체크 안 된 청소 ${missed.length}건</button>`:''}
         </div>
         <div class="rt-tile rt-navy rt-trend">
           <small>6개월 추이</small>
@@ -5904,7 +6048,7 @@ html,body,.app{background:var(--n-bg)!important}
     if(b.dataset.type){txType=b.dataset.type;updateTxType()}
     if(b.dataset.month){scheduleMonth=shiftMonth(scheduleMonth,Number(b.dataset.month));renderSchedule()}
     if(b.dataset.boardMonth){boardMonth=shiftMonth(boardMonth,Number(b.dataset.boardMonth));renderBoard()}
-    if(b.dataset.schedView){schedView=b.dataset.schedView;$$('[data-sched-view]').forEach(x=>x.classList.toggle('active',x.dataset.schedView===schedView));$('#schedCalendarWrap').style.display=schedView==='calendar'?'block':'none';$('#schedBoardWrap').style.display=schedView==='board'?'block':'none';if(schedView==='board')renderBoard();}
+    if(b.dataset.schedView){schedView=b.dataset.schedView;$$('[data-sched-view]').forEach(x=>x.classList.toggle('active',x.dataset.schedView===schedView));$('#schedCalendarWrap').style.display=schedView==='calendar'?'block':'none';$('#schedBoardWrap').style.display=schedView==='board'?'block':'none';{const pw=$('#schedPentWrap');if(pw)pw.style.display=schedView==='pent'?'block':'none';}if(schedView==='board')renderBoard();if(schedView==='pent')renderPentVac();}
     if(b.dataset.settlePeriod){settlePeriod=b.dataset.settlePeriod;$$('[data-settle-period]').forEach(x=>x.classList.toggle('active',x.dataset.settlePeriod===settlePeriod));renderSettlement();return;}
     if(b.dataset.settleToggle){const k=b.dataset.settleToggle;settleOpen[k]=!settleOpen[k];renderSettlement();return;}
     if(b.dataset.roomMonth){openRoomMonth(b.dataset.roomMonth);return;}
