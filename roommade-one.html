@@ -683,6 +683,23 @@ html,body,.app{background:var(--n-bg)!important}
 .pv-dayline{display:flex;align-items:center;gap:8px;font-size:12px;color:#262626;padding:4px 0}
 .pv-dayline .pv-chip{min-width:58px;padding:4px 7px;font-size:10px}
 </style>
+<style id="roommade-pent-vacancy-3">
+/* 🌿 v20.4 타임라인 세로형 — 날짜 왼쪽 · 호실 위 */
+.pv-gantt{overflow-x:hidden;overflow-y:auto;max-height:68vh;margin:14px -2px 0;padding:0 2px 4px;border-radius:16px}
+.pv-vg{display:grid;gap:4px 4px}
+.pv-vhead{position:sticky;top:0;z-index:3;background:#F3F0E8;border:0;border-radius:10px;padding:9px 2px;font-size:12px;font-weight:900;color:#1F1F1F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 -6px 0 #FBFAF4}
+.pv-vcorner{background:#FBFAF4;color:#A19B8F;font-size:9px;text-align:center;display:flex;align-items:center;justify-content:center}
+.pv-vday{border:0;background:transparent;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:3px;font-size:9px;font-weight:800;color:#A19B8F;padding:0}
+.pv-vday b{font-size:13px;color:#4A463F}
+.pv-vday.sun b,.pv-vday.sun{color:#C0645A}.pv-vday.sat b,.pv-vday.sat{color:#5878A8}
+.pv-vday.sel{background:#1F1F1F;color:#FBFAF4}.pv-vday.sel b{color:#FBFAF4}
+.pv-vday.today b{text-decoration:underline;text-underline-offset:2px}
+.pv-vseg{border:0;border-radius:10px;font-size:10px;font-weight:900;line-height:1.25;padding:2px;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+.pv-vseg.one{background:#A7B8CF;color:#fff}.pv-vseg.multi{background:#B5A8C9;color:#fff}.pv-vseg.long{background:#9FB3A6;color:#fff}.pv-vseg.free{background:#DFC86E;color:#5E4B0E}
+.pv-vseg.past{opacity:.38}
+/* 긴 막대도 글자가 바로 보이게 위쪽에 붙임 */
+.pv-vseg{align-items:flex-start;padding-top:9px}
+</style>
 </head>
 <body class="notranslate" translate="no">
 <div class="app">
@@ -695,7 +712,7 @@ html,body,.app{background:var(--n-bg)!important}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v20.3</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v20.4</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1929,17 +1946,17 @@ html,body,.app{background:var(--n-bg)!important}
       <div style="margin-top:10px">${dayRows}</div>
     </div>`;
 
-    // ② 한 달 타임라인 (가로로 밀어서 보기)
-    const COLW=34, D=last;
-    let g=`<div class="pv-gg" style="grid-template-columns:74px repeat(${D},${COLW}px)">`;
-    g+=`<div class="pv-gname" style="grid-row:1;grid-column:1"><span style="background:transparent;color:#A19B8F;font-size:9px">호실 \\ 날짜</span></div>`;
+    // ② 한 달 타임라인 — 날짜는 왼쪽(세로), 호실은 위(가로) · v20.4
+    const ROWH=36, D=last, NR=stat.length;
+    let g=`<div class="pv-vg" style="grid-template-columns:50px repeat(${NR},minmax(0,1fr));grid-template-rows:auto repeat(${D},${ROWH}px)">`;
+    g+=`<div class="pv-vhead pv-vcorner" style="grid-row:1;grid-column:1">날짜</div>`;
+    stat.forEach((x,ri)=>{ g+=`<button class="pv-vhead" style="grid-row:1;grid-column:${ri+2}" data-pv-tab="${esc(x.r.id)}">${esc(pvShort(x.r))}</button>`; });
     for(let d=1;d<=D;d++){
       const ds=pvMonth+'-'+pad(d), wd=new Date(ds+'T00:00:00').getDay();
-      g+=`<button class="pv-gday ${wd===0?'sun':wd===6?'sat':''}${ds===pvDay?' sel':''}${ds===t0?' today':''}" style="grid-row:1;grid-column:${d+1}" data-pv-day="${ds}">${PV_WD[wd]}<b>${d}</b></button>`;
+      g+=`<button class="pv-vday ${wd===0?'sun':wd===6?'sat':''}${ds===pvDay?' sel':''}${ds===t0?' today':''}" style="grid-row:${d+1};grid-column:1" data-pv-day="${ds}"><b>${d}</b>${PV_WD[wd]}</button>`;
     }
     stat.forEach((x,ri)=>{
-      const row=ri+2;
-      g+=`<button class="pv-gname" style="grid-row:${row};grid-column:1" data-pv-tab="${esc(x.r.id)}"><span>${esc(pvShort(x.r))}</span></button>`;
+      const col=ri+2;
       let d=1;
       while(d<=D){
         const ds=pvMonth+'-'+pad(d), info=x.map[ds];
@@ -1947,14 +1964,15 @@ html,body,.app{background:var(--n-bg)!important}
         if(info){ while(e<D&&x.map[pvMonth+'-'+pad(e+1)]&&x.map[pvMonth+'-'+pad(e+1)].ci===info.ci&&x.map[pvMonth+'-'+pad(e+1)].n===info.n)e++; }
         else{ const side=ds<t0; while(e<D&&!x.map[pvMonth+'-'+pad(e+1)]&&((pvMonth+'-'+pad(e+1))<t0)===side)e++; }
         const span=e-d+1, endDs=pvMonth+'-'+pad(e), past=endDs<t0;
+        const pos=`grid-row:${d+1} / span ${span};grid-column:${col}`;
         if(info){
           const k=pvKind(info.n);
-          const lb=info.n===1?'1박':(span>=2?(k==='long'?'장박 ':'연박 ')+info.n+'박':info.n+'박');
-          g+=`<button class="pv-seg ${k}${past?' past':''}" style="grid-row:${row};grid-column:${d+1} / span ${span}" data-edit-tx="${info.id}" title="${pvMD(info.ci)} 입실 ${info.n}박">${lb}</button>`;
+          const lb=info.n===1?'1박':((k==='long'?'장박':'연박')+'<br>'+info.n+'박');
+          g+=`<button class="pv-vseg ${k}${past?' past':''}" style="${pos}" data-edit-tx="${info.id}">${span>=2||info.n===1?lb:info.n+'박'}</button>`;
         }else{
           const r=pvFreeRun(x.map,ds);
-          const lb=span>=2?(r.open?'공실 · 다음 예약 없음':pvFreeLabel(r)):'공실';
-          g+=`<button class="pv-seg free${past?' past':''}" style="grid-row:${row};grid-column:${d+1} / span ${span}" data-pv-free="${ds}" data-pv-room="${esc(pvShort(x.r))}" data-pv-run="${esc(pvFreeLabel(r))}">${lb}</button>`;
+          const lb=span>=2?(r.open?'공실<br>예약없음':'공실<br>'+r.n+'박'):'공실';
+          g+=`<button class="pv-vseg free${past?' past':''}" style="${pos}" data-pv-free="${ds}" data-pv-room="${esc(pvShort(x.r))}" data-pv-run="${esc(pvFreeLabel(r))}">${lb}</button>`;
         }
         d=e+1;
       }
@@ -1965,7 +1983,7 @@ html,body,.app{background:var(--n-bg)!important}
     const card2=`<div class="pv-card">
       <div class="pv-top"><span class="pv-label">Month Timeline</span><span class="pv-meta">${monthText(pvMonth)}</span></div>
       <div class="pv-gantt" id="pvGantt">${g}</div>
-      <div class="pv-hint">👉 옆으로 밀어서 보기 · 날짜를 누르면 위 '한눈에' 카드가 그날로 바뀌어요</div>
+      <div class="pv-hint">👆 위아래로 밀어서 보기 · 왼쪽 날짜를 누르면 위 '한눈에' 카드가 그날로 · 호실 이름을 누르면 호실 달력</div>
       ${legend}
     </div>`;
 
@@ -1985,7 +2003,7 @@ html,body,.app{background:var(--n-bg)!important}
     </div>`;
 
     // 타임라인을 고른 날 근처로 자동 스크롤
-    setTimeout(()=>{ try{ const gt=$('#pvGantt'); if(gt){ const dn=Number(pvDay.slice(8)); gt.scrollLeft=Math.max(0,(dn-3)*(COLW+3)); } }catch(e){} },30);
+    setTimeout(()=>{ try{ const gt=$('#pvGantt'); if(gt){ const dn=Number(pvDay.slice(8)); gt.scrollTop=Math.max(0,(dn-3)*(ROWH+4)); } }catch(e){} },30);
     return card1+card2+card3;
   }
 
