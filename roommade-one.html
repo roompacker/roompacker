@@ -23,10 +23,12 @@
       description:'Smart Cleaning Ops',
       start_url:here, scope:'./',
       display:'standalone', orientation:'portrait',
-      background_color:'#EDEEE7', theme_color:'#2C5C87', lang:'ko',
+      background_color:'#FFFFFF', theme_color:'#F1E8D8', lang:'ko',
       icons:[
-        {src:'icon-one-192.png',sizes:'192x192',type:'image/png',purpose:'any maskable'},
-        {src:'icon-one-512.png',sizes:'512x512',type:'image/png',purpose:'any maskable'}
+        /* 🎨 v20.6 새 로고 아이콘 — 주소를 '전체 주소'로 적어야 아이콘이 깨지지 않아요 */
+        {src:new URL('icon-one-192.png?v=206',here).href,sizes:'192x192',type:'image/png',purpose:'any'},
+        {src:new URL('icon-one-512.png?v=206',here).href,sizes:'512x512',type:'image/png',purpose:'any'},
+        {src:new URL('icon-one-512.png?v=206',here).href,sizes:'512x512',type:'image/png',purpose:'maskable'}
       ]
     };
     var blob=new Blob([JSON.stringify(m)],{type:'application/manifest+json'});
@@ -41,7 +43,8 @@
   }catch(e){}
 })();
 </script>
-<link rel="apple-touch-icon" href="icon-one-192.png" />
+<link rel="apple-touch-icon" href="icon-one-180.png?v=206" />
+<link rel="icon" type="image/png" href="data:image/png;base64,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" />
 <title>ROOMMADE ONE</title>
 <style>
 :root{
@@ -712,7 +715,7 @@ html,body,.app{background:var(--n-bg)!important}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v20.4</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v20.6</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1171,11 +1174,12 @@ html,body,.app{background:var(--n-bg)!important}
             <label style="display:flex;align-items:center;gap:9px;cursor:pointer;">
               <input type="checkbox" id="txReviewOnly" style="width:20px;height:20px;flex-shrink:0;" />
               <span style="flex:1;">
-                <b style="font-size:12.5px;color:#6B3FA0;display:block;">🎭 리뷰용 예약 (실제 청소 없음)</b>
-                <small style="font-size:10.5px;color:#8B5FBF;line-height:1.5;">청소 건수·관리비·정산·직원지급에서 모두 빠져요</small>
+                <b style="font-size:12.5px;color:#6B3FA0;display:block;">🎭 이번 입실 손님이 리뷰용 예약</b>
+                <small style="font-size:10.5px;color:#8B5FBF;line-height:1.5;">오늘 청소는 그대로 정산돼요. 이 손님이 <b>나가는 날 청소</b>가 자동으로 리뷰용(0원·청소 없음)이 돼요</small>
               </span>
             </label>
           </div>
+          <div id="txReviewNextInfo" style="display:none;background:#F3E8FF;border-radius:10px;padding:9px 11px;margin-top:6px;font-size:10.5px;color:#6B3FA0;font-weight:800;line-height:1.5;"></div>
           <div id="txLockInfo" style="display:none;background:#E2F4EA;border-radius:10px;padding:9px 11px;margin-top:6px;">
             <div style="font-size:10px;color:#3B8360;font-weight:800;">🔒 직접 고치신 항목이 있어요</div>
             <div id="txLockText" style="font-size:11px;color:#3B8360;margin-top:3px;line-height:1.5;"></div>
@@ -1802,7 +1806,73 @@ html,body,.app{background:var(--n-bg)!important}
   }
   function setBranch(branch){state.branch=branch;save();$$('.branchbtn').forEach(b=>b.classList.toggle('active',b.dataset.branch===branch));render();}
 
+
+  /* ═══════════════════════════════════════════════
+     🎭 v20.5 리뷰용 입실 → 나가는 날 청소에 자동 반영
+     · 입실 기록에 '리뷰용 예약' 체크 → (입실일 + 박수) 날 같은 객실 청소를 리뷰용(0원·직원 없음)으로
+     · 체크를 풀거나 박수가 바뀌면 원래 금액·담당자로 되돌림
+     · 이미 결제(입금 완료)된 청소는 건드리지 않아요
+     ═══════════════════════════════════════════════ */
+  function syncReviewNext(){
+    let changed=false;
+    const txs=state.transactions||[];
+    const shiftD=(ds,n)=>{ const d=new Date(ds+'T00:00:00'); d.setDate(d.getDate()+n); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); };
+    const want={};   // 리뷰용이 되어야 할 청소 id → 원본 입실 기록 id
+    txs.forEach(src=>{
+      if(src.type!=='income'||!src.inReview||src.status==='cancelled')return;
+      const n=parseInt(src.inNights,10); if(!n||n<=0)return;
+      const out=shiftD(src.inDate||src.date,n);
+      const nx=txs.find(x=>x.type==='income'&&x.id!==src.id&&String(x.targetId)===String(src.targetId)&&x.date===out&&x.status!=='cancelled'&&!x.checkinOnly&&!x.autoFee);
+      if(nx)want[nx.id]=src.id;
+    });
+    txs.forEach(t=>{
+      if(t.type!=='income')return;
+      if(want[t.id]){
+        if(t.paid)return;
+        if(!(t.reviewOnly&&t.reviewFrom===want[t.id])){
+          if(!t._preReview&&!t.reviewOnly) t._preReview={amount:t.amount,netAmount:t.netAmount,taxAmount:t.taxAmount,ids:t.assignedStaffIds||[],names:t.assignedStaffNames||[]};
+          t.reviewOnly=true; t.reviewFrom=want[t.id];
+          t.amount=0; t.netAmount=0; t.taxAmount=0;
+          t.assignedStaffIds=[]; t.assignedStaffNames=[];
+          changed=true;
+        }
+      }else if(t.reviewFrom){
+        if(t.paid)return;
+        const pr=t._preReview;
+        if(pr){ t.amount=pr.amount; t.netAmount=pr.netAmount; t.taxAmount=pr.taxAmount; t.assignedStaffIds=pr.ids; t.assignedStaffNames=pr.names; }
+        else{ const room=(state.rooms||[]).find(r=>String(r.id)===String(t.targetId)); const pr2=(t.branch==='펜트하우스'||!room)?0:Number(room.price||0); t.amount=pr2; t.netAmount=pr2; t.taxAmount=0; }
+        t.reviewOnly=false; delete t.reviewFrom; delete t._preReview;
+        changed=true;
+      }
+    });
+    if(changed){ try{ save(); }catch(e){} }
+    return changed;
+  }
+
+  /* 🎭 v20.5 예전 방식 정리 (한 번만)
+     예전에는 '리뷰용'을 체크하면 그 날 청소가 0원이 됐어요.
+     → 이제는 '입실 손님이 리뷰용'이라는 뜻으로 바꿔요. */
+  function migrateReviewV205(){
+    const KEY='roommade-review-v205';
+    try{ if(localStorage.getItem(KEY))return; }catch(e){ return; }
+    const olds=(state.transactions||[]).filter(t=>t.type==='income'&&t.reviewOnly&&!t.reviewFrom&&parseInt(t.inNights,10)>0&&!t.paid);
+    if(!olds.length){ try{ localStorage.setItem(KEY,'1'); }catch(e){} return; }
+    const names=olds.slice(0,6).map(t=>'· '+(t.date||'').slice(5).replace('-','/')+' '+(roomTitleOf(t.targetName)||t.targetName||'')).join('\n');
+    const ok=confirm('🎭 리뷰용 예약 표시 방식이 바뀌었어요\n\n이제 리뷰용 체크 = "입실 손님이 리뷰용"\n→ 오늘 청소는 원래 금액으로 정산\n→ 그 손님이 나가는 날 청소가 리뷰용(0원)\n\n예전에 체크한 '+olds.length+'건을 새 방식으로 바꿀까요?\n'+names+(olds.length>6?'\n…':'')+'\n\n(담당 직원은 다시 지정해 주세요)');
+    try{ localStorage.setItem(KEY,'1'); }catch(e){}
+    if(!ok)return;
+    olds.forEach(t=>{
+      const room=(state.rooms||[]).find(r=>String(r.id)===String(t.targetId));
+      const price=(t.branch==='펜트하우스'||!room)?0:Number(room.price||0);
+      t.reviewOnly=false; t.inReview=true;
+      t.amount=price; t.netAmount=price; t.taxAmount=0;
+    });
+    syncReviewNext(); save();
+    setTimeout(()=>{ try{ toast('🎭 '+olds.length+'건을 새 방식으로 바꿨어요'); }catch(e){} },300);
+  }
+
   function render(){
+    try{ syncReviewNext(); }catch(e){ console.error('reviewNext',e); }
     applyRole();
     try{ renderHome(); }catch(e){ console.error('home',e); }
     try{ renderSchedule(); }catch(e){ console.error('schedule',e); }
@@ -1820,6 +1890,7 @@ html,body,.app{background:var(--n-bg)!important}
     try{ renderIncentives(); }catch(e){ console.error('inc',e); }
     try{ renderRetro(); }catch(e){ console.error('retro',e); }
     try{ renderPentVac(); }catch(e){ console.error('pentVac',e); }
+    if(!window._rv205){ window._rv205=1; setTimeout(()=>{ try{ migrateReviewV205(); render(); }catch(e){ console.error('rv205',e); } },900); }
   }
 
   // ═══════════════════════════════════════════════
@@ -3055,6 +3126,7 @@ html,body,.app{background:var(--n-bg)!important}
       if(t.inGuests)inParts.push(t.inGuests+'명');
       if(t.inNights)inParts.push(t.inNights+'박');
       if(t.inSupplies)inParts.push('셋팅 '+esc(t.inSupplies));
+      if(t.inReview)inParts.push('🎭 리뷰용 예약');
       if(t.inDate&&t.inDate>t.date){
         // 공실 후 체크인: 바로 입실이 아니니 미리 준비하라는 강조 박스
         const gap=Math.round((new Date(t.inDate+'T00:00:00')-new Date(t.date+'T00:00:00'))/86400000);
@@ -3063,6 +3135,7 @@ html,body,.app{background:var(--n-bg)!important}
       } else if(inParts.length){
         detail+=`<small style="color:#4FB0A3;">🛒 ${t.inDate===t.date?'당일 입실 · ':''}${inParts.join(' · ')}</small>`;
       }
+      if(t.reviewOnly&&t.reviewFrom)detail+=`<small style="color:#6B3FA0;font-weight:800;">🎭 리뷰용 손님 퇴실 · 실제 청소 없음 (0원)</small>`;
       if(t.memo&&canFinance)detail+=`<small style="color:var(--sub);">💰 ${esc(t.memo)}</small>`;
     } else if(t.memo){
       detail+=`<small style="color:var(--sub);">${esc(t.memo)}</small>`;
@@ -4828,11 +4901,13 @@ html,body,.app{background:var(--n-bg)!important}
     const prefBranch=state.branch==='전체'?'영종점':state.branch;$('#txBranchInput').value=prefBranch;$('#txAmountInput').value='';
     txStaffSel=[];   // 새로 열 때는 담당자 선택 초기화 (수정이면 아래에서 다시 채움)
     if($('#txReviewOnly'))$('#txReviewOnly').checked=false;
+    if($('#txReviewNextInfo'))$('#txReviewNextInfo').style.display='none';
     if(editId){const t=state.transactions.find(x=>x.id===editId);if(t){txType=t.type;$('#txDateInput').value=t.date;$('#txBillingInput').value=t.billingMonth||ym(t.date);$('#txBranchInput').value=t.branch;$('#txAmountInput').value=t.amount;$('#txMemoInput').value=t.memo||'';$('#txPaidInput').checked=!!t.paid;$('#txStatusInput').value=t.status||'done';
       $('#txOutNights').value=t.outNights||t.nights||'';$('#txOutGuests').value=t.outGuests||t.guests||'';$('#txOutTime').value=t.outTime||'';$('#txOutSupplies').value=t.outSupplies||'';
       $('#txInNights').value=t.inNights||'';$('#txInGuests').value=t.inGuests||'';$('#txInTime').value=t.inTime||'';$('#txInSupplies').value=t.inSupplies||'';if($('#txInDate'))$('#txInDate').value=t.inDate||'';
       txStaffSel=Array.isArray(t.assignedStaffIds)?t.assignedStaffIds.map(String):[];
-      if($('#txReviewOnly'))$('#txReviewOnly').checked=!!t.reviewOnly;
+      if($('#txReviewOnly'))$('#txReviewOnly').checked=!!t.inReview;
+      try{ const ri=$('#txReviewNextInfo'); if(ri){ if(t.reviewOnly&&t.reviewFrom){ const src=state.transactions.find(x=>x.id===t.reviewFrom); ri.innerHTML='🎭 리뷰용 손님이 나가는 날이라 자동으로 0원 · 청소 없음 처리됐어요'+(src?'<br><span style="font-weight:600">('+dateText(src.inDate||src.date)+' 입실 기록에서 표시)</span>':''); ri.style.display='block'; } else ri.style.display='none'; } }catch(e){}
     }}
     updateTxType();if(editId){const t=state.transactions.find(x=>x.id===editId);$('#txTargetInput').value=t.targetId}openModal('txModal')
   }
@@ -5179,8 +5254,11 @@ html,body,.app{background:var(--n-bg)!important}
         return s?s.name:'';
       }).filter(Boolean);
     }
-    /* 🎭 v19.6 리뷰용 예약: 금액 0 · 담당 직원 없음 → 정산·직원지급에서 빠짐 */
-    obj.reviewOnly = !!(txType==='income' && $('#txReviewOnly') && $('#txReviewOnly').checked);
+    /* 🎭 v20.5 리뷰용 예약 = '이번 입실 손님'이 리뷰용
+       → 오늘 청소는 그대로 정산, 그 손님이 나가는 날 청소가 리뷰용(0원)으로 자동 표시 (syncReviewNext) */
+    const _oldTx=id?state.transactions.find(x=>x.id===id):null;
+    obj.inReview = !!(txType==='income' && $('#txReviewOnly') && $('#txReviewOnly').checked && sched.inNights);
+    obj.reviewOnly = !!(_oldTx && _oldTx.reviewOnly && _oldTx.reviewFrom);   // 앞 기록에서 자동 지정된 건은 유지
     if(obj.reviewOnly){
       obj.amount=0; obj.netAmount=0; obj.taxAmount=0;
       obj.assignedStaffIds=[]; obj.assignedStaffNames=[];
