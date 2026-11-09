@@ -703,6 +703,37 @@ html,body,.app{background:var(--n-bg)!important}
 /* 긴 막대도 글자가 바로 보이게 위쪽에 붙임 */
 .pv-vseg{align-items:flex-start;padding-top:9px}
 </style>
+<style id="roommade-v208">
+/* v20.8 ① 운영 탭: '바로 실행'·'오늘 청소 일정' 숨김 (위 레트로 보드와 겹쳐서) */
+.ops-action-section,#opsAllBlock{display:none!important}
+/* + 추가 버튼 글씨가 안 보이던 문제 */
+.addmini{color:#FFFFFF!important}
+/* v20.8 ② 객실별 이번 달 청소 → 얇은 막대 목록 */
+.rt-rlist{background:var(--n-card);border-radius:24px;padding:8px 14px}
+.rt-rbar{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;padding:9px 0;border-top:1px dashed var(--n-line);text-align:left;color:var(--n-ink)}
+.rt-rbar:first-child{border-top:0}
+.rt-rbar .rn{flex:1;min-width:0}
+.rt-rbar .rn b{display:block;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rt-rbar .rn small{display:block;font-size:10px;color:var(--n-sub);margin-top:1px}
+.rt-rbar .track{display:block;height:6px;border-radius:99px;background:var(--n-bg2);margin-top:5px;overflow:hidden}
+.rt-rbar .track i{display:block;height:100%;border-radius:99px}
+.rt-rbar .cnt{font-size:20px;font-weight:900;letter-spacing:-.8px;min-width:34px;text-align:right}
+.rt-rbar .cnt em{font-size:10px;font-style:normal;font-weight:800;color:var(--n-sub);margin-left:1px}
+/* v20.8 ④ 비품 객실별·품목별 */
+.sup-tabs{display:flex;gap:6px;margin:4px 0 10px}
+.sup-tab{flex:1;border:0;border-radius:99px;padding:9px;font-size:12px;font-weight:800;background:var(--n-bg2);color:var(--n-sub)}
+.sup-tab.on{background:var(--n-navy);color:#FBF5EA}
+.sup-group{background:#FFFFFF;border:1px solid var(--n-line);border-radius:16px;padding:10px 12px;margin-bottom:8px}
+.sup-ghead{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:900;color:var(--n-ink);margin-bottom:4px}
+.sup-ghead small{font-size:10px;color:var(--n-sub);font-weight:700}
+.sup-row{display:flex;align-items:center;gap:8px;width:100%;border:0;background:transparent;padding:7px 0;border-top:1px dashed var(--n-line);text-align:left;font-size:12px;color:var(--n-ink)}
+.sup-row:first-of-type{border-top:0}
+.sup-row .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.sup-row .nm small{color:var(--n-sub);font-weight:600;margin-left:4px}
+.sup-row .q{font-weight:900;min-width:52px;text-align:right}
+.sup-row.low .q{color:#C0392B}
+.sup-low{font-size:9px;font-weight:900;color:#fff;background:#C0392B;border-radius:99px;padding:2px 6px;margin-left:4px}
+</style>
 </head>
 <body class="notranslate" translate="no">
 <div class="app">
@@ -715,7 +746,7 @@ html,body,.app{background:var(--n-bg)!important}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v20.7</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v20.8</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1327,6 +1358,7 @@ html,body,.app{background:var(--n-bg)!important}
     <input type="hidden" id="supplyEditId" />
     <div class="field"><label>품목명</label><input id="supplyNameInput" placeholder="예: 수건, 토퍼, 휴지" /></div>
     <div class="twocol"><div class="field"><label>지점</label><select id="supplyBranchInput"><option>영종점</option><option>송도점</option><option>펜트하우스</option><option>공용</option></select></div><div class="field"><label>현재 수량</label><input type="number" id="supplyQtyInput" placeholder="예: 20" /></div></div>
+    <div class="field"><label>객실 <span style="color:var(--muted);font-weight:400;">(객실에 두는 비품이면 선택)</span></label><select id="supplyRoomInput"><option value="">지점 공용 (창고)</option></select></div>
     <div class="field"><label>최소 보유 수량 <span style="color:var(--muted);font-weight:400;">(이하면 구입 알림)</span></label><input type="number" id="supplyMinInput" placeholder="예: 10" /></div>
     <div class="field"><label>메모</label><input id="supplyMemoInput" placeholder="예: ○○마트에서 구입, 단가 3000원" /></div>
     <div class="field"><label>영수증 사진 (선택)</label><input type="file" id="supplyReceiptInput" accept="image/*" capture="environment" style="font-size:12px;" /></div>
@@ -2209,18 +2241,18 @@ html,body,.app{background:var(--n-bg)!important}
         const set=new Set(mine.map(t=>t.date)); let on=0;
         for(let i=6;i>=0;i--) if(set.has(rtShift(t0,-i))) on++;
         return {r,cnt,on};
-      }).sort((a,b)=>b.cnt-a.cnt).slice(0,8);
+      }).sort((a,b)=>b.cnt-a.cnt).slice(0,30);
 
       // ── 화면 그리기 ──
       const R=[];
       R.push(`<div class="rt-row">
-        <button class="rt-tile rt-navy rt-focus" data-ops-jump="opsAllBlock">
+        <button class="rt-tile rt-navy rt-focus" data-ops-jump="opsCheckoutBlock">
           <span class="rt-ico">🧹</span>
           <small>연속 작업</small>
           <span class="rt-big">${streak}<em>일</em></span>
         </button>
         <div class="rt-col">
-          <button class="rt-tile rt-orange" data-ops-jump="opsAllBlock">
+          <button class="rt-tile rt-orange" data-ops-jump="opsCheckoutBlock">
             <span class="rt-ico">✓</span><small>오늘 완료</small>
             <span class="rt-mid">${done}/${todays.length}</span>
             ${rtDots(Math.min(8,Math.max(todays.length,1)),Math.min(8,done))}
@@ -2249,7 +2281,7 @@ html,body,.app{background:var(--n-bg)!important}
       R.push(`<div class="rt-card">
         <div class="rt-head"><span>오늘의 청소</span><b>${dateText(t0)}</b></div>
         ${taskRows||'<div class="empty" style="padding:16px"><div class="big">☕</div>오늘 등록된 청소가 없어요</div>'}
-        ${todays.length>showN?`<button class="rt-more" data-ops-jump="opsAllBlock">＋ ${todays.length-showN}건 더 보기</button>`:''}
+        ${todays.length>showN?`<button class="rt-more" data-ops-jump="opsCheckoutBlock">＋ ${todays.length-showN}건 더 보기</button>`:''}
       </div>`);
 
       // 이번 주 + 머스타드 타일
@@ -2279,17 +2311,16 @@ html,body,.app{background:var(--n-bg)!important}
         </div>
       </div>`);
 
-      // 객실 타일
+      // 객실별 · 이번 달 청소 (v20.8 얇은 막대 목록)
       if(roomRows.length){
+        const maxC=Math.max(1,...roomRows.map(x=>x.cnt));
+        const BAR=['#26384C','#D9622B','#2F5B3E','#D6A73A','#8FA3A8','#B5A8C9'];
         R.push(`<div class="rt-head" style="margin:6px 4px 0"><span>객실별 · 이번 달 청소</span></div>`);
-        R.push(`<div class="rt-rooms">${roomRows.map((x,i)=>`
-          <button class="rt-tile rt-room ${RT_COLORS[i%RT_COLORS.length]}" data-room-month="${x.r.id}">
-            <span class="rt-ico">🏠</span>
-            <span class="rt-rname">${esc(roomTitleOf(x.r.name))}</span>
-            <small>${esc(x.r.branch||'')}</small>
-            <span class="rt-big" style="font-size:34px">${pad(x.cnt)}</span>
-            <small style="margin-top:4px">최근 7일</small>
-            ${rtDots(7,x.on)}
+        R.push(`<div class="rt-rlist">${roomRows.map((x,i)=>`
+          <button class="rt-rbar" data-room-month="${x.r.id}">
+            <span class="rn"><b>${esc(roomTitleOf(x.r.name))}</b><small>${esc(x.r.branch||'')} · 최근 7일 ${x.on}일 작업</small>
+              <span class="track"><i style="width:${Math.round(x.cnt/maxC*100)}%;background:${BAR[i%BAR.length]}"></i></span></span>
+            <span class="cnt">${x.cnt}<em>건</em></span>
           </button>`).join('')}</div>`);
       }
 
@@ -3164,7 +3195,7 @@ html,body,.app{background:var(--n-bg)!important}
   function shiftMonth(v,delta){const [y,m]=v.split('-').map(Number),d=new Date(y,m-1+delta,1);return `${d.getFullYear()}-${pad(d.getMonth()+1)}`}
   function renderSchedule(){
     $('#scheduleMonthTitle').textContent=monthText(scheduleMonth);const [y,m]=scheduleMonth.split('-').map(Number),first=new Date(y,m-1,1),start=new Date(y,m-1,1-first.getDay());let html='';
-    for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;const items=branchFilter(state.transactions).filter(t=>t.date===ds&&t.status!=='cancelled');const inc=sum(items,'income'),exp=sum(items,'expense');const incCnt=items.filter(t=>t.type==='income'&&!t.checkinOnly&&!t.autoFee).length;const ciCnt=items.filter(t=>t.checkinOnly).length;const insCnt=branchFilter(state.transactions).filter(t=>t.inDate===ds&&t.date!==ds&&t.status!=='cancelled').length;const moneyLabel=incCnt?('청소'+incCnt):((ciCnt||insCnt)?'입실':'');html+=`<button class="day ${d.getMonth()!==m-1?'other':''} ${ds===today()?'today':''} ${ds===selectedDate?'selected':''}" data-date="${ds}"><div class="daynum">${d.getDate()}</div><div class="dotwrap">${(incCnt||ciCnt||insCnt)?'<i class="dot"></i>':''}${exp?'<i class="dot exp"></i>':''}</div>${moneyLabel?`<div class="daymoney">${moneyLabel}</div>`:''}</button>`}
+    for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const ds=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;const items=branchFilter(state.transactions).filter(t=>t.date===ds&&t.status!=='cancelled');const inc=sum(items,'income'),exp=sum(items,'expense');const incCnt=items.filter(t=>t.type==='income'&&!t.checkinOnly&&!t.autoFee&&!t.reviewOnly).length;/* 🎭 v20.8 리뷰용은 실제 청소 아님 */const ciCnt=items.filter(t=>t.checkinOnly).length;const insCnt=branchFilter(state.transactions).filter(t=>t.inDate===ds&&t.date!==ds&&t.status!=='cancelled').length;const moneyLabel=incCnt?('청소'+incCnt):((ciCnt||insCnt)?'입실':'');html+=`<button class="day ${d.getMonth()!==m-1?'other':''} ${ds===today()?'today':''} ${ds===selectedDate?'selected':''}" data-date="${ds}"><div class="daynum">${d.getDate()}</div><div class="dotwrap">${(incCnt||ciCnt||insCnt)?'<i class="dot"></i>':''}${exp?'<i class="dot exp"></i>':''}</div>${moneyLabel?`<div class="daymoney">${moneyLabel}</div>`:''}</button>`}
     $('#calendarDays').innerHTML=html;$('#selectedDateTitle').textContent=dateText(selectedDate);const list=branchFilter(state.transactions).filter(t=>t.date===selectedDate&&t.status!=='cancelled').sort((a,b)=>(a.dayOrder??a.createdAt??0)-(b.dayOrder??b.createdAt??0));$('#selectedDateList').innerHTML=list.length?list.map((t,idx)=>{const isPent=t.branch==='펜트하우스';return `<div class="drag-tx" data-tx-card="${t.id}" style="margin-bottom:8px;touch-action:pan-y;${isPent?'background:#D7F5EA;border-radius:16px;padding:3px;':''}">${txHTML(t)}</div>`;}).join(''):empty('📭','이 날짜에는 등록된 내역이 없어요');
   }
 
@@ -4835,10 +4866,7 @@ html,body,.app{background:var(--n-bg)!important}
     const actStaff=staff.filter(s=>!s.archived);const arcStaff=staff.filter(s=>s.archived);let staffHtml=actStaff.length?actStaff.map(s=>`<div class="entity" data-staff-card="${s.id}"><div class="entityico">👤</div><div class="entitymain"><b>${esc(s.name)}</b><small>${s.branch} · ${s.payType} ${money(s.rate)}${s.bank?' · 💳 '+esc(s.bank):''}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join(''):empty('👥','등록된 직원이 없어요');if(arcStaff.length){staffHtml+=`<button id="toggleArchivedStaff" style="width:100%;margin-top:10px;padding:10px;border:1px dashed #BFCBE0;border-radius:12px;background:#F1F4FA;color:var(--muted);font-size:12px;font-weight:700;">📦 보관된 직원 ${arcStaff.length}명 ${state._showArchivedStaff?'숨기기 ▲':'보기 ▼'}</button>`;if(state._showArchivedStaff){staffHtml+='<div style="margin-top:8px;">'+arcStaff.map(s=>`<div class="entity" style="opacity:.6;"><div class="entityico">📦</div><div class="entitymain"><b>${esc(s.name)}</b><small>보관됨 · ${s.branch}</small></div><button class="editbtn" data-edit-staff="${s.id}">수정</button></div>`).join('')+'</div>';}}$('#staffList').innerHTML=staffHtml;
     // 비품 목록 (지점 필터, 구입 필요 강조)
     const sup=(state.supplies||[]).filter(x=>state.branch==='전체'||x.branch===state.branch||x.branch==='공용');
-    $('#supplyList').innerHTML=sup.length?sup.map(x=>{
-      const low=Number(x.qty||0)<=Number(x.min||0);
-      return `<div class="entity" style="${low?'background:#FFF6F6;':''}"><div class="entityico">${low?'🔴':'📦'}</div><div class="entitymain"><b>${esc(x.name)}${low?' <span style="color:var(--red);font-size:10px;font-weight:800;">구입필요</span>':''}</b><small>${x.branch} · 보유 ${x.qty||0}개${x.min?' (최소 '+x.min+')':''}${x.memo?' · '+esc(x.memo):''}${x.receipt?' · 🧾':''}</small></div><button class="editbtn" data-edit-supply="${x.id}">수정</button></div>`;
-    }).join(''):empty('📦','등록된 비품이 없어요');
+    $('#supplyList').innerHTML=supListHTML(sup);
     renderReportOptions();
   }
   function renderReportOptions(){const list=branchFilter(reportMode==='room'?state.rooms:state.staff);
@@ -5549,11 +5577,54 @@ html,body,.app{background:var(--n-bg)!important}
     toast('체크를 해제했어요');
   }
 
+
+  /* 📦 v20.8 비품 — 객실별 / 품목별 목록 */
+  let supView='room';
+  function supRoomName(x){
+    if(!x.roomId) return (x.branch||'')+' 공용';
+    const r=(state.rooms||[]).find(r=>String(r.id)===String(x.roomId));
+    return r?(roomTitleOf(r.name)||r.name):'(삭제된 객실)';
+  }
+  function supRoomOptions(sel){
+    const el=$('#supplyRoomInput'); if(!el)return;
+    const br=$('#supplyBranchInput')?$('#supplyBranchInput').value:'';
+    const rooms=(state.rooms||[]).filter(r=>!r.archived&&(br==='공용'||!br||r.branch===br));
+    el.innerHTML='<option value="">지점 공용 (창고)</option>'+rooms.map(r=>`<option value="${esc(r.id)}">${esc(roomTitleOf(r.name)||r.name)}</option>`).join('');
+    el.value=sel&&rooms.some(r=>String(r.id)===String(sel))?sel:'';
+  }
+  function supListHTML(sup){
+    if(!sup.length) return empty('📦','등록된 비품이 없어요');
+    const tabs=`<div class="sup-tabs"><button class="sup-tab ${supView==='room'?'on':''}" data-sup-view="room">🏠 객실별</button><button class="sup-tab ${supView==='item'?'on':''}" data-sup-view="item">📦 품목별</button></div>`;
+    const lowCnt=sup.filter(x=>Number(x.qty||0)<=Number(x.min||0)&&x.min).length;
+    const lowNote=lowCnt?`<div style="font-size:11px;font-weight:800;color:#C0392B;margin:0 2px 8px">🔴 구입 필요 ${lowCnt}건</div>`:'';
+    const row=(x,label,sub)=>{ const low=x.min&&Number(x.qty||0)<=Number(x.min||0);
+      return `<button class="sup-row ${low?'low':''}" data-edit-supply="${x.id}"><span class="nm">${esc(label)}${sub?`<small>${esc(sub)}</small>`:''}${low?'<span class="sup-low">구입필요</span>':''}</span><span class="q">${x.qty||0}개</span></button>`; };
+    const groups={};
+    if(supView==='room'){
+      sup.forEach(x=>{ const k=supRoomName(x); (groups[k]=groups[k]||[]).push(x); });
+      const keys=Object.keys(groups).sort((a,b)=>(a.includes('공용')?1:0)-(b.includes('공용')?1:0)||a.localeCompare(b,'ko'));
+      return tabs+lowNote+keys.map(k=>`<div class="sup-group"><div class="sup-ghead">${k.includes('공용')?'🏬':'🏠'} ${esc(k)}<small>${groups[k].length}품목</small></div>${groups[k].sort((a,b)=>a.name.localeCompare(b.name,'ko')).map(x=>row(x,x.name,x.min?'최소 '+x.min:'')).join('')}</div>`).join('');
+    }
+    sup.forEach(x=>{ const k=x.name.trim(); (groups[k]=groups[k]||[]).push(x); });
+    return tabs+lowNote+Object.keys(groups).sort((a,b)=>a.localeCompare(b,'ko')).map(k=>{
+      const tot=groups[k].reduce((s,x)=>s+Number(x.qty||0),0);
+      return `<div class="sup-group"><div class="sup-ghead">📦 ${esc(k)}<small>합계 ${tot}개 · ${groups[k].length}곳</small></div>${groups[k].map(x=>row(x,supRoomName(x),x.min?'최소 '+x.min:'')).join('')}</div>`;
+    }).join('');
+  }
+  document.addEventListener('click',function(ev){
+    const t=ev.target.closest('[data-sup-view]'); if(!t)return;
+    supView=t.dataset.supView; try{ render(); }catch(e){}
+  });
+  document.addEventListener('change',function(ev){
+    if(ev.target&&ev.target.id==='supplyBranchInput'){ try{ supRoomOptions($('#supplyRoomInput').value); }catch(e){} }
+  });
+
   function openSupply(id=''){
     const x=(state.supplies||[]).find(s=>s.id===id);
     $('#supplyEditId').value=id;
     $('#supplyNameInput').value=x?.name||'';
     $('#supplyBranchInput').value=x?.branch||(state.branch==='전체'?'영종점':state.branch);
+    supRoomOptions(x?.roomId||'');
     $('#supplyQtyInput').value=x?.qty||'';
     $('#supplyMinInput').value=x?.min||'';
     $('#supplyMemoInput').value=x?.memo||'';
@@ -5566,7 +5637,8 @@ html,body,.app{background:var(--n-bg)!important}
   function saveSupplyForm(){
     const id=$('#supplyEditId').value,name=$('#supplyNameInput').value.trim();
     if(!name)return toast('품목명을 입력해주세요');
-    const obj={id:id||uid('sup'),name,branch:$('#supplyBranchInput').value,qty:Number($('#supplyQtyInput').value||0),min:Number($('#supplyMinInput').value||0),memo:$('#supplyMemoInput').value.trim(),receipt:supplyReceiptData||''};
+    const _rid=$('#supplyRoomInput')?$('#supplyRoomInput').value:'';
+    const obj={id:id||uid('sup'),roomId:_rid,name,branch:$('#supplyBranchInput').value,qty:Number($('#supplyQtyInput').value||0),min:Number($('#supplyMinInput').value||0),memo:$('#supplyMemoInput').value.trim(),receipt:supplyReceiptData||''};
     state.supplies=state.supplies||[];
     if(id)state.supplies[state.supplies.findIndex(s=>s.id===id)]=obj;else state.supplies.push(obj);
     save();closeModal('supplyModal');render();toast('비품을 저장했어요');
