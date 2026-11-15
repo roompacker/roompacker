@@ -15,7 +15,7 @@
 }
 
 /* ===== 인트로 (투디's 투두리스트 타이틀) ===== */
-#intro{position:fixed;inset:0;z-index:999;background:#F2CE3E;overflow:hidden;touch-action:none}
+#intro{position:fixed;inset:0;z-index:999;background:#e9bd33;overflow:hidden;touch-action:none}
 #intro.reveal{background:transparent}
 #intro svg{position:absolute;inset:0;width:100%;height:100%;display:block}
 #intro .tg{transform-box:fill-box;transform-origin:center}
@@ -23,7 +23,8 @@
 #intro.reveal #introSkip{display:none}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--canvas);color:var(--ink);font-family:Pretendard,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;letter-spacing:-.03em;-webkit-font-smoothing:antialiased}
-body{padding-bottom:110px;min-height:100vh}
+body{padding-bottom:30px;min-height:100vh}
+body.fit{overflow:hidden;padding-bottom:0;height:100dvh}
 button,input{font:inherit;color:inherit}
 button{border:none;background:none;cursor:pointer}
 .wrap{max-width:520px;margin:0 auto;padding:0 15px}
@@ -32,7 +33,7 @@ button{border:none;background:none;cursor:pointer}
 /* ===================== 2. 상단 바 (고정) ===================== */
 .topbar{position:sticky;top:0;z-index:55;background:var(--canvas);border-bottom:1px solid var(--line)}
 .topbar .in{max-width:520px;margin:0 auto;padding:0 15px;height:58px;display:flex;align-items:center;justify-content:space-between}
-.wordmark{display:flex;align-items:center;gap:8px;font-size:21px;font-weight:800;letter-spacing:-.08em}
+.wordmark{display:flex;align-items:center;gap:8px;font-size:22px;font-weight:900;letter-spacing:-.06em}
 .logo{width:28px;height:28px;border-radius:9px;display:grid;grid-template-columns:repeat(2,5px);grid-template-rows:repeat(2,5px);gap:3px;place-content:center;background:var(--ink);transform:rotate(-6deg)}
 .logo i{background:var(--lemon);border-radius:3px}.logo i:first-child{grid-row:span 2}.logo i:last-child{opacity:.55}
 .steps-pill{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:6px 12px;font-size:12px;font-weight:700;background:#f2f2ed}
@@ -148,6 +149,52 @@ button{border:none;background:none;cursor:pointer}
 .tabbar button{white-space:nowrap;color:#9a9c92;font-size:12px;font-weight:700;padding:9px 18px;border-radius:99px;display:flex;align-items:center;gap:6px}
 .tabbar button.on{background:var(--lemon);color:var(--ink)}
 .foot{text-align:center;font-size:11px;color:var(--muted);padding:6px 0 10px}
+/* ===== 한 화면 레이아웃 ===== */
+.screen{height:calc(100dvh - 59px);display:flex;flex-direction:column;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+.screen>.card{margin-bottom:9px;flex:none}
+.head.c{padding:10px 2px 8px;align-items:center}
+.head.c h1{font-size:29px}
+.head.c .title-slot{width:70px;height:76px}
+.wk{display:flex;align-items:center;gap:2px;margin:0 0 9px}
+.wk .week{flex:1}
+.wk .wd{padding:5px 0 4px}
+.card.in{padding:8px 8px 4px}
+.card.in .preview{padding:5px 10px 2px;min-height:20px}
+.card.list{flex:1!important;min-height:0;display:flex;flex-direction:column;margin-bottom:0!important;padding:13px 14px 2px}
+.card.list .card-top{margin-bottom:6px}
+.scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin:0 -6px;padding:0 6px;-webkit-overflow-scrolling:touch}
+.screen .task{padding:5px 0;gap:8px}
+.screen .task .slot{width:66px;height:70px}
+.task.pin{background:linear-gradient(90deg,#e8e99caa,#e8e99c00 85%);border-radius:14px;padding-left:8px;margin:2px -6px 2px;padding-right:6px}
+.sum{padding:13px 16px}
+.sum .row{display:flex;justify-content:space-between;align-items:flex-end;gap:8px}
+.sum .big-money{font-size:32px}
+.sum .rail{margin:9px 0 6px}
+.sum .mini{display:flex;gap:12px;font-size:11.5px;color:var(--muted)}.sum .mini b{color:var(--ink)}
+.inrow{display:flex;gap:6px;align-items:center}
+.inrow .seg{margin:0;flex:none}
+.inrow .quick{flex:1;min-width:0}
+.inrow .seg button{padding-left:12px;padding-right:12px}
+/* ===== 숨김 메뉴(서랍) ===== */
+.menu-btn{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;margin-left:-6px}
+.menu-btn i{display:block;width:20px;height:2.5px;border-radius:2px;background:var(--ink);box-shadow:0 -6px 0 var(--ink),0 6px 0 var(--ink)}
+.tl{display:flex;align-items:center;gap:4px}
+#drawer{position:fixed;inset:0;z-index:70;pointer-events:none}
+#drawer .dim{position:absolute;inset:0;background:rgba(32,34,30,.42);opacity:0;transition:opacity .25s}
+#drawer .sheet{position:absolute;top:0;bottom:0;left:0;width:min(82vw,330px);background:var(--paper);border-radius:0 28px 28px 0;transform:translateX(-102%);transition:transform .32s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;padding:calc(16px + env(safe-area-inset-top)) 14px calc(12px + env(safe-area-inset-bottom));box-shadow:10px 0 40px #20221e33}
+#drawer.on{pointer-events:auto}#drawer.on .dim{opacity:1}#drawer.on .sheet{transform:none}
+.dr-top{display:flex;align-items:center;gap:10px;padding:4px 6px 14px}
+.dr-top img{width:58px;height:72px;object-fit:contain;filter:drop-shadow(0 4px 6px #20221e30)}
+.dr-top b{display:block;font-size:22px}
+.dr-sec{font-size:11px;font-weight:800;color:var(--muted);padding:12px 10px 6px;letter-spacing:.02em}
+.dr-item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:11px 10px;border-radius:16px;font-weight:700;font-size:15px}
+.dr-item .ic{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:var(--white);font-size:17px;box-shadow:0 2px 0 #20221e14}
+.dr-item small{display:block;font-size:11.5px;font-weight:500;color:var(--muted);margin-top:1px}
+.dr-item.on{background:var(--lemon)}
+#drawer .foot{margin-top:auto}
+/* ===== 3D 글씨 (투디처럼 말랑한 입체) ===== */
+.t3d{font-weight:900;color:#ffd84a;text-shadow:0 1px 0 #f2c232,0 2px 0 #e8b526,0 3px 0 #dba71c,0 4px 0 #cc9813,0 5px 1px #b5840d,0 7px 10px rgba(90,60,0,.32);-webkit-text-stroke:.6px #f6c93a}
+.head h1{text-shadow:0 1px 0 #c9cac2,0 2px 0 #bfc0b8,0 3px 0 #b3b4ac,0 5px 8px rgba(32,34,30,.18)}
 .foot button{text-decoration:underline;font-size:11px;color:var(--muted);margin-left:6px}
 
 /* ===================== 9. 만화 컷 (완료 카드) ===================== */
@@ -182,16 +229,12 @@ dialog .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
 <div id="intro" aria-label="투디's 투두리스트"><svg id="introSvg" viewBox="0 0 400 860" preserveAspectRatio="xMidYMid slice"></svg><button id="introSkip" type="button">건너뛰기 ›</button></div>
 
 <header class="topbar"><div class="in">
-  <div class="wordmark"><span class="logo"><i></i><i></i><i></i></span>여백</div>
+  <div class="tl"><button class="menu-btn" id="menuBtn" aria-label="메뉴 열기"><i></i></button><div class="wordmark"><span class="t3d">TODI's</span><span style="font-size:14px;font-weight:800;color:var(--muted)" id="pageName">할 일</span></div></div>
   <div class="steps-pill" id="stepsPill">👣 오늘 0걸음</div>
 </div></header>
 
 <main class="wrap" id="main"></main>
-<p class="foot">🔒 이 휴대폰에만 저장돼요 <button id="resetAll">예시로 다시 시작</button></p>
-
-<nav class="tabbar" id="tabbar">
-  <button data-tab="plan">📅 플랜</button><button data-tab="money">₩ 머니</button><button data-tab="friend">✿ 친구</button>
-</nav>
+<div id="drawer"><div class="dim" id="drawerDim"></div><nav class="sheet" id="drawerNav"></nav></div>
 
 <div id="cut">
   <div class="panel" id="panel">
@@ -250,29 +293,14 @@ const CATS = {
 };
 const ALBUM = ['run','badminton','dog','study','focus','save','spend','cook','paint','music','plant','photo','game','board','kick','travel','make','sleep','etc'];
 /* 그림 투디: 할 일 종류별 준비(prep)·움직임(move)·완료(done)·쉬는(idle) 그림 */
-const SPRITE_SET = {
-  hello:{prep:['g5_11','wave'], done:'cheer', idle:['g4_20']},
-  etc:{prep:['g5_13','wave'], done:'cheer', idle:['wave']},
-  run:{prep:['g5_0'], move:'run', done:'g5_4', idle:['g5_4']},
-  badminton:{prep:['g5_0'], done:'cheer', idle:['g5_4']},
-  dog:{prep:['wave','g5_11'], done:'cheer', idle:['g5_11']},
-  save:{prep:['g5_5'], done:'g5_21', idle:['g5_21']},
-  study:{prep:['g5_1','g5_2'], done:'cheer', idle:['g5_1']},
-  focus:{prep:['g4_15'], done:'cheer', idle:['g5_10']},
-  spend:{prep:['g5_2'], done:'g4_20', idle:['g4_20']},
-  cook:{prep:['g4_14'], done:'cheer', idle:['g4_14']},
-  paint:{prep:['g5_15','g4_2'], done:'g4_6', idle:['g4_6']},
-  music:{prep:['g5_18','g5_10'], done:'g5_14', idle:['g4_7','g4_3','g4_4']},
-  plant:{prep:['g4_12','g5_12'], done:'g5_8', idle:['g5_8']},
-  photo:{prep:['g4_13'], done:'cheer', idle:['g4_13']},
-  game:{prep:['g4_15'], done:'cheer', idle:['g4_15']},
-  board:{prep:['g5_0'], move:'run', done:'cheer', idle:['g5_4']},
-  kick:{prep:['g5_0'], move:'run', done:'cheer', idle:['g5_4']},
-  travel:{prep:['g5_9'], move:'g5_13', done:'g5_13', idle:['g5_13']},
-  make:{prep:['g4_17','g4_0'], done:'cheer', idle:['g4_17']},
-  sleep:{prep:['g5_6'], done:'cheer', idle:['g5_6']}
+/* 할 일 종류마다 정해진 투디 한 명 (한 칸 안에서 다른 모습으로 바뀌지 않아요) */
+const TODI_ONE = {
+  hello:'wave', etc:'wave', arrive:'wave', poke:'wave',
+  run:'run', badminton:'run', board:'run', kick:'run', dog:'g5_11',
+  save:'g5_5', study:'g5_1', focus:'g4_15', spend:'g5_2',
+  cook:'g4_14', paint:'g5_15', music:'g5_18', plant:'g4_12', photo:'g4_13',
+  game:'g4_15', travel:'g5_13', make:'g4_17', sleep:'g5_6'
 };
-const SPRITE_COMMON = {pant:'sad', sleep:'g5_6', surprise:'wave'};
 function detectCat(text){
   const t = text.toLowerCase();
   for(const k of ['run','badminton','dog','save','cook','paint','music','plant','photo','game','board','sleep','travel','make','study','kick','focus']) if(CATS[k].words.some(w=>t.includes(w))) return k;
@@ -405,7 +433,23 @@ function parseMoney(text, typeSel){
 }
 
 /* ===================== 6. 화면 그리기 ===================== */
-let tab = ['money','friend'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'plan';
+const PAGES = [
+  {id:'plan',   ic:'✓',  name:'할 일',        sub:'오늘 할 일 · 주간 일정', sec:'일정'},
+  {id:'focus',  ic:'⏱', name:'집중 타이머',   sub:'투디와 함께 집중',        sec:'일정'},
+  {id:'money',  ic:'₩',  name:'가계부',       sub:'쓸 수 있는 돈 · 거래 내역', sec:'돈'},
+  {id:'report', ic:'◔',  name:'어디에 썼을까', sub:'이달 지출 분석',          sec:'돈'},
+  {id:'save',   ic:'🐷', name:'저축 · 고정지출', sub:'목표 저축 · 매달 나가는 돈', sec:'돈'},
+  {id:'friend', ic:'✿',  name:'투디 친구',     sub:'친구 도감 · 꾸미기',      sec:'투디'}
+];
+const PAGE_IDS = PAGES.map(x=>x.id);
+let tab = PAGE_IDS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'plan';
+function drawerHTML(){
+  let sec = '', out = `<div class="dr-top"><img src="${TODI_IMG.wave}" alt=""><div><b class="t3d">TODI's</b><span class="small">투디의 투두리스트 · 가계부</span></div></div>`;
+  PAGES.forEach(pg=>{ if(pg.sec!==sec){ sec = pg.sec; out += `<div class="dr-sec">${sec}</div>`; }
+    out += `<button class="dr-item ${pg.id===tab?'on':''}" data-tab="${pg.id}"><span class="ic">${pg.ic}</span><span>${pg.name}<small>${pg.sub}</small></span></button>`; });
+  return out + `<p class="foot">🔒 이 휴대폰에만 저장돼요 <button id="resetAll">예시로 다시 시작</button></p>`;
+}
+function openDrawer(on){ $('drawer').classList.toggle('on', on); }
 let planDay = today(), filter = 'all', month = today().slice(0,7), mType = 'out';
 const slotDiv = (id, cat, mode, cls, tap, arrive) => `<div class="${cls||'slot'}" data-slot="${id}" data-cat="${cat}" data-mode="${mode}" data-tap="${tap||'replay'}" ${arrive?'data-arrive="1"':''} style="background:${(CATS[cat]||CATS.etc).bg}"></div>`;
 
@@ -413,69 +457,60 @@ let lastTab = null;
 function render(){
   try{
     if(tab !== lastTab){ window.ARRIVE_EPOCH = (window.ARRIVE_EPOCH||0) + 1; lastTab = tab; }
-    document.querySelectorAll('#tabbar button').forEach(b=>b.classList.toggle('on', b.dataset.tab===tab));
+    $('drawerNav').innerHTML = drawerHTML();
+    $('pageName').textContent = (PAGES.find(x=>x.id===tab)||PAGES[0]).name;
+    document.body.classList.toggle('fit', tab==='plan' || tab==='money');
     $('stepsPill').textContent = `👣 오늘 ${stepsToday()}걸음`;
-    $('main').innerHTML = tab==='plan' ? planPage() : tab==='money' ? moneyPage() : friendPage();
+    $('main').innerHTML = ({plan:planPage, focus:focusPage, money:moneyPage, report:reportPage, save:savePage, friend:friendPage}[tab] || planPage)();
     updateTimer();
   }catch(e){ console.error('화면 오류', e); }
 }
 
 /* ---------- 6-1. 플랜 ---------- */
 function planPage(){
-  const list = S.tasks.filter(t=>t.date===planDay).sort((a,b)=>(a.time||'99').localeCompare(b.time||'99'));
+  const list = S.tasks.filter(t=>t.date===planDay).sort((a,b)=>(S.priority[planDay]===b.id) - (S.priority[planDay]===a.id) || (a.time||'99').localeCompare(b.time||'99'));
   const done = list.filter(t=>t.done).length;
-  const pr = S.tasks.find(t=>t.id===S.priority[planDay]);
   const allDone = list.length && done===list.length;
   const vis = list.filter(t=> filter==='todo' ? !t.done : filter==='done' ? t.done : true);
   const wk0 = (()=>{ const d = new Date(planDay+'T12:00'); return addDays(planDay, -((d.getDay()+6)%7)); })();
-  return `
-  <div class="head">
+  return `<div class="screen">
+  <div class="head c">
     <div><div class="overline">${dLabel(planDay,true)}</div>
       <h1>${planDay===today()?'오늘 할 일':dLabel(planDay)+' 할 일'}</h1>
       <div class="sub">${list.length ? `${done} / ${list.length} 완료 · ${allDone?'전부 해냈어요! 🎉':'하나씩 차곡차곡'}` : '할 일을 적어보세요'}</div></div>
-    ${slotDiv('title-plan', allDone?'etc':'hello', allDone?'idle':'prep', 'title-slot', 'poke', true)}
+    ${slotDiv('title-plan', 'hello', allDone?'idle':'prep', 'title-slot', 'poke', true)}
   </div>
-
-  <section class="card lemon hero">
-    <div class="copy">
-      <div class="label"><i>${pr&&pr.done?'✓':'★'}</i>${pr&&pr.done?'꼭 할 일을 마쳤어요':'오늘 꼭 할 일'}</div>
-      <h2 class="${pr&&pr.done?'fin':''}">${pr?esc(pr.title):'별표(☆)로 하나 골라요'}</h2>
-      <div class="small" style="margin-bottom:12px">${pr?(CATS[pr.cat]||CATS.etc)[pr.done?'done':'prep']:'가장 중요한 일 하나'}</div>
-      <div class="acts">${pr? `<button class="btn" data-act="toggle" data-id="${pr.id}">${pr.done?'완료 취소':'완료하기'}</button><button class="btn outline tiny" data-act="unpin">고정 해제</button>`:''}</div>
-    </div>
-    ${pr ? slotDiv('hero-'+pr.id, pr.cat, pr.done?'idle':'prep', 'hero-slot', pr.done?'cut':'replay', true).replace('data-slot','data-view="big" data-task="'+pr.id+'" data-slot') : slotDiv('hero-none','hello','prep','hero-slot','poke').replace('data-slot','data-view="big" data-slot')}
-  </section>
-
-  <section class="card">
+  <div class="wk"><button class="mbtn" data-act="week" data-d="-7">‹</button>
+    <div class="week">${Array.from({length:7},(_,i)=>{ const s = addDays(wk0,i), d = new Date(s+'T12:00');
+      return `<button class="wd ${s===planDay?'on':''}" data-act="day" data-d="${s}"><span>${WD[d.getDay()]}</span><b>${d.getDate()}</b><i class="${S.tasks.some(t=>t.date===s)?'on':''}"></i></button>`; }).join('')}</div>
+    <button class="mbtn" data-act="week" data-d="7">›</button></div>
+  <section class="card in">
     <div class="quick"><input id="todoIn" placeholder="예) 내일 저녁 7시 배드민턴" autocomplete="off"><button data-act="addTodo">+</button></div>
     <div class="preview" id="todoPrev">말하듯 적으면 날짜·시간·모션을 알아서 붙여요</div>
   </section>
-
-  <section class="card">
-    <div class="card-top"><h2>주간 일정</h2><div><button class="mbtn" data-act="week" data-d="-7">‹</button> <button class="mbtn" data-act="week" data-d="7">›</button></div></div>
-    <div class="week">${Array.from({length:7},(_,i)=>{ const s = addDays(wk0,i), d = new Date(s+'T12:00');
-      return `<button class="wd ${s===planDay?'on':''}" data-act="day" data-d="${s}"><span>${WD[d.getDay()]}</span><b>${d.getDate()}</b><i class="${S.tasks.some(t=>t.date===s)?'on':''}"></i></button>`; }).join('')}</div>
+  <section class="card list">
+    <div class="card-top"><div class="chips">${[['all','전체'],['todo','할 일'],['done','완료']].map(([k,l])=>`<button class="chip ${filter===k?'on':''}" data-act="filter" data-f="${k}">${l}</button>`).join('')}</div>
+      <div style="flex:1;max-width:96px" class="meter"><i style="width:${list.length?done/list.length*100:0}%"></i></div></div>
+    <div class="scroll" data-clip>${vis.length ? vis.map(taskRow).join('') : '<div class="empty">이 보기에는 할 일이 없어요</div>'}</div>
   </section>
-
-  <section class="card">
-    <div class="card-top"><h2>할 일 목록</h2><div style="flex:1;max-width:120px" class="meter"><i style="width:${list.length?done/list.length*100:0}%"></i></div></div>
-    <div class="chips" style="margin-bottom:6px">${[['all','전체'],['todo','할 일'],['done','완료']].map(([k,l])=>`<button class="chip ${filter===k?'on':''}" data-act="filter" data-f="${k}">${l}</button>`).join('')}</div>
-    ${vis.length ? vis.map(taskRow).join('') : '<div class="empty">이 보기에는 할 일이 없어요</div>'}
-  </section>
-
+  </div>`;
+}
+function focusPage(){
+  return `<div class="head c"><div><div class="overline">투디와 함께</div><h1>집중 타이머</h1><div class="sub">끝나면 1걸음을 받아요</div></div>
+    ${slotDiv('title-focus','focus','prep','title-slot','poke',true)}</div>
   <section class="card blue">
-    <div class="card-top"><h2>집중 타이머</h2><div class="chips">${[1,15,25].map(m=>`<button class="chip ${S.timer.dur===m*60?'on':''}" data-act="tdur" data-m="${m}" ${S.timer.endsAt?'disabled':''}>${m}분</button>`).join('')}</div></div>
+    <div class="card-top"><h2>시간 고르기</h2><div class="chips">${[1,15,25].map(m=>`<button class="chip ${S.timer.dur===m*60?'on':''}" data-act="tdur" data-m="${m}" ${S.timer.endsAt?'disabled':''}>${m}분</button>`).join('')}</div></div>
     <div class="focus-wrap">
       ${slotDiv('focus-card','focus', S.timer.endsAt?'prep':'idle','focus-slot','replay')}
       <div><div class="timer num" id="timerTxt">25:00</div>
-        <div class="small" style="margin:6px 0 10px">${S.timer.endsAt?'헤드폰 끼고 함께 집중 중':'시작하면 친구도 헤드폰을 써요'}</div>
+        <div class="small" style="margin:6px 0 10px">${S.timer.endsAt?'헤드폰 끼고 함께 집중 중':'시작하면 투디도 헤드폰을 써요'}</div>
         <div class="chips"><button class="btn tiny" data-act="ttoggle">${S.timer.endsAt?'일시정지':'시작'}</button><button class="btn outline tiny" data-act="treset">초기화</button></div></div>
     </div>
   </section>`;
 }
 function taskRow(t){
   const c = CATS[t.cat]||CATS.etc, pinned = S.priority[t.date]===t.id;
-  return `<div class="task ${t.done?'done':''}">
+  return `<div class="task ${t.done?'done':''} ${pinned?'pin':''}">
     <div class="tt"><strong>${esc(t.title)}</strong><span class="small">${[t.time, niceDate(t.date)].filter(Boolean).join(' · ')}</span>
       <span class="mot">${c.emoji} ${t.done?c.done:c.prep}</span></div>
     ${slotDiv(t.id, t.cat, t.done?'idle':'prep', 'slot', t.done?'cut':'replay', true).replace('data-slot','data-task="'+t.id+'" data-slot')}
@@ -501,41 +536,59 @@ function moneyPage(){
   const cur = month===today().slice(0,7);
   const daysLeft = (()=>{ const d = new Date(); return new Date(d.getFullYear(), d.getMonth()+1, 0).getDate() - d.getDate() + 1; })();
   const daily = cur && remaining>0 ? Math.floor(remaining/daysLeft) : 0;
-  const sums = {}; rec.filter(x=>x.type==='out').forEach(x=>sums[x.cat]=(sums[x.cat]||0)+x.amount);
-  const parts = Object.entries(sums).sort((a,b)=>b[1]-a[1]);
-  let acc = 0; const stops = parts.map(([n,v])=>{ const a = acc; acc += v/spent*100; return `${MCATS[n].c} ${a}% ${acc}%`; });
-  const sv = S.savings, total = sv.entries.reduce((a,b)=>a+b.amount,0), goal = sv.goal;
-  const gp = goal ? Math.min(100, Math.floor(total/goal.amount*100)) : 0;
-  return `
-  <div class="head">
+  return `<div class="screen">
+  <div class="head c">
     <div><div class="overline">${y}년 ${mm}월 <button class="mbtn" data-act="month" data-d="-1">‹</button><button class="mbtn" data-act="month" data-d="1">›</button></div>
       <h1>${mm}월 가계부</h1><div class="sub">수입 ${won(income)}원 · 지출 ${won(spent)}원</div></div>
     ${slotDiv('title-money','spend','prep','title-slot','poke',true)}
   </div>
-
-  <section class="card sage">
-    <div class="card-top"><h2>${cur?'이번 달 쓸 수 있는 돈':'이달 남은 예산'}</h2><button class="btn outline tiny" data-act="budget">${budget==null?'예산 설정':'예산 수정'}</button></div>
-    ${remaining==null ? '<div class="big-money" style="font-size:26px">이달 예산을 정해 보세요</div>' :
-      `<div class="big-money num ${remaining<0?'over':''}">${won(Math.abs(remaining))}<small>원${remaining<0?' 초과':''}</small></div>`}
-    <div class="small" style="margin-top:6px">${daily?`오늘부터 말일까지 <b style="color:var(--ink)">하루 약 ${won(daily)}원</b>`:'예산에서 쓴 돈과 결제 예정을 뺀 금액이에요'}</div>
+  <section class="card sage sum">
+    <div class="row"><div><div class="small">${cur?'이번 달 쓸 수 있는 돈':'이달 남은 예산'}</div>
+      ${remaining==null ? '<div class="big-money" style="font-size:22px">예산을 정해 보세요</div>' : `<div class="big-money num ${remaining<0?'over':''}">${won(Math.abs(remaining))}<small>원${remaining<0?' 초과':''}</small></div>`}</div>
+      <button class="btn outline tiny" data-act="budget">${budget==null?'예산 설정':'예산 수정'}</button></div>
     <div class="rail"><span class="s" style="width:${budget?Math.min(100,spent/budget*100):0}%"></span><span class="p" style="width:${budget?Math.min(100,unpaid/budget*100):0}%"></span></div>
-    <div class="brk num"><div class="small">예산<b>${budget==null?'미설정':won(budget)+'원'}</b></div><div class="small">쓴 돈<b>${won(spent)}원</b></div><div class="small">결제 예정<b>${won(unpaid)}원</b></div></div>
+    <div class="mini num"><span>쓴 돈 <b>${won(spent)}</b></span><span>결제 예정 <b>${won(unpaid)}</b></span>${daily?`<span>하루 <b>${won(daily)}원</b></span>`:''}</div>
   </section>
-
-  <section class="card">
-    <div class="seg" id="mSeg"><button class="${mType==='out'?'on':''}" data-act="mtype" data-t="out">지출</button><button class="${mType==='in'?'on':''}" data-act="mtype" data-t="in">수입</button></div>
-    <div class="quick"><input id="moneyIn" placeholder="${mType==='out'?'예) 점심 김밥 9000':'예) 월급 300만'}" autocomplete="off"><button data-act="addMoney">+</button></div>
-    <div class="preview" id="moneyPrev">"커피 4500", "택시 1.2만"처럼 적으면 분류까지 자동</div>
+  <section class="card in">
+    <div class="inrow"><div class="seg" id="mSeg"><button class="${mType==='out'?'on':''}" data-act="mtype" data-t="out">지출</button><button class="${mType==='in'?'on':''}" data-act="mtype" data-t="in">수입</button></div>
+    <div class="quick"><input id="moneyIn" placeholder="${mType==='out'?'점심 김밥 9000':'월급 300만'}" autocomplete="off"><button data-act="addMoney">+</button></div></div>
+    <div class="preview" id="moneyPrev">"커피 4500"처럼 적으면 분류까지 자동</div>
   </section>
-
+  <section class="card list">
+    <div class="card-top"><h2>거래 내역</h2><span class="small">${rec.length}건</span></div>
+    <div class="scroll" data-clip>${rec.length ? [...rec].sort((a,b)=>b.date.localeCompare(a.date)||String(b.id).localeCompare(String(a.id))).map((x,i)=>{ const mc = MCATS[x.cat]||MCATS['기타'];
+      return `<div class="tx"><div class="k" style="background:${x.type==='in'?'var(--sage)':'var(--blue)'}">${x.type==='in'?'＋':mc.e}</div>
+      <div class="tt"><strong>${esc(x.title)}</strong><span class="small">${dLabel(x.date)} · ${x.type==='in'?'수입':x.cat}</span></div>
+      ${i===0 ? slotDiv('tx-'+x.id, x.type==='in'?'save':'spend', 'idle', 'slot', 'replay', true) : ''}
+      <div class="amt num ${x.type==='in'?'in':''}">${x.type==='in'?'+':'−'}${won(x.amount)}원</div>
+      <button class="ico" data-act="delTx" data-id="${x.id}">✕</button></div>`; }).join('') : '<div class="empty">이달 기록이 없어요</div>'}</div>
+  </section>
+  </div>`;
+}
+function reportPage(){
+  const {rec, spent} = monthData(month);
+  const [y,mm] = month.split('-').map(Number);
+  const sums = {}; rec.filter(x=>x.type==='out').forEach(x=>sums[x.cat]=(sums[x.cat]||0)+x.amount);
+  const parts = Object.entries(sums).sort((a,b)=>b[1]-a[1]);
+  let acc = 0; const stops = parts.map(([n,v])=>{ const a = acc; acc += v/spent*100; return `${MCATS[n].c} ${a}% ${acc}%`; });
+  return `<div class="head c"><div><div class="overline">${y}년 ${mm}월 <button class="mbtn" data-act="month" data-d="-1">‹</button><button class="mbtn" data-act="month" data-d="1">›</button></div><h1>어디에 썼을까</h1><div class="sub">지출 ${won(spent)}원 · ${rec.length}건</div></div>
+    ${slotDiv('title-report','spend','prep','title-slot','poke',true)}</div>
   <section class="card lemon">
-    <div class="card-top"><h2>어디에 썼을까</h2><span class="small">${rec.length}건</span></div>
     <div class="donut-wrap">
       <div class="donut" style="${stops.length?`background:conic-gradient(${stops.join(',')})`:''}"><div>총 지출<b class="num">${won(spent)}원</b></div></div>
       <ul class="legend">${parts.length ? parts.slice(0,6).map(([n,v])=>`<li><i class="sw" style="background:${MCATS[n].c}"></i><span>${n}</span><b class="num">${Math.round(v/spent*100)}%</b></li>`).join('') : '<li class="small">지출을 기록하면 비중이 보여요</li>'}</ul>
     </div>
   </section>
-
+  <section class="card">
+    <div class="card-top"><h2>분류별 금액</h2></div>
+    ${parts.length ? parts.map(([n,v])=>`<div class="tx"><div class="k" style="background:${MCATS[n].c}">${MCATS[n].e}</div><div class="tt"><strong>${n}</strong></div><div class="amt num">${won(v)}원</div></div>`).join('') : '<div class="empty">아직 지출이 없어요</div>'}
+  </section>`;
+}
+function savePage(){
+  const sv = S.savings, total = sv.entries.reduce((a,b)=>a+b.amount,0), goal = sv.goal;
+  const gp = goal ? Math.min(100, Math.floor(total/goal.amount*100)) : 0;
+  return `<div class="head c"><div><div class="overline">차곡차곡</div><h1>저축 · 고정지출</h1><div class="sub">모은 돈 ${won(total)}원</div></div>
+    ${slotDiv('title-save','save','prep','title-slot','poke',true)}</div>
   <section class="card beige">
     <div class="card-top"><h2>저축</h2><button class="btn outline tiny" data-act="goal">${goal?'목표 수정':'목표 세우기'}</button></div>
     <div class="save-wrap">
@@ -546,17 +599,6 @@ function moneyPage(){
     </div>
     <div class="quick" style="margin-top:12px"><input id="saveIn" inputmode="numeric" placeholder="모은 금액 (예: 5만)" autocomplete="off"><button data-act="addSave">🐷</button></div>
   </section>
-
-  <section class="card">
-    <div class="card-top"><h2>거래 내역</h2><span class="small">${rec.length}건</span></div>
-    ${rec.length ? [...rec].sort((a,b)=>b.date.localeCompare(a.date)||String(b.id).localeCompare(String(a.id))).map((x,i)=>{ const mc = MCATS[x.cat]||MCATS['기타'];
-      return `<div class="tx"><div class="k" style="background:${x.type==='in'?'var(--sage)':'var(--blue)'}">${x.type==='in'?'＋':mc.e}</div>
-      <div class="tt"><strong>${esc(x.title)}</strong><span class="small">${dLabel(x.date)} · ${x.type==='in'?'수입':x.cat}</span></div>
-      ${i===0 ? slotDiv('tx-'+x.id, x.type==='in'?'save':'spend', 'idle', 'slot', 'replay', true) : ''}
-      <div class="amt num ${x.type==='in'?'in':''}">${x.type==='in'?'+':'−'}${won(x.amount)}원</div>
-      <button class="ico" data-act="delTx" data-id="${x.id}">✕</button></div>`; }).join('') : '<div class="empty">이달 기록이 없어요</div>'}
-  </section>
-
   <section class="card blue">
     <div class="card-top"><h2>매달 나가는 돈</h2></div>
     ${S.bills.map(b=>{ const paid = (S.paid[month]||{})[b.id];
@@ -583,7 +625,7 @@ function friendPage(){
   <section class="card">
     <div class="card-top"><h2>투디 모습</h2><span class="small">모든 화면에 그대로 적용</span></div>
     <div class="chips" style="margin-bottom:10px"><button class="chip ${S.deco.style!=='3d'?'on':''}" data-act="style" data-s="img">🎨 제미 그림 투디</button><button class="chip ${S.deco.style==='3d'?'on':''}" data-act="style" data-s="3d">🧊 3D 투디 (옷장)</button></div>
-    <div class="small" style="margin-bottom:10px">${S.deco.style!=='3d' ? '제미가 그린 투디 그대로예요. 지금은 그림 4장(달리기·인사·만세·울상)이 상황에 맞게 바뀌어요. 그림이 늘어날수록 더 다양해져요.' : '3D 투디는 할 일마다 후드티를 갈아입어요 · 런닝은 파란 트레이닝, 산책은 강아지 후드, 저축은 토끼 후드, 공부는 레몬 후드, 지출은 회색 후드예요.'} 아래 모션 도감을 누르면 다시 볼 수 있어요.</div>
+    <div class="small" style="margin-bottom:10px">${S.deco.style!=='3d' ? '제미가 그린 투디 그대로예요. 할 일 종류마다 정해진 투디가 나오고, 모습은 바뀌지 않은 채 몸짓(달리기·통통·흔들기·꾸벅)으로 움직여요.' : '3D 투디는 할 일마다 후드티를 갈아입어요 · 런닝은 파란 트레이닝, 산책은 강아지 후드, 저축은 토끼 후드, 공부는 레몬 후드, 지출은 회색 후드예요.'} 아래 모션 도감을 누르면 다시 볼 수 있어요.</div>
     <div class="chips"><button class="chip ${S.deco.glasses?'':'on'}" data-act="glasses" data-g="0">선글라스 벗기</button><button class="chip ${S.deco.glasses?'on':''}" data-act="glasses" data-g="1">😎 쓰기</button></div>
   </section>
 
@@ -653,7 +695,7 @@ document.addEventListener('click', e=>{
   const b = e.target.closest('[data-act],[data-tab],[data-tap]');
   if(!b) return;
   try{
-    if(b.dataset.tab){ tab = b.dataset.tab; location.hash = tab; render(); window.scrollTo(0,0); return; }
+    if(b.dataset.tab){ tab = b.dataset.tab; location.hash = tab; openDrawer(false); render(); window.scrollTo(0,0); return; }
     if(b.dataset.tap && !b.dataset.act){
       const id = b.dataset.slot;
       if(b.dataset.tap==='poke'){ if(window.Engine) Engine.poke(id); }
@@ -700,7 +742,7 @@ document.addEventListener('click', e=>{
         const bill = S.bills.find(x=>x.id===id); if(!bill) return;
         (S.paid[month] = S.paid[month]||{})[bill.id] = true;
         S.tx.push({id:uid(), date: month===today().slice(0,7)?today():month+'-'+pad(bill.day), title:bill.title, type:'out', amount:bill.amount, cat:'구독'});
-        const got = addStep('record'); save(); render(); celebrate('title-money', 'spend', `${bill.title} ${won(bill.amount)}원`, got); break;
+        const got = addStep('record'); save(); render(); celebrate('title-save', 'spend', `${bill.title} ${won(bill.amount)}원`, got); break;
       }
       case 'addSave': {
         const amt = toNum($('saveIn').value); if(!amt){ toast('금액을 숫자로 적어주세요'); return; }
@@ -753,8 +795,8 @@ function addMoney(){
   if(p.type==='out'){ const got = addStep('record'); save(); render(); celebrate('tx-'+nid, 'spend', `${won(p.amount)}원`, got); }
   else { save(); render(); celebrate('tx-'+nid, 'save', `+${won(p.amount)}원`); }
 }
-$('resetAll').addEventListener('click', ()=>{ if(confirm('예시 데이터로 다시 시작할까요? 지금 기록은 지워져요.')){ S = seed(); window.DECO = S.deco; save(); render(); } });
-window.addEventListener('hashchange', ()=>{ const h = location.hash.slice(1); if(['plan','money','friend'].includes(h) && h!==tab){ tab = h; render(); } });
+document.addEventListener('click', e=>{ if(!e.target.closest('#resetAll')) return; if(confirm('예시 데이터로 다시 시작할까요? 지금 기록은 지워져요.')){ S = seed(); window.DECO = S.deco; save(); render(); } });
+window.addEventListener('hashchange', ()=>{ const h = location.hash.slice(1); if(PAGE_IDS.includes(h) && h!==tab){ tab = h; render(); } });
 
 /* ===================== 9. 집중 타이머 ===================== */
 function updateTimer(){
@@ -772,50 +814,78 @@ setInterval(()=>{ window.DECO = S.deco; }, 500);
 render();
 
 
+/* ===================== 9-0. 숨김 메뉴 ===================== */
+try{
+  $('menuBtn').addEventListener('click', ()=>openDrawer(true));
+  $('drawerDim').addEventListener('click', ()=>openDrawer(false));
+  let sx = null, sy = 0;
+  document.addEventListener('touchstart', e=>{ const t = e.touches[0]; sx = (t.clientX < 22 || $('drawer').classList.contains('on')) ? t.clientX : null; sy = t.clientY; }, {passive:true});
+  document.addEventListener('touchend', e=>{ if(sx==null) return; const t = e.changedTouches[0], dx = t.clientX - sx;
+    if(Math.abs(t.clientY - sy) < 60){ if(dx > 60) openDrawer(true); else if(dx < -60) openDrawer(false); } sx = null; }, {passive:true});
+}catch(e){ console.error('메뉴 오류', e); }
+
 /* ===================== 9-1. 인트로 영상 (투디's 투두리스트) ===================== */
 (function intro(){
   const box = document.getElementById('intro'), svg = document.getElementById('introSvg');
   if(!box || !svg) return;
   try{
-    const INK='#20221e', Y='#F2CE3E', Y2='#dcae22', Y3='#ffe27a';
-    /* 구름 띠 만들기: 동그라미를 겹쳐서 뭉게구름 테두리 */
+    const INK='#20221e', FF="Pretendard,'Noto Sans KR',Roboto,sans-serif";
+    /* 말랑한 3D 느낌: 그라데이션 + 부드러운 그림자 (진한 만화 외곽선 대신) */
+    const defs = `<defs>
+      <radialGradient id="gPuff" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#fff3b8"/><stop offset=".45" stop-color="#f6d44e"/><stop offset="1" stop-color="#dcaa22"/></radialGradient>
+      <radialGradient id="gPuffB" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="#f3cd4a"/><stop offset="1" stop-color="#c9951a"/></radialGradient>
+      <radialGradient id="gDisc" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#ffa48a"/><stop offset=".7" stop-color="#f07f62"/><stop offset="1" stop-color="#d9634a"/></radialGradient>
+      <radialGradient id="gSun" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#fffbe0"/><stop offset=".6" stop-color="#ffe27a"/><stop offset="1" stop-color="#eebf3c"/></radialGradient>
+      <linearGradient id="gFace" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#fbf5ea"/><stop offset="1" stop-color="#eadcc6"/></linearGradient>
+      <linearGradient id="gPill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#efe6d6"/></linearGradient>
+      <filter id="fSoft" x="-20%" y="-20%" width="140%" height="160%"><feGaussianBlur stdDeviation="5"/></filter>
+    </defs>`;
     function puffs(edgeY, dir, seed){
       let r = seed, rnd = ()=>{ r = (r*9301+49297)%233280; return r/233280; };
       const back=[], front=[];
       for(let x=-30; x<=430; x+=58){ const rr=44+rnd()*16; back.push([x+rnd()*14, edgeY + dir*(rr*0.35+8), rr]); }
       for(let x=-5; x<=420; x+=66){ const rr=36+rnd()*14; front.push([x+rnd()*16, edgeY - dir*(14+rnd()*12), rr]); }
-      const c=(arr,fill,st)=>arr.map(([x,y,rr])=>`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${rr.toFixed(1)}" fill="${fill}" ${st?`stroke="${INK}" stroke-width="4"`:''}/>`).join('');
-      const rect = dir>0 ? `<rect x="-20" y="-700" width="440" height="${edgeY+700-30}" fill="${Y}"/>` : `<rect x="-20" y="${edgeY+30}" width="440" height="900" fill="${Y}"/>`;
-      // 하이라이트(볼록한 느낌)
-      const hi = front.map(([x,y,rr])=>`<path d="M${(x-rr*0.55).toFixed(1)} ${(y-dir*rr*0.15).toFixed(1)} q${(rr*0.3).toFixed(1)} ${(-dir*rr*0.45).toFixed(1)} ${(rr*0.75).toFixed(1)} ${(-dir*rr*0.38).toFixed(1)}" fill="none" stroke="${Y3}" stroke-width="5" stroke-linecap="round"/>`).join('');
-      return rect + c(back,Y2,1) + c(back,Y2,0) + c(front,Y,1) + c(front,Y,0) + hi + (dir>0?`<rect x="-20" y="-700" width="440" height="${edgeY+700-62}" fill="${Y}"/>`:`<rect x="-20" y="${edgeY+62}" width="440" height="900" fill="${Y}"/>`);
+      const c=(arr,fill,st)=>arr.map(([x,y,rr])=>`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${rr.toFixed(1)}" fill="${fill}" ${st?`stroke="${st}" stroke-width="3"`:''}/>`).join('');
+      const shade = front.map(([x,y,rr])=>`<circle cx="${x.toFixed(1)}" cy="${(y+dir*8).toFixed(1)}" r="${rr.toFixed(1)}" fill="#8a5a00" opacity=".18" filter="url(#fSoft)"/>`).join('');
+      const fill = dir>0 ? `<rect x="-20" y="-700" width="440" height="${edgeY+700-40}" fill="#e9bd33"/>` : `<rect x="-20" y="${edgeY+40}" width="440" height="900" fill="#e9bd33"/>`;
+      return fill + c(back,'url(#gPuffB)','#b98712') + c(back,'url(#gPuffB)') + shade + c(front,'url(#gPuff)','#cf9d1c') + c(front,'url(#gPuff)');
     }
-    /* 무지개 호 */
-    const arc=(r,a0,a1,col,w)=>{ const p=a=>[200+r*Math.cos(a*Math.PI/180), 420+r*Math.sin(a*Math.PI/180)];
+    /* 무지개 호: 통통한 튜브처럼 (아래 그림자 + 본색 + 윗면 반사광) */
+    const arc=(r,a0,a1,col,dark,w)=>{ const p=a=>[200+r*Math.cos(a*Math.PI/180), 420+r*Math.sin(a*Math.PI/180)];
       const [x0,y0]=p(a0),[x1,y1]=p(a1), big=(a1-a0)>180?1:0;
       const d=`M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${big} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`;
-      return `<path class="arc" d="${d}" fill="none" stroke="${INK}" stroke-width="${w+7}" stroke-linecap="round"/><path class="arc" d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`; };
-    let rays=''; for(let i=0;i<18;i++){ const a=i*20; rays+=`<path d="M200 420 L${(200+260*Math.cos(a*Math.PI/180)).toFixed(1)} ${(420+260*Math.sin(a*Math.PI/180)).toFixed(1)} L${(200+260*Math.cos((a+8)*Math.PI/180)).toFixed(1)} ${(420+260*Math.sin((a+8)*Math.PI/180)).toFixed(1)}Z" fill="#e8694f"/>`; }
-    const star=(x,y,s,c)=>`<g class="tg spk" transform="translate(${x} ${y})"><path transform="scale(${s})" d="M0-14 C2-4 4-2 14 0 C4 2 2 4 0 14 C-2 4-4 2-14 0 C-4-2-2-4 0-14Z" fill="${c}" stroke="${INK}" stroke-width="2.6"/></g>`;
-    const todi = (typeof TODI_IMG!=='undefined' && TODI_IMG.cheer) ? `<image href="${TODI_IMG.cheer}" x="-58" y="-160" width="116" height="156" preserveAspectRatio="xMidYMax meet"/>` : '';
-    const T = (txt,size,y)=>`<text x="200" y="${y+8}" text-anchor="middle" font-size="${size}" font-weight="900" font-family="Pretendard,'Noto Sans KR',Roboto,sans-serif" fill="${INK}" letter-spacing="-2">${txt}</text>
-      <text x="200" y="${y}" text-anchor="middle" font-size="${size}" font-weight="900" font-family="Pretendard,'Noto Sans KR',Roboto,sans-serif" fill="#fffefa" stroke="${INK}" stroke-width="16" stroke-linejoin="round" paint-order="stroke" letter-spacing="-2">${txt}</text>
-      <text x="200" y="${y}" text-anchor="middle" font-size="${size}" font-weight="900" font-family="Pretendard,'Noto Sans KR',Roboto,sans-serif" fill="#fffefa" stroke="#6aa8f0" stroke-width="6" stroke-linejoin="round" paint-order="stroke" letter-spacing="-2">${txt}</text>
-      <text x="200" y="${y}" text-anchor="middle" font-size="${size}" font-weight="900" font-family="Pretendard,'Noto Sans KR',Roboto,sans-serif" fill="#fffefa" letter-spacing="-2">${txt}</text>`;
-    svg.innerHTML = `
+      return `<path class="arc" d="${d}" fill="none" stroke="${dark}" stroke-width="${w}" stroke-linecap="round" transform="translate(0 4)"/>
+        <path class="arc" d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>
+        <path class="arc" d="${d}" fill="none" stroke="#ffffff" stroke-opacity=".55" stroke-width="${Math.max(2,w*0.22)}" stroke-linecap="round" transform="translate(0 -${(w*0.22).toFixed(1)})"/>`; };
+    let rays=''; for(let i=0;i<18;i++){ const a=i*20; rays+=`<path d="M200 420 L${(200+260*Math.cos(a*Math.PI/180)).toFixed(1)} ${(420+260*Math.sin(a*Math.PI/180)).toFixed(1)} L${(200+260*Math.cos((a+8)*Math.PI/180)).toFixed(1)} ${(420+260*Math.sin((a+8)*Math.PI/180)).toFixed(1)}Z" fill="#ffffff" opacity=".1"/>`; }
+    const star=(x,y,s,c)=>`<g class="tg spk" transform="translate(${x} ${y})"><path transform="scale(${s})" d="M0-14 C2-4 4-2 14 0 C4 2 2 4 0 14 C-2 4-4 2-14 0 C-4-2-2-4 0-14Z" fill="${c}" stroke="#ffffff" stroke-opacity=".7" stroke-width="1.5"/></g>`;
+    const todi = (typeof TODI_IMG!=='undefined' && TODI_IMG.wave) ? `<ellipse cx="0" cy="-4" rx="40" ry="8" fill="#5a3a00" opacity=".22" filter="url(#fSoft)"/><image href="${TODI_IMG.wave}" x="-62" y="-168" width="124" height="166" preserveAspectRatio="xMidYMax meet"/>` : '';
+    /* 3D 글씨: 크림색 앞면 + 아래로 쌓인 두께 + 바닥 그림자 → 투디 얼굴처럼 말랑한 입체 */
+    const T = (txt,size,y)=>{
+      const at = (dy,fill,extra='')=>`<text x="200" y="${y+dy}" text-anchor="middle" font-size="${size}" font-weight="900" font-family="${FF}" fill="${fill}" letter-spacing="-3" ${extra}>${txt}</text>`;
+      let out = at(18,'#5a2a14','opacity=".35" filter="url(#fSoft)"');
+      const depth = ['#c9a983','#cfb08a','#d5b892','#dbc09b','#e0c7a3','#e5ceab','#e9d4b3','#eddabb','#f0dfc2'];
+      for(let k=9;k>=1;k--) out += at(k*1.1, depth[9-k]);
+      out += at(0,'url(#gFace)','stroke="#e3d0b4" stroke-width="1.2"');
+      out += `<text x="200" y="${y}" text-anchor="middle" font-size="${size}" font-weight="900" font-family="${FF}" fill="none" stroke="#ffffff" stroke-opacity=".9" stroke-width="2" letter-spacing="-3" transform="translate(0 -2)" clip-path="inset(0 0 55% 0)">${txt}</text>`;
+      return out; };
+    const pill = `<g transform="translate(200 494) rotate(-3)">
+        <rect x="-102" y="-19" width="204" height="44" rx="22" fill="#5a2a14" opacity=".28" filter="url(#fSoft)" transform="translate(0 8)"/>
+        <rect x="-102" y="-19" width="204" height="44" rx="22" fill="#d8c3a2"/>
+        <rect x="-102" y="-24" width="204" height="44" rx="22" fill="url(#gPill)"/>
+        <rect x="-90" y="-20" width="180" height="9" rx="4.5" fill="#ffffff" opacity=".85"/>
+        <text y="6" text-anchor="middle" font-size="21" font-weight="900" font-family="${FF}" fill="#4a3a2c">✓ 투두리스트</text></g>`;
+    svg.innerHTML = defs + `
       <g id="iScene">
         <g id="iDisc" class="tg">
-          <circle cx="200" cy="420" r="250" fill="#f07f62"/>
+          <circle cx="200" cy="420" r="250" fill="url(#gDisc)"/>
           <g id="iRays" class="tg">${rays}</g>
-          ${arc(196,200,330,'#6fcf97',15)}${arc(170,215,320,'#fffefa',10)}${arc(150,30,150,'#6aa8f0',15)}${arc(176,40,120,'#F2CE3E',10)}
+          ${arc(196,200,330,'#7fd6a6','#4fa77a',16)}${arc(171,215,320,'#fffefa','#d9cdb8',11)}${arc(150,30,150,'#7db6f0','#4c84c4',16)}${arc(177,40,120,'#ffdc62','#d6a72a',11)}
         </g>
-        <g id="iSun" class="tg" transform="translate(132 316)"><circle r="24" fill="#ffe27a" stroke="${INK}" stroke-width="4"/><circle cx="-8" cy="-4" r="3.2" fill="${INK}"/><circle cx="8" cy="-4" r="3.2" fill="${INK}"/><path d="M-10 6 q10 10 20 0" fill="none" stroke="${INK}" stroke-width="3.5" stroke-linecap="round"/></g>
-        <g id="iTitle" class="tg">${T("TODI's",96,430)}
-          <g transform="translate(200 486) rotate(-3)"><rect x="-104" y="-22" width="208" height="44" rx="22" fill="#fffefa" stroke="${INK}" stroke-width="4"/><rect x="-104" y="-22" width="208" height="44" rx="22" fill="none" stroke="${INK}" stroke-width="4" transform="translate(0 4)" opacity=".25"/>
-          <text y="8" text-anchor="middle" font-size="22" font-weight="900" font-family="Pretendard,'Noto Sans KR',sans-serif" fill="${INK}">✓ 투두리스트</text></g>
-        </g>
-        ${star(318,330,1.3,'#fffefa')}${star(318,560,1,'#ffe27a')}${star(78,540,0.9,'#fffefa')}${star(334,470,0.7,'#6fcf97')}
-        <g id="iTodi" transform="translate(200 712)"><g id="iTodiIn" class="tg">${todi}</g></g>
+        <g id="iSun" class="tg" transform="translate(130 318)"><circle r="25" fill="url(#gSun)"/><circle cx="-8" cy="-3" r="3.2" fill="${INK}"/><circle cx="8" cy="-3" r="3.2" fill="${INK}"/><path d="M-9 7 q9 8 18 0" fill="none" stroke="${INK}" stroke-width="3" stroke-linecap="round"/><ellipse cx="-9" cy="-13" rx="7" ry="4" fill="#fff" opacity=".7"/></g>
+        <g id="iTitle" class="tg">${T("TODI's",96,432)}${pill}</g>
+        ${star(318,330,1.3,'#fff6d8')}${star(318,560,1,'#ffe27a')}${star(78,540,0.9,'#fff6d8')}${star(334,470,0.7,'#9be0b9')}
+        <g id="iTodi" transform="translate(200 694)"><g id="iTodiIn" class="tg">${todi}</g></g>
       </g>
       <g id="iTop">${puffs(150,1,7)}</g>
       <g id="iBot">${puffs(728,-1,3)}</g>`;
@@ -833,7 +903,7 @@ render();
       A(pa,[{strokeDashoffset:L},{strokeDashoffset:0}],{duration:520,delay:650+Math.floor(i/2)*110,easing:snap}); });
     A(title,[{transform:'scale(.1) rotate(-30deg)',opacity:0},{transform:'scale(1.18) rotate(5deg)',opacity:1,offset:.6},{transform:'scale(.95,1.05) rotate(-2deg)',offset:.8},{transform:'scale(1) rotate(0)',opacity:1}],{duration:650,delay:900,easing:'ease-out'});
     let wob; setTimeout(()=>{ if(!box.isConnected) return; wob = title.animate([{transform:'rotate(0) scale(1)'},{transform:'rotate(-3deg) scale(1.03)'},{transform:'rotate(2.5deg) scale(.99)'},{transform:'rotate(0) scale(1)'}],{duration:1300,iterations:Infinity,easing:'ease-in-out'}); },1560);
-    A(sun,[{transform:'translate(132px,316px) scale(0) rotate(-180deg)'},{transform:'translate(132px,316px) scale(1.2) rotate(15deg)',offset:.7},{transform:'translate(132px,316px) scale(1) rotate(0)'}],{duration:600,delay:1150,easing:bounce});
+    A(sun,[{transform:'translate(130px,318px) scale(0) rotate(-180deg)'},{transform:'translate(130px,318px) scale(1.2) rotate(15deg)',offset:.7},{transform:'translate(130px,318px) scale(1) rotate(0)'}],{duration:600,delay:1150,easing:bounce});
     svg.querySelectorAll('.spk').forEach((g,i)=>{ const tr=g.getAttribute('transform').match(/[-\d.]+/g); const b=`translate(${tr[0]}px,${tr[1]}px)`;
       g.style.transform=b+' scale(0)'; A(g,[{transform:b+' scale(0) rotate(0)'},{transform:b+' scale(1.25) rotate(45deg)',offset:.6},{transform:b+' scale(1) rotate(90deg)'}],{duration:500,delay:1250+i*120,easing:bounce});
       setTimeout(()=>{ g.animate([{transform:b+' scale(1) rotate(90deg)'},{transform:b+' scale(.6) rotate(135deg)'},{transform:b+' scale(1) rotate(180deg)'}],{duration:900+i*130,iterations:Infinity}); },1800+i*120); });
@@ -1051,44 +1121,56 @@ function setOutfit(cat){
 setOutfit('hello');
 
 
-/* ===== 그림 투디 (제미 그림 63장) ===== */
+/* ===== 그림 투디: 한 칸에는 항상 같은 투디 한 명 + 몸짓으로만 움직이기 ===== */
 let CUR_MODE = 'prep', CUR_VIEW = 'mini';
 const sprMat = new T.MeshBasicMaterial({transparent:true, alphaTest:0.05, side:T.DoubleSide});
 sprMat.toneMapped = false;
-const sprMesh = new T.Mesh(new T.PlaneGeometry(1,1), sprMat); spinner.add(sprMesh);
+const sprPivot = new T.Group(); sprPivot.position.set(0, -0.94, 0.1); spinner.add(sprPivot);   // 발끝 기준으로 기울기
+const sprMesh = new T.Mesh(new T.PlaneGeometry(1,1), sprMat); sprPivot.add(sprMesh);
 const SPR = {}; const sprLoader = new T.TextureLoader();
 Object.entries(TODI_IMG).forEach(([k,src])=>{
   const tex = sprLoader.load(src, t=>{ SPR[k].aspect = t.image.width / t.image.height; });
   tex.encoding = T.sRGBEncoding; tex.anisotropy = 4;
   SPR[k] = {tex, aspect:0.7, h:TODI_H[k] || 2.45};
 });
-const pickOf = arr => Array.isArray(arr) ? arr[Math.floor(Date.now()/2600) % arr.length] : arr;
-function applySprite(p){
+function applySprite(p, slot){
   const imgMode = !(window.DECO && window.DECO.style === '3d');
-  rig.visible = !imgMode; sprMesh.visible = imgMode;
+  rig.visible = !imgMode; sprPivot.visible = imgMode;
   if(!imgMode) return;
   PROPS.dog.visible = false; dogBlob.visible = false; PROPS.leash.visible = false; PROPS.shuttle.visible = false;
-  const S = SPRITE_SET[curOutfit] || SPRITE_SET.etc, C = SPRITE_COMMON;
-  let key;
-  if(p.xeye > 0.5) key = C.pant;
-  else if(p.eye > 1.2) key = C.surprise;
-  else if(p.run > 0.05 || p.walk > 0.05 || Math.abs(p.turn) > 0.8) key = S.move || 'run';
-  else if(CUR_MODE === 'done' && p.happy > 0.5) key = S.done;
-  else if(CUR_MODE === 'idle') key = pickOf(S.idle);
-  else if(p.eye < 0.45) key = S.sleep || C.sleep;
-  else if(p.sad > 0.5) key = 'sad';
-  else if(p.happy > 0.5) key = S.done;
-  else key = pickOf(S.prep);
-  /* 큰 화면(대표 카드·무대)에서는 선명한 원본 4장만 사용 */
-  if((CUR_VIEW === 'big' || CUR_VIEW === 'cut') && !TODI_HD.includes(key)){
-    key = (p.run > 0.05 || p.walk > 0.05) ? 'run' : (p.sad > 0.5 || p.xeye > 0.5) ? 'sad' : (p.happy > 0.5 || CUR_MODE === 'done') ? 'cheer' : 'wave';
-  }
-  const s = SPR[key] || SPR.wave; if(!s) return;
+  // 1) 그림 고르기: 할 일 종류마다 정해진 투디 한 명 (중간에 바뀌지 않음)
+  let key = TODI_ONE[curOutfit] || TODI_ONE.hello;
+  if((CUR_VIEW === 'big' || CUR_VIEW === 'cut') && !TODI_HD.includes(key)) key = TODI_ONE.hello;   // 큰 화면은 선명한 대표 투디
+  const s = SPR[key] || SPR[TODI_ONE.hello]; if(!s) return;
   if(sprMat.map !== s.tex){ sprMat.map = s.tex; sprMat.needsUpdate = true; }
+  // 2) 몸짓 만들기 (그림은 그대로, 기울기·통통 튀기·숨쉬기로 살아 있는 느낌)
+  if(slot && slot.ph == null) slot.ph = Math.random()*10;
+  const t = performance.now()/1000 + (slot ? slot.ph : 0);
+  const mv = Math.min(1, p.run + p.walk*0.6);
+  let rz = 0, by = 0, sx = 1, sy = 1;
+  // 숨쉬기
+  const br = Math.sin(t*2.2); sy *= 1 + br*0.018; sx *= 1 - br*0.012;
+  // 달리기·걷기: 앞으로 기울고 통통
+  if(mv > 0.02){ const c = t*(p.run > p.walk ? 15 : 9);
+    rz += -0.16*mv*Math.sign(Math.cos(p.turn) || 1) + Math.sin(c)*0.07*mv;
+    by += Math.abs(Math.sin(c))*0.12*mv; sy *= 1 - Math.abs(Math.cos(c))*0.05*mv; }
+  // 기쁨: 좌우로 신나게 흔들기
+  if(p.happy > 0.05){ rz += Math.sin(t*11)*0.10*p.happy; }
+  // 헉헉: 빠르게 들썩
+  if(p.xeye > 0.05 || p.pant > 0.05){ const k = Math.max(p.xeye, p.pant); sy *= 1 + Math.sin(t*14)*0.04*k; by += Math.max(0,Math.sin(t*14))*0.03*k; rz += 0.05*k; }
+  // 시무룩: 살짝 처지기
+  if(p.sad > 0.05){ sy *= 1 - 0.05*p.sad; rz += -0.05*p.sad + Math.sin(t*1.6)*0.02*p.sad; }
+  // 졸림: 느리게 꾸벅
+  if(p.eye < 0.45){ rz += Math.sin(t*1.4)*0.07; }
+  // 손 흔들기·리듬
+  if(p.wave > 0.05) rz += Math.sin(t*6)*0.05*p.wave;
+  if(p.sway > 0.05) rz += Math.sin(t*2.6)*0.08*p.sway;
+  // 3) 방향 바꾸기: 카드 뒤집듯 부드럽게 (갑자기 휙 안 바뀜)
+  const flip = Math.cos(p.turn), fx = Math.sign(flip || 1) * Math.max(0.1, Math.abs(flip));
   const h = s.h, w = h * s.aspect;
-  sprMesh.scale.set(p.turn > 0.6 ? -w : w, h, 1);
-  sprMesh.position.set(0, h/2 - 0.94, 0.1);
-  sprMesh.rotation.set(0, -p.turn, 0);
+  sprMesh.scale.set(w*sx*fx, h*sy, 1);
+  sprMesh.position.set(0, h*sy/2 + by, 0);
+  sprPivot.rotation.set(0, -p.turn, rz * (fx < 0 ? -1 : 1));
 }
 
 /* ---------- 6-3. 소품들 ---------- */
@@ -1745,7 +1827,7 @@ function applyPose(p, slot, m){
   const bs = 1.15/(1+p.y*0.9); blob.scale.set(bs, bs*0.75, 1); blob.position.x = 0; blob.material.opacity = 1/(1+p.y*1.2);
   // 전구
   bulb.visible = p.bulb > 0.02; bulb.scale.set(0.75*p.bulb, 0.75*p.bulb, 1); bulb.position.set(0, 3.0+p.y, 0.3);
-  applySprite(p);
+  applySprite(p, slot);
 }
 function setTube(mesh, curve, r){ mesh.geometry.dispose(); mesh.geometry = new T.TubeGeometry(curve, 30, r, 6, false); }
 
@@ -1868,7 +1950,9 @@ function frame(){
         const s = getSlot(el.dataset.slot);
         // 새로 나타난 칸은 위에서부터 차례로(0.18초 간격) 달려오기
         if(el.dataset.arrive && s.epoch !== window.ARRIVE_EPOCH){ s.epoch = window.ARRIVE_EPOCH; s.arriveStart = now + (order++)*180; }
-        if(r.bottom < 0 || r.top > H || r.width < 2) return;   // 화면 밖은 건너뜀
+        const cc = el.closest('[data-clip]'), cr = cc ? cc.getBoundingClientRect() : null;
+        const clip = cr ? {top:Math.max(0,cr.top), bottom:Math.min(H,cr.bottom)} : {top:0,bottom:H};
+        if(r.bottom < clip.top || r.top > clip.bottom || r.width < 2) return;   // 보이지 않는 칸은 건너뜀
         let cat = el.dataset.cat, mode = el.dataset.mode || 'prep'; s.outfit = cat;
         let expand = false;
         if(s.celeb){
@@ -1890,7 +1974,7 @@ function frame(){
         }
         if(!MO[cat]) cat = 'etc';
         const vw = el.dataset.view || 'mini';
-        drawSlot(s, r, {top:0,bottom:H}, cat, mode, vw, dt, expand && vw === 'mini');
+        drawSlot(s, r, clip, cat, mode, vw, dt, expand && vw === 'mini');
       });
     }
   }catch(e){ console.error('그리기 오류', e); }
