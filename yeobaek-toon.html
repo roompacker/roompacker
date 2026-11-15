@@ -860,7 +860,7 @@ try{
         <path class="arc" d="${d}" fill="none" stroke="#ffffff" stroke-opacity=".55" stroke-width="${Math.max(2,w*0.22)}" stroke-linecap="round" transform="translate(0 -${(w*0.22).toFixed(1)})"/>`; };
     let rays=''; for(let i=0;i<18;i++){ const a=i*20; rays+=`<path d="M200 420 L${(200+260*Math.cos(a*Math.PI/180)).toFixed(1)} ${(420+260*Math.sin(a*Math.PI/180)).toFixed(1)} L${(200+260*Math.cos((a+8)*Math.PI/180)).toFixed(1)} ${(420+260*Math.sin((a+8)*Math.PI/180)).toFixed(1)}Z" fill="#ffffff" opacity=".1"/>`; }
     const star=(x,y,s,c)=>`<g class="tg spk" transform="translate(${x} ${y})"><path transform="scale(${s})" d="M0-14 C2-4 4-2 14 0 C4 2 2 4 0 14 C-2 4-4 2-14 0 C-4-2-2-4 0-14Z" fill="${c}" stroke="#ffffff" stroke-opacity=".7" stroke-width="1.5"/></g>`;
-    const todi = (typeof TODI_IMG!=='undefined' && TODI_IMG.wave) ? `<ellipse cx="0" cy="-4" rx="40" ry="8" fill="#5a3a00" opacity=".22" filter="url(#fSoft)"/><image href="${TODI_IMG.wave}" x="-62" y="-168" width="124" height="166" preserveAspectRatio="xMidYMax meet"/>` : '';
+    const todi = (typeof TODI_IMG!=='undefined' && TODI_IMG.wave) ? `<ellipse cx="0" cy="-4" rx="40" ry="8" fill="#5a3a00" opacity=".22" filter="url(#fSoft)"/><image href="${TODI_IMG.wave}" x="-52" y="-141" width="104" height="139" preserveAspectRatio="xMidYMax meet"/>` : '';
     /* 3D 글씨: 크림색 앞면 + 아래로 쌓인 두께 + 바닥 그림자 → 투디 얼굴처럼 말랑한 입체 */
     const T = (txt,size,y)=>{
       const at = (dy,fill,extra='')=>`<text x="200" y="${y+dy}" text-anchor="middle" font-size="${size}" font-weight="900" font-family="${FF}" fill="${fill}" letter-spacing="-3" ${extra}>${txt}</text>`;
@@ -894,7 +894,7 @@ try{
     const top=$('iTop'), bot=$('iBot'), disc=$('iDisc'), title=$('iTitle'), sun=$('iSun'), todiIn=$('iTodiIn'), rayG=$('iRays');
     const A=(el,kf,o)=>el.animate(kf,Object.assign({fill:'both'},o));
     const bounce='cubic-bezier(.34,1.56,.64,1)', snap='cubic-bezier(.2,.8,.2,1)', inQ='cubic-bezier(.6,0,.9,.4)';
-    const CLOSE=310;
+    const CLOSE=310; let ended=false;
     // 시작: 구름이 닫힌 상태 → 펑 열림
     A(top,[{transform:`translateY(${CLOSE}px)`},{transform:`translateY(${CLOSE}px)`,offset:.3},{transform:'translateY(-14px)',offset:.8},{transform:'translateY(0)'}],{duration:1000,easing:snap});
     A(bot,[{transform:`translateY(${-CLOSE}px)`},{transform:`translateY(${-CLOSE}px)`,offset:.3},{transform:'translateY(14px)',offset:.8},{transform:'translateY(0)'}],{duration:1000,easing:snap});
@@ -908,16 +908,51 @@ try{
     svg.querySelectorAll('.spk').forEach((g,i)=>{ const tr=g.getAttribute('transform').match(/[-\d.]+/g); const b=`translate(${tr[0]}px,${tr[1]}px)`;
       g.style.transform=b+' scale(0)'; A(g,[{transform:b+' scale(0) rotate(0)'},{transform:b+' scale(1.25) rotate(45deg)',offset:.6},{transform:b+' scale(1) rotate(90deg)'}],{duration:500,delay:1250+i*120,easing:bounce});
       setTimeout(()=>{ g.animate([{transform:b+' scale(1) rotate(90deg)'},{transform:b+' scale(.6) rotate(135deg)'},{transform:b+' scale(1) rotate(180deg)'}],{duration:900+i*130,iterations:Infinity}); },1800+i*120); });
-    // 투디: 아래 구름에서 점프!
-    A(todiIn,[{transform:'translateY(220px) scale(.9,1.1)'},{transform:'translateY(220px)',offset:.01},{transform:'translateY(-46px) scale(.92,1.1)',offset:.55},{transform:'translateY(0) scale(1.12,.88)',offset:.8},{transform:'translateY(0) scale(1)'}],{duration:800,delay:1350,easing:'ease-out'});
+    // 투디 미니 영화: 왼쪽 화면 밖에서 통통 뛰어와 → 크게 점프해 글자 위에 착지 → 글자가 꾹 눌림 → 신나서 콩콩
+    const todiG = $('iTodi'); todiIn.style.transformOrigin = '50% 100%';
+    const SEG = [
+      {wait:1500, x:-90, y:650},
+      {x:15,  y:650, h:80,  d:340}, {x:105, y:650, h:80, d:340},
+      {wait:170},                                   // 움츠리기(점프 준비)
+      {x:200, y:376, h:95, d:560, land:true},      // 글자 위로 큰 점프
+      {wait:260},
+      {x:200, y:376, h:34, d:300}, {x:200, y:376, h:34, d:300},
+      {wait:300}
+    ];
+    const total = SEG.reduce((a,g)=>a+(g.wait||g.d),0);
+    const mvK = [], sqK = []; let tt = 0, cx = SEG[0].x, cy = SEG[0].y, landAt = 0;
+    const tr = (x,y)=>`translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`, sc = (a,b)=>`scale(${a},${b})`;
+    mvK.push({transform:tr(cx,cy), offset:0}); sqK.push({transform:sc(1,1), offset:0});
+    SEG.forEach((g,gi)=>{
+      if(g.wait){
+        const crouch = SEG[gi+1] && SEG[gi+1].land;
+        tt += g.wait; const o = Math.min(1, tt/total);
+        mvK.push({transform:tr(cx,cy), offset:o}); sqK.push({transform: crouch ? sc(1.22,.74) : sc(1,1), offset:o});
+        return;
+      }
+      const x0 = cx, y0 = cy, N = 10;
+      for(let k=1;k<=N;k++){ const u = k/N, o = Math.min(1,(tt + g.d*u)/total);
+        const x = x0 + (g.x-x0)*u, y = y0 + (g.y-y0)*u - 4*g.h*u*(1-u);
+        mvK.push({transform:tr(x,y), offset:o});
+        const st = u<0.2 ? [.88,1.16] : u<0.75 ? [.97,1.04] : u<1 ? [.9,1.13] : [1.24,.76];   // 늘어났다가 착지 때 납작
+        sqK.push({transform:sc(st[0],st[1]), offset:o});
+      }
+      tt += g.d; cx = g.x; cy = g.y; if(g.land) landAt = tt;
+    });
+    todiG.animate(mvK, {duration:total, fill:'both', easing:'linear'});
+    todiIn.animate(sqK, {duration:total, fill:'both', easing:'linear'});
+    // 착지하는 순간 글자가 꾹 눌렸다가 튕겨 올라옴
+    setTimeout(()=>{ if(!box.isConnected || ended) return;
+      title.animate([{transform:'scale(1,1) translateY(0)'},{transform:'scale(1.08,.72) translateY(22px)',offset:.25},{transform:'scale(.96,1.08) translateY(-6px)',offset:.6},{transform:'scale(1,1) translateY(0)'}],{duration:520,easing:'ease-out'});
+    }, landAt);
     // 끝: 구름이 닫혔다가 → 위아래로 열리며 메인 화면 등장
-    let ended=false;
     function finish(fast){
       if(ended) return; ended=true;
       const d = fast?260:480;
       try{ wob&&wob.cancel(); }catch(e){}
       A(title,[{transform:'scale(1) rotate(0)'},{transform:'scale(1.15) rotate(-8deg)',offset:.3},{transform:'scale(0) rotate(40deg)'}],{duration:d,easing:inQ});
       A(top,[{transform:'translateY(0)'},{transform:`translateY(${CLOSE}px)`}],{duration:d,easing:inQ});
+      try{ $('iTodi').style.transition='opacity .2s'; $('iTodi').style.opacity=0; }catch(e){}
       const last = A(bot,[{transform:'translateY(0)'},{transform:`translateY(${-CLOSE}px)`}],{duration:d,easing:inQ});
       last.onfinish = ()=>{
         $('iScene').style.display='none'; box.classList.add('reveal'); try{ spin.cancel(); }catch(e){}
@@ -927,7 +962,7 @@ try{
         out.onfinish = ()=>{ box.remove(); };
       };
     }
-    const timer = setTimeout(()=>finish(false), 3600);
+    const timer = setTimeout(()=>finish(false), 5100);
     box.addEventListener('click', ()=>{ clearTimeout(timer); finish(true); });
     setTimeout(()=>{ if(box.isConnected) box.remove(); }, 9000); // 안전장치
   }catch(e){ console.error('인트로 오류', e); box.remove(); }
@@ -1145,7 +1180,7 @@ const SPR = {}; const sprLoader = new T.TextureLoader();
 Object.entries(TODI_IMG).forEach(([k,src])=>{
   const tex = sprLoader.load(src, t=>{ SPR[k].aspect = t.image.width / t.image.height; });
   tex.encoding = T.sRGBEncoding; tex.anisotropy = 4;
-  const rig = (typeof TODI_RIG !== 'undefined') ? TODI_RIG[k] : null;
+  const rig = null;   // 다리 분리는 어색해서 끔 → 통통 뛰기 방식
   const o = {tex, aspect:0.7, h:(TODI_H[k] || 2.45) * SPR_SCALE, rig};
   if(rig){
     const ext = 0.07;                                   // 다리 윗부분을 몸 속으로 조금 숨김
@@ -1175,12 +1210,13 @@ function applySprite(p, slot){
   let rz = 0, by = 0, sx = 1, sy = 1, swing = 0;
   const br = Math.sin(t*2.2); sy *= 1 + br*0.012;                                  // 숨쉬기
   if(mv > 0.02){
-    swing = Math.sin(c) * (0.85*run + 0.45*walk);                                // 다리 앞뒤로
-    by += Math.abs(Math.cos(c)) * (0.16*run + 0.06*walk);                        // 걸음마다 통통
-    rz += -0.12*run;                                                             // 앞으로 살짝 숙이기
-    if(!s.rig){ rz += Math.sin(c)*0.05*mv; sy *= 1 - Math.abs(Math.sin(c))*0.05*mv; }   // 다리 없는 그림은 몸으로만
+    const hp = Math.abs(Math.sin(c*0.5));                                       // 한 번 통~ 뛰는 높이(0~1)
+    by += hp * (0.38*run + 0.14*walk);
+    const air = (hp - 0.3) * (0.20*run + 0.10*walk);                             // 공중에선 길쭉, 착지 땐 납작
+    sy *= 1 + air; sx *= 1 - air*0.7;
+    rz += -0.10*run + Math.cos(c*0.5)*0.04*mv;
   }
-  if(p.happy > 0.05){ swing += Math.sin(t*12)*0.35*p.happy; by += Math.max(0, Math.sin(t*12))*0.08*p.happy; }   // 기쁨: 제자리 콩콩
+  if(p.happy > 0.05){ const hp = Math.max(0, Math.sin(t*9)); by += hp*0.24*p.happy; const air = (hp-0.3)*0.16*p.happy; sy *= 1 + air; sx *= 1 - air*0.7; }
   if(p.xeye > 0.05 || p.pant > 0.05){ const k = Math.max(p.xeye, p.pant); sy *= 1 + Math.sin(t*14)*0.035*k; }      // 헉헉
   if(p.sad > 0.05){ sy *= 1 - 0.04*p.sad; }
   if(p.eye < 0.45){ rz += Math.sin(t*1.4)*0.05; }                                  // 꾸벅
