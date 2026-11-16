@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#e9e9e6">
+<meta name="theme-color" content="#FFF7EE">
+<link rel="manifest" href="todi.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="todi-icon-192.png">
+<link rel="apple-touch-icon" href="todi-icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="투디">
 <title>투디 - 할 일·가계부</title>
 <style>
 /* ===================== 1. 투디 색상·기본 ===================== */
@@ -624,6 +630,10 @@ function settingsPage(){
   const o = S.opt, m = today().slice(0,7), size = (()=>{ try{ return Math.round(JSON.stringify(S).length/1024*10)/10; }catch(e){ return 0; } })();
   const sw = (k,on)=>`<button class="sw2 ${on?'on':''}" data-act="opt" data-k="${k}" aria-label="켜기/끄기"><i></i></button>`;
   return `<div class="hd2 s"><div><div class="overline">투디</div><h1>설정</h1></div></div>
+  ${window.matchMedia && matchMedia('(display-mode: standalone)').matches ? '' : `<section class="card set">
+    <h2>홈 화면에 앱으로 깔기</h2>
+    <div class="srow"><div><strong>투디를 앱처럼 쓰기</strong><span class="small">${window.__installEvt ? '아래 버튼을 누르면 홈 화면에 투디 아이콘이 생겨요' : 'Chrome 오른쪽 위 ⋮ 메뉴 › "홈 화면에 추가"를 누르면 아이콘이 생겨요'}</span></div>${window.__installEvt ? '<button class="sbtn pink" data-act="install">설치</button>' : ''}</div>
+  </section>`}
   <section class="card set">
     <h2>기록 백업</h2><div class="small" style="margin-bottom:6px">기록은 이 휴대폰 안에만 저장돼요. 휴대폰을 바꾸거나 인터넷 기록을 지우기 전에 꼭 백업해 두세요.</div>
     <div class="srow"><div><strong>백업 파일 만들기</strong><span class="small">할 일 ${S.tasks.length}개 · 거래 ${S.tx.length}건 · ${size}KB${S.lastBackup?` · 마지막 백업 ${S.lastBackup}`:' · 아직 백업한 적 없어요'}</span></div><button class="sbtn mint" data-act="backup">저장</button></div>
@@ -865,6 +875,7 @@ document.addEventListener('click', e=>{
     const T = id && S.tasks.find(x=>x.id===id);
     switch(a){
       case 'more': openDrawer(true); break;
+      case 'install': { const ev = window.__installEvt; if(ev){ ev.prompt(); ev.userChoice.then(()=>{ window.__installEvt = null; render(); }).catch(()=>{}); } break; }
       case 'opt': { const k = b.dataset.k; S.opt[k] = !S.opt[k]; save(); render(); break; }
       case 'backup': {
         const name = `투디-백업-${today()}.json`, blob = new Blob([exportText()], {type:'application/json'});
@@ -998,6 +1009,10 @@ setInterval(()=>{ window.DECO = S.deco; }, 500);
 
 render();
 
+
+/* ===================== 9-0-3. 홈 화면에 앱으로 설치 ===================== */
+window.addEventListener('beforeinstallprompt', e=>{ try{ e.preventDefault(); window.__installEvt = e; if(tab==='settings') render(); }catch(err){} });
+window.addEventListener('appinstalled', ()=>{ window.__installEvt = null; try{ toast('홈 화면에 투디를 깔았어요'); render(); }catch(err){} });
 
 /* ===================== 9-0-2. 백업 파일 불러오기 ===================== */
 document.addEventListener('change', e=>{

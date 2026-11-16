@@ -1,0 +1,32 @@
+{
+ "name": "투디 - 할 일·가계부",
+ "short_name": "투디",
+ "description": "할 일도 돈도, 투디랑 차곡차곡",
+ "start_url": "./todi.html",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#FFF7EE",
+ "theme_color": "#FFF7EE",
+ "lang": "ko",
+ "icons": [
+  {
+   "src": "todi-icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "todi-icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "todi-icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
