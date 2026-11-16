@@ -260,6 +260,15 @@ body.nav-hide .tabbar2{transform:translateY(calc(100% + 30px))}
 body.nav-hide #navHandle{opacity:1;pointer-events:auto}
 body.nav-hide .screen{height:calc(100dvh - 59px - 26px - env(safe-area-inset-bottom))}
 body.nav-hide #addChoice{display:none}
+/* ===== 메뉴(서랍): 화면보다 길면 안에서 넘겨 볼 수 있게 + 간격 줄이기 ===== */
+#drawer .sheet{bottom:auto;height:100dvh;max-height:100dvh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+.dr-top{padding:0 6px 6px;flex:none}
+.dr-top .lg svg{width:62px;height:62px}
+.dr-top img{width:44px;height:54px}
+.dr-sec{padding:9px 10px 3px;flex:none}
+.dr-item{padding:7px 10px;flex:none}
+.dr-item .ic{width:34px;height:34px}
+#drawer .foot{margin-top:10px;flex:none;padding:6px 0 0}
 /* ===== 설정 ===== */
 .set h2{font-size:17px;margin-bottom:4px}
 .set .srow{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--line)}
