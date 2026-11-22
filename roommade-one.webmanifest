@@ -1,0 +1,18 @@
+{
+  "id": "/roompacker/roommade-one.html",
+  "name": "ROOMMADE ONE",
+  "short_name": "ROOMMADE",
+  "description": "Smart Cleaning Ops",
+  "start_url": "./roommade-one.html",
+  "scope": "./roommade-one.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0436A0",
+  "theme_color": "#F1E8D8",
+  "lang": "ko",
+  "icons": [
+    { "src": "icon-one-192.png?v=210", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-one-512.png?v=210", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-one-512.png?v=210", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
