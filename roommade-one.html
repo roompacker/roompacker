@@ -746,7 +746,7 @@ html,body,.app{background:var(--n-bg)!important}
         <button class="iconbtn" id="todayBtn" title="오늘로 이동">◎</button>
       </div>
     </div>
-    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v20.8</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
+    <div class="topcontext"><span><strong id="topRoleText">관리자</strong> · <span id="topBranchText">전체 지점</span></span><span style="background:#E9E5DA;color:#5D719F;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">v20.9</span><span id="saveState" style="margin-left:5px;background:#E2F4EA;color:#3B8360;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:900;">저장됨</span></div>
     <div class="branchbar" id="branchBar">
       <button class="branchbtn active" data-branch="전체">전체</button>
       <button class="branchbtn" data-branch="영종점">영종</button>
@@ -1207,6 +1207,15 @@ html,body,.app{background:var(--n-bg)!important}
               <span style="flex:1;">
                 <b style="font-size:12.5px;color:#6B3FA0;display:block;">🎭 이번 입실 손님이 리뷰용 예약</b>
                 <small style="font-size:10.5px;color:#8B5FBF;line-height:1.5;">오늘 청소는 그대로 정산돼요. 이 손님이 <b>나가는 날 청소</b>가 자동으로 리뷰용(0원·청소 없음)이 돼요</small>
+              </span>
+            </label>
+          </div>
+          <div style="background:#FDE8E4;border:1px solid #F3C2B8;border-radius:12px;padding:11px 12px;margin-top:8px;">
+            <label style="display:flex;align-items:center;gap:9px;cursor:pointer;">
+              <input type="checkbox" id="txNoShow" style="width:20px;height:20px;flex-shrink:0;" />
+              <span style="flex:1;">
+                <b style="font-size:12.5px;color:#A8341B;display:block;">🚫 이번 입실 손님이 노쇼 (안 옴)</b>
+                <small style="font-size:10.5px;color:#C0533A;line-height:1.5;">오늘 청소는 그대로 정산돼요. 손님이 안 왔으니 <b>나가기로 한 날 청소</b>가 자동으로 노쇼(0원·청소 없음)가 돼요</small>
               </span>
             </label>
           </div>
@@ -1849,21 +1858,22 @@ html,body,.app{background:var(--n-bg)!important}
     let changed=false;
     const txs=state.transactions||[];
     const shiftD=(ds,n)=>{ const d=new Date(ds+'T00:00:00'); d.setDate(d.getDate()+n); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); };
-    const want={};   // 리뷰용이 되어야 할 청소 id → 원본 입실 기록 id
+    const want={}, kind={};   // 빠져야 할 청소 id → 원본 입실 기록 id / 종류(review·noshow)
     txs.forEach(src=>{
-      if(src.type!=='income'||!src.inReview||src.status==='cancelled')return;
+      if(src.type!=='income'||!(src.inReview||src.inNoShow)||src.status==='cancelled')return;   // 🚫 v20.9 노쇼도 같은 방식
       const n=parseInt(src.inNights,10); if(!n||n<=0)return;
       const out=shiftD(src.inDate||src.date,n);
       const nx=txs.find(x=>x.type==='income'&&x.id!==src.id&&String(x.targetId)===String(src.targetId)&&x.date===out&&x.status!=='cancelled'&&!x.checkinOnly&&!x.autoFee);
-      if(nx)want[nx.id]=src.id;
+      if(nx){ want[nx.id]=src.id; kind[nx.id]=src.inNoShow?'noshow':'review'; }
     });
     txs.forEach(t=>{
       if(t.type!=='income')return;
       if(want[t.id]){
         if(t.paid)return;
+        if(t.reviewOnly&&t.reviewFrom===want[t.id]&&t.reviewKind!==kind[t.id]){ t.reviewKind=kind[t.id]; changed=true; }
         if(!(t.reviewOnly&&t.reviewFrom===want[t.id])){
           if(!t._preReview&&!t.reviewOnly) t._preReview={amount:t.amount,netAmount:t.netAmount,taxAmount:t.taxAmount,ids:t.assignedStaffIds||[],names:t.assignedStaffNames||[]};
-          t.reviewOnly=true; t.reviewFrom=want[t.id];
+          t.reviewOnly=true; t.reviewFrom=want[t.id]; t.reviewKind=kind[t.id];
           t.amount=0; t.netAmount=0; t.taxAmount=0;
           t.assignedStaffIds=[]; t.assignedStaffNames=[];
           changed=true;
@@ -1873,7 +1883,7 @@ html,body,.app{background:var(--n-bg)!important}
         const pr=t._preReview;
         if(pr){ t.amount=pr.amount; t.netAmount=pr.netAmount; t.taxAmount=pr.taxAmount; t.assignedStaffIds=pr.ids; t.assignedStaffNames=pr.names; }
         else{ const room=(state.rooms||[]).find(r=>String(r.id)===String(t.targetId)); const pr2=(t.branch==='펜트하우스'||!room)?0:Number(room.price||0); t.amount=pr2; t.netAmount=pr2; t.taxAmount=0; }
-        t.reviewOnly=false; delete t.reviewFrom; delete t._preReview;
+        t.reviewOnly=false; delete t.reviewFrom; delete t._preReview; delete t.reviewKind;
         changed=true;
       }
     });
@@ -2410,14 +2420,17 @@ html,body,.app{background:var(--n-bg)!important}
     const moneyBlock=$('#opsMoneyBlock');if(moneyBlock)moneyBlock.dataset.pending=pendingMoney;
   }
   /* 🎭 v20.7 리뷰용 입실인지 (예전 방식으로 체크된 기록도 포함) */
-  function isReviewIn(t){ return !!(t&&(t.inReview||(t.reviewOnly&&!t.reviewFrom&&t.inNights))); }
+  function isReviewIn(t){ return !!(t&&(t.inReview||t.inNoShow||(t.reviewOnly&&!t.reviewFrom&&t.inNights))); }
+  /* 🚫 v20.9 빠지는 청소의 이름표 (리뷰용 / 노쇼) */
+  function skipTag(noshow){ return noshow?{ico:'🚫',name:'노쇼',bg:'#FDE8E4',fg:'#A8341B'}:{ico:'🎭',name:'리뷰용',bg:'#F3E8FF',fg:'#6B3FA0'}; }
   function opsCheckoutHTML(t){
     const room=state.rooms.find(r=>r.id===t.targetId)||{};
     const used=t.outSupplies||'';
     const late=t.outTime&&t.outTime>'11:00';
     const info=(t.outNights||'-')+'박 · '+(t.outGuests||'-')+'명'+(t.outTime?' · '+t.outTime:'');
     if(t.reviewOnly&&t.reviewFrom){
-      return `<button class="ops-line ops-checkout-line" data-edit-tx="${t.id}" style="opacity:.75"><span class="ops-line-icon">🎭</span><span class="ops-line-main"><b>${esc(t.targetName||room.name)}</b><small>${info}</small><small style="color:#6B3FA0;font-weight:800">🎭 리뷰용 손님 퇴실 · 실제 청소 없음</small></span><span class="ops-side-tag" style="background:#F3E8FF;color:#6B3FA0">리뷰용</span></button>`;
+      const g=skipTag(t.reviewKind==='noshow');
+      return `<button class="ops-line ops-checkout-line" data-edit-tx="${t.id}" style="opacity:.75"><span class="ops-line-icon">${g.ico}</span><span class="ops-line-main"><b>${esc(t.targetName||room.name)}</b><small>${info}</small><small style="color:${g.fg};font-weight:800">${g.ico} ${t.reviewKind==='noshow'?'노쇼 (손님 안 옴)':'리뷰용 손님 퇴실'} · 실제 청소 없음</small></span><span class="ops-side-tag" style="background:${g.bg};color:${g.fg}">${g.name}</span></button>`;
     }
     return `<button class="ops-line ops-checkout-line" data-edit-tx="${t.id}"><span class="ops-line-icon">🚪</span><span class="ops-line-main"><b>${esc(t.targetName||room.name)}</b><small>${info}</small><small class="${used?'supply-ok':'supply-need'}">${used?'🧺 사용 물품 · '+esc(used):'🧺 토퍼·수건 사용량 기록 필요'}</small></span><span class="ops-side-tag ${used?'ok-tag':'need-tag'}">${late?'레이트':(used?'완료':'입력')}</span></button>`;
   }
@@ -2428,7 +2441,8 @@ html,body,.app{background:var(--n-bg)!important}
     const setup=t.inSupplies||auto||'기본 셋팅';
     const names=Array.isArray(t.assignedStaffNames)&&t.assignedStaffNames.length?t.assignedStaffNames.join(', '):'직원 미배정';
     if(isReviewIn(t)){
-      return `<button class="ops-line ops-checkin-line" data-edit-tx="${t.id}" style="opacity:.75"><span class="ops-line-icon">🎭</span><span class="ops-line-main"><b>${esc(t.targetName||room.name)}</b><small>${t.inTime||'16:00'} 입실 · ${guests||'-'}명 · ${t.inNights||'-'}박</small><small style="color:#6B3FA0;font-weight:800">🎭 리뷰용 예약 · 셋팅·배정 필요 없음</small></span><span class="ops-side-tag" style="background:#F3E8FF;color:#6B3FA0">리뷰용</span></button>`;
+      const g=skipTag(!!t.inNoShow);
+      return `<button class="ops-line ops-checkin-line" data-edit-tx="${t.id}" style="opacity:.75"><span class="ops-line-icon">${g.ico}</span><span class="ops-line-main"><b>${esc(t.targetName||room.name)}</b><small>${t.inTime||'16:00'} 입실 · ${guests||'-'}명 · ${t.inNights||'-'}박</small><small style="color:${g.fg};font-weight:800">${g.ico} ${t.inNoShow?'노쇼 · 손님이 오지 않음':'리뷰용 예약 · 셋팅·배정 필요 없음'}</small></span><span class="ops-side-tag" style="background:${g.bg};color:${g.fg}">${g.name}</span></button>`;
     }
     return `<button class="ops-line ops-checkin-line" data-edit-tx="${t.id}"><span class="ops-line-icon">🏠</span><span class="ops-line-main"><b>${esc(t.targetName||room.name)}</b><small>${t.inTime||'16:00'} 입실 · ${guests||'-'}명 · ${t.inNights||'-'}박</small><small class="setup-text">🛒 셋팅 · ${esc(setup)}${over?' · '+over+'명 초과':''}</small><small class="assigned-text">👤 ${esc(names)}</small></span><span class="ops-side-tag ${names==='직원 미배정'?'need-tag':'ok-tag'}">${names==='직원 미배정'?'배정':'확인'}</span></button>`;
   }
@@ -3168,6 +3182,7 @@ html,body,.app{background:var(--n-bg)!important}
       if(t.inNights)inParts.push(t.inNights+'박');
       if(t.inSupplies)inParts.push('셋팅 '+esc(t.inSupplies));
       if(t.inReview)inParts.push('🎭 리뷰용 예약');
+      if(t.inNoShow)inParts.push('🚫 노쇼');
       if(t.inDate&&t.inDate>t.date){
         // 공실 후 체크인: 바로 입실이 아니니 미리 준비하라는 강조 박스
         const gap=Math.round((new Date(t.inDate+'T00:00:00')-new Date(t.date+'T00:00:00'))/86400000);
@@ -3176,7 +3191,7 @@ html,body,.app{background:var(--n-bg)!important}
       } else if(inParts.length){
         detail+=`<small style="color:#4FB0A3;">🛒 ${t.inDate===t.date?'당일 입실 · ':''}${inParts.join(' · ')}</small>`;
       }
-      if(t.reviewOnly&&t.reviewFrom)detail+=`<small style="color:#6B3FA0;font-weight:800;">🎭 리뷰용 손님 퇴실 · 실제 청소 없음 (0원)</small>`;
+      if(t.reviewOnly&&t.reviewFrom)detail+=(t.reviewKind==='noshow'?`<small style="color:#A8341B;font-weight:800;">🚫 노쇼 (손님 안 옴) · 실제 청소 없음 (0원)</small>`:`<small style="color:#6B3FA0;font-weight:800;">🎭 리뷰용 손님 퇴실 · 실제 청소 없음 (0원)</small>`);
       if(t.memo&&canFinance)detail+=`<small style="color:var(--sub);">💰 ${esc(t.memo)}</small>`;
     } else if(t.memo){
       detail+=`<small style="color:var(--sub);">${esc(t.memo)}</small>`;
@@ -3187,7 +3202,7 @@ html,body,.app{background:var(--n-bg)!important}
        (묶음 버튼은 여러 달이 한꺼번에 처리돼서 불편했어요) */
     const oneBtn=(canFinance&&!t.paid&&!t.checkinOnly&&Number(t.netAmount||t.amount||0)>0)
       ? `<button data-pay-one="${t.id}" style="margin-top:4px;border:1px solid ${isIn?'#9FD9BC':'#E4C7C1'};background:#FFFFFF;color:${isIn?'#3B8360':'#9A5F55'};border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;white-space:nowrap;">${isIn?'✅ 입금됨':'✅ 지급됨'}</button>` : '';
-    const amount=t.checkinOnly?`<div class="txamt"><small class="status wait">🏠 입실 셋팅</small></div>`:t.reviewOnly?`<div class="txamt"><small class="status" style="background:#F3E8FF;color:#6B3FA0;">🎭 리뷰용</small></div>`:isPent?`<div class="txamt" data-edit-tx="${t.id}"><small class="status book">월 정액</small></div>`:canFinance?`<div class="txamt"><b class="${t.type}" data-edit-tx="${t.id}">${isIn?'+':'-'}${money(t.netAmount||t.amount)}</b><small>${t.paid?(isIn?'입금완료':'지급완료'):(isIn?'미수금':'미지급')}</small>${oneBtn}</div>`:`<div class="txamt"><small class="status ${t.status==='done'?'done':'wait'}">${t.status==='done'?'완료':'대기'}</small></div>`;
+    const amount=t.checkinOnly?`<div class="txamt"><small class="status wait">🏠 입실 셋팅</small></div>`:t.reviewOnly?(t.reviewKind==='noshow'?`<div class="txamt"><small class="status" style="background:#FDE8E4;color:#A8341B;">🚫 노쇼</small></div>`:`<div class="txamt"><small class="status" style="background:#F3E8FF;color:#6B3FA0;">🎭 리뷰용</small></div>`):isPent?`<div class="txamt" data-edit-tx="${t.id}"><small class="status book">월 정액</small></div>`:canFinance?`<div class="txamt"><b class="${t.type}" data-edit-tx="${t.id}">${isIn?'+':'-'}${money(t.netAmount||t.amount)}</b><small>${t.paid?(isIn?'입금완료':'지급완료'):(isIn?'미수금':'미지급')}</small>${oneBtn}</div>`:`<div class="txamt"><small class="status ${t.status==='done'?'done':'wait'}">${t.status==='done'?'완료':'대기'}</small></div>`;
     const statusButton=isIn?`<button class="jobdone ${t.status==='done'?'is-done':''}" data-toggle-status="${t.id}">${t.status==='done'?'완료':'완료 처리'}</button>`:'';
     return `<div class="txrow"><div class="txico ${t.type}" data-edit-tx="${t.id}">${isIn?'＋':'−'}</div><div class="txmain" data-edit-tx="${t.id}"><b>${name}</b><small>${dateText(t.date)}</small>${detail}</div>${statusButton}${amount}${kakao}</div>`;
   }
@@ -4939,13 +4954,15 @@ html,body,.app{background:var(--n-bg)!important}
     const prefBranch=state.branch==='전체'?'영종점':state.branch;$('#txBranchInput').value=prefBranch;$('#txAmountInput').value='';
     txStaffSel=[];   // 새로 열 때는 담당자 선택 초기화 (수정이면 아래에서 다시 채움)
     if($('#txReviewOnly'))$('#txReviewOnly').checked=false;
+    if($('#txNoShow'))$('#txNoShow').checked=false;
     if($('#txReviewNextInfo'))$('#txReviewNextInfo').style.display='none';
     if(editId){const t=state.transactions.find(x=>x.id===editId);if(t){txType=t.type;$('#txDateInput').value=t.date;$('#txBillingInput').value=t.billingMonth||ym(t.date);$('#txBranchInput').value=t.branch;$('#txAmountInput').value=t.amount;$('#txMemoInput').value=t.memo||'';$('#txPaidInput').checked=!!t.paid;$('#txStatusInput').value=t.status||'done';
       $('#txOutNights').value=t.outNights||t.nights||'';$('#txOutGuests').value=t.outGuests||t.guests||'';$('#txOutTime').value=t.outTime||'';$('#txOutSupplies').value=t.outSupplies||'';
       $('#txInNights').value=t.inNights||'';$('#txInGuests').value=t.inGuests||'';$('#txInTime').value=t.inTime||'';$('#txInSupplies').value=t.inSupplies||'';if($('#txInDate'))$('#txInDate').value=t.inDate||'';
       txStaffSel=Array.isArray(t.assignedStaffIds)?t.assignedStaffIds.map(String):[];
       if($('#txReviewOnly'))$('#txReviewOnly').checked=!!t.inReview;
-      try{ const ri=$('#txReviewNextInfo'); if(ri){ if(t.reviewOnly&&t.reviewFrom){ const src=state.transactions.find(x=>x.id===t.reviewFrom); ri.innerHTML='🎭 리뷰용 손님이 나가는 날이라 자동으로 0원 · 청소 없음 처리됐어요'+(src?'<br><span style="font-weight:600">('+dateText(src.inDate||src.date)+' 입실 기록에서 표시)</span>':''); ri.style.display='block'; } else ri.style.display='none'; } }catch(e){}
+      if($('#txNoShow'))$('#txNoShow').checked=!!t.inNoShow;
+      try{ const ri=$('#txReviewNextInfo'); if(ri){ if(t.reviewOnly&&t.reviewFrom){ const src=state.transactions.find(x=>x.id===t.reviewFrom); ri.innerHTML=(t.reviewKind==='noshow'?'🚫 노쇼 손님이 나가기로 한 날이라':'🎭 리뷰용 손님이 나가는 날이라')+' 자동으로 0원 · 청소 없음 처리됐어요'+(src?'<br><span style="font-weight:600">('+dateText(src.inDate||src.date)+' 입실 기록에서 표시)</span>':''); ri.style.display='block'; } else ri.style.display='none'; } }catch(e){}
     }}
     updateTxType();if(editId){const t=state.transactions.find(x=>x.id===editId);$('#txTargetInput').value=t.targetId}openModal('txModal')
   }
@@ -5296,7 +5313,9 @@ html,body,.app{background:var(--n-bg)!important}
        → 오늘 청소는 그대로 정산, 그 손님이 나가는 날 청소가 리뷰용(0원)으로 자동 표시 (syncReviewNext) */
     const _oldTx=id?state.transactions.find(x=>x.id===id):null;
     obj.inReview = !!(txType==='income' && $('#txReviewOnly') && $('#txReviewOnly').checked && sched.inNights);
+    obj.inNoShow = !!(txType==='income' && $('#txNoShow') && $('#txNoShow').checked && sched.inNights);   // 🚫 v20.9 노쇼
     obj.reviewOnly = !!(_oldTx && _oldTx.reviewOnly && _oldTx.reviewFrom);   // 앞 기록에서 자동 지정된 건은 유지
+    if(obj.reviewOnly){ obj.reviewFrom=_oldTx.reviewFrom; if(_oldTx.reviewKind)obj.reviewKind=_oldTx.reviewKind; if(_oldTx._preReview)obj._preReview=_oldTx._preReview; }
     if(obj.reviewOnly){
       obj.amount=0; obj.netAmount=0; obj.taxAmount=0;
       obj.assignedStaffIds=[]; obj.assignedStaffNames=[];
