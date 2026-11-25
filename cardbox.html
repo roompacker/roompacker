@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>카드박스</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+/* ===== 색상 변수 (밝은/어두운 화면) ===== */
+:root{
+  --bg:#F3F3F6; --surface:#FFFFFF; --ink:#222226; --sub:#6B6B75; --line:#E2E2E8;
+  --accent:#3D5AFE; --accent-ink:#FFFFFF; --soft:#EEF0FF;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#131317; --surface:#1D1D23; --ink:#F2F2F5; --sub:#A0A0AA; --line:#33333C;
+    --accent:#7C8CFF; --accent-ink:#101018; --soft:#262A44;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:calc(96px + env(safe-area-inset-bottom,0px));
+}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* ===== 상단 ===== */
+header{display:flex;align-items:baseline;justify-content:space-between;padding:16px 18px 8px}
+header h1{margin:0;font-size:24px;font-weight:800;letter-spacing:-.5px}
+header h1 span{background:#FFD84D;color:#222;padding:0 6px;border:2px solid rgba(0,0,0,.2)}
+header small{color:var(--sub);font-size:14px}
+
+/* ===== 미리보기 ===== */
+.stage{position:relative;margin:0 14px;border-radius:14px;overflow:hidden;background:#ddd;box-shadow:0 4px 18px rgba(0,0,0,.12)}
+.stage canvas{display:block;width:100%;height:auto}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;
+  border:0;background:rgba(0,0,0,.45);color:#fff;font-size:20px}
+.nav.prev{left:8px}.nav.next{right:8px}
+.nav:disabled{opacity:0}
+
+/* ===== 카드 목록 ===== */
+.strip{display:flex;gap:8px;overflow-x:auto;padding:12px 14px 4px;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.thumb{flex:0 0 auto;padding:0;border:3px solid transparent;border-radius:8px;background:none;position:relative}
+.thumb canvas{display:block;width:64px;height:80px;border-radius:5px}
+.thumb.on{border-color:var(--accent)}
+.thumb b{position:absolute;left:4px;top:3px;font-size:11px;background:rgba(0,0,0,.6);color:#fff;border-radius:6px;padding:0 5px}
+.add{flex:0 0 auto;width:70px;height:86px;border:2px dashed var(--line);border-radius:8px;background:var(--surface);color:var(--sub);font-size:13px;line-height:1.3}
+.add strong{display:block;font-size:24px;color:var(--accent)}
+
+/* ===== 편집 패널 ===== */
+.panel{background:var(--surface);margin:12px 14px;border-radius:14px;padding:16px;border:1px solid var(--line)}
+.panel h2{margin:0 0 12px;font-size:16px;font-weight:700}
+.row{margin-bottom:16px}
+.row:last-child{margin-bottom:0}
+.row > label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
+.hint{font-size:12.5px;color:var(--sub);margin-top:5px;line-height:1.5}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg button,.btn{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:11px 6px;font-size:14px;font-weight:600}
+.seg button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btns{display:flex;gap:6px;flex-wrap:wrap}
+.btns .btn{flex:1 1 auto}
+.btn.danger{color:#E5484D}
+.btn.primary{background:var(--soft);color:var(--accent);border-color:transparent}
+textarea,input[type=text]{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:11px 12px;font-size:16px;line-height:1.5;resize:vertical}
+textarea#title{min-height:72px}
+textarea#body{min-height:150px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.swatches{display:flex;gap:10px}
+.sw{width:38px;height:38px;border-radius:50%;border:2px solid rgba(0,0,0,.15)}
+.sw.on{outline:3px solid var(--accent);outline-offset:2px}
+.check{display:flex;align-items:center;gap:8px;font-size:14px}
+.check input{width:20px;height:20px;accent-color:var(--accent)}
+.hidden{display:none !important}
+
+/* ===== 하단 고정 버튼 ===== */
+.bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;
+  padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));
+  background:var(--surface);border-top:1px solid var(--line);z-index:10}
+.bar button{flex:1;border:0;border-radius:12px;padding:15px 8px;font-size:16px;font-weight:700}
+.bar .save{background:var(--bg);border:1px solid var(--line)}
+.bar .insta{flex:1.4;background:linear-gradient(90deg,#F58529,#DD2A7B,#8134AF);color:#fff}
+.bar button:disabled{opacity:.6}
+
+/* ===== 알림 ===== */
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  background:rgba(20,20,24,.92);color:#fff;padding:11px 16px;border-radius:12px;font-size:14px;
+  max-width:88vw;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>카드박스</span></h1>
+  <small id="count">1장</small>
+</header>
+
+<!-- 미리보기 -->
+<div class="stage" id="stage">
+  <canvas id="main" width="1080" height="1350" aria-label="카드 미리보기"></canvas>
+  <button class="nav prev" id="prev" aria-label="이전 카드">‹</button>
+  <button class="nav next" id="next" aria-label="다음 카드">›</button>
+</div>
+
+<!-- 카드 목록 -->
+<div class="strip" id="strip"></div>
+
+<!-- 지금 카드 편집 -->
+<section class="panel">
+  <h2 id="editTitle">1번 카드 꾸미기</h2>
+
+  <div class="row">
+    <label>카드 모양</label>
+    <div class="seg" id="types">
+      <button data-type="photo">사진 + 글</button>
+      <button data-type="cover">표지</button>
+      <button data-type="text">글만</button>
+    </div>
+  </div>
+
+  <div class="row" id="photoRow">
+    <label>사진</label>
+    <div class="btns">
+      <button class="btn primary" id="pick">갤러리에서 사진 고르기</button>
+      <button class="btn danger hidden" id="unpick">사진 빼기</button>
+    </div>
+    <input type="file" id="file" accept="image/*" hidden>
+    <div id="posWrap" class="hidden" style="margin-top:12px">
+      <label for="pos" style="font-size:13px;font-weight:600">사진 보이는 위치 (위 ↔ 아래)</label>
+      <input type="range" id="pos" min="0" max="100" value="50">
+    </div>
+  </div>
+
+  <div class="row">
+    <label for="title">노란 제목</label>
+    <textarea id="title" placeholder="예) 어느새 35만 팔로워가 되었다"></textarea>
+    <div class="hint">엔터를 누르면 제목이 두 줄이 돼요.</div>
+  </div>
+
+  <div class="row">
+    <label for="body">본문</label>
+    <textarea id="body" placeholder="하고 싶은 이야기를 써 주세요"></textarea>
+    <div class="btns" style="margin-top:6px">
+      <button class="btn" id="boldBtn"><b>굵게</b> 만들기</button>
+    </div>
+    <div class="hint">굵게 할 문장을 손가락으로 길게 눌러 선택한 뒤 [굵게 만들기]를 누르세요.<br>문장 앞뒤에 **별표 두 개**가 붙으면 성공이에요.</div>
+  </div>
+
+  <div class="row">
+    <label>이 카드 정리</label>
+    <div class="btns">
+      <button class="btn" id="left">◀ 앞으로</button>
+      <button class="btn" id="right">뒤로 ▶</button>
+      <button class="btn" id="dup">복사</button>
+      <button class="btn danger" id="del">삭제</button>
+    </div>
+  </div>
+</section>
+
+<!-- 전체 설정 -->
+<section class="panel">
+  <h2>모든 카드에 적용</h2>
+  <div class="row">
+    <label>제목 강조색</label>
+    <div class="swatches" id="swatches"></div>
+  </div>
+  <div class="row">
+    <label for="handle">내 인스타 아이디 (카드 아래에 작게)</label>
+    <input type="text" id="handle" placeholder="@아이디">
+  </div>
+  <div class="row">
+    <label class="check"><input type="checkbox" id="showPage"> 오른쪽 위에 쪽 번호 (예: 5/9)</label>
+  </div>
+  <div class="row">
+    <button class="btn danger" id="reset" style="width:100%">처음부터 새로 만들기</button>
+  </div>
+</section>
+
+<!-- 하단 버튼 -->
+<div class="bar">
+  <button class="save" id="saveBtn">갤러리에 저장</button>
+  <button class="insta" id="shareBtn">인스타에 올리기</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================
+   기본 설정
+========================================= */
+const KEY = '카드박스-작업';
+const W = 1080, H = 1350;              // 인스타 세로형(4:5) 크기
+const FONT = "Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif";
+const COLORS = ['#FFD84D','#FFB3C7','#A8F0D1','#A9D6FF','#FFFFFF'];
+const $ = id => document.getElementById(id);
+
+let state = null;     // 전체 작업 내용
+let cur = 0;          // 지금 보고 있는 카드 번호
+const imgCache = {};  // 불러온 사진 보관
+
+function newId(){ return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function defaultState(){
+  return {
+    hl: '#FFD84D', handle: '@roommade_official', showPage: true,
+    cards: [
+      { id:newId(), type:'cover', img:null, pos:50,
+        title:'카드박스로 만든\n첫 카드뉴스', body:'사진 고르고, 글 쓰고, 바로 올리기' },
+      { id:newId(), type:'photo', img:null, pos:50,
+        title:'이렇게 쓰면 돼요',
+        body:'사진 한 장과 글 몇 줄이면 충분해요.\n**굵게 하고 싶은 문장은 별표 두 개로 감싸요.**\n\n다 만들면 아래 버튼으로 인스타에 바로 올릴 수 있어요.' }
+    ]
+  };
+}
+
+/* =========================================
+   저장 / 불러오기
+========================================= */
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw){
+      const s = JSON.parse(raw);
+      if(s && Array.isArray(s.cards) && s.cards.length) return s;
+    }
+  }catch(e){ console.warn('불러오기 실패', e); }
+  return defaultState();
+}
+
+let saveTimer = null, warnedFull = false;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try{
+      localStorage.setItem(KEY, JSON.stringify(state));
+    }catch(e){
+      // 사진이 너무 많으면 저장공간이 부족할 수 있음 → 글만 저장
+      try{
+        const lite = {...state, cards: state.cards.map(c => ({...c, img:null}))};
+        localStorage.setItem(KEY, JSON.stringify(lite));
+        if(!warnedFull){ toast('저장공간이 꽉 차서 사진은 빼고 글만 자동저장했어요'); warnedFull = true; }
+      }catch(e2){ console.warn('저장 실패', e2); }
+    }
+  }, 400);
+}
+
+/* =========================================
+   사진 불러오기 도우미
+========================================= */
+function getImg(card){
+  if(!card.img) return null;
+  const c = imgCache[card.id];
+  if(c && c.src === card.img) return c.complete && c.naturalWidth ? c : null;
+  const im = new Image();
+  im.onload = () => scheduleAll();
+  im.src = card.img;
+  imgCache[card.id] = im;
+  return null;
+}
+function waitImages(){
+  const ps = state.cards.filter(c => c.img).map(c => new Promise(res => {
+    getImg(c);
+    const im = imgCache[c.id];
+    if(im.complete) res(); else { im.addEventListener('load', res); im.addEventListener('error', res); }
+  }));
+  return Promise.all(ps);
+}
+
+// 갤러리 사진을 적당한 크기로 줄이기 (저장공간 절약)
+function shrinkPhoto(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const im = new Image();
+      im.onload = () => {
+        try{
+          const max = 1440;
+          const r = Math.min(1, max / Math.max(im.width, im.height));
+          const cv = document.createElement('canvas');
+          cv.width = Math.round(im.width * r); cv.height = Math.round(im.height * r);
+          cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
+          resolve(cv.toDataURL('image/jpeg', 0.85));
+        }catch(e){ reject(e); }
+      };
+      im.onerror = reject;
+      im.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/* =========================================
+   글자 줄바꿈 계산 (**굵게** 지원)
+========================================= */
+function layoutRich(ctx, text, maxW, size, wN, wB){
+  const lines = [];
+  const fontOf = b => `${b ? wB : wN} ${size}px ${FONT}`;
+  const trimEnd = line => { while(line.length && /^\s+$/.test(line[line.length-1].t)) line.pop(); };
+
+  (text || '').split('\n').forEach(p => {
+    if(p.trim() === ''){ lines.push({blank:true, tokens:[]}); return; }
+    const tokens = [];
+    p.split('**').forEach((run, i) => {
+      const b = i % 2 === 1;
+      run.split(/(\s+)/).forEach(t => { if(t) tokens.push({t, b}); });
+    });
+    let line = [], lw = 0;
+    tokens.forEach(tk => {
+      ctx.font = fontOf(tk.b);
+      const w = ctx.measureText(tk.t).width;
+      if(/^\s+$/.test(tk.t)){ if(line.length){ line.push({...tk, w}); lw += w; } return; }
+      if(lw + w > maxW && line.length){ trimEnd(line); lines.push({tokens:line}); line = []; lw = 0; }
+      if(w > maxW){
+        for(const ch of tk.t){
+          const cw = ctx.measureText(ch).width;
+          if(lw + cw > maxW && line.length){ lines.push({tokens:line}); line = []; lw = 0; }
+          line.push({t:ch, b:tk.b, w:cw}); lw += cw;
+        }
+      }else{ line.push({...tk, w}); lw += w; }
+    });
+    if(line.length){ trimEnd(line); lines.push({tokens:line}); }
+  });
+  lines.forEach(l => l.width = l.tokens.reduce((s, t) => s + t.w, 0));
+  return lines;
+}
+
+function linesHeight(lines, size, lh){
+  return lines.reduce((s, l) => s + (l.blank ? size * lh * 0.6 : size * lh), 0);
+}
+
+function drawLines(ctx, lines, x, y, size, lh, color, wN, wB, maxY){
+  ctx.fillStyle = color; ctx.textBaseline = 'top';
+  for(const l of lines){
+    if(maxY && y + size > maxY) break;
+    if(l.blank){ y += size * lh * 0.6; continue; }
+    let cx = x;
+    for(const t of l.tokens){
+      ctx.font = `${t.b ? wB : wN} ${size}px ${FONT}`;
+      ctx.fillText(t.t, cx, y + (size * (lh - 1)) / 2);
+      cx += t.w;
+    }
+    y += size * lh;
+  }
+  return y;
+}
+
+/* =========================================
+   노란 형광펜 제목 그리기
+========================================= */
+function titleLayout(ctx, text, size, maxW){
+  return layoutRich(ctx, (text || '').replace(/\*\*/g, ''), maxW, size, 800, 800).filter(l => !l.blank);
+}
+function titleHeight(lines, size){ return lines.length ? lines.length * size * 1.32 + (lines.length - 1) * 10 : 0; }
+function drawTitle(ctx, lines, x, y, size){
+  const bh = size * 1.32;
+  lines.forEach(l => {
+    ctx.fillStyle = state.hl;
+    ctx.fillRect(x - 14, y, l.width + 28, bh);
+    ctx.strokeStyle = 'rgba(0,0,0,.22)'; ctx.lineWidth = 3;
+    ctx.strokeRect(x - 14, y, l.width + 28, bh);
+    drawLines(ctx, [l], x, y + size * 0.16, size, 1, '#1C1C1C', 800, 800);
+    y += bh + 10;
+  });
+  return y;
+}
+
+/* =========================================
+   사진 꽉 채우기
+========================================= */
+function drawPhoto(ctx, card, x, y, w, h){
+  const img = getImg(card);
+  if(!img){
+    ctx.fillStyle = '#E6E6EC'; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = '#9A9AA5'; ctx.font = `600 40px ${FONT}`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(card.img ? '사진 불러오는 중…' : '사진을 골라주세요', x + w/2, y + h/2);
+    ctx.textAlign = 'left';
+    return;
+  }
+  const s = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+  const sw = w / s, sh = h / s;
+  const sx = (img.naturalWidth - sw) / 2;
+  const sy = (img.naturalHeight - sh) * (card.pos ?? 50) / 100;
+  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+}
+
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
+function drawPageBadge(ctx, i){
+  const n = state.cards.length;
+  if(!state.showPage || n < 2) return;
+  const txt = `${i + 1}/${n}`;
+  ctx.font = `600 40px ${FONT}`;
+  const tw = ctx.measureText(txt).width;
+  const bw = tw + 56, bh = 76, bx = W - 50 - bw, by = 50;
+  ctx.fillStyle = 'rgba(30,30,34,.78)'; roundRect(ctx, bx, by, bw, bh, 38); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.fillText(txt, bx + 28, by + bh/2 + 2);
+}
+
+function drawHandle(ctx, color){
+  if(!state.handle) return;
+  ctx.font = `600 30px ${FONT}`; ctx.fillStyle = color; ctx.textBaseline = 'alphabetic';
+  ctx.fillText(state.handle, 88, H - 62);
+}
+
+/* =========================================
+   카드 한 장 그리기 (미리보기·저장 공통)
+========================================= */
+function drawCard(ctx, i){
+  const c = state.cards[i];
+  ctx.clearRect(0, 0, W, H);
+  ctx.textAlign = 'left';
+  const PAD = 88, MAXW = W - PAD * 2;
+
+  if(c.type === 'cover'){
+    // 표지: 사진 전체 + 아래쪽 어둡게 + 큰 제목
+    drawPhoto(ctx, c, 0, 0, W, H);
+    const g = ctx.createLinearGradient(0, H * 0.35, 0, H);
+    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.78)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    const ts = 88, bs = 42;
+    const tl = titleLayout(ctx, c.title, ts, MAXW - 28);
+    const bl = layoutRich(ctx, c.body, MAXW, bs, 500, 800);
+    const th = titleHeight(tl, ts), bh = c.body ? linesHeight(bl, bs, 1.55) : 0;
+    let y = H - 130 - bh - (bh ? 44 : 0) - th;
+    y = drawTitle(ctx, tl, PAD, y, ts);
+    if(bh) drawLines(ctx, bl, PAD, y + 34, bs, 1.55, '#FFFFFF', 500, 800);
+    drawPageBadge(ctx, i);
+    drawHandle(ctx, 'rgba(255,255,255,.75)');
+    return;
+  }
+
+  if(c.type === 'text'){
+    // 글만: 밝은 종이 배경
+    ctx.fillStyle = '#FBFAF6'; ctx.fillRect(0, 0, W, H);
+    const ts = 72, bs = 44;
+    const tl = titleLayout(ctx, c.title, ts, MAXW - 28);
+    let y = drawTitle(ctx, tl, PAD, 170, ts);
+    const bl = layoutRich(ctx, c.body, MAXW, bs, 500, 800);
+    drawLines(ctx, bl, PAD, y + (tl.length ? 60 : 0), bs, 1.65, '#2A2A2E', 500, 800, H - 120);
+    drawPageBadge(ctx, i);
+    drawHandle(ctx, '#9A9AA5');
+    return;
+  }
+
+  // 기본: 위 사진 + 노란 제목 + 아래 본문 (올려주신 화면 스타일)
+  const PH = 760;
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, W, H);
+  drawPhoto(ctx, c, 0, 0, W, PH);
+  const ts = 64, bs = 40;
+  const tl = titleLayout(ctx, c.title, ts, MAXW - 28);
+  const th = titleHeight(tl, ts);
+  let y = tl.length ? PH - th + ts * 0.66 : PH + 40;
+  y = drawTitle(ctx, tl, PAD, y, ts);
+  const bl = layoutRich(ctx, c.body, MAXW, bs, 500, 800);
+  drawLines(ctx, bl, PAD, y + 46, bs, 1.62, '#2A2A2E', 500, 800, H - 110);
+  drawPageBadge(ctx, i);
+  drawHandle(ctx, '#A0A0AA');
+}
+
+/* =========================================
+   화면 그리기
+========================================= */
+const mainCtx = $('main').getContext('2d');
+const off = document.createElement('canvas'); off.width = W; off.height = H;
+const offCtx = off.getContext('2d');
+let thumbs = [];
+
+function refreshThumb(i){
+  const t = thumbs[i]; if(!t) return;
+  drawCard(offCtx, i);
+  const tc = t.getContext('2d');
+  tc.clearRect(0, 0, t.width, t.height);
+  tc.drawImage(off, 0, 0, t.width, t.height);
+}
+
+function buildStrip(){
+  const strip = $('strip');
+  strip.innerHTML = ''; thumbs = [];
+  state.cards.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.className = 'thumb' + (i === cur ? ' on' : '');
+    b.setAttribute('aria-label', `${i + 1}번 카드`);
+    const cv = document.createElement('canvas'); cv.width = 192; cv.height = 240;
+    const n = document.createElement('b'); n.textContent = i + 1;
+    b.append(cv, n);
+    b.addEventListener('click', () => select(i));
+    strip.append(b); thumbs.push(cv);
+  });
+  const add = document.createElement('button');
+  add.className = 'add'; add.innerHTML = '<strong>+</strong>카드 추가';
+  add.addEventListener('click', addCard);
+  strip.append(add);
+  thumbs.forEach((_, i) => refreshThumb(i));
+}
+
+let rafMain = false, rafAll = false;
+function scheduleMain(){
+  if(rafMain) return; rafMain = true;
+  requestAnimationFrame(() => { rafMain = false; try{ drawCard(mainCtx, cur); refreshThumb(cur); }catch(e){ console.error(e); } });
+}
+function scheduleAll(){
+  if(rafAll) return; rafAll = true;
+  requestAnimationFrame(() => {
+    rafAll = false;
+    try{ drawCard(mainCtx, cur); buildStrip(); syncEditor(); }catch(e){ console.error(e); }
+  });
+}
+
+function syncEditor(){
+  const c = state.cards[cur];
+  $('count').textContent = `${state.cards.length}장`;
+  $('editTitle').textContent = `${cur + 1}번 카드 꾸미기`;
+  document.querySelectorAll('#types button').forEach(b => b.classList.toggle('on', b.dataset.type === c.type));
+  $('photoRow').classList.toggle('hidden', c.type === 'text');
+  $('unpick').classList.toggle('hidden', !c.img);
+  $('posWrap').classList.toggle('hidden', !c.img);
+  $('pick').textContent = c.img ? '다른 사진으로 바꾸기' : '갤러리에서 사진 고르기';
+  if(document.activeElement !== $('title')) $('title').value = c.title || '';
+  if(document.activeElement !== $('body')) $('body').value = c.body || '';
+  $('pos').value = c.pos ?? 50;
+  $('prev').disabled = cur === 0;
+  $('next').disabled = cur === state.cards.length - 1;
+  $('handle').value = state.handle || '';
+  $('showPage').checked = !!state.showPage;
+  document.querySelectorAll('.sw').forEach(s => s.classList.toggle('on', s.dataset.c === state.hl));
+}
+
+function select(i){
+  cur = Math.max(0, Math.min(state.cards.length - 1, i));
+  $('title').blur(); $('body').blur();
+  scheduleAll();
+}
+
+/* =========================================
+   카드 추가 / 이동 / 복사 / 삭제
+========================================= */
+function addCard(){
+  if(state.cards.length >= 10){ toast('인스타는 한 번에 10장까지 올릴 수 있어요'); return; }
+  state.cards.splice(cur + 1, 0, { id:newId(), type:'photo', img:null, pos:50, title:'', body:'' });
+  cur++; save(); scheduleAll();
+  setTimeout(() => $('strip').scrollTo({left:9999, behavior:'smooth'}), 50);
+}
+function moveCard(d){
+  const j = cur + d;
+  if(j < 0 || j >= state.cards.length) return;
+  const a = state.cards; [a[cur], a[j]] = [a[j], a[cur]];
+  cur = j; save(); scheduleAll();
+}
+function dupCard(){
+  if(state.cards.length >= 10){ toast('인스타는 한 번에 10장까지 올릴 수 있어요'); return; }
+  state.cards.splice(cur + 1, 0, {...state.cards[cur], id:newId()});
+  cur++; save(); scheduleAll(); toast('카드를 복사했어요');
+}
+function delCard(){
+  if(state.cards.length === 1){ toast('카드는 최소 1장은 있어야 해요'); return; }
+  if(!confirm(`${cur + 1}번 카드를 지울까요?`)) return;
+  state.cards.splice(cur, 1);
+  cur = Math.min(cur, state.cards.length - 1);
+  save(); scheduleAll(); toast('카드를 지웠어요');
+}
+
+/* =========================================
+   이미지 만들기 / 저장 / 인스타 공유
+========================================= */
+async function makeFiles(){
+  await waitImages();
+  try{ await document.fonts.ready; }catch(e){}
+  const stamp = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const files = [];
+  for(let i = 0; i < state.cards.length; i++){
+    drawCard(offCtx, i);
+    const blob = await new Promise(r => off.toBlob(r, 'image/jpeg', 0.95));
+    files.push(new File([blob], `cardbox_${stamp}_${String(i + 1).padStart(2,'0')}.jpg`, {type:'image/jpeg'}));
+  }
+  return files;
+}
+
+async function downloadAll(files){
+  for(const f of files){
+    const url = URL.createObjectURL(f);
+    const a = document.createElement('a');
+    a.href = url; a.download = f.name;
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+    await new Promise(r => setTimeout(r, 500));
+  }
+}
+
+async function onSave(){
+  const btn = $('saveBtn'); btn.disabled = true; btn.textContent = '만드는 중…';
+  try{
+    const files = await makeFiles();
+    await downloadAll(files);
+    toast(`${files.length}장을 저장했어요. 갤러리 앱의 Download 폴더를 확인하세요`);
+  }catch(e){ console.error(e); toast('저장 중 문제가 생겼어요. 다시 눌러 주세요'); }
+  btn.disabled = false; btn.textContent = '갤러리에 저장';
+}
+
+async function onShare(){
+  const btn = $('shareBtn'); btn.disabled = true; btn.textContent = '준비 중…';
+  try{
+    const files = await makeFiles();
+    if(navigator.canShare && navigator.canShare({files})){
+      await navigator.share({files});
+    }else{
+      await downloadAll(files);
+      toast('이 브라우저는 바로 공유가 안 돼서 갤러리에 저장했어요. 인스타에서 사진을 골라 올려주세요');
+    }
+  }catch(e){
+    if(e && e.name !== 'AbortError'){ console.error(e); toast('공유 중 문제가 생겼어요. [갤러리에 저장]을 써 주세요'); }
+  }
+  btn.disabled = false; btn.textContent = '인스타에 올리기';
+}
+
+/* =========================================
+   알림
+========================================= */
+let toastTimer = null;
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* =========================================
+   버튼 연결
+========================================= */
+function bind(){
+  $('prev').addEventListener('click', () => select(cur - 1));
+  $('next').addEventListener('click', () => select(cur + 1));
+
+  // 미리보기 손가락으로 넘기기
+  let sx = null;
+  $('stage').addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, {passive:true});
+  $('stage').addEventListener('touchend', e => {
+    if(sx === null) return;
+    const dx = e.changedTouches[0].clientX - sx; sx = null;
+    if(Math.abs(dx) > 50) select(cur + (dx < 0 ? 1 : -1));
+  });
+
+  document.querySelectorAll('#types button').forEach(b => b.addEventListener('click', () => {
+    state.cards[cur].type = b.dataset.type; save(); scheduleAll();
+  }));
+
+  $('pick').addEventListener('click', () => $('file').click());
+  $('file').addEventListener('change', async e => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if(!f) return;
+    try{
+      toast('사진을 넣는 중…');
+      state.cards[cur].img = await shrinkPhoto(f);
+      state.cards[cur].pos = 50;
+      save(); scheduleAll(); toast('사진을 넣었어요');
+    }catch(err){ console.error(err); toast('이 사진은 열 수 없어요. 다른 사진을 골라 주세요'); }
+  });
+  $('unpick').addEventListener('click', () => { state.cards[cur].img = null; save(); scheduleAll(); });
+  $('pos').addEventListener('input', e => { state.cards[cur].pos = +e.target.value; save(); scheduleMain(); });
+
+  $('title').addEventListener('input', e => { state.cards[cur].title = e.target.value; save(); scheduleMain(); });
+  $('body').addEventListener('input', e => { state.cards[cur].body = e.target.value; save(); scheduleMain(); });
+
+  $('boldBtn').addEventListener('click', () => {
+    const ta = $('body'), s = ta.selectionStart, en = ta.selectionEnd;
+    if(s === en){ toast('먼저 굵게 할 문장을 길게 눌러 선택해 주세요'); ta.focus(); return; }
+    const v = ta.value;
+    ta.value = v.slice(0, s) + '**' + v.slice(s, en) + '**' + v.slice(en);
+    state.cards[cur].body = ta.value; save(); scheduleMain();
+    toast('굵게 만들었어요');
+  });
+
+  $('left').addEventListener('click', () => moveCard(-1));
+  $('right').addEventListener('click', () => moveCard(1));
+  $('dup').addEventListener('click', dupCard);
+  $('del').addEventListener('click', delCard);
+
+  const sw = $('swatches');
+  COLORS.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'sw'; b.dataset.c = c; b.style.background = c; b.setAttribute('aria-label', '강조색 ' + c);
+    b.addEventListener('click', () => { state.hl = c; save(); scheduleAll(); });
+    sw.append(b);
+  });
+
+  $('handle').addEventListener('input', e => { state.handle = e.target.value; save(); scheduleMain(); });
+  $('handle').addEventListener('change', () => scheduleAll());
+  $('showPage').addEventListener('change', e => { state.showPage = e.target.checked; save(); scheduleAll(); });
+
+  $('reset').addEventListener('click', () => {
+    if(!confirm('지금 만든 카드가 모두 지워져요. 새로 시작할까요?')) return;
+    state = defaultState(); cur = 0; save(); scheduleAll(); toast('새로 시작해요');
+  });
+
+  $('saveBtn').addEventListener('click', onSave);
+  $('shareBtn').addEventListener('click', onShare);
+}
+
+/* =========================================
+   시작
+========================================= */
+try{
+  state = load();
+  bind();
+  scheduleAll();
+  // 글꼴이 다 내려오면 다시 그리기
+  Promise.all([
+    document.fonts.load(`800 64px Pretendard`),
+    document.fonts.load(`500 40px Pretendard`),
+    document.fonts.load(`600 40px Pretendard`)
+  ]).then(() => scheduleAll()).catch(() => {});
+}catch(e){
+  console.error(e);
+  alert('앱을 여는 중 문제가 생겼어요. 새로고침 해 주세요.');
+}
+</script>
+</body>
+</html>
